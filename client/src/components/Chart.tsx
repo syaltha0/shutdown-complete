@@ -22,8 +22,9 @@ export function Chart({ draw, deps, label }: { draw: (el: HTMLElement, Charts: a
       ref.current.innerHTML = '';
       draw(ref.current, window.Charts);
       size = `${ref.current.clientWidth}x${ref.current.clientHeight}`;
-      if (drawn || document.documentElement.dataset.motion === 'reduce' || matchMedia('(prefers-reduced-motion: reduce)').matches) return; // bars grow in once, not again on every resize
+      if (drawn) return; // bars grow in once, not again on every resize
       drawn = true;
+      if (document.documentElement.dataset.motion === 'reduce') return;
       ref.current.querySelectorAll<SVGElement>('.chart-bar').forEach((r, i) => {
         r.classList.add('grow');
         r.style.animationDelay = `${Math.min(i * 14, 700)}ms`;

@@ -48,12 +48,17 @@ try {
 
   // today's value, typed here, lands in the day document
   const box = page.locator('.te-field input');
+  const num = (t) => parseFloat(String(t).replace(',', '.'));
+  const before = num(await page.locator('.kpi.lead .kpi-value').textContent());
+  const old = num(await box.inputValue()) || 0;
   await box.fill('2,5');
   await box.press('Enter');
   await wait(1500);
   const saved = (await doc(`day:${D}`)).metrics.deep;
   check("today's number typed here is written to the day", saved === 2.5, String(saved));
-  check('and the figures follow', (await page.locator('.kpi.lead .kpi-value').textContent()).includes('10'), await page.locator('.kpi.lead .kpi-value').textContent());
+  // the week's figure moves by what was typed (not a fixed number: the demo week depends on today's weekday)
+  const after = num(await page.locator('.kpi.lead .kpi-value').textContent());
+  check('and the figures follow', Math.abs(after - before - (2.5 - old)) < 0.05, `${before} -> ${after} (today was ${old})`);
   await page.getByRole('button', { name: 'Clear' }).click();
   await wait(1500);
   check('clearing it removes the value from the day', (await doc(`day:${D}`)).metrics.deep === undefined);
