@@ -43,6 +43,14 @@
 ::view-transition-new(root) { animation: 260ms var(--ease-out) both fade-in-up; }
 @keyframes fade-out-up { to { opacity: 0; transform: translateY(-6px); } }
 @keyframes fade-in-up { from { opacity: 0; transform: translateY(8px); } }
+/* the rail and the phone tab bar are their own layers, so only the page moves; they swap in place (the current item
+   changes without a fade or a lift) */
+.rail { view-transition-name: nav-rail; }
+.tabbar { view-transition-name: nav-tabbar; }
+::view-transition-group(nav-rail), ::view-transition-group(nav-tabbar),
+::view-transition-old(nav-rail), ::view-transition-new(nav-rail),
+::view-transition-old(nav-tabbar), ::view-transition-new(nav-tabbar) { animation: none; }
+::view-transition-old(nav-rail), ::view-transition-old(nav-tabbar) { display: none; }
 
 :root[data-motion="reduce"]::view-transition-old(root), :root[data-motion="reduce"]::view-transition-new(root) { animation: none; }
 :root[data-motion="reduce"] .now-line::after { display: none; }
