@@ -1,3 +1,4 @@
+import { CalendarPublication } from './Publication';
 import { useEffect, useState } from 'react';
 import { useAccount } from '../App';
 import { api, ApiError, type AdminState, type SessionInfo, type SignupMode, type PasswordPolicy } from '../lib/api';
@@ -77,6 +78,7 @@ export function AccountSettings() {
         </form>
       </Row>
 
+      <CalendarPublication />
       <Passkeys />
       <TwoStep />
       <Sessions />

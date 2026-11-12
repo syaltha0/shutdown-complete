@@ -116,6 +116,9 @@ export interface NextcloudLink { url: string; username: string; lastSync: string
 const post = <T>(path: string, data: unknown = {}) => request<T>(path, { method: 'POST', body: JSON.stringify(data) });
 
 export const api = {
+  calendarFeed: () => request<{ timezone: string; tasks: number } | null>('/api/account/calendar-feed'),
+  createCalendarFeed: (timezone: string, tasks: boolean) => post<{ path: string }>('/api/account/calendar-feed', { timezone, tasks }),
+  disableCalendarFeed: () => request('/api/account/calendar-feed', { method: 'DELETE' }),
   // documents
   get: <T>(key: string) => request<Doc<T>>(`/api/doc/${encodeURIComponent(key)}`),
   put: <T>(key: string, value: T, version: number, keepalive = false) =>

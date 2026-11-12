@@ -1,3 +1,4 @@
+import { ExportDownloads } from './Publication';
 import { useRef, useState } from 'react';
 import { useSettings } from '../App';
 import { IconCalendar, IconPlus, IconX } from '../components/Icons';
@@ -425,6 +426,7 @@ export function SettingsScreen() {
           <div className="set-panel">
             <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
               <a className="btn" href="/api/export" download>{T.download}</a>
+              <ExportDownloads />
               <button type="button" className="btn" onClick={() => file.current?.click()}>{T.importBackup}</button>
               <input ref={file} type="file" accept="application/json,.json" hidden onChange={(e) => { const f = e.target.files?.[0]; if (f) doImport(f); e.target.value = ''; }} />
             </div>

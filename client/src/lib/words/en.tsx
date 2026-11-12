@@ -4,6 +4,29 @@ import type { ReactNode } from 'react';
 const s = (n: number, one: string, many: string) => (n === 1 ? one : many);
 
 export const en = {
+  publication: {
+    title: 'Calendar subscription',
+    about: 'Read-only active plans: 7 days back and 30 days ahead. Keep the address private; it is shown only once. Renewing invalidates the previous address.',
+    create: 'Create address',
+    renew: 'Renew address',
+    disable: 'Disable subscription',
+    tasks: 'Include dated tasks',
+    zone: 'Time zone',
+    markdown: 'Download Markdown',
+    blocks: 'Download blocks CSV',
+    metrics: 'Download metrics CSV',
+    error: 'Could not complete the request.',
+    date: 'Date',
+    start: 'Start',
+    end: 'End',
+    kind: 'Type',
+    label: 'Title',
+    subject: 'Subject',
+    name: 'Name',
+    value: 'Value',
+    notes: 'Notes',
+    goals: 'Goals'
+  },
   locale: 'en-GB',
   featuresTitle: 'Features',
   stepsChip: (d: number, n: number) => `${d} of ${n} ${s(n, 'step', 'steps')} done`, stepsOf: (t: string) => `Steps of ${t}`,

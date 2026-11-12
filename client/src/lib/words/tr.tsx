@@ -2,6 +2,29 @@
 import type { Words } from './en';
 
 export const tr: Words = {
+  publication: {
+    title: 'Takvim aboneliği',
+    about: 'Son 7 gün ve gelecek 30 günün aktif planları, salt okunur. Adresi gizli tutun; yalnızca bir kez gösterilir. Yenilemek önceki adresi geçersiz kılar.',
+    create: 'Adres oluştur',
+    renew: 'Adresi yenile',
+    disable: 'Aboneliği kapat',
+    tasks: 'Tarihli görevleri ekle',
+    zone: 'Saat dilimi',
+    markdown: 'Markdown indir',
+    blocks: 'Blokları CSV olarak indir',
+    metrics: 'Metrikleri CSV olarak indir',
+    error: 'İşlem tamamlanamadı.',
+    date: 'Tarih',
+    start: 'Başlangıç',
+    end: 'Bitiş',
+    kind: 'Tür',
+    label: 'Başlık',
+    subject: 'Konu',
+    name: 'Ad',
+    value: 'Değer',
+    notes: 'Notlar',
+    goals: 'Hedefler'
+  },
   locale: 'tr-TR',
   featuresTitle: 'Özellikler',
   stepsChip: (d, n) => `${n} adımın ${d} tanesi bitti`, stepsOf: (t) => `${t} adımları`,

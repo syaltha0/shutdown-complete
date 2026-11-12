@@ -100,7 +100,7 @@ export function parseTodo(ics) {
 }
 
 // ---------- writing ----------
-const esc = (v) => String(v).replace(/\\/g, '\\\\').replace(/;/g, '\\;').replace(/,/g, '\\,').replace(/\r?\n/g, '\\n');
+const esc = (v) => String(v).replace(/\\/g, '\\\\').replace(/;/g, '\\;').replace(/,/g, '\\,').replace(/\r\n|\r|\n/g, '\\n');
 const dateVal = (d) => d.replace(/-/g, '');
 const stamp = (iso) => iso.replace(/[-:]/g, '').replace(/\.\d+/, '').replace(/Z?$/, 'Z');
 /** Lines longer than 75 octets folded, as RFC 5545 asks. */
@@ -226,3 +226,5 @@ export function removeUid(doc, uid) {
 /** A tag of the list's whole state, for clients that ask whether anything changed. */
 export const ctagOf = (res) => `"${hash([...res.values()].map((r) => r.etag).sort().join(','))}"`;
 export { hash };
+
+export { esc as icsEscape, fold as icsFold };

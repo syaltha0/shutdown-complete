@@ -217,3 +217,17 @@ Shutdown Complete is free software under the **GNU Affero General Public License
 You may use, study, change and share it. If you run a modified version for other people over a network, you must
 offer them its source code; set `SOURCE_URL` to where your version lives.
 Third-party code and fonts are listed in [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).
+
+
+### Calendar subscription and readable exports
+
+Settings > Account > Calendar subscription creates a private, read-only ICS address for calendar apps.
+Copy it when shown: only its SHA-256 hash is stored. Renewing the address immediately revokes the old one;
+disable the subscription to revoke access entirely. Anyone with the address can read the feed, so keep it private.
+Select your account time zone and optionally include dated tasks, then create or renew the address to save those options.
+The feed contains active-column blocks from seven days ago through thirty days ahead, and optionally top-level dated tasks as all-day events.
+Block times are converted from the selected zone to UTC, including daylight saving changes.
+
+Settings > Your data also downloads Markdown (daily blocks, tasks, notes, metrics and weekly/monthly/quarterly goals),
+blocks CSV, and metrics CSV. These are generated in your browser; JSON remains the full backup/import format.
+CSV fields are quoted, use UTF-8 with a BOM, and spreadsheet formula prefixes are neutralised.
