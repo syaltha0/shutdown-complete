@@ -1,14 +1,12 @@
 import { useEffect, useRef, useState } from 'react';
 import { useSettings } from '../App';
 import { api, ApiError } from '../lib/api';
-import { duration, today } from '../lib/dates';
-import { settingsFocus, startFocus } from '../lib/focus';
+import { duration } from '../lib/dates';
+import { settingsFocus, startFocus, useFocusDay } from '../lib/focus';
 import { useT } from '../lib/i18n';
-import { emptyDay, type DayDoc } from '../lib/model';
 import { showNotification } from '../lib/pwa';
 import { navigate, usePath } from '../lib/router';
 import { refreshSocial, useSocial, type RoomInfo } from '../lib/social';
-import { useDoc } from '../lib/useDoc';
 import { IconX } from './Icons';
 
 const minutesLeft = (r: { startsAt: string; minutes: number }) => Math.max(0, Math.ceil((Date.parse(r.startsAt) + r.minutes * 60_000 - Date.now()) / 60_000));
@@ -28,8 +26,7 @@ export function FriendsPanel() {
   const T = useT();
   const S = useSocial(true);
   const { settings } = useSettings();
-  const { value: day } = useDoc<DayDoc>(`day:${today()}`, emptyDay);
-  const running = !!day?.focus?.active;
+  const running = !!useFocusDay().active;
   const [email, setEmail] = useState('');
   const [note, setNote] = useState<string | null>(null);
   const [picking, setPicking] = useState(false);
@@ -139,7 +136,7 @@ export function FriendsWatcher() {
   const T = useT();
   const S = useSocial(false);
   const path = usePath();
-  const { value: day } = useDoc<DayDoc>(`day:${today()}`, emptyDay);
+  const focusing = !!useFocusDay().active;
   const seen = useRef(new Set<string>());
   const [gone, setGone] = useState<string[]>([]);
   const invite = S?.invites.find((r) => !gone.includes(r.id)) ?? null;
@@ -150,7 +147,7 @@ export function FriendsWatcher() {
       showNotification(T.roomInvite(r.host, r.minutes), T.roomLeft(duration(minutesLeft(r))), '/focus', 'room');
     }
   }, [S?.invites]); // eslint-disable-line react-hooks/exhaustive-deps
-  if (!invite || path.startsWith('/focus') || day?.focus?.active) return null;
+  if (!invite || path.startsWith('/focus') || focusing) return null;
   return (
     <div className="friend-note" role="status">
       <span>{T.roomInvite(invite.host, invite.minutes)}</span>

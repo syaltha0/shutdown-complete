@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { useSettings } from '../App';
 import { AMBIENTS, ambientPlaying, ambientPref, onAmbient, playAmbient, setAmbientVolume, type Ambient } from '../lib/ambient';
 import { today } from '../lib/dates';
-import { cancelFocus, chime, extendFocus, finishPhase, mmss, pauseFocus, resumeFocus, secondsLeft, settingsFocus, startFocus } from '../lib/focus';
+import { cancelFocus, chime, extendFocus, finishPhase, MAX_PLANNED, mmss, pauseFocus, resumeFocus, secondsLeft, settingsFocus, startFocus, useFocusDay } from '../lib/focus';
 import { useT } from '../lib/i18n';
 import { emptyDay, uid, type DayDoc } from '../lib/model';
 import { useDoc } from '../lib/useDoc';
@@ -20,7 +20,7 @@ export function FocusRoom({ start, onClose }: { start: { blockId: string | null;
   const { settings } = useSettings();
   const f = settingsFocus(settings);
   const { value: day, update } = useDoc<DayDoc>(`day:${today()}`, emptyDay);
-  const a = day?.focus?.active ?? null;
+  const { active: a, key } = useFocusDay();
   useTick(!!a && a.pausedLeft == null);
   const [sound, setSound] = useState<Ambient | null>(ambientPlaying() ?? ambientPref().sound);
   const [volume, setVolume] = useState(ambientPref().volume);
@@ -43,15 +43,15 @@ export function FocusRoom({ start, onClose }: { start: { blockId: string | null;
   }, []);
 
   useEffect(() => {
-    const key = (e: KeyboardEvent) => {
+    const onKey = (e: KeyboardEvent) => {
       if (e.key === 'Escape') { e.preventDefault(); leave(); }
       if (e.key === ' ' && !(e.target instanceof HTMLTextAreaElement) && !(e.target instanceof HTMLSelectElement) && !(e.target instanceof HTMLInputElement) && !(e.target instanceof HTMLButtonElement) && a) {
         e.preventDefault();
-        if (a.pausedLeft == null) pauseFocus(); else resumeFocus();
+        if (a.pausedLeft == null) pauseFocus(key); else resumeFocus(key);
       }
     };
-    window.addEventListener('keydown', key);
-    return () => window.removeEventListener('keydown', key);
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
   });
 
   function leave() {
@@ -67,7 +67,8 @@ export function FocusRoom({ start, onClose }: { start: { blockId: string | null;
     playAmbient(s, volume);
   }
   async function finish() {
-    const r = await finishPhase(settings, true);
+    if (!a) return;
+    const r = await finishPhase(settings, true, { key, startedAt: a.startedAt });
     if (r !== 'none' && f.sound) chime();
   }
 
@@ -75,7 +76,7 @@ export function FocusRoom({ start, onClose }: { start: { blockId: string | null;
     const ref = {...task, day: true};
     setPickedTask(ref);
     if (a && a.task?.id !== task.id) {
-      await finishPhase(settings, true);
+      await finishPhase(settings, true, { key, startedAt: a.startedAt });
       await startFocus({blockId: a.blockId, label: task.text, minutes: Math.max(1, Math.ceil(secondsLeft(a) / 60)), task: ref});
     }
   }
@@ -104,13 +105,13 @@ export function FocusRoom({ start, onClose }: { start: { blockId: string | null;
           {!a ? <button type="button" className="btn primary big" onClick={begin}>{T.startFocus}</button> : (
             <>
               {a.pausedLeft == null
-                ? <button type="button" className="btn" onClick={() => pauseFocus()}>{T.pause}</button>
-                : <button type="button" className="btn primary" onClick={() => resumeFocus()}>{T.resume}</button>}
-              <button type="button" className="btn num" onClick={() => extendFocus(5)}>{T.plusFive}</button>
+                ? <button type="button" className="btn" onClick={() => pauseFocus(key)}>{T.pause}</button>
+                : <button type="button" className="btn primary" onClick={() => resumeFocus(key)}>{T.resume}</button>}
+              <button type="button" className="btn num" disabled={a.plannedMin >= MAX_PLANNED} onClick={() => extendFocus(5, key)}>{T.plusFive}</button>
               {a.phase === 'focus'
                 ? <button type="button" className="btn" onClick={finish}>{T.finishNow}</button>
                 : <button type="button" className="btn primary" onClick={finish}>{T.skipBreak}</button>}
-              <button type="button" className="btn ghost" onClick={() => cancelFocus()}>{T.stop}</button>
+              <button type="button" className="btn ghost" onClick={() => cancelFocus(key)}>{T.stop}</button>
             </>
           )}
         </div>

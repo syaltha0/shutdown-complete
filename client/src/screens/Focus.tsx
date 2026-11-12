@@ -1,4 +1,4 @@
-import { useLayoutEffect, useRef, useState } from 'react';
+import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { Segmented } from '../components/Segmented';
 import { useSettings } from '../App';
 import { DocNotice, SaveStamp } from '../components/Common';
@@ -6,10 +6,11 @@ import { Ring, useTick } from '../components/FocusTimer';
 import { addDays, clock, duration, nowMinutes, shortDate, today } from '../lib/dates';
 import { Chart, themeColor } from '../components/Chart';
 import {
-  cancelFocus, chime, extendFocus, finishPhase, focusMinutes, mmss, noteSession, pauseFocus, resumeFocus, secondsLeft, settingsFocus, startFocus,
+  cancelFocus, chime, extendFocus, finishPhase, focusMinutes, INTENT_MAX, MAX_PLANNED, mmss, NOTE_MAX, noteSession, pauseFocus, resumeFocus, secondsLeft,
+  settingsFocus, startFocus, useFocusDay,
 } from '../lib/focus';
 import { useT } from '../lib/i18n';
-import { activeColumn, emptyDay, emptyInbox, type DayDoc, type InboxDoc, featureOn } from '../lib/model';
+import { activeColumn, emptyInbox, type DayDoc, type InboxDoc, featureOn } from '../lib/model';
 import { inView, sortTasks } from '../lib/tasks';
 import { onLinkClick } from '../lib/router';
 import { useDoc, useRange } from '../lib/useDoc';
@@ -23,8 +24,8 @@ export function Focus() {
   const T = useT();
   const { settings } = useSettings();
   const f = settingsFocus(settings);
-  const { value: day, status, error, retry } = useDoc<DayDoc>(`day:${today()}`, emptyDay);
-  const a = day?.focus?.active ?? null;
+  // today's document; the timer may still live in yesterday's (a session begun before midnight)
+  const { value: day, status, error, retry, active: a, key, holder } = useFocusDay();
   useTick(!!a && a.pausedLeft == null);
   const blocks = day ? activeColumn(day).blocks : [];
   const now = nowMinutes();
@@ -67,7 +68,13 @@ export function Focus() {
   const minutes = custom ? clampLen(parseInt(customText, 10) || f.focusMin) : len ?? f.focusMin, breakMin = brk ?? f.shortMin;
   const begin = { blockId: chosen, label: task?.text || chosenBlock?.label || T.freeFocus, minutes, task: taskRef, intent, breakMin };
   // the note belongs to the session a break follows
-  const lastSession = a && a.phase !== 'focus' ? sessions.find((x) => x.id === a.sessionId) ?? null : null;
+  const lastSession = a && a.phase !== 'focus' ? (holder?.focus?.sessions ?? []).find((x) => x.id === a.sessionId) ?? null : null;
+  // a note being typed is kept even when the break ends (or is skipped) before the field loses focus
+  const noteRef = useRef(noteDraft);
+  noteRef.current = noteDraft;
+  const saveNote = () => { const n = noteRef.current; if (n) { noteSession(n.id, n.text, key); setNoteDraft(null); } };
+  useEffect(() => () => { const n = noteRef.current; if (n) noteSession(n.id, n.text, key); }, [key]);
+  useEffect(() => { if (!lastSession && noteRef.current) saveNote(); }, [lastSession?.id]); // eslint-disable-line react-hooks/exhaustive-deps
   const cycleNo = ((sessions.length % f.longEvery) + (a?.phase === 'focus' ? 1 : 0)) || f.longEvery;
 
   // Today's sessions shows about five rows and scrolls inside, so a long day does not push the cards below
@@ -87,7 +94,9 @@ export function Focus() {
   }, [sessions]);
 
   async function finish() {
-    const r = await finishPhase(settings, true);
+    if (!a) return;
+    if (a.phase !== 'focus') saveNote();
+    const r = await finishPhase(settings, true, { key, startedAt: a.startedAt });
     if (r !== 'none' && f.sound) chime();
   }
 
@@ -135,7 +144,7 @@ export function Focus() {
                 </div>
                 <div className="field">
                   <label htmlFor="fc-intent">{T.intentLabel}</label>
-                  <input id="fc-intent" className="input" value={intent} maxLength={140} placeholder={T.intentPh} onChange={(e) => setIntent(e.target.value)} />
+                  <input id="fc-intent" className="input" value={intent} maxLength={INTENT_MAX} placeholder={T.intentPh} onChange={(e) => setIntent(e.target.value)} />
                 </div>
                 <div className="focus-pair">
                 <div className="field">
@@ -164,19 +173,19 @@ export function Focus() {
                 <p className="muted num focus-cycle">{a.phase === 'focus' ? T.sessionN(cycleNo, f.longEvery) : T.nextLong(untilLong)}</p>
                 <div className="focus-controls">
                   {a.pausedLeft == null
-                    ? <button type="button" className="btn primary" onClick={() => pauseFocus()}>{T.pause}</button>
-                    : <button type="button" className="btn primary" onClick={() => resumeFocus()}>{T.resume}</button>}
-                  <button type="button" className="btn ghost num" onClick={() => extendFocus(5)}>{T.plusFive}</button>
+                    ? <button type="button" className="btn primary" onClick={() => pauseFocus(key)}>{T.pause}</button>
+                    : <button type="button" className="btn primary" onClick={() => resumeFocus(key)}>{T.resume}</button>}
+                  <button type="button" className="btn ghost num" disabled={a.plannedMin >= MAX_PLANNED} onClick={() => extendFocus(5, key)}>{T.plusFive}</button>
                   <button type="button" className="btn ghost" onClick={finish}>{a.phase === 'focus' ? T.finishNow : T.skipBreak}</button>
-                  <button type="button" className="btn ghost" onClick={() => cancelFocus()}>{T.stop}</button>
+                  <button type="button" className="btn ghost" onClick={() => { saveNote(); cancelFocus(key); }}>{T.stop}</button>
                 </div>
                 {lastSession && (
                   <div className="field focus-note-field">
                     <label htmlFor="fc-note">{T.noteLabel}</label>
-                    <input id="fc-note" className="input" maxLength={280} placeholder={T.sessionNotePh}
+                    <input id="fc-note" className="input" maxLength={NOTE_MAX} placeholder={T.sessionNotePh}
                       value={noteDraft?.id === lastSession.id ? noteDraft.text : lastSession.note ?? ''}
                       onChange={(e) => setNoteDraft({ id: lastSession.id, text: e.target.value })}
-                      onBlur={() => { if (noteDraft?.id === lastSession.id) { noteSession(lastSession.id, noteDraft.text); setNoteDraft(null); } }}
+                      onBlur={saveNote}
                       onKeyDown={(e) => { if (e.key === 'Enter') e.currentTarget.blur(); }} />
                   </div>
                 )}
