@@ -35,11 +35,10 @@ try {
   await p.getByLabel('Custom length in minutes').blur();
   check('a custom length of 40 shows', (await ring()) === '40:00');
   await p.locator('#fc-brk-l + .segmented').getByRole('button', { name: '10 min', exact: true }).click();
-  await p.getByLabel('Intent').fill('Draft the second section');
 
   await p.getByRole('button', { name: 'Start focus', exact: true }).click();
   const a1 = await until(async () => (await doc()).focus?.active);
-  check('start writes the length, break and intent', a1 && a1.plannedMin === 40 && a1.breakMin === 10 && a1.intent === 'Draft the second section');
+  check('start writes the length and break', a1 && a1.plannedMin === 40 && a1.breakMin === 10);
   check('the setup gives way to the controls', await p.locator('.focus-setup').count() === 0 && await p.getByRole('button', { name: 'Pause', exact: true }).isVisible());
 
   await p.getByRole('button', { name: 'Pause', exact: true }).click();
@@ -59,7 +58,7 @@ try {
   await p.reload();
   await p.getByRole('button', { name: 'Finish now', exact: true }).click();
   const a3 = await until(async () => { const x = await doc(); return x.focus?.active?.phase === 'short' ? x : null; });
-  check('finishing logs a session with its intent', a3 && a3.focus.sessions.length === 1 && a3.focus.sessions[0].intent === 'Draft the second section' && a3.focus.sessions[0].minutes >= 9);
+  check('finishing logs a session', a3 && a3.focus.sessions.length === 1 && a3.focus.sessions[0].minutes >= 9);
   check('the break has the chosen length', a3.focus.active.plannedMin === 10 && a3.focus.active.sessionId === a3.focus.sessions[0].id);
 
   const note = p.getByLabel('A note on the session');
@@ -69,7 +68,7 @@ try {
   check('the note is saved on the session', a4 === 'Got through the outline; the data table is next.');
   await p.locator('.session .more').waitFor();
   const shown = await p.locator('.session .more').innerText();
-  check("Today's sessions shows the intent and note", shown.includes('Draft the second section') && shown.includes('data table'));
+  check("Today's sessions shows the note", shown.includes('data table'));
 
   await p.getByRole('button', { name: 'Skip the break', exact: true }).click();
   check('skipping the break ends it', !!(await until(async () => (await doc()).focus.active === null)));
@@ -189,10 +188,10 @@ try {
   await p.getByRole('button', { name: /^Discard \d+ min\?$/ }).click();
   check('and the second press discards', !!(await until(async () => (await doc()).focus.active === null)));
 
-  // Enter in the intent starts the session; on a break the filled button is the way back to work
-  await p.getByLabel('Intent').fill('Enter starts it');
-  await p.getByLabel('Intent').press('Enter');
-  check('Enter in the setup starts focus', !!(await until(async () => (await doc()).focus.active?.intent === 'Enter starts it')));
+  // the setup has no task or intent fields (user: not needed); start, then on a break the filled button is the way back to work
+  check('no task or intent field in the setup', await p.locator('#fc-task, #fc-intent').count() === 0);
+  await p.getByRole('button', { name: 'Start focus', exact: true }).click();
+  check('Start focus starts it', !!(await until(async () => (await doc()).focus.active?.phase === 'focus')));
   await btn('Finish now').waitFor();
   await setActive('day:' + D, run(25, 3, { phase: 'short', plannedMin: 5 }), []);
   await p.reload();

@@ -6,14 +6,13 @@ import { Ring, useTick } from '../components/FocusTimer';
 import { addDays, clock, duration, nowMinutes, shortDate, today } from '../lib/dates';
 import { Chart, themeColor } from '../components/Chart';
 import {
-  cancelFocus, chime, extendFocus, finishPhase, focusMinutes, INTENT_MAX, MAX_PLANNED, mmss, NOTE_MAX, noteSession, pauseFocus, resumeFocus, secondsLeft,
+  cancelFocus, chime, extendFocus, finishPhase, focusMinutes, MAX_PLANNED, mmss, NOTE_MAX, noteSession, pauseFocus, resumeFocus, secondsLeft,
   settingsFocus, startFocus, useFocusDay,
 } from '../lib/focus';
 import { useT } from '../lib/i18n';
-import { activeColumn, emptyInbox, type DayDoc, type InboxDoc, featureOn } from '../lib/model';
-import { inView, sortTasks } from '../lib/tasks';
+import { activeColumn, type DayDoc, featureOn } from '../lib/model';
 import { onLinkClick } from '../lib/router';
-import { useDoc, useRange } from '../lib/useDoc';
+import { useRange } from '../lib/useDoc';
 import { kindSwatch } from './TimeGrid';
 import { FocusRoom } from '../components/FocusRoom';
 import { FriendsPanel } from '../components/Friends';
@@ -37,16 +36,7 @@ export function Focus() {
   const [custom, setCustom] = useState(false);
   const [customText, setCustomText] = useState('');
   const [brk, setBrk] = useState<number | null>(null);
-  const [intent, setIntent] = useState('');
   const [noteDraft, setNoteDraft] = useState<{ id: string; text: string } | null>(null);
-  // the task to work on: today's open tasks, then the lists' (due or started by today, or starred, first)
-  const { value: lists } = useDoc<InboxDoc>('inbox', emptyInbox);
-  const dayTasks = (day?.tasks ?? []).filter((t) => !t.done && t.text.trim());
-  const listTasks = sortTasks((lists?.items ?? []).filter((t) => !t.done), 'due').sort((x, y) => Number(inView(y, 'today') || y.priority === 1) - Number(inView(x, 'today') || x.priority === 1)).slice(0, 40);
-  const [taskKey, setTaskKey] = useState(() => { try { return sessionStorage.getItem('sc-focus-task') ?? ''; } catch { return ''; } });
-  const chooseTask = (k: string) => { setTaskKey(k); try { sessionStorage.setItem('sc-focus-task', k); } catch { /* private window */ } };
-  const task = taskKey.startsWith('d:') ? dayTasks.find((t) => t.id === taskKey.slice(2)) : taskKey.startsWith('l:') ? listTasks.find((t) => t.id === taskKey.slice(2)) : undefined;
-  const taskRef = task ? { id: task.id, text: task.text, ...(taskKey.startsWith('d:') ? { day: true } : {}) } : undefined;
   const [room, setRoom] = useState(false);
   const openRoom = () => { try { document.documentElement.requestFullscreen?.().catch(() => {}); } catch { /* not allowed here */ } setRoom(true); };
   const chosen = blockId === undefined ? current?.id ?? null : blockId;
@@ -66,7 +56,7 @@ export function Focus() {
   const breaks = [...new Set([5, 10, 15, f.shortMin])].sort((x, y) => x - y);
   const clampLen = (n: number) => Math.min(120, Math.max(5, Math.round(n)));
   const minutes = custom ? clampLen(parseInt(customText, 10) || f.focusMin) : len ?? f.focusMin, breakMin = brk ?? f.shortMin;
-  const begin = { blockId: chosen, label: task?.text || chosenBlock?.label || T.freeFocus, minutes, task: taskRef, intent, breakMin };
+  const begin = { blockId: chosen, label: chosenBlock?.label || T.freeFocus, minutes, breakMin };
   // the note belongs to the session a break follows
   const lastSession = a && a.phase !== 'focus' ? (holder?.focus?.sessions ?? []).find((x) => x.id === a.sessionId) ?? null : null;
   // a note being typed is kept even when the break ends (or is skipped) before the field loses focus
@@ -146,18 +136,6 @@ export function Focus() {
                     <option value="">{T.freeFocus}</option>
                     {blocks.map((b) => <option key={b.id} value={b.id}>{clock(b.start)}–{clock(b.end)} · {b.label || T.untitledBlock}</option>)}
                   </select>
-                </div>
-                <div className="field">
-                  <label htmlFor="fc-task">{T.focusTask}</label>
-                  <select id="fc-task" className="input" value={task ? taskKey : ''} onChange={(e) => chooseTask(e.target.value)}>
-                    <option value="">{T.focusNoTask}</option>
-                    {dayTasks.length > 0 && <optgroup label={T.tasks}>{dayTasks.map((t) => <option key={t.id} value={`d:${t.id}`}>{t.text}{t.spent ? ` · ${duration(t.spent)}` : ''}</option>)}</optgroup>}
-                    {listTasks.length > 0 && <optgroup label={T.tkTitle}>{listTasks.map((t) => <option key={t.id} value={`l:${t.id}`}>{t.text}{t.spent ? ` · ${duration(t.spent)}` : ''}</option>)}</optgroup>}
-                  </select>
-                </div>
-                <div className="field">
-                  <label htmlFor="fc-intent">{T.intentLabel}</label>
-                  <input id="fc-intent" className="input" value={intent} maxLength={INTENT_MAX} placeholder={T.intentPh} onChange={(e) => setIntent(e.target.value)} />
                 </div>
                 <div className="focus-pair">
                 <div className="field">
