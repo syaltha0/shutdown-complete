@@ -59,7 +59,9 @@
 .hweek-name { display: flex; justify-content: space-between; margin-bottom: 8px; font-size: 15px; }
 
 /* focus */
-.focus-panel { display: flex; align-items: center; justify-content: center; min-height: 460px; }
+.grid.top.focus-grid { align-items: stretch; }
+.focus-panel { position: relative; display: flex; align-items: center; justify-content: center; min-height: 460px; }
+.focus-room-btn { position: absolute; top: 16px; right: 16px; }
 .focus-stage { display: grid; justify-items: center; gap: 24px; width: 100%; }
 .focus-ring { position: relative; width: 248px; height: 248px; }
 .focus-ring svg { display: block; }
@@ -69,9 +71,21 @@
 .focus-label { max-width: 180px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .ring-fill { stroke: var(--hue); transition: stroke-dashoffset 1s linear, stroke 400ms ease; }
 .ring.phase-short .ring-fill, .ring.phase-long .ring-fill { stroke: var(--positive); }
-.focus-setup { display: grid; grid-template-columns: minmax(0, 1fr) 120px; gap: 12px; width: min(520px, 100%); align-items: end; }
-.focus-setup .btn.big { grid-column: 1 / -1; height: 44px; font-size: 15px; }
-.focus-controls { display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; }
+.focus-setup { display: grid; gap: 16px; width: min(520px, 100%); }
+.focus-setup .field { gap: 6px; }
+.focus-setup .field > label, .focus-setup .field > .label { font-size: 13px; font-weight: 500; }
+.focus-setup .segmented { display: flex; width: 100%; }
+.focus-setup .segmented button { flex: 1; padding: 0 6px; }
+.focus-setup .focus-custom { width: 100%; }
+.focus-pair { display: grid; grid-template-columns: minmax(0, 5fr) minmax(0, 3fr); gap: 16px; }
+.focus-pair .segmented button { padding: 0 2px; font-size: 13px; }
+.focus-setup .btn.big { height: 44px; font-size: 15px; }
+.focus-run { display: grid; justify-items: center; gap: 16px; width: min(420px, 100%); text-align: center; }
+.focus-intent { font-size: 16px; line-height: 24px; overflow-wrap: anywhere; }
+.focus-cycle { font-size: 13px; }
+.focus-controls { display: flex; gap: 4px 8px; flex-wrap: wrap; justify-content: center; }
+.focus-note-field { width: 100%; text-align: left; gap: 6px; }
+.focus-note-field label { font-size: 13px; font-weight: 500; }
 .focus-note { font-size: 13px; text-align: center; }
 .sessions { display: grid; }
 .session { display: grid; grid-template-columns: 14px 104px minmax(0, 1fr) 72px; gap: 10px; align-items: center; min-height: 44px; border-bottom: 1px solid var(--rule); }
@@ -79,6 +93,9 @@
 .session .t { color: var(--muted); font-size: 13px; }
 .session .l { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .session .n { text-align: right; }
+.session .more { grid-column: 3 / -1; margin-top: -8px; padding-bottom: 8px; color: var(--muted); font-size: 13px; overflow-wrap: anywhere; }
+.session:has(.more) { align-items: start; padding-top: 12px; }
+.session:has(.more) > i { margin-top: 6px; }
 .session.total { border-bottom: 0; font-weight: 500; }
 .btn.focus-start .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--hue); }
 
@@ -137,5 +154,9 @@
   .cal-day .dv, .cal-day .rem { display: none; }
   .cal-row { grid-template-columns: 28px repeat(7, minmax(0, 1fr)); }
   .cal-day .shut { top: 6px; right: 4px; width: 7px; height: 7px; }
-  .focus-setup { grid-template-columns: minmax(0, 1fr); }
+  .focus-room-btn { top: 12px; right: 12px; }
+  .focus-title { position: relative; }
+  .focus-title .title-actions { position: absolute; top: 5px; right: 0; }
+  .focus-title > div:first-child { padding-right: 64px; }
+  .focus-pair { grid-template-columns: minmax(0, 1fr); }
 }

@@ -1,11 +1,12 @@
 import { useState } from 'react';
+import { Segmented } from '../components/Segmented';
 import { useSettings } from '../App';
 import { DocNotice, SaveStamp } from '../components/Common';
 import { Ring, useTick } from '../components/FocusTimer';
 import { addDays, clock, duration, nowMinutes, shortDate, today } from '../lib/dates';
 import { Chart, themeColor } from '../components/Chart';
 import {
-  cancelFocus, chime, finishPhase, focusMinutes, mmss, pauseFocus, resumeFocus, secondsLeft, settingsFocus, startFocus,
+  cancelFocus, chime, extendFocus, finishPhase, focusMinutes, mmss, noteSession, pauseFocus, resumeFocus, secondsLeft, settingsFocus, startFocus,
 } from '../lib/focus';
 import { useT } from '../lib/i18n';
 import { activeColumn, emptyDay, emptyInbox, type DayDoc, type InboxDoc, featureOn } from '../lib/model';
@@ -30,6 +31,11 @@ export function Focus() {
   const current = running ?? blocks.find((b) => b.start > now && b.kind === 'deep') ?? blocks.find((b) => b.start > now && b.kind !== 'personal') ?? null;
   const [blockId, setBlockId] = useState<string | null | undefined>(undefined);
   const [len, setLen] = useState<number | null>(null);
+  const [custom, setCustom] = useState(false);
+  const [customText, setCustomText] = useState('');
+  const [brk, setBrk] = useState<number | null>(null);
+  const [intent, setIntent] = useState('');
+  const [noteDraft, setNoteDraft] = useState<{ id: string; text: string } | null>(null);
   // the task to work on: today's open tasks, then the lists' (due or started by today, or starred, first)
   const { value: lists } = useDoc<InboxDoc>('inbox', emptyInbox);
   const dayTasks = (day?.tasks ?? []).filter((t) => !t.done && t.text.trim());
@@ -52,7 +58,15 @@ export function Focus() {
   const workBlocks = blocks.filter((b) => b.kind !== 'personal');
   // a revision gives a block a new id, so a session also counts for a block of the same name
   const byBlock = (b: { id: string; label: string }) => sessions.filter((x) => x.blockId === b.id || (!!b.label && x.label === b.label)).reduce((n, x) => n + x.minutes, 0);
-  const lengths = [...new Set([15, 25, 30, 45, 50, 60, 90, f.focusMin])].sort((x, y) => x - y);
+  const focused = workBlocks.filter((b) => byBlock(b) > 0);
+  const lengths = [...new Set([15, 25, 45, 60, f.focusMin])].sort((x, y) => x - y);
+  const breaks = [...new Set([5, 10, 15, f.shortMin])].sort((x, y) => x - y);
+  const clampLen = (n: number) => Math.min(120, Math.max(5, Math.round(n)));
+  const minutes = custom ? clampLen(parseInt(customText, 10) || f.focusMin) : len ?? f.focusMin, breakMin = brk ?? f.shortMin;
+  const begin = { blockId: chosen, label: task?.text || chosenBlock?.label || T.freeFocus, minutes, task: taskRef, intent, breakMin };
+  // the note belongs to the session a break follows
+  const lastSession = a && a.phase !== 'focus' ? sessions.find((x) => x.id === a.sessionId) ?? null : null;
+  const cycleNo = ((sessions.length % f.longEvery) + (a?.phase === 'focus' ? 1 : 0)) || f.longEvery;
 
   async function finish() {
     const r = await finishPhase(settings, true);
@@ -61,7 +75,7 @@ export function Focus() {
 
   return (
     <>
-      <div className="title-row">
+      <div className="title-row focus-title">
         <div>
           <h1>{T.focusTitle}</h1>
           <p className="sub num">{day ? <>{T.focusSummary(sessions.length, duration(total))} · {T.nextLong(untilLong)}</> : ' '}</p>
@@ -73,12 +87,13 @@ export function Focus() {
       <div className="grid top focus-grid">
         <section className={`panel span-7 focus-panel${a ? ` phase-${a.phase}` : ''}`} aria-labelledby="fp-h" data-anim>
           <h2 id="fp-h" className="sr-only">{T.focusRunning}</h2>
+          <button type="button" className="btn sm focus-room-btn" onClick={openRoom}>{T.roomOpen}</button>
           <div className="focus-stage">
             <div className="focus-ring">
               {a ? <Ring a={a} size={248} stroke={10} /> : <svg width={248} height={248} viewBox="0 0 248 248" aria-hidden="true"><circle cx={124} cy={124} r={119} fill="none" stroke="var(--raised)" strokeWidth={10} /></svg>}
               <div className="focus-read">
                 <span className="phase-name">{a ? T.phase[a.phase] : T.phase.focus}</span>
-                <b className="num" aria-live="off">{a ? mmss(secondsLeft(a)) : mmss((len ?? f.focusMin) * 60)}</b>
+                <b className="num" aria-live="off">{a ? mmss(secondsLeft(a)) : mmss(minutes * 60)}</b>
                 <span className="muted focus-label">{a ? (a.label || T.freeFocus) : chosenBlock ? chosenBlock.label || T.untitledBlock : T.freeFocus}</span>
               </div>
             </div>
@@ -101,39 +116,59 @@ export function Focus() {
                   </select>
                 </div>
                 <div className="field">
-                  <label htmlFor="fc-len">{T.lengthLabel}</label>
-                  <select id="fc-len" className="input num" value={len ?? f.focusMin} onChange={(e) => setLen(Number(e.target.value))}>
-                    {lengths.map((m) => <option key={m} value={m}>{T.minShort(m)}</option>)}
-                  </select>
+                  <label htmlFor="fc-intent">{T.intentLabel}</label>
+                  <input id="fc-intent" className="input" value={intent} maxLength={140} placeholder={T.intentPh} onChange={(e) => setIntent(e.target.value)} />
                 </div>
-                <button type="button" className="btn primary big" disabled={!day}
-                  onClick={() => startFocus({ blockId: chosen, label: task?.text || chosenBlock?.label || T.freeFocus, minutes: len ?? f.focusMin, task: taskRef })}>
-                  {T.startFocus}
-                </button>
-                <button type="button" className="btn ghost" onClick={openRoom}>{T.roomOpen}</button>
+                <div className="focus-pair">
+                <div className="field">
+                  <span className="label" id="fc-len-l">{T.lengthLabel}</span>
+                  <Segmented className="fill num" role="group" aria-labelledby="fc-len-l">
+                    {lengths.map((m) => <button key={m} type="button" aria-pressed={!custom && minutes === m} onClick={() => { setLen(m); setCustom(false); }}>{T.minShort(m)}</button>)}
+                    <button type="button" aria-pressed={custom} onClick={() => { setCustom(true); if (!customText) setCustomText(String(minutes)); }}>{T.lengthCustom}</button>
+                  </Segmented>
+                  {custom && <input className="input num focus-custom" type="number" inputMode="numeric" min={5} max={120} step={1} aria-label={T.customMin} value={customText}
+                    onChange={(e) => setCustomText(e.target.value)} onBlur={() => setCustomText(String(minutes))} />}
+                </div>
+                <div className="field">
+                  <span className="label" id="fc-brk-l">{T.breakLabel}</span>
+                  <Segmented className="fill num" role="group" aria-labelledby="fc-brk-l">
+                    {breaks.map((m) => <button key={m} type="button" aria-pressed={breakMin === m} onClick={() => setBrk(m)}>{T.minShort(m)}</button>)}
+                  </Segmented>
+                </div>
+                </div>
+                <button type="button" className="btn primary big" disabled={!day} onClick={() => startFocus(begin)}>{T.startFocus}</button>
               </div>
             )}
 
             {a && (
-              <div className="focus-controls">
-                {a.pausedLeft == null
-                  ? <button type="button" className="btn primary" onClick={() => pauseFocus()}>{T.pause}</button>
-                  : <button type="button" className="btn primary" onClick={() => resumeFocus()}>{T.resume}</button>}
-                <details className="focus-options"><summary className="btn ghost">{T.nav.more}</summary>
-                {a.phase === 'focus'
-                  ? <button type="button" className="btn" onClick={finish}>{T.finishNow}</button>
-                  : <button type="button" className="btn primary" onClick={finish}>{T.skipBreak}</button>}
-                <button type="button" className="btn ghost" onClick={() => cancelFocus()}>{T.stop}</button>
-                <button type="button" className="btn ghost" onClick={openRoom}>{T.roomOpen}</button>
-                </details>
+              <div className="focus-run">
+                {a.phase === 'focus' && a.intent && <p className="focus-intent">{a.intent}</p>}
+                <p className="muted num focus-cycle">{a.phase === 'focus' ? T.sessionN(cycleNo, f.longEvery) : T.nextLong(untilLong)}</p>
+                <div className="focus-controls">
+                  {a.pausedLeft == null
+                    ? <button type="button" className="btn primary" onClick={() => pauseFocus()}>{T.pause}</button>
+                    : <button type="button" className="btn primary" onClick={() => resumeFocus()}>{T.resume}</button>}
+                  <button type="button" className="btn ghost num" onClick={() => extendFocus(5)}>{T.plusFive}</button>
+                  <button type="button" className="btn ghost" onClick={finish}>{a.phase === 'focus' ? T.finishNow : T.skipBreak}</button>
+                  <button type="button" className="btn ghost" onClick={() => cancelFocus()}>{T.stop}</button>
+                </div>
+                {lastSession && (
+                  <div className="field focus-note-field">
+                    <label htmlFor="fc-note">{T.noteLabel}</label>
+                    <input id="fc-note" className="input" maxLength={280} placeholder={T.sessionNotePh}
+                      value={noteDraft?.id === lastSession.id ? noteDraft.text : lastSession.note ?? ''}
+                      onChange={(e) => setNoteDraft({ id: lastSession.id, text: e.target.value })}
+                      onBlur={() => { if (noteDraft?.id === lastSession.id) { noteSession(lastSession.id, noteDraft.text); setNoteDraft(null); } }}
+                      onKeyDown={(e) => { if (e.key === 'Enter') e.currentTarget.blur(); }} />
+                  </div>
+                )}
               </div>
             )}
-            {deepDef && <p className="muted focus-note">{T.addsTo(deepDef.name)}</p>}
+            {deepDef && !a && <p className="muted focus-note">{T.addsTo(deepDef.name)}</p>}
           </div>
         </section>
 
         <div className="stack span-5" style={{ alignContent: 'start' }}>
-        {featureOn(settings, 'friends') && <FriendsPanel />}
         <section className="panel" aria-labelledby="fs-h" data-anim>
           <header>
             <h2 id="fs-h">{T.sessionsToday}</h2>
@@ -149,6 +184,7 @@ export function Focus() {
                     <span className="t num">{clock(st.getHours() * 60 + st.getMinutes())}–{clock(en.getHours() * 60 + en.getMinutes())}</span>
                     <span className="l">{s.label || T.freeFocus}</span>
                     <span className="n num">{duration(s.minutes)}</span>
+                    {(s.intent || s.note) && <span className="more">{[s.intent, s.note].filter(Boolean).join(' · ')}</span>}
                   </div>
                 );
               })}
@@ -157,11 +193,11 @@ export function Focus() {
           )}
         </section>
 
-        <section className="panel" aria-labelledby="fb-h" data-anim>
+        {focused.length > 0 && <section className="panel" aria-labelledby="fb-h" data-anim>
           <header><h2 id="fb-h">{T.focusByBlock}</h2></header>
-          {workBlocks.length === 0 ? <div className="empty">{T.noDeepBlocks}</div> : (
+          {(
             <div className="byblock">
-              {workBlocks.map((b) => {
+              {focused.map((b) => {
                 const got = byBlock(b), len = b.end - b.start;
                 return (
                   <div className="bb" key={b.id}>
@@ -172,11 +208,9 @@ export function Focus() {
               })}
             </div>
           )}
-        </section>
-        </div>
-
-        {room && <FocusRoom start={{ blockId: chosen, label: task?.text || chosenBlock?.label || T.freeFocus, minutes: len ?? f.focusMin, task: taskRef }} onClose={() => setRoom(false)} />}
-        <section className="panel span-12" aria-labelledby="f4-h" data-anim>
+        </section>}
+        {featureOn(settings, 'friends') && <FriendsPanel />}
+        <section className="panel" aria-labelledby="f4-h" data-anim>
           <div className="chart-head">
             <h2 id="f4-h" style={{ fontSize: 16, fontWeight: 500 }}>{T.focusFourWeeks}</h2>
             <span className="meta">{T.todayInBlue}</span>
@@ -191,6 +225,9 @@ export function Focus() {
             })} />
           ) : <div className="skeleton" style={{ height: 200 }} />}
         </section>
+        </div>
+
+        {room && <FocusRoom start={begin} onClose={() => setRoom(false)} />}
       </div>
     </>
   );

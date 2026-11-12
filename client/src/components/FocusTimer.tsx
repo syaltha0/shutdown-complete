@@ -62,7 +62,7 @@ export function FocusRunner() {
   }, [a, left, settings, T]);
 
   // friends see whether this timer runs (the server keeps it to friends, and only if this person shares it)
-  const presenceKey = a ? `${a.phase}:${a.startedAt}:${a.pausedLeft == null}:${a.label}:${a.roomId ?? ''}` : 'none';
+  const presenceKey = a ? `${a.phase}:${a.startedAt}:${a.pausedLeft == null}:${a.label}:${a.roomId ?? ''}:${a.plannedMin}` : 'none';
   const sharing = featureOn(settings, 'friends');
   useEffect(() => {
     const t = window.setTimeout(() => {

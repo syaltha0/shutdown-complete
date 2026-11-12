@@ -113,8 +113,5 @@
 .focus-room.idle .room-tasks:not(:hover):not(:focus-within) { opacity: 0; }
 .tomorrow { min-width: 0; justify-items: stretch; }
 .tomorrow .empty { white-space: normal; overflow-wrap: anywhere; min-width: 0; }
-.focus-setup .field:first-child, .focus-setup .field:nth-child(2), .focus-setup > .btn { grid-column: 1 / -1; }
 .focus-grid > .stack, .shutdown-grid > .stack { min-width: 0; }
 :root[data-motion="reduce"] .room-tasks { transition: none; }
-.focus-options { position: relative; }
-.focus-options[open] { display: grid; gap: 8px; }

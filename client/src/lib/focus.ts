@@ -21,13 +21,14 @@ export const settingsFocus = (s: Settings): FocusSettings => ({ ...defaultFocus(
 const dayKey = (d = today()) => `day:${d}`;
 const withFocus = (d: DayDoc) => ({ ...d, focus: d.focus ?? { active: null, sessions: [] } });
 
-export function startFocus(opts: { blockId: string | null; label: string; phase?: FocusPhase; minutes: number; startedAt?: string; roomId?: string; task?: FocusActive['task'] }) {
+export function startFocus(opts: { blockId: string | null; label: string; phase?: FocusPhase; minutes: number; startedAt?: string; roomId?: string; task?: FocusActive['task']; intent?: string; breakMin?: number }) {
   askToNotify();
   return updateKey<DayDoc>(dayKey(), emptyDay, (d) => {
     const x = withFocus(d);
     return { ...x, focus: { ...x.focus, active: {
       phase: opts.phase ?? 'focus', startedAt: opts.startedAt ?? new Date().toISOString(), plannedMin: opts.minutes,
       pausedLeft: null, blockId: opts.blockId, label: opts.label, ...(opts.roomId ? { roomId: opts.roomId } : {}), ...(opts.task ? { task: opts.task } : {}),
+      ...(opts.intent?.trim() ? { intent: opts.intent.trim() } : {}), ...(opts.breakMin ? { breakMin: opts.breakMin } : {}),
     } } };
   });
 }
@@ -47,6 +48,28 @@ export function resumeFocus() {
     // restart the clock so that exactly pausedLeft seconds remain
     const startedAt = new Date(Date.now() - (a.plannedMin * 60 - a.pausedLeft) * 1000).toISOString();
     return { ...d, focus: { ...d.focus!, active: { ...a, startedAt, pausedLeft: null } } };
+  });
+}
+
+/** Adds minutes to the running phase (a running one gets later end, a paused one more time left). */
+export function extendFocus(min = 5) {
+  return updateKey<DayDoc>(dayKey(), emptyDay, (d) => {
+    const a = d.focus?.active;
+    if (!a) return d;
+    return { ...d, focus: { ...d.focus!, active: { ...a, plannedMin: a.plannedMin + min, ...(a.pausedLeft != null ? { pausedLeft: a.pausedLeft + min * 60 } : {}) } } };
+  });
+}
+
+/** Writes (or clears) the short note on a logged session. */
+export function noteSession(id: string, note: string) {
+  const text = note.trim();
+  return updateKey<DayDoc>(dayKey(), emptyDay, (d) => {
+    if (!d.focus) return d;
+    return { ...d, focus: { ...d.focus, sessions: d.focus.sessions.map((x) => {
+      if (x.id !== id) return x;
+      const { note: _old, ...rest } = x;
+      return text ? { ...rest, note: text } : rest;
+    }) } };
   });
 }
 
@@ -74,7 +97,7 @@ export async function finishPhase(settings: Settings, early = false): Promise<'l
     const block = x.columns.flatMap((c) => c.blocks).find((b) => b.id === a.blockId);
     const kind: Kind | null = block?.kind ?? null;
     const end = new Date();
-    const session = { id: uid(), blockId: a.blockId, label: a.label, kind, subject: block?.subject, start: new Date(end.getTime() - minutes * 60000).toISOString(), end: end.toISOString(), minutes, ...(a.task ? { taskId: a.task.id, taskText: a.task.text } : {}) };
+    const session = { id: uid(), blockId: a.blockId, label: a.label, kind, subject: block?.subject, start: new Date(end.getTime() - minutes * 60000).toISOString(), end: end.toISOString(), minutes, ...(a.task ? { taskId: a.task.id, taskText: a.task.text } : {}), ...(a.intent ? { intent: a.intent } : {}) };
     // the minutes add up on the task worked on: a day's task here, a listed one in the lists below
     const tasks = a.task?.day ? x.tasks.map((t) => (t.id === a.task!.id ? { ...t, spent: (t.spent ?? 0) + minutes } : t)) : x.tasks;
     if (a.task && !a.task.day) toList = { id: a.task.id, minutes };
@@ -90,8 +113,8 @@ export async function finishPhase(settings: Settings, early = false): Promise<'l
     return {
       ...x, metrics, tasks,
       focus: { sessions, active: {
-        phase: long ? 'long' : 'short', startedAt: end.toISOString(), plannedMin: long ? f.longMin : f.shortMin,
-        pausedLeft: null, blockId: a.blockId, label: a.label, ...(a.task ? { task: a.task } : {}),
+        phase: long ? 'long' : 'short', startedAt: end.toISOString(), plannedMin: long ? f.longMin : (a.breakMin ?? f.shortMin),
+        pausedLeft: null, blockId: a.blockId, label: a.label, sessionId: session.id, ...(a.task ? { task: a.task } : {}),
       } },
     };
   });
