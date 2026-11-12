@@ -19,6 +19,7 @@ export function Tour() {
   const [rect, setRect] = useState<Rect | null>(null);
   const [vw, setVw] = useState(window.innerWidth);
   const card = useRef<HTMLDivElement>(null);
+  const [cardHeight, setCardHeight] = useState(260);
   const steps = T.tour;
   const open = settings.tourDone !== true;
   const step = steps[Math.min(i, steps.length - 1)];
@@ -63,29 +64,49 @@ export function Tour() {
 
   useEffect(() => { if (open) card.current?.focus(); }, [open, i]);
   useEffect(() => { if (!open) setI(0); }, [open]);
+  useLayoutEffect(() => {
+    if (!open || !card.current) return;
+    const observer = new ResizeObserver(([entry]) => setCardHeight(entry.target.getBoundingClientRect().height));
+    observer.observe(card.current);
+    return () => observer.disconnect();
+  }, [open, i]);
 
   if (!open) return null;
 
-  // the card sits beside its target when there is room, else under it; on a phone it is a bottom sheet
+  // Use the visible target and measured card, including translated/wrapped text.
   const phone = vw <= 860;
   const W = 360;
-  let style: React.CSSProperties = {};
-  if (!phone && rect) {
-    const roomRight = vw - (rect.left + rect.width);
-    if (rect.width < 120 && roomRight > W + 24) {
-      style = { left: rect.left + rect.width + 16, top: Math.max(16, Math.min(window.innerHeight - 260, rect.top)) };
-    } else {
-      const below = rect.top + rect.height + 16;
-      const top = below + 240 < window.innerHeight ? below : Math.max(16, rect.top - 256);
-      style = { left: Math.max(16, Math.min(vw - W - 16, rect.left)), top };
+  const width = phone ? vw - 24 : W;
+  const vh = window.innerHeight;
+  const clampX = (x: number) => Math.max(12, Math.min(vw - width - 12, x));
+  const clampY = (y: number) => Math.max(12, Math.min(vh - cardHeight - 12, y));
+  let left = (vw - width) / 2, top = clampY((vh - cardHeight) / 2);
+  let spot = rect && { left: Math.max(0, rect.left), top: Math.max(0, rect.top),
+    width: Math.max(0, Math.min(vw, rect.left + rect.width) - Math.max(0, rect.left)),
+    height: Math.max(0, Math.min(vh, rect.top + rect.height) - Math.max(0, rect.top)) };
+  if (spot) {
+    const candidates = [
+      { left: clampX(spot.left), top: spot.top + spot.height + 16 },
+      { left: clampX(spot.left), top: spot.top - cardHeight - 16 },
+      { left: spot.left + spot.width + 16, top: clampY(spot.top) },
+      { left: spot.left - width - 16, top: clampY(spot.top) },
+    ];
+    const free = candidates.find((p) => p.left >= 12 && p.left + width <= vw - 12 && p.top >= 12 && p.top + cardHeight <= vh - 12);
+    if (free) ({ left, top } = free);
+    else {
+      // A full-height grid has no outside space. Dock the card and expose only
+      // the target above it, keeping the highlighted part clear of the card.
+      left = clampX(spot.left); top = clampY(vh - cardHeight - 12);
+      spot = { ...spot, height: Math.max(0, Math.min(spot.height, top - spot.top - 16)) };
     }
   }
+  const style: React.CSSProperties = { left, top, bottom: 'auto', right: 'auto', width, translate: 'none', maxHeight: 'calc(100dvh - 24px)', overflowY: 'auto' };
 
   return (
     <div className={`tour${phone ? ' phone' : ''}`} role="dialog" aria-modal="true" aria-labelledby="tour-title">
       <div className={`tour-spot${rect ? '' : ' none'}`}
-        style={rect ? { transform: `translate(${rect.left}px, ${rect.top}px)`, width: rect.width, height: rect.height } : undefined} />
-      <div className={`tour-card${rect && !phone ? '' : ' centred'}`} style={style} ref={card} tabIndex={-1} key={i}>
+        style={spot ? { transform: `translate(${spot.left}px, ${spot.top}px)`, width: spot.width, height: spot.height } : undefined} />
+      <div className="tour-card" style={style} ref={card} tabIndex={-1} key={i}>
         <span className="tour-count num">{T.tourStep(i + 1, steps.length)}</span>
         <h2 id="tour-title">{step.title}</h2>
         <p>{step.body}</p>
