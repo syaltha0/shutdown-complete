@@ -237,11 +237,26 @@ export function Focus() {
             <h2 id="f4-h" style={{ fontSize: 16, fontWeight: 500 }}>{T.focusFourWeeks}</h2>
             <span className="meta">{T.todayInBlue}</span>
           </div>
+          {past && (() => {
+            // three figures above the chart: a card that stretches with the timer card is not just a tall chart
+            const mins = days28.map((d) => (d === today() && day ? focusMinutes(day) : (past.get(`day:${d}`) ? focusMinutes(past.get(`day:${d}`)!) : 0)));
+            const sinceMon = (new Date(`${today()}T12:00`).getDay() + 6) % 7;
+            const week = mins.slice(27 - sinceMon).reduce((n, m) => n + m, 0);
+            const logged = mins.filter((m) => m > 0);
+            const bestAt = mins.indexOf(Math.max(...mins));
+            return (
+              <dl className="focus-stats">
+                <div><dt>{T.focusStats.week}</dt><dd className="num">{duration(week)}</dd></div>
+                <div><dt>{T.focusStats.avg}</dt><dd className="num">{logged.length ? duration(Math.round(logged.reduce((n, m) => n + m, 0) / logged.length)) : '—'}</dd></div>
+                <div><dt>{T.focusStats.best}</dt><dd className="num">{mins[bestAt] > 0 ? <>{duration(mins[bestAt])} <small>{shortDate(days28[bestAt])}</small></> : '—'}</dd></div>
+              </dl>
+            );
+          })()}
           {past ? (
             <Chart label={T.focusFourWeeks} deps={[past, T.locale, total]} draw={(el, C) => C.bars(el, {
               labels: days28.map((d) => shortDate(d)),
               values: days28.map((d) => (d === today() && day ? focusMinutes(day) : (past.get(`day:${d}`) ? focusMinutes(past.get(`day:${d}`)!) : null))),
-              highlight: 27, colour: themeColor('--hue'), mutedColour: themeColor('--chart-1'), height: Math.min(280, Math.max(200, el.clientWidth * 0.52)),
+              highlight: 27, colour: themeColor('--hue'), mutedColour: themeColor('--chart-1'), height: Math.min(340, Math.max(200, el.clientHeight)),
               format: (v: number) => duration(v), tickFormat: (v: number) => T.minShort(v),
               xAt: days28.map((_, i) => (i % (el.clientWidth < 640 ? 14 : 7) === 0 ? i : -1)).filter((i) => i >= 0),
             })} />

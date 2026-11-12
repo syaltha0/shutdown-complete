@@ -29,6 +29,12 @@ export function FriendsPanel() {
   const running = !!useFocusDay().active;
   const [link, setLink] = useState('');
   const [busy, setBusy] = useState(false);
+  // the team-friends section: open or folded as last left on this device; a waiting request opens it
+  const [teamOpen, setTeamOpenRaw] = useState(() => { try { return localStorage.getItem('sc-team-friends') === 'open'; } catch { return false; } });
+  const setTeamOpen = (v: boolean) => { setTeamOpenRaw(v); try { localStorage.setItem('sc-team-friends', v ? 'open' : 'closed'); } catch { /* private window */ } };
+  const waiting = S?.incoming.length ?? 0;
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  useEffect(() => { if (waiting > 0) setTeamOpen(true); }, [waiting]);
 
   const [email, setEmail] = useState('');
   const [note, setNote] = useState<string | null>(null);
@@ -94,7 +100,7 @@ export function FriendsPanel() {
         </div>
       ))}
 
-      <details><summary>{T.teamFriends}</summary>
+      <details open={teamOpen} onToggle={(e) => setTeamOpen((e.currentTarget as HTMLDetailsElement).open)}><summary>{T.teamFriends}</summary>
       {S.friends.length === 0 ? <p className="muted friends-empty">{T.friendsNone}</p> : (
         <ul className="friend-list">
           {S.friends.map((f) => (

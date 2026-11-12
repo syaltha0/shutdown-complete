@@ -62,15 +62,17 @@
 .grid.top.focus-grid { align-items: stretch; }
 .focus-grid > .stack { display: flex; flex-direction: column; }
 /* the right column matches the timer card. The sessions card keeps its own height (a stretched list left an empty
-   band above Total); the four-week chart, last in the column, takes the spare height and draws into it. On a wide,
-   tall window the grid reaches the bottom of the window, so a running timer leaves no blank page under the cards. */
+   band above Total); the four-week card, last in the column, takes the spare height: three figures, then the chart
+   drawn into the rest. The row is as tall as its content (stretching it to the window left the chart card mostly
+   empty when the online parts are off). */
 .focus-grid > .stack > .focus-sessions { flex: 0 0 auto; display: flex; flex-direction: column; }
 .focus-grid > .stack > .panel:last-child { flex: 1 0 auto; display: flex; flex-direction: column; }
 .focus-grid > .stack > .panel:last-child > .chart { flex: 1; position: relative; min-height: 200px; }
 .focus-grid > .stack > .panel:last-child > .chart > svg { position: absolute; inset: 0 0 auto; }
-@media (min-width: 1040px) and (min-height: 700px) {
-  .grid.top.focus-grid { min-height: calc(100dvh - 128px); }
-}
+.focus-stats { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; margin: 4px 0 20px; }
+.focus-stats dt { color: var(--muted); font-size: 13px; }
+.focus-stats dd { margin: 2px 0 0; font-size: 20px; line-height: 28px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.focus-stats dd small { font-size: 13px; color: var(--muted); }
 .focus-panel { position: relative; display: flex; align-items: center; justify-content: center; min-height: 460px; }
 .focus-room-btn { position: absolute; top: 16px; right: 16px; }
 .focus-stage { display: grid; justify-items: center; gap: 24px; width: 100%; }
