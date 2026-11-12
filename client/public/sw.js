@@ -7,7 +7,16 @@ const VERSION = 'sc-v2'; // v2: the new mark (icons and favicon changed)
 const SHELL = `${VERSION}-shell`, DATA = `${VERSION}-data`, ASSETS = `${VERSION}-assets`;
 
 self.addEventListener('install', (e) => {
-  e.waitUntil(caches.open(SHELL).then((c) => c.addAll(['/', '/manifest.webmanifest', '/mark.svg', '/icons/icon-192.png'])).then(() => self.skipWaiting()));
+  e.waitUntil((async () => {
+    const shell = await caches.open(SHELL);
+    await shell.addAll(['/', '/manifest.webmanifest', '/mark.svg', '/icons/icon-192.png']);
+    // Entry scripts, styles and modulepreloads may have loaded before this worker
+    // controlled the page. Cache them explicitly, including shared vendor chunks.
+    const html = await (await shell.match('/')).text();
+    const assets = [...html.matchAll(/(?:src|href)=["'](\/assets\/[^"']+)["']/g)].map((m) => m[1]);
+    await (await caches.open(ASSETS)).addAll([...new Set(assets)]);
+    await self.skipWaiting();
+  })());
 });
 
 self.addEventListener('activate', (e) => {

@@ -211,7 +211,13 @@
       if (!r.label) continue;
       const tw = measure(s, r.label, 11), right = r.at !== 'left';
       const cand = [[right, -5], [right, 13], [!right, -5], [!right, 13]].map(([rt, dy]) => ({ x0: rt ? w - tw : padL + 4, x1: rt ? w : padL + 4 + tw, y0: yy + dy - 9, y1: yy + dy + 2, base: yy + dy }));
-      const b = cand.find((c) => !hits(c, lines) && !boxHits(c, boxes)) || cand[0];
+      // Search vertically too: on narrow plots all four positions can hit a bar.
+      // The reserved space above the bars is the final safe position.
+      for (let base = yy - 21; base >= 11; base -= 14) {
+        cand.push({ x0: right ? w - tw : padL + 4, x1: right ? w : padL + 4 + tw, y0: base - 9, y1: base + 2, base });
+      }
+      const b = cand.find((c) => c.y0 >= 0 && !hits(c, lines) && !boxHits(c, boxes))
+        || { x0: padL + 4, base: 11 };
       text(g, r.label, { x: b.x0, y: b.base, 'font-size': 11, fill: ink });
     }
   }
@@ -318,7 +324,7 @@
       const padL = 12 + Math.max(...yt.map((v) => measure(s, tick(v), 12))), padB = 26;
       const band = (w - padL) / values.length, bw = Math.max(2, band * 0.62);
       const x = (i) => padL + band * i + band / 2;
-      const N = prepNotes(s, annotations, x, w), padT = LANE(N.rows);
+      const N = prepNotes(s, annotations, x, w), padT = LANE(N.rows) + (reference ? 18 : 0);
       const y = (v) => padT + (h - padT - padB) * (1 - v / yt.at(-1));
       const g = svg('g', {}, s);
       axes(g, el, { w, h, padL, padB, yt, y, labels, x, band: true, at: xAt, tick });

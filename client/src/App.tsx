@@ -16,6 +16,9 @@ import { Shortcuts } from './components/Shortcuts';
 import { isAuthPath, setPasswordPolicy } from './lib/authRules';
 import { Day } from './screens/Day';
 import { Home } from './screens/Home';
+// These modules already ship with Day/Home through their shared helpers.
+import { Tasks } from './screens/Tasks';
+import { Countdowns } from './screens/Countdown';
 import { emptyInbox, featureOn, type Feature, type InboxDoc } from './lib/model';
 import { inView } from './lib/tasks';
 
@@ -31,8 +34,6 @@ const MustChange = later(() => import('./screens/Auth'), 'MustChange');
 const Welcome = later(() => import('./screens/Welcome'), 'Welcome');
 const WeekPlan = later(() => import('./screens/WeekPlan'), 'WeekPlan');
 const WeekReview = later(() => import('./screens/WeekReview'), 'WeekReview');
-const Tasks = later(() => import('./screens/Tasks'), 'Tasks');
-const Countdowns = later(() => import('./screens/Countdown'), 'Countdowns');
 const Boards = later(() => import('./screens/boards/Projects'), 'Boards');
 const LegacyBoard = later(() => import('./screens/boards/Project'), 'LegacyBoard');
 const PersonalProject = later(() => import('./screens/boards/Project'), 'PersonalProject');
