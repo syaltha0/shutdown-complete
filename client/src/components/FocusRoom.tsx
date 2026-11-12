@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { useSettings } from '../App';
 import { AMBIENTS, ambientPlaying, ambientPref, onAmbient, playAmbient, setAmbientVolume, type Ambient } from '../lib/ambient';
 import { today } from '../lib/dates';
-import { cancelFocus, chime, finishPhase, mmss, pauseFocus, resumeFocus, secondsLeft, settingsFocus, startFocus } from '../lib/focus';
+import { cancelFocus, chime, extendFocus, finishPhase, mmss, pauseFocus, resumeFocus, secondsLeft, settingsFocus, startFocus } from '../lib/focus';
 import { useT } from '../lib/i18n';
 import { emptyDay, uid, type DayDoc } from '../lib/model';
 import { useDoc } from '../lib/useDoc';
@@ -15,7 +15,7 @@ import { useSocial } from '../lib/social';
  * background sound if wanted. The controls fade after a few still seconds and come back with the pointer or a key.
  * Space pauses or resumes, Esc leaves (the session goes on outside the room).
  */
-export function FocusRoom({ start, onClose }: { start: { blockId: string | null; label: string; minutes: number; task?: { id: string; text: string; day?: boolean } }; onClose: () => void }) {
+export function FocusRoom({ start, onClose }: { start: { blockId: string | null; label: string; minutes: number; task?: { id: string; text: string; day?: boolean }; intent?: string; breakMin?: number }; onClose: () => void }) {
   const T = useT();
   const { settings } = useSettings();
   const f = settingsFocus(settings);
@@ -106,6 +106,7 @@ export function FocusRoom({ start, onClose }: { start: { blockId: string | null;
               {a.pausedLeft == null
                 ? <button type="button" className="btn" onClick={() => pauseFocus()}>{T.pause}</button>
                 : <button type="button" className="btn primary" onClick={() => resumeFocus()}>{T.resume}</button>}
+              <button type="button" className="btn num" onClick={() => extendFocus(5)}>{T.plusFive}</button>
               {a.phase === 'focus'
                 ? <button type="button" className="btn" onClick={finish}>{T.finishNow}</button>
                 : <button type="button" className="btn primary" onClick={finish}>{T.skipBreak}</button>}

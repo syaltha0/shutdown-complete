@@ -164,6 +164,12 @@ export interface FocusActive {
   roomId?: string;
   /** the task worked on: one of the day's tasks (`day`) or of the lists; its focused minutes add up on it */
   task?: { id: string; text: string; day?: boolean };
+  /** what this session is for, in the person's words (optional) */
+  intent?: string;
+  /** the break after a focus phase, in minutes, when chosen at the start (else the settings' short break) */
+  breakMin?: number;
+  /** a break phase: the session it follows, so a note written during the break lands on that session */
+  sessionId?: string;
 }
 
 export interface FocusSession {
@@ -177,6 +183,9 @@ export interface FocusSession {
   minutes: number;
   taskId?: string;
   taskText?: string;
+  intent?: string;
+  /** a short note written after the session */
+  note?: string;
 }
 
 export interface DayDoc {
