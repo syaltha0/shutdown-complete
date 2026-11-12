@@ -1,3 +1,4 @@
+import { Segmented } from '../components/Segmented';
 import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { FocusConfig } from '../components/FocusConfig';
 import { Pop } from '../components/Pop';
@@ -114,13 +115,14 @@ export function Focus() {
 
       <div className="grid top focus-grid">
         <section className={`panel span-7 focus-panel phase-${phase}`} aria-labelledby="fp-h" data-anim>
-          <h2 id="fp-h" className="sr-only">{T.focusRunning}</h2>
-          <button type="button" className="btn sm focus-room-btn" onClick={openRoom}>{T.roomOpen}</button>
+          <header className="focus-card-head"><h2 id="fp-h">{T.focusRunning}</h2><div className="focus-card-actions">
+          <button type="button" className="btn ghost sm focus-room-btn" onClick={openRoom}>{T.roomOpen}</button>
           <div className="focus-config-anchor"><button type="button" className="btn sm" aria-expanded={config} onClick={() => setConfig(!config)}>{T.nav.settings}</button><Pop open={config} onClose={() => setConfig(false)} title={T.focusSettings}><FocusConfig /></Pop></div>
+          </div></header>
           <div className="focus-stage">
-            <div className="focus-tabs" role="group" aria-label={T.focusRunning}>{(['focus', 'short', 'long'] as const).map((p) => <button type="button" key={p} className={`phase-${p}`} aria-pressed={phase === p} disabled={!!a && a.phase !== p} onClick={() => setReadyPhase(p)}>{T.phase[p]}</button>)}</div>
+            <Segmented className="focus-tabs sm" role="group" aria-label={T.focusRunning}>{(['focus', 'short', 'long'] as const).map((p) => <button type="button" key={p} className={`phase-${p}`} aria-pressed={phase === p} disabled={!!a && a.phase !== p} onClick={() => setReadyPhase(p)}>{T.phase[p]}</button>)}</Segmented>
             <div className="focus-ring">
-              {a ? <Ring a={a} size={248} stroke={10} /> : <svg width={248} height={248} viewBox="0 0 248 248" aria-hidden="true"><circle cx={124} cy={124} r={119} fill="none" stroke="var(--phase-color)" strokeWidth={4} /></svg>}
+              {a ? <Ring a={a} size={248} stroke={5} /> : <svg width={248} height={248} viewBox="0 0 248 248" aria-hidden="true"><circle cx={124} cy={124} r={119} fill="none" stroke="var(--phase-color)" strokeWidth={5} /></svg>}
               <div className="focus-read">
                 <span className="phase-name">{T.phase[phase]}</span>
                 <b className="num" role="timer" aria-live="off">{a ? mmss(secondsLeft(a)) : mmss(minutes * 60)}</b>
@@ -132,7 +134,7 @@ export function Focus() {
             <div className="focus-rounds" role="img" aria-label={T.sessionN(sessions.length % f.longEvery || (sessions.length ? f.longEvery : 0), f.longEvery)}>{Array.from({ length: f.longEvery }, (_, i) => <i key={i} className={i < (sessions.length % f.longEvery || (sessions.length && phase !== 'focus' ? f.longEvery : 0)) ? 'done' : ''} />)}</div>
             <div className="focus-block-row"><span>{T.focusCurrent}: {a?.label || chosenBlock?.label || T.freeFocus}</span>{!a && <button type="button" className="btn ghost sm" aria-expanded={picking} onClick={() => setPicking(!picking)}>{T.focusChange}</button>}</div>
             {!a && <form className="focus-setup" onSubmit={(e) => { e.preventDefault(); if (day) startFocus(begin); }}>
-              {picking && <div className="field"><label htmlFor="fc-block">{T.blockPick}</label><select id="fc-block" className="input" value={chosen ?? ''} onChange={(e) => { setBlockId(e.target.value || null); setPicking(false); }}><option value="">{T.freeFocus}</option>{blocks.map((b) => <option key={b.id} value={b.id}>{clock(b.start)} ? {b.label || T.untitledBlock}</option>)}</select></div>}
+              {picking && <div className="field"><label htmlFor="fc-block">{T.blockPick}</label><select id="fc-block" className="input" value={chosen ?? ''} onChange={(e) => { setBlockId(e.target.value || null); setPicking(false); }}><option value="">{T.freeFocus}</option>{blocks.map((b) => <option key={b.id} value={b.id}>{clock(b.start)} · {b.label || T.untitledBlock}</option>)}</select></div>}
               <div className="focus-go"><button type="submit" className="btn primary big" disabled={!day}>{phase === 'focus' ? T.startFocus : T.focusStartBreak}</button></div>
             </form>}
 
@@ -141,13 +143,14 @@ export function Focus() {
                 {a.phase === 'focus' && a.intent && <p className="focus-intent">{a.intent}</p>}
                 <p className="muted num focus-cycle">{a.phase === 'focus' ? T.sessionN(cycleNo, f.longEvery) : T.nextLong(untilLong)}</p>
                 <div className="focus-controls">
-                  <button type="button" className="btn ghost" onClick={() => stop(true)}>{stopAsk === 'reset' ? T.stopAsk(ranMin) : T.focusReset}</button>
-                  {/* the one filled button: pause or resume while focusing, back to work on a break */}
-                  {a.phase !== 'focus' && <button type="button" className="btn primary" onClick={finish}>{T.skipBreak}</button>}
                   {a.pausedLeft == null
                     ? <button type="button" className={`btn primary`} onClick={() => pauseFocus(key)}>{T.pause}</button>
                     : <button type="button" className={`btn primary`} onClick={() => resumeFocus(key)}>{T.resume}</button>}
-                  <button type="button" className="btn ghost num" disabled={a.plannedMin >= MAX_PLANNED} onClick={() => extendFocus(5, key)}>{T.plusFive}</button>
+                </div>
+                <div className="focus-secondary">
+                  <button type="button" className="btn ghost sm" onClick={() => stop(true)}>{stopAsk === 'reset' ? T.stopAsk(ranMin) : T.focusReset}</button>
+                  {a.phase !== 'focus' && <button type="button" className="btn ghost sm" onClick={finish}>{T.skipBreak}</button>}
+                  <button type="button" className="btn ghost sm num" disabled={a.plannedMin >= MAX_PLANNED} onClick={() => extendFocus(5, key)}>{T.plusFive}</button>
                   {a.phase === 'focus' && <button type="button" className="btn ghost" onClick={finish}>{T.finishNow}</button>}
                   <button type="button" className={`btn ghost${stopAsk ? ' danger' : ''}`} aria-live="polite" onClick={() => stop()}>{stopAsk === 'stop' ? T.stopAsk(ranMin) : T.stop}</button>
                 </div>

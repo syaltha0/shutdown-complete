@@ -195,12 +195,22 @@
 .phase-short { --phase-color: var(--positive); }
 .phase-long { --phase-color: var(--focus-long); }
 .ring.phase-short .ring-fill, .ring.phase-long .ring-fill, .ring-fill { stroke: var(--phase-color, var(--hue)); }
-.focus-panel { padding-top: 76px; padding-bottom: 40px; }
-.focus-stage { gap: 20px; }
-.focus-tabs { display: flex; gap: 4px; max-width: 100%; }
-.focus-tabs button { background: transparent; border: 0; border-bottom: 2px solid transparent; padding: 10px 12px; color: var(--muted); font: inherit; cursor: pointer; }
-.focus-tabs button[aria-pressed="true"] { color: var(--phase-color); border-color: currentColor; }
-.focus-tabs button:disabled { cursor: default; opacity: .65; }
+.focus-panel { flex-direction: column; justify-content: flex-start; padding: var(--card-pad); }
+.focus-panel > .focus-card-head { width: 100%; align-items: center; padding-bottom: 16px; border-bottom: 1px solid var(--rule); margin: 0; }
+.focus-card-head h2 { font-size: var(--fs-section); font-weight: 500; }
+.focus-card-actions { display: flex; align-items: center; gap: 4px; }
+.focus-card-head .focus-room-btn { position: static; }
+.focus-stage { flex: 1; align-content: center; gap: 20px; padding: 36px 0; }
+.focus-tabs button[aria-pressed="true"] { color: var(--phase-color); }
+.focus-tabs button:disabled { cursor: default; }
+.focus-ring { width: 264px; height: 264px; margin: 8px 0; }
+.focus-read b { font-size: 48px; line-height: 56px; }
+.focus-read .focus-label { display: none; }
+.focus-controls .btn.primary { min-width: 180px; height: 44px; }
+.focus-secondary { display: flex; flex-wrap: wrap; justify-content: center; align-items: center; gap: 4px; width: 100%; padding-top: 12px; border-top: 1px solid var(--rule); }
+.focus-secondary .btn { font-size: 13px; }
+.focus-run { gap: 16px; }
+.focus-cycle { margin: 0; }
 .focus-read .phase-name { color: var(--phase-color); }
 .focus-panel .btn.primary { background: var(--phase-color); border-color: var(--phase-color); color: var(--surface); }
 .focus-rounds { display: flex; gap: 10px; }
@@ -208,11 +218,21 @@
 .focus-rounds i.done { background: var(--phase-color); }
 .focus-block-row { display: flex; align-items: center; justify-content: center; max-width: 100%; gap: 6px; font-size: 13px; }
 .focus-block-row span { overflow-wrap: anywhere; min-width: 0; }
-.focus-setup { width: min(280px, 100%); }
-.focus-config-anchor { position: absolute; top: 16px; left: 16px; z-index: 4; }
+.focus-setup { width: min(220px, 100%); }
+.focus-config-anchor { position: relative; z-index: 4; }
+.focus-config-anchor .kb-pop { left: auto; right: 0; }
 .focus-config-anchor .kb-pop { width: min(320px, calc(100vw - 72px)); }
 .focus-config { display: grid; gap: 20px; width: 100%; margin: 12px 0; }
 .focus-config label { display: flex; justify-content: space-between; gap: 12px; }
 .focus-config output { color: var(--muted); white-space: nowrap; }
 .focus-config input { width: 100%; accent-color: var(--text); min-height: 24px; }
-@media (max-width: 600px) { .focus-panel { padding-top: 70px; } .focus-tabs button { padding: 10px 8px; font-size: 13px; } }
+@media (max-width: 860px) {
+  .focus-card-head h2 { font-size: 14px; }
+  .focus-card-actions .btn { padding: 0 8px; font-size: 12px; }
+  .focus-stage { padding: 24px 0 12px; }
+  .focus-ring { width: 224px; height: 224px; }
+  .focus-read b { font-size: 42px; line-height: 48px; }
+  .focus-go { position: static; margin: 0; padding: 0; }
+  .focus-block-row { text-align: center; }
+  .focus-tabs.sm button { padding: 0 10px; }
+}
