@@ -158,6 +158,7 @@ A ready-made image is also built by GitHub Actions on every push to `main` (`ghc
 |---|---|---|
 | `APP_URL` | taken from the request | Public address used in e-mail links |
 | `SMTP_URL` | empty (e-mail off) | SMTP server for confirmations and password resets |
+| `VAPID_SUBJECT` | `mailto:admin@example.com` | Push service contact URI; set to your HTTPS site or administrator mailto address |
 | `MAIL_FROM` | `Shutdown Complete <no-reply@localhost>` | Sender of those e-mails |
 | `COOKIE_SECURE` | `true` | Send sign-in cookies over HTTPS only |
 | `SOURCE_URL` | this repository | Link to the source code shown in the app (see License) |
@@ -167,6 +168,21 @@ A ready-made image is also built by GitHub Actions on every push to `main` (`ghc
 | `WEEKLY_HOUR` | `18` | Hour on Sunday the week-in-review e-mail is sent (with e-mail set up) |
 
 ## Development
+
+### Mobile reminders and offline edits
+
+Settings → Notifications → **Even when the app is closed** subscribes this device to block reminders.
+Choose a reminder time too. HTTPS and browser notification permission are required; on iPhone install the app
+on the Home Screen first. The server generates and retains VAPID keys in its database, checks reminders every
+minute in the subscription's time zone and removes expired subscriptions. Push carries only an encrypted generic
+reminder signal, never block titles or schedule details. Tapping opens today's plan; delivery depends on the OS
+and push service. Active subscriptions replace in-page block notifications, while automatic focus still works.
+Signing out unsubscribes this browser. Set `VAPID_SUBJECT` to a real contact URI before enabling push.
+
+Edits are queued by account in IndexedDB (localStorage fallback), survive reloads, and retry when connectivity
+or window focus returns. The status line reports waiting changes. Concurrent edits retain the existing conflict
+behavior: a 409 loads the newer server copy instead of overwriting it. Home Screen shortcuts open Today, Focus,
+or the new-task input.
 
 Node 24 or newer.
 

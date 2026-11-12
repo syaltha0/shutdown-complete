@@ -14,8 +14,8 @@
     { "src": "/mark.svg", "sizes": "any", "type": "image/svg+xml" }
   ],
   "shortcuts": [
-    { "name": "Today", "url": "/" },
-    { "name": "Focus", "url": "/focus" },
-    { "name": "Shutdown", "url": "/shutdown" }
+    { "name": "Today", "url": "/day" },
+    { "name": "Start focus", "url": "/focus" },
+    { "name": "Add task", "url": "/tasks?add=1" }
   ]
 }

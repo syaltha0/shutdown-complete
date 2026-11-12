@@ -1,5 +1,6 @@
 import { useRef, useState } from 'react';
 import { useSettings } from '../App';
+import { PushSetting } from '../components/PushSetting';
 import { IconCalendar, IconPlus, IconX } from '../components/Icons';
 import { api, ApiError } from '../lib/api';
 import { refreshCalendars, useCalendar, viewerZone } from '../lib/calendar';
@@ -328,6 +329,7 @@ export function SettingsScreen() {
                 </button>
               ))}
             </Segmented>
+            <PushSetting />
             <label className="switch-row">
               <input type="checkbox" className="switch" checked={settings.reminders?.autoFocus ?? false}
                 onChange={(e) => update((s) => ({ ...s, reminders: { before: s.reminders?.before ?? null, autoFocus: e.target.checked } }))} />

@@ -262,8 +262,24 @@ export function openDb(file) {
   const row = (r) => (r ? { key: r.key, value: JSON.parse(r.value), version: r.version, updatedAt: r.updated_at } : null);
   const tx = (fn) => { db.exec('BEGIN'); try { const r = fn(); db.exec('COMMIT'); return r; } catch (e) { db.exec('ROLLBACK'); throw e; } };
 
+  db.exec(`CREATE TABLE IF NOT EXISTS push_subscriptions (
+    endpoint TEXT PRIMARY KEY, user_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    keys TEXT NOT NULL, timezone TEXT NOT NULL, created TEXT NOT NULL
+  ); CREATE TABLE IF NOT EXISTS push_sent (
+    endpoint TEXT NOT NULL REFERENCES push_subscriptions(endpoint) ON DELETE CASCADE,
+    id TEXT NOT NULL, at INTEGER NOT NULL, PRIMARY KEY(endpoint, id)
+  )`);
   return {
     tx,
+    push: {
+      all: () => db.prepare('SELECT * FROM push_subscriptions').all(),
+      has: (u, e) => !!db.prepare('SELECT 1 FROM push_subscriptions WHERE user_id=? AND endpoint=?').get(u, e),
+      put: (u, b) => db.prepare('INSERT INTO push_subscriptions VALUES (?, ?, ?, ?, ?) ON CONFLICT(endpoint) DO UPDATE SET user_id=excluded.user_id, keys=excluded.keys, timezone=excluded.timezone').run(b.endpoint, u, JSON.stringify(b.keys), b.timeZone, now()),
+      remove: (u, e) => db.prepare('DELETE FROM push_subscriptions WHERE user_id=? AND endpoint=?').run(u, e),
+      claim: (e, id, at) => db.prepare('INSERT OR IGNORE INTO push_sent VALUES (?, ?, ?)').run(e, id, at).changes > 0,
+      release: (e, id) => db.prepare('DELETE FROM push_sent WHERE endpoint=? AND id=?').run(e, id),
+      prune: (at) => db.prepare('DELETE FROM push_sent WHERE at < ?').run(at),
+    },
     meta: {
       get: (k, fallback = null) => q.metaGet.get(k)?.value ?? fallback,
       set: (k, v) => q.metaSet.run(k, String(v)),

@@ -73,6 +73,7 @@ export function Tasks({ view: asked }: { view?: string }) {
   const [showDone, setShowDone] = useState(false);
   const [draft, setDraft] = useState('');
   const addInput = useRef<HTMLInputElement>(null);
+  useEffect(() => { if (new URLSearchParams(location.search).has('add')) addInput.current?.focus(); }, [!!doc]);
   useEffect(() => { setOpenId(null); setShowDone(false); }, [view]);
   // changes from a phone's task app or a Nextcloud arrive on the server: looked for now and then, and on coming back
   useEffect(() => {

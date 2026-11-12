@@ -7,13 +7,15 @@ import { activeColumn, emptyDay, emptyInbox, type DayDoc, type InboxDoc } from '
 import { addDays } from '../lib/dates';
 import { showNotification } from '../lib/pwa';
 import { useDoc } from '../lib/useDoc';
+import { usePush } from '../lib/push';
 
 /**
  * Lives in the shell: a notification as each block of today begins (or a few minutes before, as chosen in
  * Settings), and, if asked, a focus session started by itself when a deep-focus block begins. It works while the
- * planner is open in a tab or installed as an app; there is no push server.
+ * planner is open. Subscribed devices receive block notifications from the server instead.
  */
 export function BlockReminders() {
+  const push = usePush();
   const T = useT();
   const { settings } = useSettings();
   const r = settings.reminders;
@@ -62,7 +64,7 @@ export function BlockReminders() {
     const tick = () => {
       const now = nowMinutes(), d = today();
       for (const b of blocks) {
-        if (r.before != null) {
+        if (r.before != null && push === false) {
           const at = b.start - r.before, key = `${d}:${b.id}:${b.start}:n`;
           if (now >= at && now < b.start + 5 && !said.current.has(key)) {
             said.current.add(key);
@@ -84,7 +86,7 @@ export function BlockReminders() {
     tick();
     const t = window.setInterval(tick, 20_000);
     return () => window.clearInterval(t);
-  }, [day, r, settings, T]);
+  }, [day, r, settings, T, push]);
 
   return null;
 }

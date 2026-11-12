@@ -4,6 +4,12 @@ import type { ReactNode } from 'react';
 const s = (n: number, one: string, many: string) => (n === 1 ? one : many);
 
 export const en = {
+  pushClosed: 'Even when the app is closed',
+  pushBody: 'A planned block is about to start. Open your plan.',
+  pushUnavailable: 'Push is unavailable here. On iPhone, add the app to your Home Screen first.',
+  pushError: 'Could not change notifications. Check permission and your connection, then try again.',
+  offlinePending: (n: number) => `Offline · ${n} changes waiting`,
+  queuePending: (n: number) => `${n} changes waiting to sync`,
   locale: 'en-GB',
   featuresTitle: 'Features',
   stepsChip: (d: number, n: number) => `${d} of ${n} ${s(n, 'step', 'steps')} done`, stepsOf: (t: string) => `Steps of ${t}`,
