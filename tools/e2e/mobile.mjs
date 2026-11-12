@@ -16,6 +16,8 @@ try {
   await page.locator('#tk-new').waitFor();
   await page.evaluate(() => navigator.serviceWorker.ready);
   await until(() => page.evaluate(() => !!navigator.serviceWorker.controller));
+  // a second visit under the worker's control fills its data cache; only then is the app opened offline
+  await page.reload(); await page.locator('#tk-new').waitFor();
   assert.equal(await page.locator('#tk-new').evaluate((e) => e === document.activeElement), true);
   check('Add task shortcut focuses input');
   await context.setOffline(true);
