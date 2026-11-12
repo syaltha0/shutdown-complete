@@ -1,0 +1,65 @@
+/* Tablet and phone. */
+/* ---------- tablet and phone ---------- */
+.phone-only { display: none; }
+@media (max-width: 1180px) {
+  .page-left { grid-column: 1 / -1; grid-template-columns: minmax(0, 5fr) minmax(0, 7fr); grid-template-rows: auto; order: 2; }
+  .page-right { grid-column: 1 / -1; order: 1; }
+  .span-5, .span-7, .span-4, .span-8 { grid-column: 1 / -1; }
+}
+@media (max-width: 860px) {
+  .app { grid-template-columns: minmax(0, 1fr); padding-bottom: 64px; }
+  .rail { position: fixed; top: auto; bottom: 0; left: 0; right: 0; height: 60px; flex-direction: row; justify-content: space-between; padding: 0 16px env(safe-area-inset-bottom); border-right: 0; border-top: 1px solid var(--border); background: var(--surface); }
+  .rail .mark, .rail .sep, .rail-item .tip { display: none; }
+  .rail .bottom { margin-top: 0; }
+  .rail-item { width: auto; min-width: 48px; height: 52px; padding: 0; gap: 2px; align-content: center; }
+  .rail-item .label { display: block; font-size: 11px; line-height: 14px; }
+  .rail-item[aria-current="page"] { background: transparent; color: var(--text); }
+  .rail-item[aria-current="page"] .label { font-weight: 500; }
+  .canvas { padding: 12px 16px 24px; }
+  .phone-only { display: initial; }
+  .phone-brand { display: flex; align-items: center; gap: 8px; margin-bottom: 12px; font-weight: 500; }
+  .phone-brand svg { width: 22px; height: 22px; }
+  .title-row { flex-direction: column; align-items: stretch; gap: 12px; }
+  .title-row h1 { font-size: 22px; line-height: 28px; }
+  .title-actions { justify-content: flex-start; }
+  .title-actions .stamp { order: 9; flex-basis: 100%; }
+  .page-left { grid-template-columns: minmax(0, 1fr); }
+  .capture { grid-template-columns: minmax(0, 1fr); }
+  .capture > section + section { border-left: 0; border-top: 1px solid var(--border); }
+  .col.closed { display: none; }
+  .col.closed.shown { display: block; flex: 1 1 0; }
+  .col.closed.shown ~ .col.active { display: none; }
+  .kpis { grid-auto-flow: row; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .kpi + .kpi { border-left: 0; }
+  .kpi:nth-child(n + 3) { border-top: 1px solid var(--border); }
+  .kpi:nth-child(2n) { border-left: 1px solid var(--border); }
+  .kpi:last-child:nth-child(odd) { grid-column: 1 / -1; }
+  .set-row { grid-template-columns: minmax(0, 1fr); gap: 12px; padding: 24px 0; }
+  .set-row .about h2 { margin-top: 0; }
+  .def-row { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) 36px; }
+  .def-row .field:nth-child(1) { grid-column: 1 / -1; }
+  .def-row + .def-row .field > label { position: static; width: auto; height: auto; clip: auto; }
+  .def-row + .def-row { padding-top: 12px; border-top: 1px solid var(--rule); }
+  .dayrow { grid-template-columns: 64px minmax(0, 1fr) 64px 72px; padding: 0 16px; }
+  .dayrow .first { display: none; }
+  .dayrow.head .first { display: none; }
+  .hide-phone { display: none; }
+  .kind-pick { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .plan-totals { width: 100%; }
+}
+@media (max-width: 480px) {
+  .segmented.fill { display: flex; width: 100%; }
+  .segmented.fill button { flex: 1; }
+}
+/* reduced motion follows html[data-motion], the system setting unless the device chose otherwise in Settings */
+:root[data-motion="reduce"] *, :root[data-motion="reduce"] *::before, :root[data-motion="reduce"] *::after { transition-duration: 0.01ms !important; animation: none !important; }
+
+/* a card that stretches to its row-mate fills the height with its last field, never with a hole */
+.panel.fill { display: flex; flex-direction: column; }
+.panel.fill .field.grow { flex: 1; display: flex; flex-direction: column; }
+.panel.fill .field.grow textarea { flex: 1; min-height: 88px; }
+.panel.fill .ritual-foot { margin-top: auto; }
+.tomorrow { display: grid; gap: 10px; justify-items: start; margin: -4px 0 14px 36px; }
+.tomorrow .mini-blocks { width: 100%; }
+.tomorrow .mini-block { padding: 6px 0; font-size: 14px; }
+.switch-row { display: flex; align-items: center; gap: 10px; cursor: pointer; }

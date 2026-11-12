@@ -1,0 +1,72 @@
+/* Entrances and transitions (all of them yield to the Motion setting). */
+/* ======================= motion ======================= */
+@keyframes rise-in { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: none; } }
+@keyframes fade-in { from { opacity: 0; } to { opacity: 1; } }
+@keyframes sheet-up { from { transform: translateY(100%); } to { transform: none; } }
+@keyframes pop-in { 0% { opacity: 0; transform: scale(0.94); } 60% { opacity: 1; transform: scale(1.015); } 100% { transform: none; } }
+@keyframes slide-col { from { opacity: 0; transform: translateX(28px); } to { opacity: 1; transform: none; } }
+@keyframes strike { from { transform: scaleX(0); } to { transform: scaleX(1); } }
+@keyframes tick-draw { from { clip-path: inset(0 100% 0 0); } to { clip-path: inset(0 0 0 0); } }
+@keyframes check-pop { 0% { transform: scale(0.8); } 55% { transform: scale(1.12); } 100% { transform: none; } }
+@keyframes pulse-ring { from { opacity: 0.55; transform: scale(1); } to { opacity: 0; transform: scale(3); } }
+@keyframes grow { from { transform: scaleY(0); } to { transform: none; } }
+@keyframes roll { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
+@keyframes stamp { 0% { opacity: 0; transform: scale(1.8) rotate(-10deg); } 60% { opacity: 1; transform: scale(0.94) rotate(1deg); } 100% { transform: none; } }
+@keyframes bump { 0% { transform: scale(1); } 40% { transform: scale(1.18); } 100% { transform: none; } }
+
+/* each screen's blocks rise in one after another (the index --i is set by the shell) */
+.canvas .title-row, .canvas .panel, .canvas .kpis, .canvas .notice { animation: rise-in 560ms var(--ease-out) both; animation-delay: calc(var(--i, 0) * 75ms); }
+.kpi-value { animation: roll 600ms var(--ease-out) both; animation-delay: 260ms; }
+/* blocks pop in, the dragged one lifts, a revision column slides in and its crossed blocks are struck through */
+.block { animation: pop-in 380ms var(--ease-out) both; }
+.block.dragging { transform: scale(1.02); box-shadow: 0 10px 24px rgba(0, 0, 0, 0.14); z-index: 4; transition: none; } /* taste-skill-ignore: a block in the hand floats */
+.col.active:not(:first-child) { animation: slide-col 520ms var(--ease-out) both; }
+.block.crossed .bl { position: relative; }
+.block.crossed .bl::after { content: ""; position: absolute; left: 0; right: 0; top: 52%; height: 1px; background: var(--line-strong); transform-origin: left; animation: strike 520ms var(--ease-out) both; animation-delay: 160ms; }
+/* the tick is drawn, the box pops */
+.check:checked { animation: check-pop 280ms var(--ease-out); }
+.check:checked::after { animation: tick-draw 260ms var(--ease-out) both; animation-delay: 60ms; }
+/* the now dot breathes */
+.now-line::after { content: ""; position: absolute; left: -4px; top: -5px; width: 8px; height: 8px; border-radius: 50%; background: var(--hue); animation: pulse-ring 1.8s ease-out infinite; }
+/* chart bars grow from the baseline */
+.chart rect.grow { transform-box: fill-box; transform-origin: bottom; animation: grow 700ms var(--ease-out) both; }
+/* shutdown complete lands like a rubber stamp */
+.complete-stamp { animation: stamp 620ms var(--ease-out) both; }
+.shutdown-line .check:checked { animation: stamp 520ms var(--ease-out); }
+/* habit streaks bump when they change */
+.streak { display: inline-block; animation: bump 420ms var(--ease-out); }
+/* buttons press */
+.btn:active, .tab-item:active, .rail-item:active { transform: scale(0.97); }
+.rail-item, .tab-item { transition: background-color var(--t-hover) ease, color var(--t-hover) ease, transform var(--t-press) var(--ease-out); }
+/* page change: a quick cross-fade with a small lift */
+::view-transition-old(root) { animation: 160ms ease both fade-out-up; }
+::view-transition-new(root) { animation: 260ms var(--ease-out) both fade-in-up; }
+@keyframes fade-out-up { to { opacity: 0; transform: translateY(-6px); } }
+@keyframes fade-in-up { from { opacity: 0; transform: translateY(8px); } }
+
+:root[data-motion="reduce"]::view-transition-old(root), :root[data-motion="reduce"]::view-transition-new(root) { animation: none; }
+:root[data-motion="reduce"] .now-line::after { display: none; }
+
+/* v2 fixes: block focus, habit rates, month current week, scrolling segmented controls */
+.byblock, .rates { display: grid; gap: 14px; }
+.bb-top { display: flex; justify-content: space-between; gap: 12px; margin-bottom: 6px; }
+.bb-top .l { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.bb-track { height: 6px; border-radius: 3px; background: var(--raised); overflow: hidden; }
+.bb-track i { display: block; height: 100%; border-radius: 3px; background: var(--text); transform-origin: left; animation: grow-x 800ms var(--ease-out) both; animation-delay: 300ms; }
+@keyframes grow-x { from { transform: scaleX(0); } }
+.cal-row.cur .cal-day .hb i { background: var(--hue); }
+.focus-line { font-size: 15px; }
+.focus-line b { font-weight: 500; }
+.habit-add { justify-content: start; }
+.title-actions .segmented { overflow-x: auto; scrollbar-width: none; }
+.title-actions .segmented::-webkit-scrollbar { display: none; }
+@media (max-width: 860px) {
+  .title-actions .segmented { max-width: 100%; }
+}
+.kind-dot { display: inline-block; width: 12px; height: 9px; border-radius: 2px; margin-right: 8px; vertical-align: 0; }
+.rate-sub { margin-top: 4px; font-size: 12px; }
+.cal-row.cur .cal-day .shut { background: var(--hue); }
+.focus-panel { min-height: 0; }
+.block.crossed .bl { align-self: flex-start; max-width: 100%; }
+.block.short.crossed .bl { align-self: center; }
+@media (max-width: 860px) { .hgrid { display: none; } }

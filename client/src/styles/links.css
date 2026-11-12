@@ -1,0 +1,54 @@
+/* How plans hang together: an item's row with its steps, what it is part of and what it is broken down into. */
+.check-row .row-main { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+.check-row .row-line { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin: -6px 0 10px; }
+.link-chip { display: inline-flex; align-items: center; gap: 5px; max-width: 100%; height: 22px; padding: 0 8px 0 6px; border: 0; border-radius: 6px; background: var(--raised); color: var(--muted); font: inherit; font-size: 12px; line-height: 22px; text-decoration: none; cursor: pointer; transition: background-color var(--t-hover) ease, color var(--t-hover) ease; }
+.link-chip svg { flex: none; width: 13px; height: 13px; }
+.link-chip span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 220px; }
+@media (hover: hover) { .link-chip:hover { color: var(--text); background: color-mix(in srgb, var(--raised) 82%, var(--text)); } }
+.link-chip.up.done span { text-decoration: line-through; }
+.link-chip.all { color: var(--positive); }
+.link-bar { position: relative; display: block; width: 28px; height: 4px; margin-left: 2px; border-radius: 2px; background: color-mix(in srgb, var(--muted) 25%, transparent); overflow: hidden; }
+.link-bar > i { position: absolute; inset: 0; background: currentColor; transform-origin: left; transition: transform 400ms var(--ease-out); }
+.check-row { position: relative; }
+.check-row .row-tools { position: absolute; top: 7px; right: 32px; z-index: 2; display: flex; align-items: center; gap: 2px; padding-left: 6px; border-radius: 8px; background: var(--surface); opacity: 0; pointer-events: none; transition: opacity var(--t-hover) ease; }
+.check-row:hover > .row-tools, .check-row > .row-tools:focus-within, .check-row > .row-tools:has([aria-expanded="true"]) { opacity: 1; pointer-events: auto; }
+@media (hover: none) { .check-row > .row-tools { position: static; opacity: 1; pointer-events: auto; margin-top: 7px; background: none; padding: 0; } }
+.check-row .row-tool { flex: none; width: 28px; height: 28px; }
+.check-row .row-tool svg { width: 15px; height: 15px; }
+.checklist.nested .check-row .row-tools { top: 2px; right: 28px; }
+.row-steps { margin: -4px 0 8px; padding-left: 2px; border-left: 2px solid var(--rule); }
+.checklist.nested { padding-left: 10px; }
+.checklist.nested .check-row { min-height: 32px; border-bottom: 0; gap: 10px; }
+.checklist.nested .check-row .text { margin: 6px 0; font-size: 14px; line-height: 20px; height: 20px; }
+.checklist.nested .check-row > .check, .checklist.nested .check-row > .plus { margin-top: 7px; }
+.checklist.nested .check-row > .remove { margin-top: 1px; }
+.checklist.nested .check-row .check { width: 16px; height: 16px; }
+.checklist.nested .check-row.adder .text::placeholder { font-size: 14px; }
+/* the pickers */
+.link-pop { width: 300px; }
+.link-opts { display: grid; gap: 2px; max-height: 320px; overflow-y: auto; margin: 0 -6px; }
+.link-opt { display: flex; align-items: center; gap: 10px; width: 100%; padding: 7px 8px; border: 0; border-radius: 8px; background: transparent; color: var(--text); font: inherit; text-align: left; cursor: pointer; }
+@media (hover: hover) { .link-opt:hover { background: var(--raised); } }
+.link-opt[aria-checked="true"] .kb-tpl-dot { border-color: var(--text); }
+.link-opt[aria-checked="true"] .kb-tpl-dot::after { opacity: 1; transform: scale(1); }
+.link-opt-text { display: grid; gap: 1px; min-width: 0; }
+.link-opt-text b { font-size: 14px; font-weight: 500; line-height: 19px; overflow-wrap: anywhere; }
+.link-opt.done .link-opt-text b { color: var(--muted); text-decoration: line-through; }
+.link-opt-text small { font-size: 12px; }
+.link-empty { margin: 0; font-size: 13px; line-height: 19px; }
+.link-untie, .link-add { justify-self: start; }
+.link-list { display: grid; gap: 2px; margin: 0 -6px; padding: 0; list-style: none; max-height: 300px; overflow-y: auto; }
+.link-list li { display: flex; align-items: flex-start; gap: 10px; padding: 6px 8px; border-radius: 8px; }
+.link-list li a { display: grid; gap: 1px; min-width: 0; color: var(--text); text-decoration: none; font-size: 14px; line-height: 19px; }
+@media (hover: hover) { .link-list li:hover { background: var(--raised); } .link-list li a:hover span { text-decoration: underline; text-underline-offset: 3px; } }
+.link-list li.done a span { color: var(--muted); text-decoration: line-through; }
+.link-list small { font-size: 12px; }
+.link-tick { flex: none; width: 14px; height: 14px; margin-top: 3px; border: 1.5px solid var(--line-mid); border-radius: 4px; }
+.link-list li.done .link-tick { border-color: var(--positive); background: var(--positive); }
+@media print { .check-row .row-tool, .link-chip { display: none; } }
+/* rows never grow wider than their list (a textarea's own width would otherwise push them out) */
+.checklist { grid-template-columns: minmax(0, 1fr); }
+.check-row .row-main .text { width: 100%; }
+.row-line .task-meta { margin-left: 0; }
+.row-tools .task-meta { margin: 0 2px 0 0; }
+.row-tools .est-select { opacity: 1 !important; }

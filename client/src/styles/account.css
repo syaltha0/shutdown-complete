@@ -1,0 +1,52 @@
+/* Account settings. */
+/* ======================= account settings ======================= */
+.badge { display: inline-flex; align-items: center; height: 22px; padding: 0 8px; border-radius: 999px; font-size: 12px; font-weight: 500; background: var(--pill-neutral-bg); color: var(--pill-neutral-ink); }
+.badge.on { background: var(--pill-positive-bg); color: var(--pill-positive-ink); }
+.inline-form { display: grid; gap: 12px; max-width: 420px; }
+.row-actions { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+.ok-line { color: var(--positive); font-size: 14px; }
+.err-line { color: var(--negative); font-size: 14px; }
+.qr-box { display: grid; grid-template-columns: 168px minmax(0, 1fr); gap: 20px; align-items: start; }
+.qr-box .qr { width: 168px; height: 168px; padding: 8px; border: 1px solid var(--border); border-radius: 8px; background: #fff; }
+.qr-box .qr svg { width: 100%; height: 100%; }
+.secret { font-size: 13px; word-break: break-all; padding: 6px 8px; border-radius: 6px; background: var(--ground); border: 1px solid var(--border); }
+.codes { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px 16px; padding: 12px 14px; border-radius: 8px; background: var(--ground); border: 1px solid var(--border); font-size: 15px; }
+.session-list { display: grid; }
+.session-row { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 12px; align-items: center; min-height: 56px; padding: 8px 0; border-bottom: 1px solid var(--rule); }
+.session-row b { font-weight: 500; }
+.session-row small { display: block; color: var(--muted); font-size: 12px; }
+.user-list { display: grid; }
+.user-row { display: flex; gap: 8px; align-items: center; min-height: 40px; border-bottom: 1px solid var(--rule); }
+.user-row span.e { color: var(--muted); margin-left: auto; font-size: 13px; }
+.invite-form { display: grid; grid-template-columns: auto auto minmax(0, 1fr) auto; gap: 12px; align-items: end; }
+.invite-form .iv-email { grid-column: 1 / 3; }
+.invite-form .iv-note { grid-column: 3 / 5; }
+.note-form { display: grid; gap: 10px; }
+.note-form textarea { resize: vertical; min-height: 76px; padding-top: 10px; line-height: 21px; }
+.invite-link { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 8px 10px; align-items: center; padding: 12px; border-radius: var(--radius-card); background: var(--ground); border: 1px solid var(--border); animation: rise-in 300ms var(--ease-out) both; }
+.invite-link .input { font-size: 13px; }
+.invite-link .hint { grid-column: 1 / -1; margin: 0; color: var(--muted); font-size: var(--fs-small); }
+@media (max-width: 860px) { .invite-form { grid-template-columns: 1fr 1fr; } .invite-form .iv-email, .invite-form .iv-note, .invite-form .btn { grid-column: 1 / -1; } .invite-form > span { display: none; } }
+.domains-form { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 10px; align-items: start; }
+.domains-form .btn { margin-top: 26px; }
+.domains-form .hint { margin: 0; color: var(--muted); font-size: var(--fs-small); }
+.badge.warn { background: var(--pill-warning-bg); color: var(--pill-warning-ink); }
+.danger-zone .btn.danger { border-color: var(--error-border); }
+@media (max-width: 860px) {
+  .qr-box { grid-template-columns: minmax(0, 1fr); }
+}
+
+/* underline tabs (settings areas) */
+.tabs { display: flex; gap: 24px; border-bottom: 1px solid var(--border); margin-bottom: 8px; overflow-x: auto; scrollbar-width: none; }
+.tabs a { position: relative; padding: 10px 0; color: var(--muted); white-space: nowrap; transition: color var(--t-hover) ease; }
+.tabs a:hover { color: var(--text); }
+.tabs a[aria-current="page"] { color: var(--text); font-weight: 500; }
+.tabs a[aria-current="page"]::after { content: ""; position: absolute; left: 0; right: 0; bottom: -1px; height: 2px; background: var(--text); animation: grow-x 300ms var(--ease-out) both; }
+
+.how-link { display: none; }
+@media (max-width: 900px) {
+  .auth .showcase { display: grid; padding: 36px 16px 48px; }
+  .showcase-name { display: none; } /* the brand is already at the top of a phone's page */
+  .showcase-tag { margin-top: 0; font-size: 18px; line-height: 26px; color: var(--text); }
+  .how-link { display: inline-flex; justify-self: start; margin-bottom: 16px; }
+}

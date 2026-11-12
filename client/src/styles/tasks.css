@@ -1,0 +1,225 @@
+/* The task lists: the lists and collections on the left, the tasks, a task's details on the right. */
+.tk { display: grid; grid-template-columns: 220px minmax(0, 1fr); gap: var(--gap); align-items: start; }
+.tk.with-detail { grid-template-columns: 220px minmax(0, 1fr) minmax(320px, 380px); }
+
+/* the side column: collections, then the lists of one's own */
+.tk-side { position: sticky; top: 20px; display: grid; gap: 4px; min-width: 0; }
+.tk-views { display: grid; gap: 2px; margin: 0; padding: 0; list-style: none; }
+.tk-views li { position: relative; min-width: 0; }
+.tk-views button:not(.tk-list-menu) { display: flex; align-items: center; justify-content: space-between; gap: 8px; width: 100%; min-height: 36px; padding: 0 10px; border: 0; border-radius: 8px; background: none; color: var(--text); font: inherit; font-size: 14px; text-align: left; cursor: pointer; transition: background-color var(--t-hover) ease; }
+.tk-views button:not(.tk-list-menu):hover { background: var(--raised); }
+.tk-views button[aria-current="page"] { background: var(--raised); font-weight: 500; }
+.tk-views button > span:first-child { display: flex; align-items: center; gap: 8px; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.tk-views .num { flex: none; color: var(--muted); font-size: 12px; font-weight: 400; }
+.tk-lists button:not(.tk-list-menu) { padding-right: 40px; }
+.tk-list-menu { position: absolute; top: 2px; right: 2px; width: 32px; height: 32px; opacity: 0; transition: opacity var(--t-hover) ease; }
+.tk-lists li:hover .tk-list-menu, .tk-list-menu:focus-visible, .tk-list-menu[aria-expanded="true"] { opacity: 1; }
+@media (hover: none) { .tk-list-menu { opacity: 1; } }
+.tk-lists li:has(.tk-list-menu) .num { margin-right: 0; }
+.tk-side-h { margin: 18px 10px 4px; color: var(--muted); font-size: 12px; font-weight: 500; }
+.tk-add-list { margin: 6px 10px 0; font-size: 14px; }
+.tk-new-list { display: flex; gap: 6px; margin-top: 6px; }
+.tk-new-list .input { flex: 1; min-width: 0; }
+.tk-pick { display: none; }
+
+/* a list's colour: the ink of the labels' tints, a ring when it has none */
+.tk-dot { flex: none; width: 8px; height: 8px; border-radius: 50%; }
+.c-none { border: 1.5px solid var(--line-mid); }
+.c-blue { background: var(--hue); }
+.c-green { background: var(--pill-positive-ink); }
+.c-amber { background: var(--pill-warning-ink); }
+.c-red { background: var(--pill-negative-ink); }
+.c-grey { background: var(--pill-neutral-ink); }
+.tk-tints { display: flex; gap: 8px; }
+.tk-tint { width: 26px; height: 26px; border-radius: 50%; cursor: pointer; }
+.tk-tint:not(.c-none) { border: 0; }
+.tk-tint.c-none { background: var(--surface); }
+.tk-tint[aria-pressed="true"] { outline: 2px solid var(--text); outline-offset: 2px; }
+
+/* the tasks */
+.tk-main { min-width: 0; }
+.tk-head { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; margin-bottom: 14px; }
+.tk-head h2 { flex: 1 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.tk-search { position: relative; display: flex; align-items: center; }
+.tk-search svg { position: absolute; left: 10px; width: 15px; height: 15px; color: var(--muted); pointer-events: none; }
+.tk-search .input { width: 200px; padding-left: 32px; }
+.tk-sort .input { width: auto; }
+.tk-add { display: flex; gap: 8px; margin-bottom: 6px; }
+.tk-add .input { flex: 1; min-width: 0; }
+.tk-list { display: grid; margin: 0; padding: 0; list-style: none; }
+.tk-row { position: relative; display: grid; grid-template-columns: 14px auto minmax(0, 1fr) auto; align-items: center; gap: 10px; min-height: 52px; margin-inline: calc(-1 * var(--card-pad)); padding-inline: var(--card-pad); border-bottom: 1px solid var(--rule); transition: background-color var(--t-hover) ease; animation: rise-in 260ms var(--ease-out) backwards; }
+/* dragging: a grip on the left, the lifted row faded, a line where it would go, the side item it would go into */
+.tk-grip { display: grid; place-items: center; width: 14px; height: 32px; margin-left: -6px; color: var(--muted); cursor: grab; opacity: 0; touch-action: none; transition: opacity var(--t-hover) ease; }
+.tk-grip svg { width: 14px; height: 14px; }
+.tk-row:hover .tk-grip { opacity: 1; }
+@media (hover: none) { .tk-grip { opacity: 0.6; } }
+.tk-row.lifted { opacity: 0.4; }
+/* picked for a change to several at once */
+.tk-row.picked { background: color-mix(in srgb, var(--hue) 9%, var(--surface)); }
+.tk-row.picked .tk-title { font-weight: 500; }
+.tk-bulk { position: sticky; bottom: 12px; z-index: 5; display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; margin-top: 16px; padding: 10px 12px; border: 1px solid var(--border); border-radius: 10px; background: var(--surface); box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12); } /* taste-skill-ignore: a bar over the list while picking */
+.tk-bulk-n { font-weight: 500; }
+.tk-bulk-acts { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.tk-bulk-acts select { width: auto; }
+.tk-bulk-tag .input { width: 130px; }
+.tk-row.drop-before::before, .tk-row.drop-after::after { content: ""; position: absolute; left: var(--card-pad); right: var(--card-pad); height: 2px; border-radius: 1px; background: var(--text); }
+.tk-row.drop-before::before { top: -1px; }
+.tk-row.drop-after::after { bottom: -1px; }
+.tk-views button.drop { background: var(--raised); outline: 2px dashed var(--text); outline-offset: -2px; }
+.tk-tag-views svg { width: 13px; height: 13px; color: var(--muted); }
+.tk-row:hover { background: color-mix(in srgb, var(--raised) 50%, transparent); }
+.tk-row.on { background: var(--raised); }
+.tk-open { display: grid; gap: 3px; min-width: 0; padding: 9px 0; border: 0; background: none; color: inherit; font: inherit; text-align: left; cursor: pointer; }
+.tk-title { overflow-wrap: anywhere; font-size: 15px; line-height: 21px; }
+.tk-row.done .tk-title { color: var(--muted); text-decoration: line-through; text-decoration-color: var(--line-strong); }
+.tk-line { display: flex; flex-wrap: wrap; align-items: center; gap: 3px 12px; color: var(--muted); font-size: 12px; line-height: 18px; }
+.tk-line:empty { display: none; }
+.tk-line .late { color: var(--negative); font-weight: 500; }
+.tk-line .today { color: var(--hue); font-weight: 500; }
+.tk-line .over { color: var(--warning); }
+.tk-line .lbl { height: 18px; font-size: 11px; }
+.tk-in { display: inline-flex; align-items: center; gap: 5px; }
+.tk-rep, .tk-has { display: inline-flex; align-items: center; gap: 4px; }
+.tk-rep svg, .tk-has svg { width: 13px; height: 13px; }
+.tk-pc { display: inline-flex; align-items: center; gap: 6px; }
+.tk-pc i { position: relative; display: block; width: 36px; height: 4px; border-radius: 2px; background: var(--rule); overflow: hidden; }
+.tk-pc b { display: block; height: 100%; border-radius: 2px; background: var(--text); }
+/* priority on the box, as the calendar servers' task apps show it */
+.tk-row.p1 > .check { border-color: var(--negative); }
+.tk-row.p5 > .check { border-color: var(--warning); }
+.tk-row.p9 > .check { border-color: var(--hue); }
+.tk-row > .check:checked { border-color: var(--text); }
+.tk-star:not(.on) { opacity: 0; transition: opacity var(--t-hover) ease; }
+.tk-row:hover .tk-star, .tk-star:focus-visible { opacity: 1; }
+@media (hover: none) { .tk-star:not(.on) { opacity: 0.5; } }
+.tk-empty { padding: 18px 0 6px; }
+.tk-done-bar { display: flex; justify-content: space-between; gap: 12px; margin-top: 14px; font-size: 14px; }
+
+/* a task's details */
+.tk-detail { position: sticky; top: 20px; display: grid; gap: 18px; max-height: calc(100svh - 40px); overflow: auto; animation: rise-in 260ms var(--ease-out) backwards; }
+.tk-d-head { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: start; gap: 10px; }
+.tk-d-head > .check { margin-top: 7px; }
+.tk-d-title { min-height: 34px; padding: 4px 0; border: 0; background: none; color: var(--text); font: inherit; font-size: 18px; line-height: 26px; font-weight: 500; resize: none; field-sizing: content; }
+.tk-d-title:focus-visible { outline: 2px solid var(--focus, var(--text)); outline-offset: 2px; border-radius: 4px; }
+.tk-fields { display: grid; gap: 16px; }
+.tk-fields .field { gap: 6px; }
+.tk-fields .field > span, .tk-fields .field > label { font-size: 13px; font-weight: 500; }
+.tk-fields .field > span b { margin-left: 6px; color: var(--muted); font-weight: 400; }
+.tk-two { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.tk-range { width: 100%; accent-color: var(--text); }
+.tk-repeat { display: grid; gap: 8px; }
+.tk-rule { display: grid; gap: 8px; }
+.tk-every { display: flex; align-items: center; gap: 8px; font-size: 14px; }
+.tk-every .input[type="number"] { width: 72px; }
+.tk-every select { width: auto; }
+.tk-ends { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; font-size: 14px; }
+.tk-ends select { width: auto; }
+.tk-ends input[type="number"] { width: 80px; }
+.tk-ends input[type="date"] { width: 160px; }
+.tk-check-row { display: flex; align-items: center; gap: 8px; font-size: 14px; cursor: pointer; }
+.tk-note { color: var(--muted); font-size: 12px; line-height: 17px; }
+.tk-tags { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
+.tk-tags .input { flex: 1 1 120px; min-width: 0; }
+.tk-tag { gap: 2px; padding-right: 2px; }
+.tk-tag button { display: grid; place-items: center; width: 18px; height: 18px; padding: 0; border: 0; border-radius: 50%; background: none; color: inherit; cursor: pointer; }
+.tk-tag button svg { width: 11px; height: 11px; }
+.tk-notes { min-height: 96px; resize: vertical; line-height: 21px; padding-block: 8px; }
+.tk-plan { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.tk-plan .input { width: 150px; }
+.tk-plan .input:invalid:not(:focus) { width: 40px; color: transparent; }
+.tk-d-foot { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding-top: 12px; border-top: 1px solid var(--rule); }
+
+/* narrower: the details over the lists, from the right */
+@media (max-width: 1180px) {
+  .tk.with-detail { grid-template-columns: 220px minmax(0, 1fr); }
+  .tk-detail { position: fixed; z-index: 40; top: 0; right: 0; bottom: 0; width: min(420px, 100%); max-height: none; border-radius: 0; border-width: 0 0 0 1px; box-shadow: -12px 0 32px rgba(0, 0, 0, 0.12); animation: tk-in 260ms var(--ease-out) backwards; } /* taste-skill-ignore: a sheet over the screen */
+}
+@keyframes tk-in { from { transform: translateX(24px); opacity: 0; } }
+/* phones: the lists as a select over the tasks */
+@media (max-width: 760px) {
+  .tk, .tk.with-detail { grid-template-columns: minmax(0, 1fr); }
+  .tk-side { display: none; }
+  .tk-pick { display: block; }
+  .tk-search { flex: 1 1 160px; }
+  .tk-search .input { width: 100%; }
+  .tk-row:not(:hover) .tk-star:not(.on) { opacity: 0.5; }
+}
+:root[data-motion="reduce"] .tk-row, :root[data-motion="reduce"] .tk-detail { animation: none; }
+
+/* the Day's "from your lists": tasks to drag onto the hours or add to the day */
+.from-lists { display: grid; gap: 4px; margin-top: 12px; padding: 10px 12px 8px; border-radius: 8px; background: var(--ground); }
+.from-lists-h { font-size: 12px; font-weight: 500; }
+.from-lists-h .muted { font-weight: 400; }
+.from-lists ul { display: grid; margin: 0; padding: 0; list-style: none; }
+.from-lists li { display: grid; grid-template-columns: 14px minmax(0, 1fr) auto auto; align-items: center; gap: 8px; min-height: 36px; border-top: 1px solid var(--rule); }
+.from-lists li:first-child { border-top: 0; }
+.from-lists .text { overflow: hidden; font-size: 14px; text-overflow: ellipsis; white-space: nowrap; }
+.from-lists .tk-grip { margin-left: -4px; opacity: 0.55; }
+.from-lists li:hover .tk-grip { opacity: 1; }
+.from-lists .task-meta { display: inline-flex; align-items: center; gap: 8px; font-size: 12px; }
+.tk-starred { display: inline-grid; color: var(--warning); }
+.tk-starred svg { width: 13px; height: 13px; fill: currentColor; }
+.from-lists .btn.icon { width: 30px; height: 30px; }
+.from-lists > .card-link { margin-top: 4px; font-size: 13px; }
+
+/* Settings: task apps (CalDAV) and the Nextcloud link */
+.dav-facts { display: grid; gap: 8px; margin: 0; }
+.dav-facts > div { display: grid; grid-template-columns: 130px minmax(0, 1fr); align-items: center; gap: 12px; }
+.dav-facts dt { color: var(--muted); font-size: 13px; }
+.dav-facts dd { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; min-width: 0; margin: 0; }
+.dav-facts code, .dav-pw code { overflow-wrap: anywhere; padding: 3px 8px; border-radius: 6px; background: var(--ground); font-size: 13px; }
+.dav-fresh { display: grid; gap: 8px; padding: 14px 16px; border-radius: 10px; background: var(--ground); }
+.dav-pw { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.dav-pw code { font-size: 17px; letter-spacing: 0.04em; background: var(--surface); }
+.dav-linked { display: grid; gap: 10px; }
+.dav-linked p b { display: block; overflow-wrap: anywhere; font-weight: 500; }
+.dav-linked p small { color: var(--muted); font-size: 12px; }
+.btn.sm svg { width: 14px; height: 14px; }
+@media (max-width: 560px) { .dav-facts > div { grid-template-columns: minmax(0, 1fr); gap: 2px; } }
+
+/* importing a timetable into the weekly schedule */
+.sched-import form { display: grid; gap: 14px; }
+.sched-text { min-height: 150px; resize: vertical; font-family: inherit; line-height: 21px; }
+.sched-slots { max-height: 280px; overflow: auto; }
+.sched-kind select { width: auto; }
+
+/* Settings -> Server: backups */
+.backup-row { grid-template-columns: minmax(0, 1fr) auto; }
+.backup-row .row-actions { display: inline-flex; gap: 6px; }
+.backup-sure { grid-column: 1 / -1; display: grid; gap: 10px; padding: 12px 14px; border-radius: 10px; background: var(--pill-negative-bg); }
+.backup-sure p { color: var(--pill-negative-ink); }
+label.btn { cursor: pointer; }
+
+/* the week in review */
+.wr-stats { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 0; padding: 0; }
+.wr-stats > div { display: grid; gap: 2px; align-content: start; padding: 18px 20px; border-left: 1px solid var(--rule); }
+.wr-stats > div:first-child { border-left: 0; }
+.wr-k { color: var(--muted); font-size: 13px; }
+.wr-stats b { font-size: 28px; line-height: 36px; font-weight: 500; }
+.wr-s { display: flex; flex-wrap: wrap; gap: 6px; color: var(--muted); font-size: 12px; }
+.wr-delta { color: var(--muted); font-weight: 500; }
+.wr-delta.up { color: var(--hue); }
+.wr-legend { display: inline-flex; align-items: center; gap: 6px; }
+.wr-legend i { display: inline-block; width: 10px; height: 10px; border-radius: 2px; }
+.wr-legend i.fo, .wr-cols i.fo { background: var(--hue); }
+.wr-legend i.pl, .wr-cols i.pl { background: var(--raised); }
+.wr-bars { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 10px; height: 200px; }
+.wr-day { display: grid; grid-template-rows: minmax(0, 1fr) auto 10px; justify-items: center; gap: 6px; color: inherit; text-decoration: none; }
+.wr-cols { display: flex; align-items: flex-end; justify-content: center; gap: 3px; width: 100%; height: 100%; }
+.wr-cols i { display: block; width: 38%; max-width: 22px; min-height: 2px; border-radius: 3px 3px 0 0; transition: height 400ms var(--ease-out); }
+.wr-name { color: var(--muted); font-size: 12px; }
+.wr-day.today .wr-name { color: var(--hue); font-weight: 500; }
+.wr-tick { width: 8px; height: 8px; border: 1.5px solid var(--line-mid); border-radius: 2px; }
+.wr-tick.on { border-color: var(--text); background: var(--text); }
+.wr-note { margin-top: 12px; font-size: 13px; }
+.wr-list { display: grid; margin: 0; padding: 0; list-style: none; }
+.wr-list li { display: flex; justify-content: space-between; gap: 12px; min-height: 36px; align-items: center; border-bottom: 1px solid var(--rule); font-size: 14px; }
+.wr-list li span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.wr-list b { font-weight: 500; }
+.wr-h3 { margin: 18px 0 4px; color: var(--muted); font-size: 12px; font-weight: 500; }
+@media (max-width: 760px) {
+  .wr-stats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .wr-stats > div:nth-child(3) { border-left: 0; }
+  .wr-stats > div:nth-child(n + 3) { border-top: 1px solid var(--rule); }
+  .wr-bars { height: 160px; gap: 4px; }
+}

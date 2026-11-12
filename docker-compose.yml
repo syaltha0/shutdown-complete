@@ -1,0 +1,16 @@
+services:
+  planner:
+    build: .
+    image: shutdown-complete:latest
+    container_name: shutdown-complete
+    restart: unless-stopped
+    env_file:
+      - path: .env
+        required: false
+    environment:
+      NODE_ENV: production
+    # Only the reverse proxy on this host talks to the app.
+    ports:
+      - "127.0.0.1:${PLANNER_PORT:-3000}:3000"
+    volumes:
+      - ./data:/data

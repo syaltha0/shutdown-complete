@@ -1,0 +1,94 @@
+/* Weekly schedule, subjects, carried tasks, the focus room, the day card, exams, focusing together. */
+/* ======================= weekly schedule, subjects, carried tasks ======================= */
+.block .rep { display: inline-flex; vertical-align: -1px; margin-right: 4px; color: var(--muted); }
+.block .rep svg { width: 12px; height: 12px; }
+.block.tiny .rep svg { width: 10px; height: 10px; }
+.block .subj { color: var(--text); }
+.check-row .item-age { flex: none; align-self: center; margin-left: 6px; padding: 1px 6px; border-radius: 999px; background: var(--raised); color: var(--muted); font-size: 11px; line-height: 16px; font-variant-numeric: tabular-nums; white-space: nowrap; }
+/* time by subject: planned (light) and focused (dark) on one scale, 4px rounded ends, a 2px gap between the two */
+.subj-legend { display: inline-flex; flex-wrap: wrap; align-items: center; gap: 4px 14px; }
+.subj-legend span { display: inline-flex; align-items: center; gap: 6px; }
+.subj-legend i { width: 10px; height: 10px; border-radius: 3px; }
+.subj-legend i.planned, .subj-table .bar.planned { background: var(--chart-muted); }
+.subj-legend i.focused, .subj-table .bar.focused { background: var(--chart-1); }
+.subj-table { width: 100%; border-collapse: collapse; margin-top: 12px; }
+.subj-table th[scope="row"] { width: 1%; padding: 7px 16px 7px 0; vertical-align: middle; text-align: left; font-weight: 500; white-space: nowrap; max-width: 14ch; overflow: hidden; text-overflow: ellipsis; }
+.subj-table td { padding: 7px 0; }
+.subj-table .bar-cell { width: 100%; padding-right: 16px; vertical-align: middle; }
+.subj-table .bars { display: grid; gap: 2px; }
+.subj-table .bar { display: block; height: 8px; min-width: 2px; border-radius: 4px; transform-origin: left; animation: bar-grow 600ms var(--ease-out) both; }
+.subj-table td.n { white-space: nowrap; text-align: right; color: var(--text); }
+@keyframes bar-grow { from { transform: scaleX(0); } }
+.subj-table th, .subj-table td { border: 0; }
+
+/* a page's wrapper for the swipe between days, weeks and months: no box of its own */
+.swipe-area { display: contents; }
+/* no callout or selection on a long press: it moves the block */
+.col.active .block { -webkit-touch-callout: none; }
+
+/* ======================= the focus room ======================= */
+.focus-room { position: fixed; inset: 0; z-index: 60; display: grid; place-items: center; padding: 24px 16px; background: var(--ground); color: var(--text); animation: room-in 420ms var(--ease-out) both; }
+@keyframes room-in { from { opacity: 0; } }
+.room-stage { display: grid; justify-items: center; gap: 28px; width: min(560px, 100%); }
+.room-ring { position: relative; width: 340px; max-width: 80vw; aspect-ratio: 1; }
+.room-ring svg { width: 100%; height: 100%; }
+.room-ring .focus-read { gap: 8px; }
+.room-ring .focus-read b { font-size: clamp(56px, 12vw, 84px); line-height: 1; font-weight: 400; letter-spacing: -0.03em; }
+.room-ring .focus-read .phase-name, .room-ring .focus-read .focus-label { font-size: 15px; line-height: 20px; }
+.room-controls { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; min-height: 44px; }
+.room-sound { display: grid; justify-items: center; gap: 10px; }
+.sound-pick { display: flex; flex-wrap: wrap; justify-content: center; gap: 6px; }
+.sound-pick button { height: 32px; padding: 0 12px; border: 1px solid var(--control); border-radius: 999px; background: transparent; color: var(--muted); font: inherit; font-size: 13px; cursor: pointer; transition: background-color var(--t-hover) ease, color var(--t-hover) ease, border-color var(--t-hover) ease; }
+.sound-pick button[aria-pressed="true"] { border-color: var(--text); background: var(--text); color: var(--primary-ink); }
+.room-volume input { width: 200px; accent-color: var(--text); }
+.room-leave { position: absolute; top: 16px; right: 16px; }
+.room-hint { margin: 0; font-size: 13px; }
+/* still for a while: only the ring and the time stay */
+.focus-room .room-leave, .focus-room .room-controls, .focus-room .room-sound, .focus-room .room-hint { transition: opacity 600ms ease; }
+.focus-room.idle .room-leave, .focus-room.idle .room-controls, .focus-room.idle .room-sound, .focus-room.idle .room-hint { opacity: 0; }
+.focus-room.idle { cursor: none; }
+
+/* ======================= the day's card ======================= */
+.day-card .card-body { display: grid; grid-template-columns: minmax(0, 360px) 1fr; gap: 24px; align-items: end; margin-top: 12px; }
+.day-card img, .day-card .card-skel { width: 100%; height: auto; aspect-ratio: 4 / 5; border-radius: 12px; background: var(--ground); animation: rise-in 520ms var(--ease-out) both; }
+.day-card .card-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+@media (max-width: 720px) { .day-card .card-body { grid-template-columns: minmax(0, 1fr); } }
+
+/* plan and reality: findings as plain sentences; the block dialog's length hint */
+.findings { margin: 12px 0 0; padding: 0; list-style: none; display: grid; gap: 10px; }
+.findings li { padding-left: 18px; position: relative; line-height: 1.5; }
+.findings li::before { content: ""; position: absolute; left: 0; top: 0.62em; width: 8px; height: 2px; border-radius: 1px; background: var(--line-strong); }
+.est-hint { margin: -4px 0 0; color: var(--muted); font-size: var(--fs-small); }
+
+/* ======================= exam planner ======================= */
+.exam-sheet { width: min(680px, calc(100vw - 32px)); }
+.exam-sheet form { display: grid; gap: 14px; }
+.row4 { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; }
+@media (max-width: 560px) { .row4 { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+.exam-preview { padding: 12px 14px; border-radius: var(--radius-control); background: var(--ground); }
+.exam-preview p { margin: 0; }
+.exam-list { margin: 10px 0 0; padding: 0; list-style: none; display: grid; gap: 4px; max-height: 220px; overflow: auto; font-size: var(--fs-small); }
+.exam-list li { display: grid; grid-template-columns: 170px minmax(0, 1fr); gap: 10px; }
+.exam-row .row-actions { display: inline-flex; align-items: center; gap: 6px; }
+
+/* ======================= focusing together ======================= */
+.friends { display: grid; gap: 12px; }
+.friends-empty { margin: 0; }
+.friend-list { margin: 0; padding: 0; list-style: none; display: grid; gap: 2px; }
+.friend-list li { display: grid; grid-template-columns: 10px minmax(0, 1fr) auto; align-items: center; gap: 10px; padding: 6px 0; }
+.friend-list .dot, .room-people .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--control); }
+.friend-list li.on .dot, .room-people .dot { background: var(--hue); }
+.friend-list .who, .invite-row > span:first-child { display: grid; min-width: 0; }
+.friend-list .who b, .invite-row b { font-weight: 500; }
+.friend-list small, .invite-row small { font-size: var(--fs-small); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.invite-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 10px 12px; border-radius: var(--radius-control); background: var(--ground); }
+.invite-row .row-actions { display: inline-flex; gap: 6px; flex: none; }
+.requests { display: grid; gap: 8px; }
+.together-form, .friend-add { display: flex; gap: 8px; flex-wrap: wrap; }
+.friend-add .input { flex: 1; min-width: 0; }
+.together-form select { width: auto; }
+.friend-note-line { margin: -4px 0 0; font-size: var(--fs-small); }
+.share-opts { display: grid; gap: 4px; padding-top: 4px; }
+.room-people { display: inline-flex; align-items: center; gap: 8px; margin: 0; }
+.friend-note { position: fixed; left: 50%; bottom: 20px; z-index: 40; transform: translateX(-50%); display: flex; align-items: center; gap: 10px; max-width: calc(100vw - 32px); padding: 10px 10px 10px 16px; border-radius: 12px; background: var(--surface); border: 1px solid var(--border); box-shadow: 0 10px 30px rgba(0, 0, 0, 0.12); animation: rise-in 360ms var(--ease-out) both; } /* taste-skill-ignore: a note over the page floats */
+@media (max-width: 720px) { .friend-note { bottom: calc(76px + env(safe-area-inset-bottom, 0px)); } }

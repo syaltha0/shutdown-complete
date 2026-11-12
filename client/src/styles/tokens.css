@@ -1,0 +1,98 @@
+/* Colour, type, spacing and motion tokens; the dark theme. */
+/* Shutdown Complete — styles.
+   Style: achromatic-ledger (taste-skill app sheet, seed 1058827340). The chrome is ink on white; the one data hue
+   (#1d5fbf) marks only the main data element: the "now" line, the block being worked in, today's bar.
+   Face: Jost, an open geometric sans after Futura, the face the paper planner is set in.
+   Grid arithmetic (1440 wide): rail 56 + canvas padding 24 + content 1336 + 24 = 1440.
+   Day spread: 12 columns, gap 12 -> the left page spans 5 (548px), the right page 7 (776px): 548 + 12 + 776 = 1336. */
+
+:root {
+  --ground: #f8f8f8;
+  --surface: #ffffff;
+  --raised: #eeeeee;
+  --active: #e9e9e9;
+  --border: #e6e6e6;
+  --rule: #f0f0f0;
+  --control: #d4d4d4;
+  --text: #0a0a0a;
+  --muted: #6b6b6b;
+  --faint: #6b6b6b;
+  --accent: #141414;
+  --hue: #1d5fbf;
+  --kb-list: #ececec; --kb-card: #ffffff; --kb-dim: 0%;
+  --primary: #141414;
+  --primary-ink: #ffffff;
+  --positive: #2e7d32;
+  --negative: #c4242a;
+  --warning: #92400e;
+  --pill-positive-bg: #dcfae5; --pill-positive-ink: #04250e;
+  --pill-negative-bg: #ffedea; --pill-negative-ink: #831c1e;
+  --pill-warning-bg: #fffbeb; --pill-warning-ink: #92400e;
+  --pill-neutral-bg: #eeeeee; --pill-neutral-ink: #3d3d3d;
+  --chart-1: #141414; --chart-2: #8a8a8a; --chart-3: #1d5fbf; --chart-muted: #c9c9c9;
+  --chart-mark: var(--text);
+  --chart-span: 0.06;
+  --grid: var(--rule);
+  --axis-ink: var(--muted);
+  --ink: var(--text);
+
+  --primary-hover: #2b2b2b;
+  --line-strong: #8a8a8a; --line-mid: #b5b5b5; --line-soft: #c9c9c9;
+  --ghost: rgba(20, 20, 20, 0.04);
+  --notice-border: #fde68a; --error-border: #f5c2bd;
+  color-scheme: light;
+  --font: "Jost", "Futura", "Century Gothic", system-ui, sans-serif;
+  --fs-title: 24px; --fs-section: 16px; --fs-kpi: 30px; --fs-body: 14px; --fs-small: 12px;
+
+  --rail-width: 56px;
+  --pad: 24px;
+  --gap: 12px;
+  --card-pad: 20px;
+  --radius-card: 8px;
+  --radius-control: 6px;
+  --radius-chip: 4px;
+  --control-height: 36px;
+  --row-height: 44px;
+  --slot: 30px; /* one half hour in the time grid */
+
+  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-expo: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-in-out: cubic-bezier(0.76, 0, 0.24, 1);
+  --t-press: 120ms; --t-hover: 150ms; --t-ui: 200ms;
+}
+
+/* dark: true neutral greys, elevation by lightness, the hue lifted so it reads on dark (taste-skill app-screens §9.3) */
+:root[data-theme="dark"] {
+  --ground: #0b0b0b;
+  --surface: #141414;
+  --raised: #222222;
+  --active: #262626;
+  --border: #2a2a2a;
+  --rule: #1f1f1f;
+  --control: #444444;
+  --text: #f2f2f2;
+  --muted: #a8a8a8;
+  --faint: #969696;
+  --accent: #f2f2f2;
+  --hue: #5b93ef;
+  --kb-list: #131313; --kb-card: #1f1f1f; --kb-dim: 38%;
+  --primary: #f2f2f2;
+  --primary-ink: #0b0b0b;
+  --primary-hover: #d9d9d9;
+  --positive: #3fc07a;
+  --negative: #ef6b6b;
+  --warning: #e5a93b;
+  --pill-positive-bg: #172a1d; --pill-positive-ink: #5fd394;
+  --pill-negative-bg: #2c1a1a; --pill-negative-ink: #ff8a8a;
+  --pill-warning-bg: #2b2414; --pill-warning-ink: #e5a93b;
+  --pill-neutral-bg: #262626; --pill-neutral-ink: #d6d6d6;
+  --chart-1: #f2f2f2; --chart-2: #8a8a8a; --chart-3: #5b93ef; --chart-muted: #4a4a4a;
+  --line-strong: #8a8a8a; --line-mid: #6b6b6b; --line-soft: #4a4a4a;
+  --ghost: rgba(255, 255, 255, 0.05);
+  --notice-border: #5c4a1c; --error-border: #5a2a2a;
+  --hatch: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='8' height='8'%3E%3Cpath d='M-2 2 2-2M0 8 8 0M6 10 10 6' stroke='%23333333' stroke-width='1'/%3E%3C/svg%3E");
+  color-scheme: dark;
+}
+:root[data-theme="dark"] .qr-box .qr { background: #ffffff; }
+:root[data-theme="dark"] .mini-timer, :root[data-theme="dark"] .tour-card, :root[data-theme="dark"] dialog.sheet { box-shadow: 0 16px 48px rgba(0, 0, 0, 0.6); } /* taste-skill-ignore: these float */
+:root[data-theme="dark"] .tour-spot { box-shadow: 0 0 0 200vmax rgba(0, 0, 0, 0.7); } /* taste-skill-ignore: the tour's dimmer */

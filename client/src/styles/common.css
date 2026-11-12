@@ -1,0 +1,107 @@
+/* Dialogs, lists of days and weeks, tables, KPIs, settings, shutdown, states, charts. */
+/* ---------- dialogs: they float, so they may carry a shadow ---------- */
+dialog.sheet { width: min(460px, calc(100vw - 32px)); padding: 0; border: 1px solid var(--border); border-radius: 12px; background: var(--surface); color: var(--text); box-shadow: 0 16px 48px rgba(0, 0, 0, 0.16); } /* taste-skill-ignore: a dialog floats */
+dialog.sheet::backdrop { background: rgba(10, 10, 10, 0.32); }
+dialog.sheet form { display: grid; gap: 16px; padding: 20px; }
+dialog.sheet h2 { font-size: 18px; line-height: 24px; font-weight: 500; }
+dialog.sheet .row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+dialog.sheet .foot { display: flex; justify-content: space-between; gap: 8px; padding-top: 4px; }
+dialog.sheet .foot .right { display: flex; gap: 8px; margin-left: auto; }
+.kind-pick { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 6px; }
+.kind-pick button { display: grid; gap: 6px; justify-items: start; padding: 8px; border: 1px solid var(--border); border-radius: var(--radius-control); background: var(--surface); cursor: pointer; text-align: left; font-size: 13px; }
+.kind-pick button[aria-pressed="true"] { border-color: var(--text); outline: 1px solid var(--text); outline-offset: -2px; }
+.kind-pick i { width: 100%; height: 12px; border-radius: 2px; display: block; }
+.kind-hint { color: var(--muted); font-size: 13px; }
+
+/* ---------- lists of days, weeks ---------- */
+.daylist { display: grid; }
+.dayrow { display: grid; grid-template-columns: 76px minmax(0, 1fr) 84px 70px 92px; align-items: center; gap: 12px; min-height: 48px; padding: 0 var(--card-pad); border-top: 1px solid var(--rule); transition: background-color var(--t-hover) ease; }
+.dayrow:hover { background: var(--ground); }
+.dayrow.head { min-height: 32px; border-top: 0; color: var(--muted); font-size: var(--fs-small); }
+.dayrow.head:hover { background: none; }
+.dayrow .d b { font-weight: 500; }
+.dayrow .d small { display: block; color: var(--muted); font-size: var(--fs-small); line-height: 14px; }
+.dayrow .n { text-align: right; font-variant-numeric: tabular-nums; }
+.dayrow .dash { color: var(--muted); }
+.dayrow.is-today .d b { color: var(--hue); }
+.dayrow .first { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--muted); }
+.dayrow .first b { color: var(--text); font-weight: 400; }
+
+/* ---------- tables ---------- */
+table { width: 100%; border-collapse: collapse; }
+th { height: 36px; padding: 0 12px; text-align: left; font-weight: 400; font-size: var(--fs-small); color: var(--muted); border-bottom: 1px solid var(--border); white-space: nowrap; }
+td { padding: 12px; border-bottom: 1px solid var(--rule); vertical-align: baseline; }
+td.n, td:first-child { white-space: nowrap; }
+tbody tr:last-child td { border-bottom: 0; }
+th.n, td.n { text-align: right; }
+th:first-child, td:first-child { padding-left: var(--card-pad); }
+th:last-child, td:last-child { padding-right: var(--card-pad); }
+tr.is-current td:first-child b { color: var(--hue); }
+td a { font-weight: 500; }
+
+/* ---------- KPIs ---------- */
+.kpis { display: grid; grid-auto-flow: column; grid-auto-columns: minmax(0, 1fr); background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-card); }
+.kpi { padding: 16px var(--card-pad); min-width: 0; }
+.kpi + .kpi { border-left: 1px solid var(--border); }
+.kpi-label { color: var(--muted); }
+.kpi-value { margin-top: 6px; font-size: 24px; line-height: 30px; font-weight: 400; letter-spacing: -0.01em; white-space: nowrap; }
+.kpi-value small { font-size: 14px; color: var(--muted); margin-left: 2px; }
+.kpi.lead .kpi-value { font-size: var(--fs-kpi); line-height: 36px; font-weight: 500; }
+.kpi .delta { margin-top: 2px; font-size: var(--fs-small); color: var(--muted); }
+
+/* ---------- settings ---------- */
+.settings { display: grid; }
+.set-row { display: grid; grid-template-columns: minmax(0, 4fr) minmax(0, 8fr); gap: 32px; padding: 32px 0; border-top: 1px solid var(--border); }
+.set-row:first-child { border-top: 0; padding-top: 8px; }
+.set-row .about h2 { font-size: var(--fs-section); line-height: 22px; font-weight: 500; margin-top: 16px; }
+.set-row .about p { margin-top: 4px; color: var(--muted); max-width: 46ch; }
+.set-panel { padding: 16px; border-radius: var(--radius-card); background: var(--surface); border: 1px solid var(--border); display: grid; gap: 16px; }
+.def-row { display: grid; grid-template-columns: minmax(0, 1fr) 120px 96px 96px 36px; gap: 8px; align-items: end; }
+.def-row .field { gap: 6px; }
+.def-row .field > label { font-size: var(--fs-small); font-weight: 400; color: var(--muted); }
+.def-row + .def-row .field > label { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
+.ritual-row { display: grid; grid-template-columns: 24px minmax(0, 1fr) 36px; gap: 8px; align-items: center; }
+.ritual-row .idx { color: var(--muted); text-align: right; font-variant-numeric: tabular-nums; }
+.hours-row { display: flex; gap: 16px; align-items: end; flex-wrap: wrap; }
+
+/* ---------- shutdown ---------- */
+.ritual { display: grid; }
+.ritual-step { display: flex; align-items: flex-start; gap: 14px; padding: 14px 0; border-bottom: 1px solid var(--rule); cursor: pointer; }
+.ritual-step .check { margin-top: 1px; }
+.ritual-step span { font-size: 16px; line-height: 24px; }
+.ritual-step.done span { color: var(--muted); }
+.ritual-foot { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding-top: 20px; flex-wrap: wrap; }
+.complete-stamp { display: flex; align-items: center; gap: 12px; font-size: 18px; font-weight: 500; }
+.complete-stamp .check { pointer-events: none; }
+.mini-blocks { display: grid; }
+.mini-block { display: grid; grid-template-columns: 96px minmax(0, 1fr); gap: 12px; padding: 10px 0; border-bottom: 1px solid var(--rule); }
+.mini-block .t { color: var(--muted); font-variant-numeric: tabular-nums; }
+.carry { display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 44px; border-bottom: 1px solid var(--rule); }
+.carry span { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+/* ---------- states ---------- */
+.empty { display: grid; place-items: center; min-height: 64px; padding: 12px 16px; border: 1px dashed var(--control); border-radius: var(--radius-control); color: var(--muted); text-align: center; }
+.skeleton { background: var(--raised); border-radius: 4px; }
+.notice { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 8px 12px; margin-bottom: var(--gap); border: 1px solid var(--notice-border); border-radius: var(--radius-control); background: var(--pill-warning-bg); color: var(--pill-warning-ink); font-size: 13px; }
+.notice.error { border-color: var(--error-border); background: var(--pill-negative-bg); color: var(--pill-negative-ink); }
+.loading-screen { display: grid; place-items: center; min-height: 60vh; color: var(--muted); }
+.unreachable { display: grid; justify-items: center; gap: 16px; max-width: 36ch; padding: 0 16px; text-align: center; }
+.unreachable p { margin: 0; }
+
+/* ---------- sign in ---------- */
+.login { min-height: 100svh; display: grid; place-items: center; padding: 16px; }
+.login form { width: min(380px, 100%); display: grid; gap: 20px; padding: 28px; border: 1px solid var(--border); border-radius: 12px; background: var(--surface); }
+.login .brand { display: flex; align-items: center; gap: 10px; }
+.login .brand svg { width: 28px; height: 28px; }
+.login h1 { font-size: 22px; line-height: 28px; font-weight: 500; }
+.login p { color: var(--muted); }
+.login .err { color: var(--negative); font-size: 13px; }
+
+/* ---------- the chart wrapper ---------- */
+.chart { position: relative; min-width: 0; }
+.chart-head { display: flex; align-items: baseline; justify-content: space-between; flex-wrap: wrap; gap: 4px 12px; margin-bottom: 8px; }
+.set-panel.features { display: grid; gap: 6px; }
+.feature-row { align-items: flex-start; }
+.feature-row > span { display: grid; gap: 1px; }
+.feature-row b { font-weight: 500; }
+.feature-row small { font-size: 13px; }

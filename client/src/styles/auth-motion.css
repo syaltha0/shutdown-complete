@@ -1,0 +1,43 @@
+/* The sign-in screens in motion. */
+/* ======================= sign-in screens: motion =======================
+   The form opens in about a second: its title rises from behind its baseline, then the rest arrives in reading order;
+   the planner's mark draws its tick; on the other half the film opens like a shutter. Under reduced motion, nothing
+   travels: things fade in, and the tick still draws (a stroke, not a movement). */
+.rise-title .mask { display: block; overflow: hidden; padding-bottom: 0.08em; margin-bottom: -0.08em; }
+.rise-title .mask > span { display: block; animation: title-up 820ms var(--ease-expo) 80ms both; }
+@keyframes title-up { from { transform: translateY(105%); } }
+.auth-form > :not(h1) { animation: form-rise 520ms var(--ease-out) both; animation-delay: calc(300ms + var(--i, 0) * 60ms); }
+.auth-form > :nth-child(2) { --i: 0; } .auth-form > :nth-child(3) { --i: 1; } .auth-form > :nth-child(4) { --i: 2; }
+.auth-form > :nth-child(5) { --i: 3; } .auth-form > :nth-child(6) { --i: 4; } .auth-form > :nth-child(7) { --i: 5; }
+.auth-form > :nth-child(8) { --i: 6; } .auth-form > :nth-child(9) { --i: 7; } .auth-form > :nth-child(n+10) { --i: 8; }
+@keyframes form-rise { from { opacity: 0; transform: translateY(14px); } }
+.auth-brand .mark-tick { stroke-dasharray: 1; stroke-dashoffset: 1; animation: draw-unit 560ms var(--ease-out) 350ms forwards; }
+@keyframes draw-unit { to { stroke-dashoffset: 0; } }
+@keyframes draw { to { stroke-dashoffset: 0; } }
+.showcase-name, .showcase-tag { animation: form-rise 620ms var(--ease-out) both; }
+.showcase-name { animation-delay: 160ms; } .showcase-tag { animation-delay: 230ms; }
+.segs { animation: form-rise 520ms var(--ease-out) 320ms both; }
+.vscreen { animation: shutter 1100ms var(--ease-in-out) 220ms both; }
+.vscreen video { animation: settle 1300ms var(--ease-expo) 200ms both; }
+@keyframes shutter { from { clip-path: inset(0 0 100% 0 round var(--radius-card)); } to { clip-path: inset(0 0 0 0 round var(--radius-card)); } }
+@keyframes settle { from { transform: scale(1.06); } }
+/* under the hand */
+.auth .btn.big { transition: background-color var(--t-hover) ease, color var(--t-hover) ease, transform var(--t-press) var(--ease-out); }
+.auth .btn.big:active:not(:disabled) { transform: scale(0.98); }
+.auth .input { transition: border-color var(--t-hover) ease, box-shadow var(--t-hover) ease; }
+.auth .field > label { transition: color var(--t-hover) ease; }
+.auth .field:focus-within > label { color: var(--text); }
+.auth-alt .card-link, .auth-foot a { text-decoration: underline; text-decoration-color: transparent; text-underline-offset: 0.22em; transition: text-decoration-color var(--t-hover) ease; }
+@media (hover: hover) and (pointer: fine) { .auth-alt .card-link:hover, .auth-foot a:hover { text-decoration-color: currentColor; } }
+/* the tick on the button when the form went through */
+.done-tick { width: 18px; height: 18px; margin-right: 8px; fill: none; stroke: currentColor; stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; stroke-dasharray: 16; stroke-dashoffset: 16; animation: draw 380ms var(--ease-out) forwards; }
+/* reduced motion: fades only (the global rule stops everything; these come back without travel) */
+:root[data-motion="reduce"] .rise-title .mask > span { animation: none !important; }
+:root[data-motion="reduce"] .auth-form > :not(h1), :root[data-motion="reduce"] .showcase-name, :root[data-motion="reduce"] .showcase-tag,
+:root[data-motion="reduce"] .segs, :root[data-motion="reduce"] .vscreen { animation: fade-in 360ms ease both !important; animation-delay: calc(120ms + var(--i, 0) * 40ms) !important; }
+:root[data-motion="reduce"] .vscreen video { animation: none !important; }
+:root[data-motion="reduce"] .done-tick { animation: draw 420ms ease forwards !important; }
+:root[data-motion="reduce"] .auth-brand .mark-tick { animation: draw-unit 420ms ease forwards !important; }
+@keyframes fade-in { from { opacity: 0; } }
+/* the moment it went through, the button keeps its full colour (it is waiting for the planner to open, not idle) */
+.auth .btn.primary:disabled:has(.done-tick) { background: var(--primary); border-color: var(--primary); color: var(--primary-ink); opacity: 1; }

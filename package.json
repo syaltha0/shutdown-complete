@@ -1,0 +1,29 @@
+{
+  "name": "shutdown-complete",
+  "private": true,
+  "type": "module",
+  "workspaces": [
+    "client",
+    "server"
+  ],
+  "scripts": {
+    "dev:server": "npm run dev -w server",
+    "dev:client": "npm run dev -w client",
+    "build": "npm run build -w client",
+    "start": "npm start -w server",
+    "lint:taste": "node .claude/skills/design-taste-frontend/scripts/lint.mjs --app client/src",
+    "typecheck": "npm run typecheck -w client",
+    "cli": "node server/src/cli.mjs",
+    "tutorial:record": "node tools/tutorial/record.mjs",
+    "tutorial:render": "node tools/tutorial/render.mjs",
+    "test:e2e": "node tools/e2e/features.mjs && node tools/e2e/signup.mjs && node tools/e2e/planner.mjs && node tools/e2e/tasks.mjs && node tools/e2e/caldav.mjs && node tools/e2e/extras.mjs && node tools/e2e/welcome.mjs"
+  },
+  "engines": {
+    "node": ">=24"
+  },
+  "license": "AGPL-3.0-only",
+  "description": "A self-hosted time-block planner: time blocks, revisions, metrics, focus, habits and a shutdown ritual.",
+  "devDependencies": {
+    "playwright-core": "^1.64.1"
+  }
+}
