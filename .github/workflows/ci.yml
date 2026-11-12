@@ -1,0 +1,35 @@
+name: CI
+
+on: [push, pull_request]
+
+permissions:
+  contents: read
+
+jobs:
+  checks:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - run: npm run typecheck
+      - run: npm run build
+      - run: npm test
+  e2e:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - run: npx playwright-core install --with-deps chromium
+      - name: Locate Chromium
+        run: node --input-type=module -e "import { chromium } from 'playwright-core'; import { appendFileSync } from 'node:fs'; appendFileSync(process.env.GITHUB_ENV, 'CHROME_PATH=' + chromium.executablePath() + '\n');"
+      - run: npm run build
+      - run: npm run test:e2e
