@@ -75,6 +75,34 @@ try {
   check('skipping the break ends it', !!(await until(async () => (await doc()).focus.active === null)));
   check('the setup returns', await p.locator('.focus-setup').isVisible());
 
+  // a long list of sessions scrolls inside its card (newest first, the total stays), and the two columns stay level
+  const dd = await doc();
+  const now0 = Date.now();
+  dd.focus = { active: null, sessions: Array.from({ length: 9 }, (_, i) => ({ id: 'x' + i, blockId: null, label: 'Session ' + (i + 1), kind: null, start: new Date(now0 - (10 - i) * 3600e3).toISOString(), end: new Date(now0 - (10 - i) * 3600e3 + 25 * 60000).toISOString(), minutes: 25 })) };
+  await api.put('day:' + D, dd);
+  const settings0 = (await api.get('settings')).value;
+  for (const friends of [true, false]) {
+    await api.put('settings', { ...settings0, features: { ...(settings0.features ?? {}), friends } });
+    for (const w of [1440, 390, 360]) {
+      await p.setViewportSize({ width: w, height: 900 });
+      await p.goto(s.url + '/focus');
+      await p.locator('.session-scroll').waitFor();
+      const m = await p.evaluate(() => {
+        const sc = document.querySelector('.session-scroll'), tot = document.querySelector('.session.total'), panel = document.querySelector('.focus-panel'), stack = document.querySelector('.focus-grid > .stack');
+        const five = [...sc.children].slice(0, 5).reduce((n, r) => n + r.offsetHeight, 0);
+        return { over: sc.scrollHeight > sc.clientHeight, h: sc.clientHeight, five, first: sc.querySelector('.l').textContent, tot: tot.getBoundingClientRect().bottom <= sc.parentElement.getBoundingClientRect().bottom + 1 && tot.getBoundingClientRect().top >= sc.getBoundingClientRect().bottom - 1,
+          pb: panel.getBoundingClientRect().bottom, sb: stack.lastElementChild.getBoundingClientRect().bottom, side: panel.getBoundingClientRect().right <= stack.getBoundingClientRect().left + 1, hasFr: !!document.querySelector('.friends'), x: document.documentElement.scrollWidth <= document.documentElement.clientWidth };
+      });
+      const tag = `friends ${friends ? 'on' : 'off'}, ${w}px`;
+      check(`sessions scroll inside the card, newest first, total below (${tag})`, m.over && m.h >= m.five - 1 && (w > 1000 || m.h <= m.five + 1) && m.first === 'Session 9' && m.tot);
+      check(`friends card follows the setting, no sideways scroll (${tag})`, m.hasFr === friends && m.x);
+      if (w === 1440) check(`the timer card is as tall as the right column (${tag})`, m.side && Math.abs(m.pb - m.sb) <= 1);
+    }
+  }
+  await api.put('settings', settings0);
+  await p.setViewportSize({ width: 1440, height: 900 });
+  await p.goto(s.url + '/focus');
+
   // no horizontal overflow at 360px, and the room opens and closes with Esc
   await p.setViewportSize({ width: 360, height: 800 });
   check('no sideways scroll at 360px', await p.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth));

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useLayoutEffect, useRef, useState } from 'react';
 import { Segmented } from '../components/Segmented';
 import { useSettings } from '../App';
 import { DocNotice, SaveStamp } from '../components/Common';
@@ -16,6 +16,8 @@ import { useDoc, useRange } from '../lib/useDoc';
 import { kindSwatch } from './TimeGrid';
 import { FocusRoom } from '../components/FocusRoom';
 import { FriendsPanel } from '../components/Friends';
+
+const ROWS = 5;
 
 export function Focus() {
   const T = useT();
@@ -67,6 +69,22 @@ export function Focus() {
   // the note belongs to the session a break follows
   const lastSession = a && a.phase !== 'focus' ? sessions.find((x) => x.id === a.sessionId) ?? null : null;
   const cycleNo = ((sessions.length % f.longEvery) + (a?.phase === 'focus' ? 1 : 0)) || f.longEvery;
+
+  // Today's sessions shows about five rows and scrolls inside, so a long day does not push the cards below
+  const listRef = useRef<HTMLDivElement>(null);
+  useLayoutEffect(() => {
+    const el = listRef.current;
+    if (!el) return;
+    const fit = () => {
+      const rows = [...el.children].slice(0, ROWS) as HTMLElement[];
+      const h = `${rows.reduce((n, r) => n + r.offsetHeight, 0)}px`;
+      if (el.style.getPropertyValue('--rows-h') !== h) el.style.setProperty('--rows-h', h);
+    };
+    fit();
+    const ro = new ResizeObserver(fit);
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, [sessions]);
 
   async function finish() {
     const r = await finishPhase(settings, true);
@@ -168,14 +186,15 @@ export function Focus() {
           </div>
         </section>
 
-        <div className="stack span-5" style={{ alignContent: 'start' }}>
-        <section className="panel" aria-labelledby="fs-h" data-anim>
+        <div className="stack span-5">
+        <section className="panel focus-sessions" aria-labelledby="fs-h" data-anim>
           <header>
             <h2 id="fs-h">{T.sessionsToday}</h2>
             <a className="card-link" style={{ fontWeight: 400 }} href={`/day/${today()}`} onClick={onLinkClick}>{T.nav.today}</a>
           </header>
           {sessions.length === 0 ? <div className="empty">{T.noSessions}</div> : (
             <div className="sessions">
+              <div className="session-scroll" ref={listRef} tabIndex={sessions.length > ROWS ? 0 : -1} role="region" aria-label={T.sessionsToday}>
               {[...sessions].reverse().map((s) => {
                 const st = new Date(s.start), en = new Date(s.end);
                 return (
@@ -188,6 +207,7 @@ export function Focus() {
                   </div>
                 );
               })}
+              </div>
               <div className="session total"><span /><span /><span className="l">{T.totalCol}</span><span className="n num">{duration(total)}</span></div>
             </div>
           )}

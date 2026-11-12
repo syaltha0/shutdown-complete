@@ -60,6 +60,10 @@
 
 /* focus */
 .grid.top.focus-grid { align-items: stretch; }
+.focus-grid > .stack { display: flex; flex-direction: column; }
+/* the right column matches the timer card: the sessions card takes the spare height, its list grows into it */
+.focus-grid > .stack > .focus-sessions { flex: 1 0 auto; display: flex; flex-direction: column; }
+.focus-sessions > .empty { flex: 1; }
 .focus-panel { position: relative; display: flex; align-items: center; justify-content: center; min-height: 460px; }
 .focus-room-btn { position: absolute; top: 16px; right: 16px; }
 .focus-stage { display: grid; justify-items: center; gap: 24px; width: 100%; }
@@ -87,13 +91,17 @@
 .focus-note-field { width: 100%; text-align: left; gap: 6px; }
 .focus-note-field label { font-size: 13px; font-weight: 500; }
 .focus-note { font-size: 13px; text-align: center; }
-.sessions { display: grid; }
+.sessions { display: flex; flex-direction: column; flex: 1; min-height: 0; }
+/* about five rows tall (measured), scrolls inside; it may grow when the card is stretched */
+.session-scroll { height: var(--rows-h, auto); flex: 1 0 auto; overflow-y: auto; overscroll-behavior: contain; scroll-behavior: auto; scrollbar-width: thin; }
+.session-scroll .session:last-child { border-bottom: 0; }
+.session.total { border-top: 1px solid var(--rule); }
 .session { display: grid; grid-template-columns: 14px 104px minmax(0, 1fr) 72px; gap: 10px; align-items: center; min-height: 44px; border-bottom: 1px solid var(--rule); }
 .session i { width: 14px; height: 10px; border-radius: 2px; }
 .session .t { color: var(--muted); font-size: 13px; }
 .session .l { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .session .n { text-align: right; }
-.session .more { grid-column: 3 / -1; margin-top: -8px; padding-bottom: 8px; color: var(--muted); font-size: 13px; overflow-wrap: anywhere; }
+.session .more { grid-column: 3 / -1; margin-top: -8px; padding-bottom: 8px; color: var(--muted); font-size: 13px; overflow-wrap: anywhere; display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; line-clamp: 2; overflow: hidden; }
 .session:has(.more) { align-items: start; padding-top: 12px; }
 .session:has(.more) > i { margin-top: 6px; }
 .session.total { border-bottom: 0; font-weight: 500; }
@@ -159,4 +167,7 @@
   .focus-title .title-actions { position: absolute; top: 5px; right: 0; }
   .focus-title > div:first-child { padding-right: 64px; }
   .focus-pair { grid-template-columns: minmax(0, 1fr); }
+  .session { grid-template-columns: 10px 84px minmax(0, 1fr) auto; gap: 8px; }
+  .session i { width: 10px; }
+  .session .t { font-size: 12px; }
 }
