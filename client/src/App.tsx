@@ -76,6 +76,20 @@ export const useAccount = () => useContext(AccountContext)!;
 export function App() {
   const [state, setState] = useState<AuthState | null>(null);
   const path = usePath();
+  useEffect(() => {
+    if (/^#together=[a-f0-9]{64}$/.test(location.hash)) {
+      sessionStorage.setItem('together', location.hash.slice(10));
+      history.replaceState(null, '', location.pathname);
+    }
+    const follow = () => {
+      if (/^#together=[a-f0-9]{64}$/.test(location.hash)) {
+        sessionStorage.setItem('together', location.hash.slice(10));
+        location.href = '/focus';
+      }
+    };
+    window.addEventListener('hashchange', follow);
+    return () => window.removeEventListener('hashchange', follow);
+  }, [path]);
   // a server that cannot be reached is said so (and tried again), not mistaken for a signed-out visitor
   const [unreachable, setUnreachable] = useState(false);
   const load = () => api.state().then(async (s) => { if (!state && s.user) await restorePending(s.user.id); setPasswordPolicy(s.policy); setUnreachable(false); setState(s); }).catch(() => setUnreachable(true));
@@ -95,7 +109,7 @@ export function App() {
   if (!state && unreachable) return <Unreachable onRetry={load} />;
   if (!state) return <div className="loading-screen">{useT().loading}</div>;
   // signing in reloads the page, so no document of a previous account stays in memory
-  if (!state.user) return <Suspense fallback={<div className="loading-screen" />}><Auth state={state} onIn={() => { location.href = '/'; }} /></Suspense>;
+  if (!state.user) return <Suspense fallback={<div className="loading-screen" />}><Auth state={state} onIn={() => { location.href = sessionStorage.getItem('together') ? '/focus' : '/'; }} /></Suspense>;
   if (state.user.mustChange) return <Suspense fallback={<div className="loading-screen" />}><MustChange user={state.user} source={state.source} /></Suspense>;
   return (
     <AccountContext.Provider value={{ user: state.user, source: state.source, attention: state.attention ?? 0, refresh: load }}>
@@ -265,7 +279,7 @@ function Shell() {
       </main>
       <FocusRunner />
       <BlockReminders />
-      {featureOn(settings, 'friends') && <FriendsWatcher />}
+      <FriendsWatcher />
       <Shortcuts />
       {r?.nav === 'day' && <Tour />}
     </div>

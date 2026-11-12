@@ -1,0 +1,103 @@
+import { launch } from '../lib/browser.mjs';
+import { startServer, client } from '../lib/server.mjs';
+import { demoAccount, iso } from '../lib/demo.mjs';
+import { DatabaseSync } from 'node:sqlite';
+import { createHash } from 'node:crypto';
+import { mkdirSync } from 'node:fs';
+import { join } from 'node:path';
+const s = await startServer(), b = await launch();
+let passed = 0;
+const check = (n, ok) => { if (!ok) throw Error(n); console.log('PASS '+n); passed++; };
+const shotDir = process.env.TOGETHER_SHOTS || 'D:/newport/reports/focus-shots/together';
+const a = await demoAccount(client(s.url), {lang:'en'});
+const z = await demoAccount(client(s.url), {lang:'en',email:'guest@example.test'});
+const D = iso(new Date());
+const ctx = async (api) => { const c = await b.newContext({viewport:{width:1440,height:1100},reducedMotion:'reduce'}); if(api) await c.addCookies([{name:'sc_session',value:api.cookie.split('=')[1],url:s.url}]); return c; };
+const room = async () => (await a.call('/api/rooms',{minutes:25,invite:[]})).body;
+const link = async (r) => (await a.call(`/api/rooms/${r.id}/link`,{})).body.path;
+const token = (l) => l.split('=')[1];
+try {
+  const hidden = (await z.call('/api/friends')).body;
+  check('online visibility defaults off', !hidden.share.online);
+  check('hidden account is absent', !(await a.call('/api/friends')).body.online.length);
+  await z.call('/api/friends/share',{online:true},'PUT');
+  const online=(await a.call('/api/friends')).body.online;
+  check('opted in account appears without friendship',online.length===1 && hidden.friends.length===0);
+  const zid=online[0].id;
+  await z.call('/api/friends/share',{online:false},'PUT');
+  const r=await room();
+  check('hidden account cannot be invited directly',(await a.call(`/api/rooms/${r.id}/invite`,{userId:zid})).status===404);
+  await z.call('/api/friends/share',{online:true},'PUT');
+  check('direct invitation succeeds',(await a.call(`/api/rooms/${r.id}/invite`,{userId:zid})).status===200);
+  check('invitation reaches recipient',(await z.call('/api/friends')).body.invites.some(x=>x.id===r.id));
+  const cz=await ctx(z), pz=await cz.newPage();
+  await pz.goto(s.url+'/day/'+D);
+  await pz.locator('.friend-note').waitFor({timeout:8000}).catch(async e => { console.log(await pz.locator('body').innerText()); throw e; });
+  check('watcher offers join and decline',await pz.locator('.friend-note').getByRole('button',{name:'Join',exact:true}).isVisible() && await pz.locator('.friend-note').getByRole('button',{name:'Decline',exact:true}).count()>0);
+  await z.call(`/api/rooms/${r.id}/invite`,null,'DELETE');
+  check('decline removes invitation',(await z.call('/api/friends')).body.invites.length===0);
+  check('declined invitation cannot join',(await z.call(`/api/rooms/${r.id}/join`,{})).status===404);
+  await a.call(`/api/rooms/${r.id}/invite`,{userId:zid});
+  const accepted=await z.call(`/api/rooms/${r.id}/join`,{});
+  check('accept joins shared timeline',accepted.status===200 && accepted.body.startsAt===r.startsAt && accepted.body.minutes===r.minutes);
+  const l=await link(r);
+  const anon=await ctx(), p=await anon.newPage();
+  await p.goto(s.url+l);
+  await p.locator('#email').waitFor();
+  check('signed out link asks for login and preserves token',await p.evaluate(()=>sessionStorage.getItem('together'))===token(l));
+  await p.locator('#email').fill('guest@example.test');
+  await p.locator('#password').fill('Demo-password-1');
+  await p.locator('form button[type=submit]').click();
+  await p.locator('.focus-controls').waitFor();
+  let active;
+  for(let i=0;i<50;i++) { active=(await z.get('day:'+D)).value?.focus?.active; if(active) break; await p.waitForTimeout(100); }
+  check('linked focus document is saved', !!active);
+  check('login returns to focus and joins linked room',new URL(p.url()).pathname==='/focus' && active.roomId===r.id);
+  check('linked timer ends with host',Date.parse(active.startedAt)+active.plannedMin*60000===Date.parse(r.startsAt)+r.minutes*60000);
+  check('used link is rejected',(await z.call('/api/room-links/join',{token:token(l)})).status===404);
+  const expired=await link(r);
+  const db=new DatabaseSync(join(s.dir,'planner.db'));
+  const hash=createHash('sha256').update(token(expired)).digest('hex');
+  check('only token hash stored',!!db.prepare('SELECT 1 FROM room_links WHERE hash=?').get(hash) && !db.prepare('SELECT 1 FROM room_links WHERE hash=?').get(token(expired)));
+  db.prepare('UPDATE room_links SET expires=? WHERE hash=?').run(Date.now()-1000,hash);
+  check('expired link rejected',(await z.call('/api/room-links/join',{token:token(expired)})).status===404);
+  const ended=await room(), endedLink=await link(ended);
+  db.prepare('UPDATE rooms SET starts_at=? WHERE id=?').run(new Date(Date.now()-26*60000).toISOString(),ended.id);
+  check('ended room link rejected',(await z.call('/api/room-links/join',{token:token(endedLink)})).status===404);
+  db.close();
+  const ca=await ctx(a), pa=await ca.newPage();
+  await pa.goto(s.url+'/focus');
+  await pa.getByRole('button',{name:'Create invitation link',exact:true}).click();
+  await pa.locator('.together-link input').waitFor();
+  check('host UI creates selectable link',(await pa.locator('.together-link input').inputValue()).includes('/focus#together='));
+  mkdirSync(shotDir,{recursive:true});
+  for(const width of [1440,390]) {
+    await pa.setViewportSize({width,height:1100});
+    await pa.waitForTimeout(400);
+    await pa.screenshot({path:join(shotDir,`together-${width}.png`),fullPage:true});
+    check(`no overflow at ${width}`,await pa.evaluate(()=>document.documentElement.scrollWidth<=innerWidth));
+  }
+  const hostLink = await pa.locator('.together-link input').inputValue();
+  const guestDoc = (await z.get('day:'+D)).value;
+  guestDoc.focus.active = null;
+  await z.put('day:'+D, guestDoc);
+  await p.goto(hostLink);
+  await p.waitForFunction(() => !sessionStorage.getItem('together'));
+  let joined;
+  for(let i=0;i<50;i++) { joined=(await z.get('day:'+D)).value?.focus?.active; if(joined?.roomId!==r.id && joined) break; await p.waitForTimeout(100); }
+  let hosted;
+  for(let i=0;i<50;i++) { hosted=(await a.get('day:'+D)).value?.focus?.active; if(hosted) break; await pa.waitForTimeout(100); }
+  check('both browser timers share the new room',joined?.roomId===hosted?.roomId && !!hosted);
+  const end=Date.parse(hosted.startedAt)+hosted.plannedMin*60000;
+  await pa.clock.install({time:end+1500});
+  await p.clock.install({time:end+1500});
+  let done=false;
+  for(let i=0;i<50;i++) {
+    const x=(await a.get('day:'+D)).value.focus, y=(await z.get('day:'+D)).value.focus;
+    done=x.sessions.some(v=>Date.parse(v.end)===end) && y.sessions.some(v=>Date.parse(v.end)===end);
+    if(done) break;
+    await pa.waitForTimeout(100);
+  }
+  check('both sessions finish at the shared end',done);
+  console.log(`${passed} passed, 0 failed`);
+} finally { await b.close(); s.stop(); }

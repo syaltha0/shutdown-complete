@@ -115,3 +115,7 @@
 .tomorrow .empty { white-space: normal; overflow-wrap: anywhere; min-width: 0; }
 .focus-grid > .stack, .shutdown-grid > .stack { min-width: 0; }
 :root[data-motion="reduce"] .room-tasks { transition: none; }
+
+.together-link { display: grid; gap: 6px; min-width: 0; font-size: var(--fs-small); }
+.together-link input { width: 100%; min-width: 0; }
+.friends details > summary { cursor: pointer; }

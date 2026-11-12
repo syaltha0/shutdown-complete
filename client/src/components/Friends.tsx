@@ -27,6 +27,9 @@ export function FriendsPanel() {
   const S = useSocial(true);
   const { settings } = useSettings();
   const running = !!useFocusDay().active;
+  const [link, setLink] = useState('');
+  const [busy, setBusy] = useState(false);
+
   const [email, setEmail] = useState('');
   const [note, setNote] = useState<string | null>(null);
   const [picking, setPicking] = useState(false);
@@ -41,11 +44,24 @@ export function FriendsPanel() {
     try { await api.addFriend(email.trim()); setNote(T.friendAsked); setEmail(''); refreshSocial(); }
     catch (err) { setNote(err instanceof ApiError && err.code === 'self' ? T.friendSelf : T.friendFailed); }
   }
-  async function together() {
+  async function ensureRoom() {
+    if (S?.room?.isHost) return S.room.id;
+    if (running) throw new Error();
     const room = await api.createRoom(len, chosen, '');
     await startFocus({ blockId: null, label: T.togetherLabel, minutes: room.minutes, startedAt: room.startsAt, roomId: room.id });
     setPicking(false); setChosen([]);
-    refreshSocial();
+    await refreshSocial();
+    return room.id;
+  }
+  async function together(userId?: string) {
+    setBusy(true); setNote(null);
+    try {
+      const id = await ensureRoom();
+      if (userId) { await api.inviteOnline(id, userId); setNote(T.togetherSent); }
+      else setLink(location.origin + (await api.roomLink(id)).path);
+      await refreshSocial();
+    } catch { setNote(T.friendFailed); }
+    finally { setBusy(false); }
   }
   const status = (f: (typeof S.friends)[number]) => {
     if (!f.status) return T.friendIdle;
@@ -57,6 +73,17 @@ export function FriendsPanel() {
   return (
     <section className="panel friends" aria-labelledby="fr-h" data-anim>
       <header><h2 id="fr-h">{T.together}</h2></header>
+      <div className="together-form">
+        <label className="sr-only" htmlFor="together-length">{T.lengthLabel}</label>
+        <select id="together-length" className="input num" value={len} disabled={running} onChange={(e) => setLen(Number(e.target.value))}>
+          {[15,25,30,45,50,60,90].map((m) => <option key={m} value={m}>{T.minShort(m)}</option>)}
+        </select>
+        <button type="button" className="btn" disabled={busy || (running && !S.room?.isHost)} onClick={() => together()}>{T.togetherLink}</button>
+      </div>
+      {link && <label className="together-link">{T.togetherLinkHint}<input className="input" readOnly value={link} onFocus={(e) => e.target.select()} /></label>}
+      <label className="switch-row"><input type="checkbox" className="switch" checked={S.share.online} onChange={(e) => api.shareFocus({ online: e.target.checked }).then(refreshSocial)} />{T.showOnline}</label>
+      <h3>{T.onlinePeople}</h3>
+      {S.online.length ? <ul className="friend-list">{S.online.map((u) => <li key={u.id}><i className="dot" aria-hidden="true" /><b>{u.name}</b><button className="btn" disabled={busy || (running && !S.room?.isHost)} onClick={() => together(u.id)}>{T.inviteFriend(u.name)}</button></li>)}</ul> : <p className="muted friends-empty">{T.onlineNone}</p>}
       {S.invites.map((r) => (
         <div className="invite-row" key={r.id}>
           <span><b>{T.roomInvite(r.host, r.minutes)}</b><small className="muted">{T.roomLeft(duration(minutesLeft(r)))}{r.people.length > 1 ? ` · ${T.roomWith(r.people.join(', '))}` : ''}</small></span>
@@ -67,6 +94,7 @@ export function FriendsPanel() {
         </div>
       ))}
 
+      <details><summary>{T.teamFriends}</summary>
       {S.friends.length === 0 ? <p className="muted friends-empty">{T.friendsNone}</p> : (
         <ul className="friend-list">
           {S.friends.map((f) => (
@@ -88,7 +116,7 @@ export function FriendsPanel() {
           <select id="tg-len" className="input num" value={len} onChange={(e) => setLen(Number(e.target.value))}>
             {[15, 25, 30, 45, 50, 60, 90].map((m) => <option key={m} value={m}>{T.minShort(m)}</option>)}
           </select>
-          <button type="button" className="btn primary" disabled={!chosen.length} onClick={together}>{T.startTogether}</button>
+          <button type="button" className="btn primary" disabled={!chosen.length} onClick={() => together()}>{T.startTogether}</button>
           <button type="button" className="btn ghost" onClick={() => { setPicking(false); setChosen([]); }}>{T.cancel}</button>
         </div>
       ) : <button type="button" className="btn" onClick={() => setPicking(true)}>{T.focusTogether}</button>)}
@@ -120,6 +148,7 @@ export function FriendsPanel() {
       </form>
       {note && <p className="muted friend-note-line" role="status">{note}</p>}
 
+      </details>
       <div className="share-opts">
         <label className="switch-row"><input type="checkbox" className="switch" checked={S.share.focus} onChange={(e) => api.shareFocus({ focus: e.target.checked }).then(refreshSocial)} />{T.shareFocus}</label>
         <label className="switch-row"><input type="checkbox" className="switch" checked={S.share.label} disabled={!S.share.focus} onChange={(e) => api.shareFocus({ label: e.target.checked }).then(refreshSocial)} />{T.shareLabel}</label>
@@ -139,6 +168,18 @@ export function FriendsWatcher() {
   const focusing = !!useFocusDay().active;
   const seen = useRef(new Set<string>());
   const [gone, setGone] = useState<string[]>([]);
+  const [linkError, setLinkError] = useState(false);
+  const attempted = useRef(false);
+  useEffect(() => {
+    const token = sessionStorage.getItem('together');
+    if (!token || attempted.current || focusing) return;
+    attempted.current = true;
+    api.redeemRoom(token).then(async (r) => {
+      sessionStorage.removeItem('together');
+      await startFocus({ blockId: null, label: r.label || T.togetherLabel, minutes: r.minutes, startedAt: r.startsAt, roomId: r.id });
+      refreshSocial(); navigate('/focus');
+    }).catch(() => { sessionStorage.removeItem('together'); setLinkError(true); });
+  }, [focusing, T.togetherLabel]);
   const invite = S?.invites.find((r) => !gone.includes(r.id)) ?? null;
   useEffect(() => {
     for (const r of S?.invites ?? []) {
@@ -147,12 +188,13 @@ export function FriendsWatcher() {
       showNotification(T.roomInvite(r.host, r.minutes), T.roomLeft(duration(minutesLeft(r))), '/focus', 'room');
     }
   }, [S?.invites]); // eslint-disable-line react-hooks/exhaustive-deps
+  if (linkError) return <div className="friend-note" role="alert">{T.togetherGone}<button className="btn" onClick={() => setLinkError(false)}>{T.close}</button></div>;
   if (!invite || path.startsWith('/focus') || focusing) return null;
   return (
     <div className="friend-note" role="status">
       <span>{T.roomInvite(invite.host, invite.minutes)}</span>
       <button type="button" className="btn primary" onClick={() => joinRoom(invite, T.togetherLabel).then(() => navigate('/focus'))}>{T.join}</button>
-      <button type="button" className="btn ghost icon" aria-label={T.close} onClick={() => setGone((g) => [...g, invite.id])}><IconX /></button>
+      <button type="button" className="btn ghost" onClick={() => api.declineRoom(invite.id).then(() => { setGone((g) => [...g, invite.id]); refreshSocial(); })}>{T.decline}</button>
     </div>
   );
 }

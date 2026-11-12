@@ -6,14 +6,15 @@ import { api } from './api';
 
 export interface FriendStatus { state: 'focus' | 'short' | 'long' | 'paused'; endsAt: string | null; label: string; roomId: string | null }
 export interface Friend { id: string; name: string; status: FriendStatus | null }
-export interface RoomInfo { id: string; host: string; minutes: number; startsAt: string; label: string; people: string[] }
+export interface RoomInfo { isHost: boolean; id: string; host: string; minutes: number; startsAt: string; label: string; people: string[] }
 export interface Social {
+  online: { id: string; name: string }[];
   friends: Friend[];
   incoming: { id: string; name: string; email: string }[];
   outgoing: { id: string; name: string; email: string }[];
   invites: RoomInfo[];
   room: RoomInfo | null;
-  share: { focus: boolean; label: boolean };
+  share: { online: boolean; focus: boolean; label: boolean };
 }
 
 let data: Social | null = null;
