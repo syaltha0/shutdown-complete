@@ -140,10 +140,13 @@ export const api = {
   addFriend: (email: string) => post<{ ok: true }>('/api/friends', { email }),
   acceptFriend: (id: string) => post<{ ok: true }>(`/api/friends/${encodeURIComponent(id)}/accept`),
   removeFriend: (id: string) => request<{ ok: true }>(`/api/friends/${encodeURIComponent(id)}`, { method: 'DELETE' }),
-  shareFocus: (d: { focus?: boolean; label?: boolean }) => request<{ focus: boolean; label: boolean }>('/api/friends/share', { method: 'PUT', body: JSON.stringify(d) }),
+  shareFocus: (d: { online?: boolean; focus?: boolean; label?: boolean }) => request<{ focus: boolean; label: boolean }>('/api/friends/share', { method: 'PUT', body: JSON.stringify(d) }),
   presence: (d: { state: string; label: string; endsAt: string | null; roomId: string | null } | null) =>
     request<{ ok: true }>('/api/presence', { method: 'PUT', body: JSON.stringify(d ?? {}) }),
   createRoom: (minutes: number, invite: string[], label: string) => post<{ id: string; startsAt: string; minutes: number }>('/api/rooms', { minutes, invite, label }),
+  roomLink: (id: string) => post<{ path: string }>(`/api/rooms/${encodeURIComponent(id)}/link`),
+  inviteOnline: (id: string, userId: string) => post(`/api/rooms/${encodeURIComponent(id)}/invite`, { userId }),
+  redeemRoom: (token: string) => post<{ id: string; startsAt: string; minutes: number; label: string }>('/api/room-links/join', { token }),
   joinRoom: (id: string) => post<{ id: string; startsAt: string; minutes: number; label: string }>(`/api/rooms/${encodeURIComponent(id)}/join`),
   declineRoom: (id: string) => request<{ ok: true }>(`/api/rooms/${encodeURIComponent(id)}/invite`, { method: 'DELETE' }),
 

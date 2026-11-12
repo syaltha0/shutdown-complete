@@ -1,8 +1,7 @@
-// Focusing together. Accounts on the same server can be friends (one asks by e-mail address, the other accepts);
-// friends see whether the other is in a focus session right now (if that person shares it) and, if they share that
-// too, the block's name. A shared session (a "room") starts now for a set length; the friends invited can join it
-// while it runs, and each one's timer then ends at the same moment. Nothing about a person reaches anyone who is
-// not their friend, and asking for a friend gives the same answer whether or not the address has an account.
+import { randomBytes, createHash } from 'node:crypto';
+// Friends share focus presence with friends only. Separately, users may opt into the online directory.
+// Room links are single use, stored as hashes, and expire after 24 hours or when the room ends.
+// Direct directory invitations authorize only that room; legacy invitations still require friendship.
 
 const STALE = 3 * 3600_000; // a presence not refreshed for this long is gone (a closed laptop)
 const MAX_INVITE = 50; // friends one shared session can invite
@@ -24,22 +23,23 @@ export function socialRoutes(app, { db, me, uid, fail, body, limited }) {
 
   function roomView(r, viewer) {
     const people = db.social.roomPeople(r.id).filter((x) => x.joined && x.user_id !== viewer).map((x) => db.users.byId(x.user_id)?.name).filter(Boolean);
-    return { id: r.id, host: db.users.byId(r.host)?.name ?? '', minutes: r.minutes, startsAt: r.starts_at, label: r.label, people };
+    return { isHost: r.host === viewer, id: r.id, host: db.users.byId(r.host)?.name ?? '', minutes: r.minutes, startsAt: r.starts_at, label: r.label, people };
   }
   const live = (r) => Date.parse(r.starts_at) + r.minutes * 60_000 > Date.now();
 
   app.get('/api/friends', (c) => {
     const id = uid(c), u = me(c).user;
+    db.social.heartbeat(id);
     const rows = db.social.of(id);
     const friends = rows.filter((r) => r.status === 'accepted').map((r) => ({ id: r.other, name: r.name, status: presenceOf(r.other) }));
     const incoming = rows.filter((r) => r.status === 'pending' && r.requested_by !== id).map((r) => ({ id: r.other, name: r.name, email: r.email }));
     const outgoing = rows.filter((r) => r.status === 'pending' && r.requested_by === id).map((r) => ({ id: r.other, name: r.name, email: r.email }));
     const friendIds = new Set(rows.filter((r) => r.status === 'accepted').map((r) => r.other));
-    const invites = db.social.invitesFor(id).filter((r) => live(r) && friendIds.has(r.host)).map((r) => roomView(r, id));
+    const invites = db.social.invitesFor(id).filter((r) => live(r) && (friendIds.has(r.host) || db.social.isDirect(r.id, id))).map((r) => roomView(r, id));
     const mine = db.social.presence(id);
     const roomRow = mine?.room_id ? db.social.room(mine.room_id) : null;
     const room = roomRow && live(roomRow) ? roomView(roomRow, id) : null;
-    return c.json({ friends, incoming, outgoing, invites, room, share: { focus: !!u.share_focus, label: !!u.share_label } });
+    return c.json({ online: db.social.online(id), friends, incoming, outgoing, invites, room, share: { online: !!u.share_online, focus: !!u.share_focus, label: !!u.share_label } });
   });
 
   app.post('/api/friends', async (c) => {
@@ -61,6 +61,7 @@ export function socialRoutes(app, { db, me, uid, fail, body, limited }) {
   app.put('/api/friends/share', async (c) => {
     const b = await body(c);
     const fields = {};
+    if (typeof b.online === 'boolean') fields.share_online = b.online ? 1 : 0;
     if (typeof b.focus === 'boolean') fields.share_focus = b.focus ? 1 : 0;
     if (typeof b.label === 'boolean') fields.share_label = b.label ? 1 : 0;
     db.users.set(uid(c), fields);
@@ -93,14 +94,38 @@ export function socialRoutes(app, { db, me, uid, fail, body, limited }) {
     const friends = new Set(db.social.of(id).filter((r) => r.status === 'accepted').map((r) => r.other));
     const invite = [...new Set(Array.isArray(b.invite) ? b.invite : [])].filter((x) => typeof x === 'string' && friends.has(x));
     if (invite.length > MAX_INVITE) return fail(c, 'too-many-invites');
-    const room = db.social.createRoom(id, minutes, nowIso(), typeof b.label === 'string' ? b.label.slice(0, 80) : '', invite);
+    const room = db.social.createRoom(id, minutes, nowIso(), typeof b.label === 'string' ? b.label.replace(/\p{Cc}/gu, ' ').trim().slice(0, 80) : '', invite);
     return c.json({ id: room.id, startsAt: room.starts_at, minutes: room.minutes });
+  });
+  app.post('/api/room-links/join', async (c) => {
+    if (limited(`linkjoin:${uid(c)}`, 60, 3600_000)) return fail(c, 'too-many', 429);
+    const b = await body(c);
+    if (typeof b.token !== 'string' || b.token.length !== 64) return fail(c, 'gone', 404);
+    const r = db.social.redeem(createHash('sha256').update(b.token).digest('hex'), uid(c));
+    if (!r) return fail(c, 'gone', 404);
+    return c.json({ id: r.id, startsAt: r.starts_at, minutes: r.minutes, label: r.label });
+  });
+  app.post('/api/rooms/:id/link', (c) => {
+    const r = db.social.room(c.req.param('id'));
+    if (!r || r.host !== uid(c) || !live(r)) return fail(c, 'gone', 404);
+    if (limited(`link:${uid(c)}`, 30, 3600_000)) return fail(c, 'too-many', 429);
+    const token = randomBytes(32).toString('hex');
+    db.social.link(createHash('sha256').update(token).digest('hex'), r.id, Date.now()+86400_000);
+    return c.json({ path: '/focus#together=' + token });
+  });
+  app.post('/api/rooms/:id/invite', async (c) => {
+    const r = db.social.room(c.req.param('id')), b = await body(c);
+    if (!r || r.host !== uid(c) || !live(r)) return fail(c, 'gone', 404);
+    if (limited(`direct:${uid(c)}`, 50, 3600_000)) return fail(c, 'too-many', 429);
+    if (!db.social.online(uid(c)).some((u) => u.id === b.userId)) return fail(c, 'gone', 404);
+    db.social.direct(r.id, b.userId);
+    return c.json({ ok: true });
   });
   const friendsWith = (u, other) => db.social.of(u).some((r) => r.other === other && r.status === 'accepted');
   app.post('/api/rooms/:id/join', (c) => {
     const r = db.social.room(c.req.param('id'));
     // an invitation lapses with the friendship: someone unfriended cannot join (and so appear in) the host's session
-    if (!r || !live(r) || !db.social.invited(r.id, uid(c)) || !friendsWith(uid(c), r.host)) return fail(c, 'gone', 404);
+    if (!r || !live(r) || !db.social.invited(r.id, uid(c)) || !(friendsWith(uid(c), r.host) || db.social.isDirect(r.id, uid(c)))) return fail(c, 'gone', 404);
     db.social.join(r.id, uid(c));
     return c.json({ id: r.id, startsAt: r.starts_at, minutes: r.minutes, label: r.label });
   });

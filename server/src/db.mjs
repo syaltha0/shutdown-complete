@@ -97,6 +97,7 @@ export function openDb(file) {
   // accepted at the next sign-in), 2 = a temporary password from the command line
   if (!db.prepare('PRAGMA table_info(users)').all().some((c) => c.name === 'must_change')) db.exec('ALTER TABLE users ADD COLUMN must_change INTEGER NOT NULL DEFAULT 0');
   // focusing together (social.mjs): what a person lets friends see, friendships, who is focusing, shared sessions
+  if (!db.prepare('PRAGMA table_info(users)').all().some((c) => c.name === 'share_online')) db.exec('ALTER TABLE users ADD COLUMN share_online INTEGER NOT NULL DEFAULT 0');
   if (!db.prepare('PRAGMA table_info(users)').all().some((c) => c.name === 'share_focus')) {
     db.exec('ALTER TABLE users ADD COLUMN share_focus INTEGER NOT NULL DEFAULT 0');
     db.exec('ALTER TABLE users ADD COLUMN share_label INTEGER NOT NULL DEFAULT 0');
@@ -126,6 +127,9 @@ export function openDb(file) {
       label TEXT NOT NULL DEFAULT '',
       created_at TEXT NOT NULL
     );
+    CREATE TABLE IF NOT EXISTS social_online (user_id TEXT PRIMARY KEY REFERENCES users(id) ON DELETE CASCADE, seen INTEGER NOT NULL);
+    CREATE TABLE IF NOT EXISTS room_links (hash TEXT PRIMARY KEY, room_id TEXT NOT NULL REFERENCES rooms(id) ON DELETE CASCADE, expires INTEGER NOT NULL);
+    CREATE TABLE IF NOT EXISTS room_direct (room_id TEXT NOT NULL REFERENCES rooms(id) ON DELETE CASCADE, user_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE, PRIMARY KEY(room_id,user_id));
     CREATE TABLE IF NOT EXISTS room_people (
       room_id TEXT NOT NULL REFERENCES rooms(id) ON DELETE CASCADE,
       user_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
@@ -355,6 +359,20 @@ export function openDb(file) {
     },
     // friendships are stored once per pair, the smaller id first
     social: {
+      heartbeat: (u) => db.prepare('INSERT INTO social_online VALUES (?, ?) ON CONFLICT(user_id) DO UPDATE SET seen=excluded.seen').run(u, Date.now()),
+      online: (u) => db.prepare('SELECT u.id, u.name FROM users u JOIN social_online o ON o.user_id=u.id WHERE u.share_online=1 AND u.approved=1 AND o.seen>? AND u.id!=? ORDER BY u.name LIMIT 100').all(Date.now()-70000,u),
+      link: (hash, room, expires) => db.prepare('INSERT INTO room_links VALUES (?,?,?)').run(hash,room,expires),
+      redeem: (hash, u) => tx(() => {
+        const l = db.prepare('SELECT * FROM room_links WHERE hash=? AND expires>?').get(hash,Date.now());
+        if (!l) return null;
+        const r = q.roomGet.get(l.room_id);
+        if (!r || r.host===u || Date.parse(r.starts_at)+r.minutes*60000<=Date.now()) return null;
+        db.prepare('DELETE FROM room_links WHERE hash=?').run(hash);
+        q.rpInsert.run(r.id,u,1); q.rpJoin.run(r.id,u);
+        return r;
+      }),
+      direct: (room,u) => { q.rpInsert.run(room,u,0); db.prepare('INSERT OR IGNORE INTO room_direct VALUES (?,?)').run(room,u); },
+      isDirect: (room,u) => !!db.prepare('SELECT 1 FROM room_direct WHERE room_id=? AND user_id=?').get(room,u),
       of: (u) => q.frOf.all(u),
       ask(u, other) {
         const [a, b] = u < other ? [u, other] : [other, u];
@@ -385,7 +403,7 @@ export function openDb(file) {
       invited: (id, u) => !!q.rpGet.get(id, u),
       inRoom: (id, u) => !!q.rpGet.get(id, u)?.joined,
       join: (id, u) => q.rpJoin.run(id, u),
-      decline: (id, u) => q.rpDelete.run(id, u),
+      decline: (id, u) => { q.rpDelete.run(id, u); db.prepare('DELETE FROM room_direct WHERE room_id=? AND user_id=?').run(id,u); },
       invitesFor: (u) => q.rpInvites.all(u),
     },
     // a team project's document reads like a planner document (key team:<id>), for its members only
