@@ -29,7 +29,7 @@
   --pill-negative-bg: #ffedea; --pill-negative-ink: #831c1e;
   --pill-warning-bg: #fffbeb; --pill-warning-ink: #92400e;
   --pill-neutral-bg: #eeeeee; --pill-neutral-ink: #3d3d3d;
-  --chart-1: #141414; --chart-2: #8a8a8a; --chart-3: #1d5fbf; --chart-muted: #c9c9c9;
+  --chart-1: #505050; --chart-2: #8a8a8a; --chart-3: #1d5fbf; --chart-muted: #c9c9c9;
   --chart-mark: var(--text);
   --chart-span: 0.06;
   --grid: var(--rule);
@@ -86,7 +86,7 @@
   --pill-negative-bg: #2c1a1a; --pill-negative-ink: #ff8a8a;
   --pill-warning-bg: #2b2414; --pill-warning-ink: #e5a93b;
   --pill-neutral-bg: #262626; --pill-neutral-ink: #d6d6d6;
-  --chart-1: #f2f2f2; --chart-2: #8a8a8a; --chart-3: #5b93ef; --chart-muted: #4a4a4a;
+  --chart-1: #b5b5b5; --chart-2: #8a8a8a; --chart-3: #5b93ef; --chart-muted: #4a4a4a;
   --line-strong: #8a8a8a; --line-mid: #6b6b6b; --line-soft: #4a4a4a;
   --ghost: rgba(255, 255, 255, 0.05);
   --notice-border: #5c4a1c; --error-border: #5a2a2a;

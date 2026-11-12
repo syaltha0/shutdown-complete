@@ -209,7 +209,7 @@
       const yy = y(r.value);
       svg('line', { x1: padL, x2: w, y1: yy, y2: yy, stroke: ink, 'stroke-width': 1, 'stroke-dasharray': '4 4', opacity: 0.7 }, g);
       if (!r.label) continue;
-      const tw = measure(s, r.label, 11), right = r.at !== 'left';
+      const tw = measure(s, r.label, 12), right = r.at !== 'left';
       const cand = [[right, -5], [right, 13], [!right, -5], [!right, 13]].map(([rt, dy]) => ({ x0: rt ? w - tw : padL + 4, x1: rt ? w : padL + 4 + tw, y0: yy + dy - 9, y1: yy + dy + 2, base: yy + dy }));
       // Search vertically too: on narrow plots all four positions can hit a bar.
       // The reserved space above the bars is the final safe position.
@@ -218,7 +218,7 @@
       }
       const b = cand.find((c) => c.y0 >= 0 && !hits(c, lines) && !boxHits(c, boxes))
         || { x0: padL + 4, base: 11 };
-      text(g, r.label, { x: b.x0, y: b.base, 'font-size': 11, fill: ink });
+      text(g, r.label, { x: b.x0, y: b.base, 'font-size': 12, 'font-weight': 500, fill: ink, stroke: css(el, '--surface', '#fff'), 'stroke-width': 4, 'paint-order': 'stroke', 'stroke-linejoin': 'round' });
     }
   }
   // One style object per kind of mark draws both the mark and its legend swatch, so the two cannot drift apart.
@@ -315,14 +315,14 @@
     const lg = series.length > 1 ? legendEl(series.map((sr, k) => ({ label: sr.name, w: 16, draw: (sw) => svg('line', { x1: 0, x2: 16, y1: 6, y2: 6, stroke: colourOf(sr, k), 'stroke-width': 2, 'stroke-dasharray': sr.dash ? '4 3' : null }, sw) })), legend) : null;
     return { legend: lg };
   }
-  function bars(el, { labels, values, format = fmt.int, tickFormat = null, height = 200, highlight = null, dim = [], colour, mutedColour, annotations, reference, xAt = null }) {
+  function bars(el, { labels, values, format = fmt.int, tickFormat = null, height = 200, highlight = null, dim = [], colour, mutedColour, annotations, reference, xAt = null, axisFormat = (v) => nf({ maximumFractionDigits: 1 }).format(v) }) {
     el._fmt = format;
     const lit = (i) => highlight == null || (Array.isArray(highlight) ? highlight.includes(i) : highlight === i);
     const draw = () => {
       const { s, w, h } = frame(el, heightOf(height));
-      const yt = ticks(0, Math.max(...values, ...[].concat(reference || []).map((r) => r.value)), 4), tick = tickFormat || format;
+      const yt = ticks(0, Math.max(0, ...values.filter((v) => v != null), ...[].concat(reference || []).map((r) => r.value)), 2), tick = (v) => v === yt.at(-1) ? (tickFormat || format)(v) : axisFormat(v);
       const padL = 12 + Math.max(...yt.map((v) => measure(s, tick(v), 12))), padB = 26;
-      const band = (w - padL) / values.length, bw = Math.max(2, band * 0.62);
+      const band = (w - padL) / values.length, bw = Math.max(2, Math.min(24, band * 0.48));
       const x = (i) => padL + band * i + band / 2;
       const N = prepNotes(s, annotations, x, w), padT = LANE(N.rows) + (reference ? 18 : 0);
       const y = (v) => padT + (h - padT - padB) * (1 - v / yt.at(-1));
@@ -331,8 +331,15 @@
       notesUnder(g, el, N, { padT, h, padB });
       for (const it of N.items) if (it.at != null && values[it.at] != null) it.end = y(values[it.at]) - 4;
       const main = colour || css(el, '--chart-1', '#2f6fdf'), muted = mutedColour || css(el, '--chart-muted', '#c9c9c9');
-      values.forEach((v, i) => { const r = svg('rect', { x: x(i) - bw / 2, y: y(v), width: bw, height: Math.max(0, y(0) - y(v)), fill: lit(i) ? main : muted, opacity: dim.includes(i) ? 0.45 : null, 'shape-rendering': 'crispEdges' }, g); titled(r, `${labels[i]}: ${format(v)}`, {}); });
-      references(g, el, reference, { y, padL, w, boxes: values.map((v, i) => ({ x0: x(i) - bw / 2, x1: x(i) + bw / 2, y0: y(v), y1: y(0) })) });
+      values.forEach((v, i) => {
+        if (v == null) return; // no record stays empty; an explicit zero leaves a baseline trace
+        const bh = v === 0 ? 2 : Math.max(2, y(0) - y(v)), top = y(0) - bh;
+        const left = x(i) - bw / 2, right = left + bw, radius = Math.min(2.5, bh / 2, bw / 2);
+        const r = svg('path', { d: `M${left} ${y(0)}V${top + radius}Q${left} ${top} ${left + radius} ${top}H${right - radius}Q${right} ${top} ${right} ${top + radius}V${y(0)}Z`,
+          fill: lit(i) ? main : muted, opacity: dim.includes(i) ? 0.45 : null, class: 'chart-bar' }, g);
+        titled(r, `${labels[i]}: ${format(v)}`, {});
+      });
+      references(g, el, reference, { y, padL, w, boxes: values.map((v, i) => ({ x0: x(i) - bw / 2, x1: x(i) + bw / 2, y0: v == null ? y(0) : y(v), y1: y(0) })) });
       notesOver(g, el, N, { padT, h, padB });
       s.setAttribute('aria-label', `${labels.length} bars from ${labels[0]} to ${labels.at(-1)}; highest ${format(Math.max(...values))}`);
     };
