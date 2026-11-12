@@ -1,11 +1,10 @@
 import { useEffect, useRef, useState } from 'react';
 import { useSettings } from '../App';
 import { today } from '../lib/dates';
-import { chime, finishPhase, mmss, notify, pauseFocus, resumeFocus, secondsLeft, settingsFocus } from '../lib/focus';
+import { chime, finishPhase, mmss, notify, pauseFocus, refreshFocus, resumeFocus, secondsLeft, settingsFocus, useFocusDay } from '../lib/focus';
 import { useT } from '../lib/i18n';
-import { emptyDay, type DayDoc, type FocusActive, featureOn } from '../lib/model';
+import { type FocusActive, featureOn } from '../lib/model';
 import { onLinkClick, usePath } from '../lib/router';
-import { useDoc } from '../lib/useDoc';
 import { ambientPlaying, stopAmbient } from '../lib/ambient';
 import { api } from '../lib/api';
 
@@ -43,9 +42,22 @@ export function FocusRunner() {
   const T = useT();
   const { settings } = useSettings();
   const path = usePath();
-  const { value: day } = useDoc<DayDoc>(`day:${today()}`, emptyDay);
-  const a = day?.focus?.active ?? null;
+  const { active: a, key } = useFocusDay();
   useTick(!!a && a.pausedLeft == null);
+
+  // another device may have paused, extended, ended or started the timer: look again while the tab is in view
+  const running = !!a;
+  useEffect(() => {
+    const look = () => {
+      if (document.visibilityState !== 'visible') return;
+      refreshFocus(`day:${today()}`);
+      if (key !== `day:${today()}`) refreshFocus(key);
+    };
+    const t = window.setInterval(look, running ? 15_000 : 60_000);
+    document.addEventListener('visibilitychange', look);
+    window.addEventListener('focus', look);
+    return () => { window.clearInterval(t); document.removeEventListener('visibilitychange', look); window.removeEventListener('focus', look); };
+  }, [key, running]);
   const ending = useRef<string | null>(null);
   const left = a ? secondsLeft(a) : 0;
 
@@ -53,13 +65,13 @@ export function FocusRunner() {
     if (!a || a.pausedLeft != null || left > 0 || ending.current === a.startedAt) return;
     ending.current = a.startedAt;
     const f = settingsFocus(settings);
-    finishPhase(settings).then((r) => {
+    finishPhase(settings, false, { key, startedAt: a.startedAt }).then((r) => {
       if (r === 'none') return;
       if (f.sound) chime();
       if (r === 'logged') { notify(T.focusDone, T.takeBreak(f.shortMin)); stopAmbient(); }
       else notify(T.breakOver, T.backToPlan);
     });
-  }, [a, left, settings, T]);
+  }, [a, left, settings, T, key]);
 
   // friends see whether this timer runs (the server keeps it to friends, and only if this person shares it)
   const presenceKey = a ? `${a.phase}:${a.startedAt}:${a.pausedLeft == null}:${a.label}:${a.roomId ?? ''}:${a.plannedMin}` : 'none';
@@ -91,8 +103,8 @@ export function FocusRunner() {
         <span>{a.phase === 'focus' ? a.label || T.freeFocus : T.phase[a.phase]}</span>
       </a>
       {a.pausedLeft == null
-        ? <button type="button" className="btn ghost" onClick={() => pauseFocus()}>{T.pause}</button>
-        : <button type="button" className="btn ghost" onClick={() => resumeFocus()}>{T.resume}</button>}
+        ? <button type="button" className="btn ghost" onClick={() => pauseFocus(key)}>{T.pause}</button>
+        : <button type="button" className="btn ghost" onClick={() => resumeFocus(key)}>{T.resume}</button>}
     </div>
   );
 }

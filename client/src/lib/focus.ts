@@ -1,24 +1,46 @@
 // The focus timer (pomodoro), kept inside the day's document so it survives a reload and shows on every device.
 // A finished focus session is logged on the day; if it ran in a deep-work block, its time is added to the
 // focus metric (Deep work, in hours) so the daily metrics fill themselves in.
-import { today } from './dates';
+import { addDays, today } from './dates';
 import {
   defaultFocus, emptyDay, emptyInbox, uid, type DayDoc, type InboxDoc, type FocusActive, type FocusPhase, type FocusSettings, type Kind, type Settings,
 } from './model';
-import { updateKey } from './useDoc';
+import { refreshKey, updateKey, useDoc } from './useDoc';
 import { showNotification } from './pwa';
 
 export const focusMinutes = (d: DayDoc) => (d.focus?.sessions ?? []).reduce((s, x) => s + x.minutes, 0);
 export const focusCount = (d: DayDoc) => (d.focus?.sessions ?? []).length;
 
+/** The longest a phase can run, +5 min included (a stuck tab or a stray script cannot make it endless). */
+export const MAX_PLANNED = 240;
+
 export function secondsLeft(a: FocusActive, now = Date.now()): number {
-  if (a.pausedLeft != null) return a.pausedLeft;
-  return Math.max(0, Math.round(a.plannedMin * 60 - (now - Date.parse(a.startedAt)) / 1000));
+  const total = a.plannedMin * 60;
+  if (a.pausedLeft != null) return Math.max(0, Math.min(total, a.pausedLeft));
+  const ran = (now - Date.parse(a.startedAt)) / 1000;
+  if (!Number.isFinite(ran)) return 0;
+  // a clock set back (or a start written by a device whose clock runs ahead) never shows more than the phase holds
+  return Math.max(0, Math.min(total, Math.round(total - ran)));
 }
 
 export const settingsFocus = (s: Settings): FocusSettings => ({ ...defaultFocus(), ...(s.focus || {}) });
 
 const dayKey = (d = today()) => `day:${d}`;
+
+/**
+ * The day document that holds the running timer: today's, or yesterday's while a session begun before midnight is
+ * still on (its time is logged on the day it began). Screens pass `key` to the actions below.
+ */
+export function useFocusDay() {
+  const d = today();
+  const own = useDoc<DayDoc>(dayKey(d), emptyDay);
+  const prev = useDoc<DayDoc>(dayKey(addDays(d, -1)), emptyDay);
+  const carried = !own.value?.focus?.active && prev.value?.focus?.active ? prev.value.focus.active : null;
+  return { ...own, active: carried ?? own.value?.focus?.active ?? null, key: carried ? dayKey(addDays(d, -1)) : dayKey(d), holder: carried ? prev.value : own.value };
+}
+
+/** Fetch the day again (another device may have paused, extended or ended the timer); unsaved edits stay. */
+export const refreshFocus = (key = dayKey()) => refreshKey(key);
 const withFocus = (d: DayDoc) => ({ ...d, focus: d.focus ?? { active: null, sessions: [] } });
 
 export function startFocus(opts: { blockId: string | null; label: string; phase?: FocusPhase; minutes: number; startedAt?: string; roomId?: string; task?: FocusActive['task']; intent?: string; breakMin?: number }) {
@@ -26,23 +48,23 @@ export function startFocus(opts: { blockId: string | null; label: string; phase?
   return updateKey<DayDoc>(dayKey(), emptyDay, (d) => {
     const x = withFocus(d);
     return { ...x, focus: { ...x.focus, active: {
-      phase: opts.phase ?? 'focus', startedAt: opts.startedAt ?? new Date().toISOString(), plannedMin: opts.minutes,
-      pausedLeft: null, blockId: opts.blockId, label: opts.label, ...(opts.roomId ? { roomId: opts.roomId } : {}), ...(opts.task ? { task: opts.task } : {}),
-      ...(opts.intent?.trim() ? { intent: opts.intent.trim() } : {}), ...(opts.breakMin ? { breakMin: opts.breakMin } : {}),
+      phase: opts.phase ?? 'focus', startedAt: opts.startedAt ?? new Date().toISOString(), plannedMin: Math.min(MAX_PLANNED, Math.max(1, Math.round(opts.minutes) || 1)),
+      pausedLeft: null, blockId: opts.blockId, label: opts.label.slice(0, 200), ...(opts.roomId ? { roomId: opts.roomId } : {}), ...(opts.task ? { task: opts.task } : {}),
+      ...(opts.intent?.trim() ? { intent: opts.intent.trim().slice(0, INTENT_MAX) } : {}), ...(opts.breakMin ? { breakMin: opts.breakMin } : {}),
     } } };
   });
 }
 
-export function pauseFocus() {
-  return updateKey<DayDoc>(dayKey(), emptyDay, (d) => {
+export function pauseFocus(key = dayKey()) {
+  return updateKey<DayDoc>(key, emptyDay, (d) => {
     const a = d.focus?.active;
     if (!a || a.pausedLeft != null) return d;
     return { ...d, focus: { ...d.focus!, active: { ...a, pausedLeft: secondsLeft(a) } } };
   });
 }
 
-export function resumeFocus() {
-  return updateKey<DayDoc>(dayKey(), emptyDay, (d) => {
+export function resumeFocus(key = dayKey()) {
+  return updateKey<DayDoc>(key, emptyDay, (d) => {
     const a = d.focus?.active;
     if (!a || a.pausedLeft == null) return d;
     // restart the clock so that exactly pausedLeft seconds remain
@@ -52,18 +74,21 @@ export function resumeFocus() {
 }
 
 /** Adds minutes to the running phase (a running one gets later end, a paused one more time left). */
-export function extendFocus(min = 5) {
-  return updateKey<DayDoc>(dayKey(), emptyDay, (d) => {
+export function extendFocus(min = 5, key = dayKey()) {
+  return updateKey<DayDoc>(key, emptyDay, (d) => {
     const a = d.focus?.active;
-    if (!a) return d;
-    return { ...d, focus: { ...d.focus!, active: { ...a, plannedMin: a.plannedMin + min, ...(a.pausedLeft != null ? { pausedLeft: a.pausedLeft + min * 60 } : {}) } } };
+    const add = a ? Math.min(min, MAX_PLANNED - a.plannedMin) : 0;
+    if (!a || add <= 0) return d;
+    return { ...d, focus: { ...d.focus!, active: { ...a, plannedMin: a.plannedMin + add, ...(a.pausedLeft != null ? { pausedLeft: secondsLeft(a) + add * 60 } : {}) } } };
   });
 }
 
 /** Writes (or clears) the short note on a logged session. */
-export function noteSession(id: string, note: string) {
-  const text = note.trim();
-  return updateKey<DayDoc>(dayKey(), emptyDay, (d) => {
+export const NOTE_MAX = 280, INTENT_MAX = 140;
+
+export function noteSession(id: string, note: string, key = dayKey()) {
+  const text = note.trim().slice(0, NOTE_MAX);
+  return updateKey<DayDoc>(key, emptyDay, (d) => {
     if (!d.focus) return d;
     return { ...d, focus: { ...d.focus, sessions: d.focus.sessions.map((x) => {
       if (x.id !== id) return x;
@@ -73,30 +98,35 @@ export function noteSession(id: string, note: string) {
   });
 }
 
-export function cancelFocus() {
-  return updateKey<DayDoc>(dayKey(), emptyDay, (d) => (d.focus ? { ...d, focus: { ...d.focus, active: null } } : d));
+export function cancelFocus(key = dayKey()) {
+  return updateKey<DayDoc>(key, emptyDay, (d) => (d.focus ? { ...d, focus: { ...d.focus, active: null } } : d));
 }
 
 /**
  * Ends the running phase. A focus phase that ran at least a minute is logged (early or on time) and the right break
  * starts; a break simply ends. Returns what happened so the caller can chime.
+ * `startedAt` names the phase the caller saw: if it has changed since (a second click, another device), nothing
+ * happens, so a double click on "Finish now" cannot also skip the break it started.
  */
-export async function finishPhase(settings: Settings, early = false): Promise<'logged' | 'break-over' | 'none'> {
+export async function finishPhase(settings: Settings, early = false, opts: { key?: string; startedAt?: string } = {}): Promise<'logged' | 'break-over' | 'none'> {
   const f = settingsFocus(settings);
   let result: 'logged' | 'break-over' | 'none' = 'none';
   let toList: { id: string; minutes: number } | null = null;
-  await updateKey<DayDoc>(dayKey(), emptyDay, (d) => {
+  await updateKey<DayDoc>(opts.key ?? dayKey(), emptyDay, (d) => {
     const x = withFocus(d);
     const a = x.focus.active;
     if (!a) return d;
-    if (a.phase !== 'focus') { result = 'break-over'; return { ...x, focus: { ...x.focus, active: null } }; }
+    if (opts.startedAt && a.startedAt !== opts.startedAt) return d;
     const left = secondsLeft(a);
-    if (!early && left > 0) return d; // not finished yet (another device may have resumed it)
+    if (!early && left > 0) return d; // not finished yet (another device may have resumed or extended it)
+    if (a.phase !== 'focus') { result = 'break-over'; return { ...x, focus: { ...x.focus, active: null } }; }
     const minutes = Math.round((a.plannedMin * 60 - left) / 60);
     if (minutes < 1) return { ...x, focus: { ...x.focus, active: null } };
     const block = x.columns.flatMap((c) => c.blocks).find((b) => b.id === a.blockId);
     const kind: Kind | null = block?.kind ?? null;
-    const end = new Date();
+    // a phase that ran out while the tab slept (or the laptop was shut) ended at its planned time, not now
+    const plannedEnd = Date.parse(a.startedAt) + a.plannedMin * 60_000;
+    const end = new Date(a.pausedLeft == null && left === 0 && plannedEnd < Date.now() ? plannedEnd : Date.now());
     const session = { id: uid(), blockId: a.blockId, label: a.label, kind, subject: block?.subject, start: new Date(end.getTime() - minutes * 60000).toISOString(), end: end.toISOString(), minutes, ...(a.task ? { taskId: a.task.id, taskText: a.task.text } : {}), ...(a.intent ? { intent: a.intent } : {}) };
     // the minutes add up on the task worked on: a day's task here, a listed one in the lists below
     const tasks = a.task?.day ? x.tasks.map((t) => (t.id === a.task!.id ? { ...t, spent: (t.spent ?? 0) + minutes } : t)) : x.tasks;

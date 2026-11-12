@@ -5,6 +5,8 @@
 // not their friend, and asking for a friend gives the same answer whether or not the address has an account.
 
 const STALE = 3 * 3600_000; // a presence not refreshed for this long is gone (a closed laptop)
+const MAX_INVITE = 50; // friends one shared session can invite
+const MAX_ENDS = 6 * 3600_000; // a timer cannot claim to end further ahead than this
 
 /** @param {import('hono').Hono} app */
 export function socialRoutes(app, { db, me, uid, fail, body, limited }) {
@@ -32,7 +34,8 @@ export function socialRoutes(app, { db, me, uid, fail, body, limited }) {
     const friends = rows.filter((r) => r.status === 'accepted').map((r) => ({ id: r.other, name: r.name, status: presenceOf(r.other) }));
     const incoming = rows.filter((r) => r.status === 'pending' && r.requested_by !== id).map((r) => ({ id: r.other, name: r.name, email: r.email }));
     const outgoing = rows.filter((r) => r.status === 'pending' && r.requested_by === id).map((r) => ({ id: r.other, name: r.name, email: r.email }));
-    const invites = db.social.invitesFor(id).filter(live).map((r) => roomView(r, id));
+    const friendIds = new Set(rows.filter((r) => r.status === 'accepted').map((r) => r.other));
+    const invites = db.social.invitesFor(id).filter((r) => live(r) && friendIds.has(r.host)).map((r) => roomView(r, id));
     const mine = db.social.presence(id);
     const roomRow = mine?.room_id ? db.social.room(mine.room_id) : null;
     const room = roomRow && live(roomRow) ? roomView(roomRow, id) : null;
@@ -43,8 +46,8 @@ export function socialRoutes(app, { db, me, uid, fail, body, limited }) {
     const id = uid(c);
     if (limited(`friend:${id}`, 20, 3600_000)) return fail(c, 'too-many', 429);
     const b = await body(c);
-    const email = String(b.email || '').trim().toLowerCase();
-    if (!email.includes('@')) return fail(c, 'invalid-email');
+    const email = typeof b.email === 'string' ? b.email.trim().toLowerCase() : '';
+    if (!email.includes('@') || email.length > 254) return fail(c, 'invalid-email');
     if (email === me(c).user.email.toLowerCase()) return fail(c, 'self');
     const other = db.users.byEmail(email);
     if (other && other.approved) db.social.ask(id, other.id);
@@ -67,12 +70,16 @@ export function socialRoutes(app, { db, me, uid, fail, body, limited }) {
 
   /** The client says what its focus timer is doing; null when nothing runs. */
   app.put('/api/presence', async (c) => {
+    // the client writes on each change of its timer (debounced); a loop or a script is held back
+    if (limited(`presence:${uid(c)}`, 600, 3600_000)) return fail(c, 'too-many', 429);
     const b = await body(c);
     const STATES = new Set(['focus', 'short', 'long', 'paused']);
     if (!b || !STATES.has(b.state)) { db.social.clearPresence(uid(c)); return c.json({ ok: true }); }
-    const ends = b.endsAt && !Number.isNaN(Date.parse(b.endsAt)) ? new Date(b.endsAt).toISOString() : null;
+    const at = typeof b.endsAt === 'string' ? Date.parse(b.endsAt) : NaN;
+    const ends = Number.isFinite(at) ? new Date(Math.min(at, Date.now() + MAX_ENDS)).toISOString() : null;
     const roomId = typeof b.roomId === 'string' && db.social.inRoom(b.roomId, uid(c)) ? b.roomId : null;
-    db.social.setPresence(uid(c), b.state, String(b.label || '').slice(0, 80), ends, roomId);
+    const label = typeof b.label === 'string' ? b.label.replace(/\p{Cc}/gu, ' ').trim().slice(0, 80) : '';
+    db.social.setPresence(uid(c), b.state, label, ends, roomId);
     return c.json({ ok: true });
   });
 
@@ -84,13 +91,16 @@ export function socialRoutes(app, { db, me, uid, fail, body, limited }) {
     const minutes = Math.round(Number(b.minutes));
     if (!(minutes >= 5 && minutes <= 180)) return fail(c, 'minutes');
     const friends = new Set(db.social.of(id).filter((r) => r.status === 'accepted').map((r) => r.other));
-    const invite = (Array.isArray(b.invite) ? b.invite : []).filter((x) => friends.has(x));
-    const room = db.social.createRoom(id, minutes, nowIso(), String(b.label || '').slice(0, 80), invite);
+    const invite = [...new Set(Array.isArray(b.invite) ? b.invite : [])].filter((x) => typeof x === 'string' && friends.has(x));
+    if (invite.length > MAX_INVITE) return fail(c, 'too-many-invites');
+    const room = db.social.createRoom(id, minutes, nowIso(), typeof b.label === 'string' ? b.label.slice(0, 80) : '', invite);
     return c.json({ id: room.id, startsAt: room.starts_at, minutes: room.minutes });
   });
+  const friendsWith = (u, other) => db.social.of(u).some((r) => r.other === other && r.status === 'accepted');
   app.post('/api/rooms/:id/join', (c) => {
     const r = db.social.room(c.req.param('id'));
-    if (!r || !live(r) || !db.social.invited(r.id, uid(c))) return fail(c, 'gone', 404);
+    // an invitation lapses with the friendship: someone unfriended cannot join (and so appear in) the host's session
+    if (!r || !live(r) || !db.social.invited(r.id, uid(c)) || !friendsWith(uid(c), r.host)) return fail(c, 'gone', 404);
     db.social.join(r.id, uid(c));
     return c.json({ id: r.id, startsAt: r.starts_at, minutes: r.minutes, label: r.label });
   });

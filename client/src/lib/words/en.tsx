@@ -342,6 +342,7 @@ export const en = {
   startFocus: 'Start focus',
   focusOn: (l: string) => `Focus on ${l}`,
   pause: 'Pause', resume: 'Resume', finishNow: 'Finish now', skipBreak: 'Skip the break', stop: 'Stop',
+  stopAsk: (n: number) => `Discard ${n} min?`, focusPaused: 'paused',
   inBlock: (l: string) => `In block: ${l}`,
   freeFocus: 'Unplanned focus',
   sessionsToday: 'Today’s sessions',
