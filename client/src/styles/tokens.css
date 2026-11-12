@@ -96,3 +96,4 @@
 :root[data-theme="dark"] .qr-box .qr { background: #ffffff; }
 :root[data-theme="dark"] .mini-timer, :root[data-theme="dark"] .tour-card, :root[data-theme="dark"] dialog.sheet { box-shadow: 0 16px 48px rgba(0, 0, 0, 0.6); } /* taste-skill-ignore: these float */
 :root[data-theme="dark"] .tour-spot { box-shadow: 0 0 0 200vmax rgba(0, 0, 0, 0.7); } /* taste-skill-ignore: the tour's dimmer */
+:root { --focus-long: #6b4fbb; } :root[data-theme="dark"] { --focus-long: #b59aef; }

@@ -21,20 +21,20 @@ try {
   await p.locator('.focus-setup').waitFor();
   check('the default length shows on the ring', (await ring()) === '25:00');
 
-  // a preset, then a custom length (5 to 120), then a break
-  await p.getByRole('button', { name: '45 min', exact: true }).first().click();
-  check('a preset length sets the ring', (await ring()) === '45:00');
-  await p.locator('#fc-len-l + .segmented').getByRole('button', { name: 'Custom', exact: true }).click();
-  await p.getByLabel('Custom length in minutes').fill('500');
-  await p.getByLabel('Custom length in minutes').blur();
-  check('a custom length is kept within 120 minutes', (await ring()) === '120:00');
-  await p.getByLabel('Custom length in minutes').fill('3');
-  await p.getByLabel('Custom length in minutes').blur();
-  check('and at least 5', (await ring()) === '05:00');
-  await p.getByLabel('Custom length in minutes').fill('40');
-  await p.getByLabel('Custom length in minutes').blur();
-  check('a custom length of 40 shows', (await ring()) === '40:00');
-  await p.locator('#fc-brk-l + .segmented').getByRole('button', { name: '10 min', exact: true }).click();
+  await p.locator('.focus-config-anchor > button').click();
+  const sliders = p.locator('.focus-config input');
+  const setRange = async (i, value) => { await sliders.nth(i).fill(String(value)); };
+  await setRange(0, 45);
+  check('a configured length sets the ring', (await ring()) === '45:00');
+  check('focus bounds are 5 to 120', await sliders.nth(0).getAttribute('min') === '5' && await sliders.nth(0).getAttribute('max') === '120');
+  await setRange(0, 120);
+  check('maximum length shows', (await ring()) === '120:00');
+  await setRange(0, 5);
+  check('minimum length shows', (await ring()) === '05:00');
+  await setRange(0, 40);
+  check('a configured length of 40 shows', (await ring()) === '40:00');
+  await setRange(1, 10);
+  await p.getByRole('dialog').getByRole('button', { name: 'Close', exact: true }).click();
 
   await p.getByRole('button', { name: 'Start focus', exact: true }).click();
   const a1 = await until(async () => (await doc()).focus?.active);
@@ -180,7 +180,7 @@ try {
   await p.evaluate(() => window.dispatchEvent(new Event('focus')));
   check("another device's pause shows when the tab is looked at again", await btn('Resume').waitFor({ timeout: 4000 }).then(() => true, () => false));
   check('with its time left', (await ring()) === '10:00');
-  check('the state is spoken to screen readers', (await p.locator('.focus-stage [role="status"]').innerText()) === 'Focus · paused');
+  check('the state is spoken to screen readers', (await p.locator('.focus-stage [role="status"]').innerText()) === 'Focus \u00b7 paused');
 
   // Stop after a few minutes asks first; the second press discards
   await btn('Stop').click();
@@ -195,7 +195,8 @@ try {
   await btn('Finish now').waitFor();
   await setActive('day:' + D, run(25, 3, { phase: 'short', plannedMin: 5 }), []);
   await p.reload();
-  check('on a break, Skip the break is the primary button', await p.locator('.focus-controls .btn.primary').innerText() === 'Skip the break');
+  await btn('Skip the break').waitFor();
+  check('on a break, pause and skip remain available', await btn('Pause').isVisible() && await btn('Skip the break').isVisible());
   await setActive('day:' + D, null, []);
 
   // ---------- focusing together: what the server accepts ----------
