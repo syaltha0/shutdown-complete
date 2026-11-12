@@ -356,6 +356,8 @@ export const tr: Words = {
   focusRunning: 'Odak zamanlayıcı',
   focusSettings: 'Odak zamanlayıcı',
   focusAbout: 'Pomodoro tarzı oturumlar zaman bloklarının içinde çalışır. Biten oturum güne kaydedilir; derin odak bloklarında geçen süre seçtiğin metriğe eklenir.',
+  focusReset: 'Sıfırla',
+  focusCurrent: 'Şu an', focusChange: 'Değiştir', focusStartBreak: 'Molayı başlat',
   focusLen: 'Odak', shortLen: 'Kısa mola', longLen: 'Uzun mola',
   longEveryLabel: 'Uzun mola her', sessionsWord: 'oturumda bir',
   soundLabel: 'Oturum bitince zil çal',

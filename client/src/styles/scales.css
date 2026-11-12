@@ -190,3 +190,29 @@
   .focus-setup { gap: 14px; }
   .focus-go { position: sticky; bottom: calc(64px + env(safe-area-inset-bottom)); z-index: 2; margin: -12px 0; padding: 12px 0; background: var(--surface); }
 }
+/* Phase accents are confined to the timer and its controls. */
+.phase-focus { --phase-color: var(--hue); }
+.phase-short { --phase-color: var(--positive); }
+.phase-long { --phase-color: var(--focus-long); }
+.ring.phase-short .ring-fill, .ring.phase-long .ring-fill, .ring-fill { stroke: var(--phase-color, var(--hue)); }
+.focus-panel { padding-top: 76px; padding-bottom: 40px; }
+.focus-stage { gap: 20px; }
+.focus-tabs { display: flex; gap: 4px; max-width: 100%; }
+.focus-tabs button { background: transparent; border: 0; border-bottom: 2px solid transparent; padding: 10px 12px; color: var(--muted); font: inherit; cursor: pointer; }
+.focus-tabs button[aria-pressed="true"] { color: var(--phase-color); border-color: currentColor; }
+.focus-tabs button:disabled { cursor: default; opacity: .65; }
+.focus-read .phase-name { color: var(--phase-color); }
+.focus-panel .btn.primary { background: var(--phase-color); border-color: var(--phase-color); color: var(--surface); }
+.focus-rounds { display: flex; gap: 10px; }
+.focus-rounds i { width: 10px; height: 10px; border: 1px solid var(--phase-color); border-radius: 50%; }
+.focus-rounds i.done { background: var(--phase-color); }
+.focus-block-row { display: flex; align-items: center; justify-content: center; max-width: 100%; gap: 6px; font-size: 13px; }
+.focus-block-row span { overflow-wrap: anywhere; min-width: 0; }
+.focus-setup { width: min(280px, 100%); }
+.focus-config-anchor { position: absolute; top: 16px; left: 16px; z-index: 4; }
+.focus-config-anchor .kb-pop { width: min(320px, calc(100vw - 72px)); }
+.focus-config { display: grid; gap: 20px; width: 100%; margin: 12px 0; }
+.focus-config label { display: flex; justify-content: space-between; gap: 12px; }
+.focus-config output { color: var(--muted); white-space: nowrap; }
+.focus-config input { width: 100%; accent-color: var(--text); min-height: 24px; }
+@media (max-width: 600px) { .focus-panel { padding-top: 70px; } .focus-tabs button { padding: 10px 8px; font-size: 13px; } }

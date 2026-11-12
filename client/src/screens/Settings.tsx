@@ -1,3 +1,4 @@
+import { FocusConfig } from '../components/FocusConfig';
 import { ExportDownloads } from './Publication';
 import { useRef, useState } from 'react';
 import { useSettings } from '../App';
@@ -57,13 +58,7 @@ export function SettingsScreen() {
     }
   }
 
-  const minutes = (id: string, value: number, onChange: (v: number) => void, max = 120) => (
-    <span className="metric-input">
-      <input id={id} type="number" min={1} max={max} step={1} value={value}
-        onChange={(e) => { const v = Math.round(Number(e.target.value)); if (v >= 1 && v <= max) onChange(v); }} />
-      <span className="unit">{T.minutesUnit}</span>
-    </span>
-  );
+
 
   const A = useA();
   const { user, source } = useAccount();
@@ -286,18 +281,7 @@ export function SettingsScreen() {
             <p>{T.focusAbout}</p>
           </div>
           <div className="set-panel">
-            <div className="hours-row">
-              <div className="field"><label htmlFor="f-focus">{T.focusLen}</label>{minutes('f-focus', focus.focusMin, (v) => setFocus({ focusMin: v }))}</div>
-              <div className="field"><label htmlFor="f-short">{T.shortLen}</label>{minutes('f-short', focus.shortMin, (v) => setFocus({ shortMin: v }), 60)}</div>
-              <div className="field"><label htmlFor="f-long">{T.longLen}</label>{minutes('f-long', focus.longMin, (v) => setFocus({ longMin: v }), 60)}</div>
-              <div className="field"><label htmlFor="f-every">{T.longEveryLabel}</label>
-                <span className="metric-input">
-                  <input id="f-every" type="number" min={2} max={8} step={1} value={focus.longEvery}
-                    onChange={(e) => { const v = Math.round(Number(e.target.value)); if (v >= 2 && v <= 8) setFocus({ longEvery: v }); }} />
-                  <span className="unit">{T.sessionsWord}</span>
-                </span>
-              </div>
-            </div>
+            <FocusConfig />
             <div className="field">
               <label htmlFor="f-metric">{T.metricFor}</label>
               <select id="f-metric" className="input" style={{ maxWidth: 320 }} value={focus.metricId ?? ''}
