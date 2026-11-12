@@ -285,3 +285,5 @@ export async function loadFeed(url) {
 }
 export const forgetFeed = (url) => cache.delete(url);
 export const RANGE_DAYS = MAX_DAYS;
+
+export { zonedToUtc };

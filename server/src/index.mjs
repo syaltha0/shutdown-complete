@@ -1,3 +1,4 @@
+import { plannerIcs } from './publication.mjs';
 import { Hono } from 'hono';
 import { serve } from '@hono/node-server';
 import { serveStatic } from '@hono/node-server/serve-static';
@@ -396,6 +397,16 @@ app.post('/api/auth/reset', async (c) => {
   return c.json({ ok: true });
 });
 
+app.get('/ics/:file', (c) => {
+  const file = c.req.param('file');
+  if (!/^[A-Za-z0-9_-]{43}\.ics$/.test(file)) return c.notFound();
+  const feed = db.feeds.find(sha256(file.slice(0, -4)));
+  if (!feed) return c.notFound();
+  c.header('Cache-Control', 'no-store');
+  c.header('Referrer-Policy', 'no-referrer');
+  return c.body(plannerIcs(db.docs.all(feed.user_id), feed.timezone, !!feed.tasks), 200, { 'Content-Type': 'text/calendar; charset=utf-8' });
+});
+
 // ---------------- everything below needs a session ----------------
 
 app.use('/api/*', async (c, next) => {
@@ -411,6 +422,18 @@ const me = (c) => c.get('me');
 const uid = (c) => me(c).user.id;
 
 app.get('/api/session', (c) => c.json({ ok: true }));
+app.get('/api/account/calendar-feed', (c) => c.json(db.feeds.get(uid(c)) ?? null));
+app.post('/api/account/calendar-feed', async (c) => {
+  const b = await c.req.json();
+  try { new Intl.DateTimeFormat('en', { timeZone: b.timezone }).format(); } catch { return fail(c, 'invalid-timezone'); }
+  if (typeof b.timezone !== 'string' || !/^[A-Za-z0-9_+\-/]+$/.test(b.timezone)) return fail(c, 'invalid-timezone');
+  const token = randomBytes(32).toString('base64url');
+  db.feeds.set(uid(c), sha256(token), b.timezone, !!b.tasks);
+  c.header('Cache-Control', 'no-store');
+  return c.json({ path: `/ics/${token}.ics` });
+});
+app.delete('/api/account/calendar-feed', (c) => { db.feeds.remove(uid(c)); return c.json(null); });
+
 app.get('/api/account', (c) => c.json({ ...publicUser(me(c).user), mail: mailEnabled }));
 
 app.patch('/api/account', async (c) => {

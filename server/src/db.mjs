@@ -13,6 +13,10 @@ export function openDb(file) {
     PRAGMA journal_mode = WAL;
     PRAGMA busy_timeout = 3000;
     PRAGMA foreign_keys = ON;
+    CREATE TABLE IF NOT EXISTS calendar_feeds (
+      user_id TEXT PRIMARY KEY REFERENCES users(id) ON DELETE CASCADE,
+      token_hash TEXT NOT NULL UNIQUE, timezone TEXT NOT NULL, tasks INTEGER NOT NULL DEFAULT 0
+    );
     CREATE TABLE IF NOT EXISTS meta (key TEXT PRIMARY KEY, value TEXT NOT NULL);
     CREATE TABLE IF NOT EXISTS users (
       id TEXT PRIMARY KEY,
@@ -264,6 +268,12 @@ export function openDb(file) {
 
   return {
     tx,
+    feeds: {
+      get: (u) => db.prepare('SELECT timezone, tasks FROM calendar_feeds WHERE user_id = ?').get(u),
+      find: (h) => db.prepare('SELECT * FROM calendar_feeds WHERE token_hash = ?').get(h),
+      set: (u, h, z, t) => db.prepare('INSERT OR REPLACE INTO calendar_feeds VALUES (?, ?, ?, ?)').run(u, h, z, t ? 1 : 0),
+      remove: (u) => db.prepare('DELETE FROM calendar_feeds WHERE user_id = ?').run(u),
+    },
     meta: {
       get: (k, fallback = null) => q.metaGet.get(k)?.value ?? fallback,
       set: (k, v) => q.metaSet.run(k, String(v)),
