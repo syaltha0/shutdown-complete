@@ -67,8 +67,10 @@ export function Focus() {
   const saveNote = () => { const n = noteRef.current; if (n) { noteSession(n.id, n.text, key); setNoteDraft(null); } };
   useEffect(() => () => { const n = noteRef.current; if (n) noteSession(n.id, n.text, key); }, [key]);
   useEffect(() => { if (!lastSession && noteRef.current) saveNote(); }, [lastSession?.id]); // eslint-disable-line react-hooks/exhaustive-deps
-  const roundsDone = sessions.length % f.longEvery || (sessions.length && phase !== 'focus' ? f.longEvery : 0);
-  const cycleNo = ((sessions.length % f.longEvery) + (a?.phase === 'focus' ? 1 : 0)) || f.longEvery;
+  // A timer carried past midnight finishes in its original day's document.
+  const cycleSessions = a ? holder?.focus?.sessions ?? [] : sessions;
+  const roundsDone = cycleSessions.length % f.longEvery || (cycleSessions.length && phase !== 'focus' ? f.longEvery : 0);
+  const cycleNo = ((cycleSessions.length % f.longEvery) + (a?.phase === 'focus' ? 1 : 0)) || f.longEvery;
 
   // Today's sessions shows about five rows and scrolls inside, so a long day does not push the cards below
   const listRef = useRef<HTMLDivElement>(null);
@@ -153,12 +155,13 @@ export function Focus() {
                     : <button type="button" className={`btn primary`} onClick={() => resumeFocus(key)}>{T.resume}</button>}
                 </div>
                 <div className="focus-secondary">
-                  <button type="button" className="btn ghost sm" onClick={() => stop(true)}>{stopAsk === 'reset' ? T.stopAsk(ranMin) : T.focusReset}</button>
+                  <button type="button" className="btn ghost sm" disabled={!!a.roomId} aria-describedby={a.roomId ? 'focus-reset-hint' : undefined} onClick={() => stop(true)}>{stopAsk === 'reset' ? T.stopAsk(ranMin) : T.focusReset}</button>
                   {a.phase !== 'focus' && <button type="button" className="btn ghost sm" onClick={finish}>{T.skipBreak}</button>}
                   <button type="button" className="btn ghost sm num" disabled={a.plannedMin >= MAX_PLANNED} onClick={() => extendFocus(5, key)}>{T.plusFive}</button>
                   {a.phase === 'focus' && <button type="button" className="btn ghost" onClick={finish}>{T.finishNow}</button>}
                   <button type="button" className={`btn ghost focus-stop${stopAsk === 'stop' ? ' danger' : ''}`} aria-live="polite" onClick={() => stop()}>{stopAsk === 'stop' ? T.stopAsk(ranMin) : T.stop}</button>
                 </div>
+                {a.roomId && <p id="focus-reset-hint" className="muted focus-note">{T.focusSharedResetHint}</p>}
                 {lastSession && (
                   <div className="field focus-note-field">
                     <label htmlFor="fc-note">{T.noteLabel}</label>

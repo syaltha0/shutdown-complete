@@ -357,6 +357,7 @@ export const tr: Words = {
   focusSettings: 'Odak zamanlayıcı',
   focusAbout: 'Pomodoro tarzı oturumlar zaman bloklarının içinde çalışır. Biten oturum güne kaydedilir; derin odak bloklarında geçen süre seçtiğin metriğe eklenir.',
   focusReset: 'Sıfırla',
+  focusSharedResetHint: 'Herkesin aynı anda bitirmesi için ortak odada sayaç sıfırlanamaz.',
   focusSettingsHint: 'Çalışan sayacın süresi değişmez. Yeni süreler sonraki oturumlarda uygulanır.',
   focusRoundsHint: 'Dolu: tamamlanan · Çerçeveli: şu an · Soluk: sıradaki',
   focusCurrent: 'Şu an', focusChange: 'Değiştir', focusStartBreak: 'Molayı başlat',

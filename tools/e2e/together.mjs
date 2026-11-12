@@ -54,6 +54,10 @@ try {
   check('linked focus document is saved', !!active);
   check('login returns to focus and joins linked room',new URL(p.url()).pathname==='/focus' && active.roomId===r.id);
   check('linked timer ends with host',Date.parse(active.startedAt)+active.plannedMin*60000===Date.parse(r.startsAt)+r.minutes*60000);
+  const reset = p.getByRole('button', {name:'Reset',exact:true});
+  check('shared room cannot reset its local timeline', await reset.isDisabled());
+  const resetHint = await reset.getAttribute('aria-describedby');
+  check('shared reset restriction has an explanation', !!resetHint && (await p.locator(`[id="${resetHint}"]`).innerText()).includes('shared'));
   check('used link is rejected',(await z.call('/api/room-links/join',{token:token(l)})).status===404);
   const expired=await link(r);
   const db=new DatabaseSync(join(s.dir,'planner.db'));
