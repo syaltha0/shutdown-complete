@@ -33,6 +33,8 @@ export function Focus() {
   const now = nowMinutes();
   // the block to focus on: the one running now, unless it is lunch or a walk; then the next deep block
   const running = blocks.find((b) => now >= b.start && now < b.end && b.kind !== 'personal');
+  const blockRank = (b: typeof blocks[number]) => b.id === running?.id ? 0 : b.start > now ? 1 : 2;
+  const pickerBlocks = [...blocks].sort((a, b) => blockRank(a) - blockRank(b) || a.start - b.start);
   const current = running ?? blocks.find((b) => b.start > now && b.kind === 'deep') ?? blocks.find((b) => b.start > now && b.kind !== 'personal') ?? null;
   const [blockId, setBlockId] = useState<string | null | undefined>(undefined);
   const [readyPhase, setReadyPhase] = useState<FocusPhase>('focus');
@@ -133,12 +135,12 @@ export function Focus() {
             <p className="sr-only" role="status">{a ? `${T.phase[a.phase]}${a.pausedLeft != null ? ` · ${T.focusPaused}` : ''}` : ''}</p>
 
             <div className="focus-cycle-summary">
-              <div className="focus-rounds" aria-hidden="true">{Array.from({ length: f.longEvery }, (_, i) => <i key={i} className={i < roundsDone ? 'done' : ''} />)}</div>
+              <div className="focus-rounds" title={T.focusRoundsHint} aria-hidden="true">{Array.from({ length: f.longEvery }, (_, i) => <i key={i} className={i < roundsDone ? 'done' : a?.phase === 'focus' && i === roundsDone ? 'current' : ''} />)}</div>
               <span className="muted num">{T.sessionN(a?.phase === 'focus' ? cycleNo : roundsDone, f.longEvery)}</span>
             </div>
             <div className="focus-block-row"><span>{T.focusCurrent}: {a?.label || chosenBlock?.label || T.freeFocus}</span>{!a && <button type="button" className="btn ghost sm" aria-expanded={picking} onClick={() => setPicking(!picking)}>{T.focusChange}</button>}</div>
             {!a && <form className="focus-setup" onSubmit={(e) => { e.preventDefault(); if (day) startFocus(begin); }}>
-              {picking && <div className="field"><label htmlFor="fc-block">{T.blockPick}</label><select id="fc-block" className="input" value={chosen ?? ''} onChange={(e) => { setBlockId(e.target.value || null); setPicking(false); }}><option value="">{T.freeFocus}</option>{blocks.map((b) => <option key={b.id} value={b.id}>{clock(b.start)} · {b.label || T.untitledBlock}</option>)}</select></div>}
+              {picking && <div className="field"><label htmlFor="fc-block">{T.blockPick}</label><select id="fc-block" className="input" value={chosen ?? ''} onChange={(e) => { setBlockId(e.target.value || null); setPicking(false); }}><option value="">{T.freeFocus}</option>{pickerBlocks.map((b) => <option key={b.id} value={b.id}>{clock(b.start)} · {b.label || T.untitledBlock}</option>)}</select></div>}
               <div className="focus-go"><button type="submit" className="btn primary big" disabled={!day}>{phase === 'focus' ? T.startFocus : T.focusStartBreak}</button></div>
             </form>}
 
@@ -155,7 +157,7 @@ export function Focus() {
                   {a.phase !== 'focus' && <button type="button" className="btn ghost sm" onClick={finish}>{T.skipBreak}</button>}
                   <button type="button" className="btn ghost sm num" disabled={a.plannedMin >= MAX_PLANNED} onClick={() => extendFocus(5, key)}>{T.plusFive}</button>
                   {a.phase === 'focus' && <button type="button" className="btn ghost" onClick={finish}>{T.finishNow}</button>}
-                  <button type="button" className={`btn ghost${stopAsk ? ' danger' : ''}`} aria-live="polite" onClick={() => stop()}>{stopAsk === 'stop' ? T.stopAsk(ranMin) : T.stop}</button>
+                  <button type="button" className={`btn ghost focus-stop${stopAsk === 'stop' ? ' danger' : ''}`} aria-live="polite" onClick={() => stop()}>{stopAsk === 'stop' ? T.stopAsk(ranMin) : T.stop}</button>
                 </div>
                 {lastSession && (
                   <div className="field focus-note-field">

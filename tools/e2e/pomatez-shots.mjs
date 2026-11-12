@@ -20,6 +20,10 @@ try {
   const d = (await api.get(key)).value;
   d.focus = { sessions: [], active: { phase, startedAt: new Date(Date.now()-120000).toISOString(), plannedMin: phase === 'focus' ? 25 : phase === 'short' ? 5 : 15, pausedLeft: null, blockId: null, label: 'Pomatez' } };
   await api.put(key, d); await p.reload(); await shoot(phase);
+  if (phase === 'focus') {
+   await p.locator('.focus-config-anchor > button').click(); await shoot('running-settings');
+   await p.locator('.focus-config-anchor > button').click();
+  }
  }
  await p.setViewportSize({ width: 390, height: 844 }); await shoot('phone-390');
  await p.setViewportSize({ width: 1440, height: 1000 });

@@ -40,6 +40,11 @@ try {
   const a1 = await until(async () => (await doc()).focus?.active);
   check('start writes the length and break', a1 && a1.plannedMin === 40 && a1.breakMin === 10);
   check('the setup gives way to the controls', await p.locator('.focus-setup').count() === 0 && await p.getByRole('button', { name: 'Pause', exact: true }).isVisible());
+  check('the current round is distinguished from upcoming rounds', await p.locator('.focus-rounds .current').count() === 1 && await p.locator('.focus-rounds .done').count() === 0);
+  await p.locator('.focus-config-anchor > button').click();
+  check('running timer settings explain when durations apply', await p.locator('.focus-config-hint').isVisible());
+  check('duration sliders reference the explanation', await p.locator('.focus-config input').first().getAttribute('aria-describedby') === await p.locator('.focus-config-hint').getAttribute('id'));
+  await p.getByRole('dialog').getByRole('button', { name: 'Close', exact: true }).click();
 
   await p.getByRole('button', { name: 'Pause', exact: true }).click();
   check('pause keeps the time left', !!(await until(async () => (await doc()).focus?.active?.pausedLeft != null)));
@@ -60,6 +65,7 @@ try {
   const a3 = await until(async () => { const x = await doc(); return x.focus?.active?.phase === 'short' ? x : null; });
   check('finishing logs a session', a3 && a3.focus.sessions.length === 1 && a3.focus.sessions[0].minutes >= 9);
   check('the break has the chosen length', a3.focus.active.plannedMin === 10 && a3.focus.active.sessionId === a3.focus.sessions[0].id);
+  check('a completed round is filled and a break has no current focus round', await p.locator('.focus-rounds .done').count() === 1 && await p.locator('.focus-rounds .current').count() === 0);
 
   const note = p.getByLabel('A note on the session');
   await note.fill('Got through the outline; the data table is next.');

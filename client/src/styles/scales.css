@@ -214,8 +214,11 @@
 .focus-read .phase-name { color: var(--phase-color); }
 .focus-panel .btn.primary { background: var(--phase-color); border-color: var(--phase-color); color: var(--surface); }
 .focus-rounds { display: flex; gap: 10px; }
-.focus-rounds i { width: 10px; height: 10px; border: 1px solid var(--phase-color); border-radius: 50%; }
-.focus-rounds i.done { background: var(--phase-color); }
+.focus-rounds i { width: 10px; height: 10px; border: 1px solid var(--control); background: var(--raised); border-radius: 50%; }
+.focus-rounds i.done { background: var(--phase-color); border-color: var(--phase-color); }
+.focus-rounds i.current { background: var(--surface); border: 2px solid var(--phase-color); outline: 1px solid var(--phase-color); outline-offset: 2px; }
+.focus-secondary .focus-stop { margin-left: 12px; padding-left: 16px; border-left: 1px solid var(--border); border-radius: 0; }
+.focus-config-hint { font-size: 13px; line-height: 1.5; margin: 0; }
 .focus-block-row { display: flex; align-items: center; justify-content: center; max-width: 100%; gap: 6px; font-size: 13px; color: var(--muted); }
 .focus-block-row span { overflow-wrap: anywhere; min-width: 0; }
 .focus-setup { width: min(220px, 100%); }

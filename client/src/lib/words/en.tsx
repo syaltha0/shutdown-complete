@@ -371,6 +371,8 @@ export const en = {
   focusSettings: 'Focus timer',
   focusAbout: 'Pomodoro-style sessions run inside your time blocks. A finished session is logged on the day, and time spent in deep-focus blocks is added to the metric you pick.',
   focusReset: 'Reset',
+  focusSettingsHint: 'The current timer keeps its duration. New durations apply to later sessions.',
+  focusRoundsHint: 'Filled: completed · Outlined: current · Muted: upcoming',
   focusCurrent: 'Now', focusChange: 'Change', focusStartBreak: 'Start break',
   focusLen: 'Focus', shortLen: 'Short break', longLen: 'Long break',
   longEveryLabel: 'Long break every', sessionsWord: 'sessions',
