@@ -1,0 +1,69 @@
+/* Metrics: the picker, the figures, today's entry, the check grid, the weekday strip. */
+
+/* the metric picker: tabs while they fit, a select on narrow screens or when there are many metrics */
+.metric-select { display: none; width: auto; min-width: 0; max-width: 100%; height: 32px; }
+@media (max-width: 860px) {
+  .metric-seg { display: none; }
+  .metric-select { display: block; flex: 1 1 160px; }
+  .metric-controls { display: flex; flex-wrap: nowrap; }
+  .metric-controls > .segmented:last-child { flex: 0 0 auto; }
+}
+.metric-seg.many { display: none; }
+.metric-seg.many ~ .metric-select { display: block; }
+
+/* the four figures look alike: one size, the first one in the data colour */
+.metric-kpis .kpi.lead .kpi-value, .metric-kpis .kpi-value { font-size: 24px; line-height: 30px; font-weight: 400; }
+.metric-kpis .kpi.lead .kpi-value { font-weight: 500; color: var(--hue); }
+.metric-kpis .kpi.lead .kpi-value small { color: var(--muted); font-weight: 400; }
+.metric-kpis .kpi .delta { min-height: 18px; }
+.metric-kpis .vs.down { color: var(--negative); }
+@media (max-width: 860px) {
+  .metric-kpis .kpi .delta { white-space: normal; }
+}
+
+/* today's entry: one quiet row on a tone step */
+.today-entry { display: flex; align-items: center; gap: 12px; padding: 8px 16px; min-height: 52px; border-radius: var(--radius-card); background: var(--raised); }
+.te-label { color: var(--muted); }
+.te-field { display: inline-flex; align-items: center; gap: 8px; }
+.te-field .input { width: 88px; text-align: right; }
+.te-check.on { background: var(--primary); color: var(--primary-ink); border-color: transparent; }
+.te-check.on:hover { background: var(--primary-hover); }
+
+/* a check metric, week by week */
+.daygrid { display: grid; gap: 4px; margin-top: 8px; max-width: 640px; }
+.dg-row { display: grid; grid-template-columns: 48px minmax(0, 1fr) 40px; align-items: center; gap: 12px; }
+.dg-cells { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 4px; }
+.dg-head { color: var(--muted); font-size: var(--fs-small); text-align: center; }
+.dg-wk, .dg-n { color: var(--muted); font-size: var(--fs-small); }
+.dg-n { text-align: right; }
+.dg-row.cur .dg-wk { color: var(--hue); font-weight: 500; }
+.dg-cells i { display: block; height: 18px; border-radius: 4px; border: 1px solid transparent; }
+.dg-cells i.on { background: var(--chart-1); }
+.dg-row.cur .dg-cells i.on { background: var(--hue); }
+.dg-cells i.off { border-color: var(--control); }
+.dg-cells i.none { border-color: var(--rule); background: var(--ground); }
+.dg-cells i.future { background: transparent; }
+.dg-legend { margin-top: 8px; }
+
+/* the weekday strip */
+.wd-best { margin: 4px 0 0; }
+.wd-strip { margin: 16px 0 0; padding: 0; list-style: none; display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 8px; }
+.wd-strip li { display: grid; justify-items: center; gap: 4px; }
+.wd-track { display: flex; align-items: flex-end; width: 100%; max-width: 40px; height: 64px; }
+.wd-track i { display: block; width: 100%; border-radius: 4px 4px 0 0; background: var(--chart-muted); transform-origin: bottom; }
+.wd-strip li.best .wd-track i { background: var(--chart-1); }
+.wd-val { font-size: var(--fs-small); }
+.wd-day { font-size: var(--fs-small); color: var(--muted); }
+.wd-strip li.best .wd-day { color: var(--text); font-weight: 500; }
+@media (max-width: 480px) { .wd-strip { gap: 4px; } .wd-track { height: 56px; } }
+
+/* the empty "by subject" and "plan and reality": a line, not a card */
+.empty-line { margin: 0; padding: 4px 2px; color: var(--muted); }
+.empty-line b { color: var(--text); font-weight: 500; margin-right: 10px; }
+
+/* the weekly table: figures sit together at the right, not spread across the card */
+.byweek th.n, .byweek td.n { width: 112px; }
+.byweek th:first-child, .byweek td:first-child { width: auto; }
+@media (max-width: 860px) { .byweek th.n, .byweek td.n { width: auto; } }
+
+:root[data-motion="reduce"] .wd-track i, :root[data-motion="reduce"] .metric-kpis .kpi-value { animation: none; }
