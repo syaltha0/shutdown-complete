@@ -146,7 +146,7 @@ export function Metrics() {
                 const step = Math.max(1, Math.ceil((weeks.length * 66) / Math.max(1, el.clientWidth)));
                 return C.bars(el, {
                   labels: workdays.map((d) => shortDate(d)),
-                  values: workdays.map((d) => val(d) ?? 0),
+                  values: workdays.map((d) => val(d)),
                   highlight: workdays.map((d, i) => (weekOf(d) === cur ? i : -1)).filter((i) => i >= 0),
                   colour: themeColor('--hue'), mutedColour: themeColor('--chart-1'), height: el.clientWidth < 520 ? 200 : 240,
                   format: (v: number) => fmtVal(v, m),

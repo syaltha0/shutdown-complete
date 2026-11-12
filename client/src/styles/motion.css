@@ -29,7 +29,7 @@
 /* the now dot breathes */
 .now-line::after { content: ""; position: absolute; left: -4px; top: -5px; width: 8px; height: 8px; border-radius: 50%; background: var(--hue); animation: pulse-ring 1.8s ease-out infinite; }
 /* chart bars grow from the baseline */
-.chart rect.grow { transform-box: fill-box; transform-origin: bottom; animation: grow 700ms var(--ease-out) both; }
+.chart .chart-bar.grow { transform-box: fill-box; transform-origin: bottom; animation: grow 700ms var(--ease-out) both; }
 /* shutdown complete lands like a rubber stamp */
 .complete-stamp { animation: stamp 620ms var(--ease-out) both; }
 .shutdown-line .check:checked { animation: stamp 520ms var(--ease-out); }
@@ -70,3 +70,6 @@
 .block.crossed .bl { align-self: flex-start; max-width: 100%; }
 .block.short.crossed .bl { align-self: center; }
 @media (max-width: 860px) { .hgrid { display: none; } }
+
+:root[data-motion="reduce"] .chart .grow { animation: none; }
+@media (prefers-reduced-motion: reduce) { .chart .grow { animation: none; } }

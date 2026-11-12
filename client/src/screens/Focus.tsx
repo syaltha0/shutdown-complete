@@ -262,8 +262,8 @@ export function Focus() {
           {past ? (
             <Chart label={T.focusFourWeeks} deps={[past, T.locale, total]} draw={(el, C) => C.bars(el, {
               labels: days28.map((d) => shortDate(d)),
-              values: days28.map((d) => (d === today() && day ? focusMinutes(day) : (past.get(`day:${d}`) ? focusMinutes(past.get(`day:${d}`)!) : 0))),
-              highlight: 27, colour: themeColor('--hue'), mutedColour: themeColor('--chart-1'), height: Math.max(200, el.clientHeight),
+              values: days28.map((d) => (d === today() && day ? focusMinutes(day) : (past.get(`day:${d}`) ? focusMinutes(past.get(`day:${d}`)!) : null))),
+              highlight: 27, colour: themeColor('--hue'), mutedColour: themeColor('--chart-1'), height: Math.min(280, Math.max(200, el.clientWidth * 0.52)),
               format: (v: number) => duration(v), tickFormat: (v: number) => T.minShort(v),
               xAt: days28.map((_, i) => (i % (el.clientWidth < 640 ? 14 : 7) === 0 ? i : -1)).filter((i) => i >= 0),
             })} />

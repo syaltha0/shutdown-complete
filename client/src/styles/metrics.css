@@ -49,8 +49,8 @@
 .wd-best { margin: 4px 0 0; }
 .wd-strip { margin: 16px 0 0; padding: 0; list-style: none; display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 8px; }
 .wd-strip li { display: grid; justify-items: center; gap: 4px; }
-.wd-track { display: flex; align-items: flex-end; width: 100%; max-width: 40px; height: 64px; }
-.wd-track i { display: block; width: 100%; border-radius: 4px 4px 0 0; background: var(--chart-muted); transform-origin: bottom; }
+.wd-track { display: flex; align-items: flex-end; width: 100%; max-width: 24px; height: 64px; }
+.wd-track i { display: block; width: 100%; border-radius: 3px 3px 0 0; background: var(--chart-1); transform-origin: bottom; }
 .wd-strip li.best .wd-track i { background: var(--chart-1); }
 .wd-val { font-size: var(--fs-small); }
 .wd-day { font-size: var(--fs-small); color: var(--muted); }
