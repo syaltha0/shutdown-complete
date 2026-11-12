@@ -31,6 +31,13 @@ export function FocusRoom({ start, onClose }: { start: { blockId: string | null;
   const social = useSocial(true);
   const together = a?.roomId && social?.room?.id === a.roomId ? social.room.people : [];
   const idleTimer = useRef(0);
+  // a modal: keyboard focus moves into the room and goes back to where it was on leaving
+  const rootRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    const back = document.activeElement as HTMLElement | null;
+    (rootRef.current?.querySelector<HTMLElement>('.room-controls .btn') ?? rootRef.current)?.focus();
+    return () => { if (back?.isConnected) back.focus(); };
+  }, []);
   useEffect(() => onAmbient(() => setSound(ambientPlaying() ?? ambientPref().sound)), []);
 
   // the controls rest after three still seconds
@@ -45,6 +52,14 @@ export function FocusRoom({ start, onClose }: { start: { blockId: string | null;
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (e.key === 'Escape') { e.preventDefault(); leave(); }
+      if (e.key === 'Tab' && rootRef.current) { // Tab stays inside the room
+        const all = [...rootRef.current.querySelectorAll<HTMLElement>('button:not([disabled]), input:not([disabled]), select, a[href]')];
+        const first = all[0], last = all[all.length - 1];
+        if (!first) return;
+        const inside = rootRef.current.contains(document.activeElement);
+        if (e.shiftKey && (document.activeElement === first || !inside)) { e.preventDefault(); last.focus(); }
+        else if (!e.shiftKey && (document.activeElement === last || !inside)) { e.preventDefault(); first.focus(); }
+      }
       if (e.key === ' ' && !(e.target instanceof HTMLTextAreaElement) && !(e.target instanceof HTMLSelectElement) && !(e.target instanceof HTMLInputElement) && !(e.target instanceof HTMLButtonElement) && a) {
         e.preventDefault();
         if (a.pausedLeft == null) pauseFocus(key); else resumeFocus(key);
@@ -83,7 +98,7 @@ export function FocusRoom({ start, onClose }: { start: { blockId: string | null;
   const linked = day?.columns.flatMap(c => c.blocks).find(b => b.id === (a?.blockId ?? start.blockId));
   const tasks = (day?.tasks ?? []).filter(t => !t.done).sort((x,y) => Number(y.id === a?.task?.id || y.text === linked?.label) - Number(x.id === a?.task?.id || x.text === linked?.label));
   return (
-    <div className={`focus-room${idle ? ' idle' : ''}${a ? ` phase-${a.phase}` : ''}`} role="dialog" aria-modal="true" aria-label={T.roomTitle}>
+    <div ref={rootRef} tabIndex={-1} className={`focus-room${idle ? ' idle' : ''}${a ? ` phase-${a.phase}` : ''}`} role="dialog" aria-modal="true" aria-label={T.roomTitle}>
       <button type="button" className="btn ghost room-leave" onClick={leave}><IconX />{T.roomLeave}</button>
       <section className={`room-tasks${tasksOpen ? ' open' : ''}`} onPointerEnter={e => {if (e.pointerType === 'mouse') setTasksOpen(true);}} onPointerLeave={e => {if (e.pointerType === 'mouse' && !e.currentTarget.contains(document.activeElement)) setTasksOpen(false);}} onBlur={e => {if (!e.currentTarget.contains(e.relatedTarget)) setTasksOpen(false);}}>
         <button className="room-task-tab btn ghost" aria-expanded={tasksOpen} onClick={() => setTasksOpen(!tasksOpen)}>{T.tasks} ({tasks.length})</button>

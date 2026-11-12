@@ -316,6 +316,7 @@ export const tr: Words = {
   startFocus: 'Odaklanmaya başla',
   focusOn: (l) => `Odaklan: ${l}`,
   pause: 'Duraklat', resume: 'Devam et', finishNow: 'Şimdi bitir', skipBreak: 'Molayı atla', stop: 'Durdur',
+  stopAsk: (n) => `${n} dk silinsin mi?`, focusPaused: 'duraklatıldı',
   inBlock: (l) => `Blok: ${l}`,
   freeFocus: 'Plansız odak',
   sessionsToday: 'Bugünkü oturumlar',

@@ -93,6 +93,18 @@ export function Focus() {
     return () => ro.disconnect();
   }, [sessions]);
 
+  // Stop throws the running session away: once it has run a minute, the first press asks, the second discards
+  const [stopAsk, setStopAsk] = useState(false);
+  useEffect(() => { if (!stopAsk) return; const t = window.setTimeout(() => setStopAsk(false), 4000); return () => window.clearTimeout(t); }, [stopAsk]);
+  useEffect(() => setStopAsk(false), [a?.startedAt]);
+  const ranMin = a && a.phase === 'focus' ? Math.floor((a.plannedMin * 60 - secondsLeft(a)) / 60) : 0;
+  function stop() {
+    if (ranMin >= 1 && !stopAsk) { setStopAsk(true); return; }
+    setStopAsk(false);
+    saveNote();
+    cancelFocus(key);
+  }
+
   async function finish() {
     if (!a) return;
     if (a.phase !== 'focus') saveNote();
@@ -105,7 +117,7 @@ export function Focus() {
       <div className="title-row focus-title">
         <div>
           <h1>{T.focusTitle}</h1>
-          <p className="sub num">{day ? <>{T.focusSummary(sessions.length, duration(total))} · {T.nextLong(untilLong)}</> : ' '}</p>
+          <p className="sub num">{day ? <>{T.focusSummary(sessions.length, duration(total))}{a ? null : <> · {T.nextLong(untilLong)}</>}</> : ' '}</p>
         </div>
         <div className="title-actions"><SaveStamp status={status} /></div>
       </div>
@@ -120,13 +132,14 @@ export function Focus() {
               {a ? <Ring a={a} size={248} stroke={10} /> : <svg width={248} height={248} viewBox="0 0 248 248" aria-hidden="true"><circle cx={124} cy={124} r={119} fill="none" stroke="var(--raised)" strokeWidth={10} /></svg>}
               <div className="focus-read">
                 <span className="phase-name">{a ? T.phase[a.phase] : T.phase.focus}</span>
-                <b className="num" aria-live="off">{a ? mmss(secondsLeft(a)) : mmss(minutes * 60)}</b>
+                <b className="num" role="timer" aria-live="off">{a ? mmss(secondsLeft(a)) : mmss(minutes * 60)}</b>
                 <span className="muted focus-label">{a ? (a.label || T.freeFocus) : chosenBlock ? chosenBlock.label || T.untitledBlock : T.freeFocus}</span>
               </div>
             </div>
+            <p className="sr-only" role="status">{a ? `${T.phase[a.phase]}${a.pausedLeft != null ? ` · ${T.focusPaused}` : ''}` : ''}</p>
 
             {!a && (
-              <div className="focus-setup">
+              <form className="focus-setup" onSubmit={(e) => { e.preventDefault(); if (day) startFocus(begin); }}>
                 <div className="field">
                   <label htmlFor="fc-block">{T.blockPick}</label>
                   <select id="fc-block" className="input" value={chosen ?? ''} onChange={(e) => setBlockId(e.target.value || null)}>
@@ -163,8 +176,8 @@ export function Focus() {
                   </Segmented>
                 </div>
                 </div>
-                <button type="button" className="btn primary big" disabled={!day} onClick={() => startFocus(begin)}>{T.startFocus}</button>
-              </div>
+                <button type="submit" className="btn primary big focus-go" disabled={!day}>{T.startFocus}</button>
+              </form>
             )}
 
             {a && (
@@ -172,12 +185,14 @@ export function Focus() {
                 {a.phase === 'focus' && a.intent && <p className="focus-intent">{a.intent}</p>}
                 <p className="muted num focus-cycle">{a.phase === 'focus' ? T.sessionN(cycleNo, f.longEvery) : T.nextLong(untilLong)}</p>
                 <div className="focus-controls">
+                  {/* the one filled button: pause or resume while focusing, back to work on a break */}
+                  {a.phase !== 'focus' && <button type="button" className="btn primary" onClick={finish}>{T.skipBreak}</button>}
                   {a.pausedLeft == null
-                    ? <button type="button" className="btn primary" onClick={() => pauseFocus(key)}>{T.pause}</button>
-                    : <button type="button" className="btn primary" onClick={() => resumeFocus(key)}>{T.resume}</button>}
+                    ? <button type="button" className={`btn ${a.phase === 'focus' ? 'primary' : 'ghost'}`} onClick={() => pauseFocus(key)}>{T.pause}</button>
+                    : <button type="button" className={`btn ${a.phase === 'focus' ? 'primary' : 'ghost'}`} onClick={() => resumeFocus(key)}>{T.resume}</button>}
                   <button type="button" className="btn ghost num" disabled={a.plannedMin >= MAX_PLANNED} onClick={() => extendFocus(5, key)}>{T.plusFive}</button>
-                  <button type="button" className="btn ghost" onClick={finish}>{a.phase === 'focus' ? T.finishNow : T.skipBreak}</button>
-                  <button type="button" className="btn ghost" onClick={() => { saveNote(); cancelFocus(key); }}>{T.stop}</button>
+                  {a.phase === 'focus' && <button type="button" className="btn ghost" onClick={finish}>{T.finishNow}</button>}
+                  <button type="button" className={`btn ghost${stopAsk ? ' danger' : ''}`} aria-live="polite" onClick={stop}>{stopAsk ? T.stopAsk(ranMin) : T.stop}</button>
                 </div>
                 {lastSession && (
                   <div className="field focus-note-field">

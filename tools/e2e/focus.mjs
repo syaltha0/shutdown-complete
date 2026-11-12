@@ -110,9 +110,13 @@ try {
   await p.getByRole('button', { name: 'Focus room', exact: true }).click();
   await p.locator('.focus-room').waitFor();
   check('the focus room opens', true);
+  check('keyboard focus moves into the room', await p.evaluate(() => document.querySelector('.focus-room').contains(document.activeElement)));
+  for (let i = 0; i < 25; i++) await p.keyboard.press('Tab');
+  check('and Tab stays inside it', await p.evaluate(() => document.querySelector('.focus-room').contains(document.activeElement)));
   await p.keyboard.press('Escape');
   await p.locator('.focus-room').waitFor({ state: 'hidden' });
   check('Esc closes the room', true);
+  check('focus goes back to the Focus room button', await p.evaluate(() => document.activeElement?.textContent === 'Focus room'));
 
   // ---------- the timer's state, against edge cases ----------
   const setActive = async (key, active, sessions) => { const x = (await api.get(key)).value ?? {}; await api.put(key, { ...x, focus: { active, sessions: sessions ?? x.focus?.sessions ?? [] } }); };
@@ -177,6 +181,22 @@ try {
   await p.evaluate(() => window.dispatchEvent(new Event('focus')));
   check("another device's pause shows when the tab is looked at again", await btn('Resume').waitFor({ timeout: 4000 }).then(() => true, () => false));
   check('with its time left', (await ring()) === '10:00');
+  check('the state is spoken to screen readers', (await p.locator('.focus-stage [role="status"]').innerText()) === 'Focus · paused');
+
+  // Stop after a few minutes asks first; the second press discards
+  await btn('Stop').click();
+  check('Stop asks before throwing minutes away', await p.getByRole('button', { name: /^Discard \d+ min\?$/ }).isVisible() && !!(await doc()).focus.active);
+  await p.getByRole('button', { name: /^Discard \d+ min\?$/ }).click();
+  check('and the second press discards', !!(await until(async () => (await doc()).focus.active === null)));
+
+  // Enter in the intent starts the session; on a break the filled button is the way back to work
+  await p.getByLabel('Intent').fill('Enter starts it');
+  await p.getByLabel('Intent').press('Enter');
+  check('Enter in the setup starts focus', !!(await until(async () => (await doc()).focus.active?.intent === 'Enter starts it')));
+  await btn('Finish now').waitFor();
+  await setActive('day:' + D, run(25, 3, { phase: 'short', plannedMin: 5 }), []);
+  await p.reload();
+  check('on a break, Skip the break is the primary button', await p.locator('.focus-controls .btn.primary').innerText() === 'Skip the break');
   await setActive('day:' + D, null, []);
 
   // ---------- focusing together: what the server accepts ----------
