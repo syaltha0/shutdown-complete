@@ -119,10 +119,13 @@ try {
     const c2 = await ctxOf();
     const p2 = await c2.newPage();
     await p2.clock.install();
+    // the setup no longer picks a task (user: not needed); a session tied to a task (the focus room's
+    // "Focus on this") is started here as the room starts it
+    const now = await p2.evaluate(() => new Date().toISOString());
+    const d0 = (await api.get(`day:${D}`)).value ?? {};
+    await api.put(`day:${D}`, { ...d0, focus: { sessions: d0.focus?.sessions ?? [], active: { phase: 'focus', startedAt: now, plannedMin: 25, pausedLeft: null, blockId: null, label: 'Read chapter 5', task: { id: 't1', text: 'Read chapter 5' } } } });
     await p2.goto(`${srv.url}/focus`);
-    await p2.locator('#fc-task').waitFor({ timeout: 8000 });
-    await p2.locator('#fc-task').selectOption('l:t1');
-    await p2.getByRole('button', { name: 'Start focus' }).click();
+    await p2.getByRole('button', { name: 'Pause', exact: true }).waitFor({ timeout: 8000 });
     await wait(800);
     await p2.clock.fastForward('26:00');
     await wait(2500);
