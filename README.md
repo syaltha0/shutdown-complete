@@ -69,7 +69,12 @@ or all 24. Runs on your own server, in English and Turkish.
 - **Light and dark**, or whatever the device is set to; animations on, reduced, or as the system says.
 - **Installable** on a phone or desktop (a PWA): it opens in its own window, shows your last plan without a
   connection and notifies you when a focus session ends.
-- Syncs between devices, warns when two devices edit the same page, exports and imports JSON backups.
+- **Week in review** — a page for each finished week (`/review/<week>`): planned against done, focus and deep time,
+  shutdowns; with e-mail set up, people who ask for it get it on Sunday evening.
+- **Timetable import** — bring classes from a calendar file into the weekly schedule (Settings → Weekly schedule).
+- **Server backups** — a daily compressed copy of the whole server in `data/backups`; the owner can make, download,
+  upload and restore them in *Settings → Server*.
+- Syncs between devices, warns when two devices edit the same page, exports and imports one's own planner as JSON.
 
 | | |
 |---|---|
@@ -82,7 +87,7 @@ or all 24. Runs on your own server, in English and Turkish.
 You need Docker with Compose v2.24 or newer.
 
 ```bash
-git clone https://github.com/<you>/shutdown-complete.git
+git clone https://github.com/syaltha0/shutdown-complete.git
 cd shutdown-complete
 cp .env.example .env        # optional: e-mail, public address, port
 docker compose up -d --build
@@ -94,7 +99,7 @@ separate planner. In *Settings → Server* you can choose between open
 sign-ups (optionally only some e-mail domains), sign-ups you approve, invite links only, or none, and make invite
 links to send.
 
-Data lives in `./data/planner.db` (SQLite). Back it up by copying the file, or with *Settings → Download a backup*.
+Data lives in `./data/planner.db` (SQLite). The server keeps a daily copy in `./data/backups` (see `BACKUP_HOUR`); copy that folder somewhere else too.
 
 ### HTTPS with nginx
 
@@ -145,7 +150,7 @@ docker compose exec planner node server/src/cli.mjs invite 1 7        # an invit
 git pull && docker compose up -d --build
 ```
 
-A ready-made image is also built by GitHub Actions on every push to `main` (`ghcr.io/<owner>/<repo>:latest`).
+A ready-made image is also built by GitHub Actions on every push to `main` (`ghcr.io/syaltha0/shutdown-complete:latest`; a `v*` tag gives a versioned one).
 
 ### Settings
 
@@ -157,6 +162,9 @@ A ready-made image is also built by GitHub Actions on every push to `main` (`ghc
 | `COOKIE_SECURE` | `true` | Send sign-in cookies over HTTPS only |
 | `SOURCE_URL` | this repository | Link to the source code shown in the app (see License) |
 | `PLANNER_PORT` | `3000` | Host port the container is published on (127.0.0.1 only) |
+| `BACKUP_HOUR` | `3` | Hour (server time, 0-23) after which the daily backup is made |
+| `BACKUP_KEEP` | `7` | How many backups are kept |
+| `WEEKLY_HOUR` | `18` | Hour on Sunday the week-in-review e-mail is sent (with e-mail set up) |
 
 ## Development
 
@@ -174,7 +182,8 @@ the client is React + TypeScript built with Vite. Every visible string lives in 
 
 ```
 client/   React app (screens, components, the shared document store in lib/useDoc.ts)
-server/   API, accounts, sessions and passkeys (src/index.mjs, db.mjs, auth.mjs, webauthn.mjs, mail.mjs, cli.mjs)
+server/   API, accounts, sessions and passkeys (src/index.mjs, db.mjs, auth.mjs, webauthn.mjs, mail.mjs, cli.mjs),
+          CalDAV and Nextcloud sync (caldav.mjs, vtodo.mjs, davsync.mjs), backups, week in review, friends and teams
 deploy/   nginx example
 tools/    recorder, screenshots and browser tests (below)
 ```
@@ -187,7 +196,7 @@ is done, so your own planner is never touched. Build first: `npm run build`.
 
 | Command | What it does |
 |---|---|
-| `npm run test:e2e` | Browser checks of passkeys, templates, task drag, printing, the dark theme, the sign-in tutorial, the PWA files, creating an account (bot protection, the e-mail hint, the first-run setup, invites), calendars, shortcuts, undo and weekly planning |
+| `npm run test:e2e` | Browser checks of passkeys, templates, task drag, printing, the dark theme, the sign-in tutorial, the PWA files, creating an account (bot protection, the e-mail hint, the first-run setup, invites), calendars, shortcuts, undo, weekly planning, task lists, CalDAV and Nextcloud sync, the week in review, backups and the first-run setup at every screen size |
 | `npm run tutorial:record` | Re-records the sign-in tutorial in every language (`-- --lang tr` for one) and renders the film. Needs ffmpeg (`FFMPEG_PATH`, Playwright's copy, or on the `PATH`). Run it after a UI change, then `npm run build` again |
 | `npm run tutorial:render` | Renders the film again from the last recording (kept in `tools/tutorial/.cache/`), to change how it looks without recording again; `-- --stills 2,9.5 --out <dir>` writes just those frames, `-- --probe` prints where the camera looks |
 | `node tools/screenshots.mjs` | Retakes the README screenshots in `docs/screenshots/` |

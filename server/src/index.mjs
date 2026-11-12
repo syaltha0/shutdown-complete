@@ -33,7 +33,7 @@ const LONG = 30 * 24 * 3600_000; // with "remember me": thirty days from the las
 const COOKIE_SECURE = (process.env.COOKIE_SECURE ?? (PROD ? 'true' : 'false')) === 'true';
 const LANGS = new Set(['en', 'tr']);
 // AGPL-3.0: people using a modified copy over a network must be offered its source. Point this at your fork.
-const SOURCE_URL = process.env.SOURCE_URL || 'https://github.com/shutdown-complete/shutdown-complete';
+const SOURCE_URL = process.env.SOURCE_URL || 'https://github.com/syaltha0/shutdown-complete';
 
 // a restore asked for at the last run is put in place before the database opens (backup.mjs)
 applyPendingRestore(DATA_DIR);
