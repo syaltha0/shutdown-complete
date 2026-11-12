@@ -65,6 +65,7 @@ export function Focus() {
   const saveNote = () => { const n = noteRef.current; if (n) { noteSession(n.id, n.text, key); setNoteDraft(null); } };
   useEffect(() => () => { const n = noteRef.current; if (n) noteSession(n.id, n.text, key); }, [key]);
   useEffect(() => { if (!lastSession && noteRef.current) saveNote(); }, [lastSession?.id]); // eslint-disable-line react-hooks/exhaustive-deps
+  const roundsDone = sessions.length % f.longEvery || (sessions.length && phase !== 'focus' ? f.longEvery : 0);
   const cycleNo = ((sessions.length % f.longEvery) + (a?.phase === 'focus' ? 1 : 0)) || f.longEvery;
 
   // Today's sessions shows about five rows and scrolls inside, so a long day does not push the cards below
@@ -131,7 +132,10 @@ export function Focus() {
             </div>
             <p className="sr-only" role="status">{a ? `${T.phase[a.phase]}${a.pausedLeft != null ? ` · ${T.focusPaused}` : ''}` : ''}</p>
 
-            <div className="focus-rounds" role="img" aria-label={T.sessionN(sessions.length % f.longEvery || (sessions.length ? f.longEvery : 0), f.longEvery)}>{Array.from({ length: f.longEvery }, (_, i) => <i key={i} className={i < (sessions.length % f.longEvery || (sessions.length && phase !== 'focus' ? f.longEvery : 0)) ? 'done' : ''} />)}</div>
+            <div className="focus-cycle-summary">
+              <div className="focus-rounds" aria-hidden="true">{Array.from({ length: f.longEvery }, (_, i) => <i key={i} className={i < roundsDone ? 'done' : ''} />)}</div>
+              <span className="muted num">{T.sessionN(a?.phase === 'focus' ? cycleNo : roundsDone, f.longEvery)}</span>
+            </div>
             <div className="focus-block-row"><span>{T.focusCurrent}: {a?.label || chosenBlock?.label || T.freeFocus}</span>{!a && <button type="button" className="btn ghost sm" aria-expanded={picking} onClick={() => setPicking(!picking)}>{T.focusChange}</button>}</div>
             {!a && <form className="focus-setup" onSubmit={(e) => { e.preventDefault(); if (day) startFocus(begin); }}>
               {picking && <div className="field"><label htmlFor="fc-block">{T.blockPick}</label><select id="fc-block" className="input" value={chosen ?? ''} onChange={(e) => { setBlockId(e.target.value || null); setPicking(false); }}><option value="">{T.freeFocus}</option>{blocks.map((b) => <option key={b.id} value={b.id}>{clock(b.start)} · {b.label || T.untitledBlock}</option>)}</select></div>}
@@ -141,7 +145,6 @@ export function Focus() {
             {a && (
               <div className="focus-run">
                 {a.phase === 'focus' && a.intent && <p className="focus-intent">{a.intent}</p>}
-                <p className="muted num focus-cycle">{a.phase === 'focus' ? T.sessionN(cycleNo, f.longEvery) : T.nextLong(untilLong)}</p>
                 <div className="focus-controls">
                   {a.pausedLeft == null
                     ? <button type="button" className={`btn primary`} onClick={() => pauseFocus(key)}>{T.pause}</button>

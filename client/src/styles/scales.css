@@ -200,31 +200,31 @@
 .focus-card-head h2 { font-size: var(--fs-section); font-weight: 500; }
 .focus-card-actions { display: flex; align-items: center; gap: 4px; }
 .focus-card-head .focus-room-btn { position: static; }
-.focus-stage { flex: 1; align-content: center; gap: 20px; padding: 36px 0; }
+.focus-stage { flex: 1; align-content: center; gap: 14px; padding: 28px 0; }
 .focus-tabs button[aria-pressed="true"] { color: var(--phase-color); }
 .focus-tabs button:disabled { cursor: default; }
-.focus-ring { width: 264px; height: 264px; margin: 8px 0; }
+.focus-ring { width: 264px; height: 264px; margin: 4px 0; }
 .focus-read b { font-size: 48px; line-height: 56px; }
 .focus-read .focus-label { display: none; }
 .focus-controls .btn.primary { min-width: 180px; height: 44px; }
 .focus-secondary { display: flex; flex-wrap: wrap; justify-content: center; align-items: center; gap: 4px; width: 100%; padding-top: 12px; border-top: 1px solid var(--rule); }
 .focus-secondary .btn { font-size: 13px; }
 .focus-run { gap: 16px; }
-.focus-cycle { margin: 0; }
+.focus-cycle-summary { display: flex; align-items: center; justify-content: center; gap: 12px; font-size: 12px; margin: 2px 0; }
 .focus-read .phase-name { color: var(--phase-color); }
 .focus-panel .btn.primary { background: var(--phase-color); border-color: var(--phase-color); color: var(--surface); }
 .focus-rounds { display: flex; gap: 10px; }
 .focus-rounds i { width: 10px; height: 10px; border: 1px solid var(--phase-color); border-radius: 50%; }
 .focus-rounds i.done { background: var(--phase-color); }
-.focus-block-row { display: flex; align-items: center; justify-content: center; max-width: 100%; gap: 6px; font-size: 13px; }
+.focus-block-row { display: flex; align-items: center; justify-content: center; max-width: 100%; gap: 6px; font-size: 13px; color: var(--muted); }
 .focus-block-row span { overflow-wrap: anywhere; min-width: 0; }
 .focus-setup { width: min(220px, 100%); }
 .focus-config-anchor { position: relative; z-index: 4; }
 .focus-config-anchor .kb-pop { left: auto; right: 0; }
 .focus-config-anchor .kb-pop { width: min(320px, calc(100vw - 72px)); }
 .focus-config { display: grid; gap: 20px; width: 100%; margin: 12px 0; }
-.focus-config label { display: flex; justify-content: space-between; gap: 12px; }
-.focus-config output { color: var(--muted); white-space: nowrap; }
+.focus-config label { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: baseline; gap: 12px; font-size: 13px; }
+.focus-config output { color: var(--muted); white-space: nowrap; text-align: right; font-weight: 400; }
 .focus-config input { width: 100%; accent-color: var(--text); min-height: 24px; }
 @media (max-width: 860px) {
   .focus-card-head h2 { font-size: 14px; }
