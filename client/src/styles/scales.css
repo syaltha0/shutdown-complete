@@ -84,6 +84,7 @@
 .focus-pair { display: grid; grid-template-columns: minmax(0, 5fr) minmax(0, 3fr); gap: 16px; }
 .focus-pair .segmented button { padding: 0 2px; font-size: 13px; }
 .focus-setup .btn.big { height: 44px; font-size: 15px; }
+.focus-go { display: grid; }
 .focus-run { display: grid; justify-items: center; gap: 16px; width: min(420px, 100%); text-align: center; }
 .focus-intent { font-size: 16px; line-height: 24px; overflow-wrap: anywhere; }
 .focus-cycle { font-size: 13px; }
@@ -175,5 +176,5 @@
   .focus-read b { font-size: 36px; line-height: 40px; }
   .focus-stage { gap: 20px; }
   .focus-setup { gap: 14px; }
-  .focus-setup .focus-go { position: sticky; bottom: calc(76px + env(safe-area-inset-bottom)); z-index: 2; box-shadow: 0 0 0 12px var(--surface); } /* taste-skill-ignore: a solid band, not a shadow: the options scroll under it */
+  .focus-go { position: sticky; bottom: calc(64px + env(safe-area-inset-bottom)); z-index: 2; margin: -12px 0; padding: 12px 0; background: var(--surface); }
 }

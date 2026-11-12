@@ -176,7 +176,7 @@ export function Focus() {
                   </Segmented>
                 </div>
                 </div>
-                <button type="submit" className="btn primary big focus-go" disabled={!day}>{T.startFocus}</button>
+                <div className="focus-go"><button type="submit" className="btn primary big" disabled={!day}>{T.startFocus}</button></div>
               </form>
             )}
 
