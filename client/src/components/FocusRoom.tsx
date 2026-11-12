@@ -4,7 +4,7 @@ import { AMBIENTS, ambientPlaying, ambientPref, onAmbient, playAmbient, setAmbie
 import { today } from '../lib/dates';
 import { cancelFocus, chime, finishPhase, mmss, pauseFocus, resumeFocus, secondsLeft, settingsFocus, startFocus } from '../lib/focus';
 import { useT } from '../lib/i18n';
-import { emptyDay, type DayDoc } from '../lib/model';
+import { emptyDay, uid, type DayDoc } from '../lib/model';
 import { useDoc } from '../lib/useDoc';
 import { Ring, useTick } from './FocusTimer';
 import { IconX } from './Icons';
@@ -19,11 +19,14 @@ export function FocusRoom({ start, onClose }: { start: { blockId: string | null;
   const T = useT();
   const { settings } = useSettings();
   const f = settingsFocus(settings);
-  const { value: day } = useDoc<DayDoc>(`day:${today()}`, emptyDay);
+  const { value: day, update } = useDoc<DayDoc>(`day:${today()}`, emptyDay);
   const a = day?.focus?.active ?? null;
   useTick(!!a && a.pausedLeft == null);
   const [sound, setSound] = useState<Ambient | null>(ambientPlaying() ?? ambientPref().sound);
   const [volume, setVolume] = useState(ambientPref().volume);
+  const [tasksOpen, setTasksOpen] = useState(false);
+  const [draft, setDraft] = useState('');
+  const [pickedTask, setPickedTask] = useState(start.task);
   const [idle, setIdle] = useState(false);
   const social = useSocial(true);
   const together = a?.roomId && social?.room?.id === a.roomId ? social.room.people : [];
@@ -42,7 +45,7 @@ export function FocusRoom({ start, onClose }: { start: { blockId: string | null;
   useEffect(() => {
     const key = (e: KeyboardEvent) => {
       if (e.key === 'Escape') { e.preventDefault(); leave(); }
-      if (e.key === ' ' && !(e.target instanceof HTMLInputElement) && !(e.target instanceof HTMLButtonElement) && a) {
+      if (e.key === ' ' && !(e.target instanceof HTMLTextAreaElement) && !(e.target instanceof HTMLSelectElement) && !(e.target instanceof HTMLInputElement) && !(e.target instanceof HTMLButtonElement) && a) {
         e.preventDefault();
         if (a.pausedLeft == null) pauseFocus(); else resumeFocus();
       }
@@ -56,7 +59,7 @@ export function FocusRoom({ start, onClose }: { start: { blockId: string | null;
     onClose();
   }
   function begin() {
-    startFocus(start);
+    startFocus({...start, label: pickedTask?.text ?? start.label, task: pickedTask});
     if (sound && !ambientPlaying()) playAmbient(sound, volume);
   }
   function pick(s: Ambient | null) {
@@ -68,9 +71,26 @@ export function FocusRoom({ start, onClose }: { start: { blockId: string | null;
     if (r !== 'none' && f.sound) chime();
   }
 
+  async function focusTask(task: { id: string; text: string }) {
+    const ref = {...task, day: true};
+    setPickedTask(ref);
+    if (a && a.task?.id !== task.id) {
+      await finishPhase(settings, true);
+      await startFocus({blockId: a.blockId, label: task.text, minutes: Math.max(1, Math.ceil(secondsLeft(a) / 60)), task: ref});
+    }
+  }
+  const linked = day?.columns.flatMap(c => c.blocks).find(b => b.id === (a?.blockId ?? start.blockId));
+  const tasks = (day?.tasks ?? []).filter(t => !t.done).sort((x,y) => Number(y.id === a?.task?.id || y.text === linked?.label) - Number(x.id === a?.task?.id || x.text === linked?.label));
   return (
     <div className={`focus-room${idle ? ' idle' : ''}${a ? ` phase-${a.phase}` : ''}`} role="dialog" aria-modal="true" aria-label={T.roomTitle}>
       <button type="button" className="btn ghost room-leave" onClick={leave}><IconX />{T.roomLeave}</button>
+      <section className={`room-tasks${tasksOpen ? ' open' : ''}`} onPointerEnter={e => {if (e.pointerType === 'mouse') setTasksOpen(true);}} onPointerLeave={e => {if (e.pointerType === 'mouse' && !e.currentTarget.contains(document.activeElement)) setTasksOpen(false);}} onBlur={e => {if (!e.currentTarget.contains(e.relatedTarget)) setTasksOpen(false);}}>
+        <button className="room-task-tab btn ghost" aria-expanded={tasksOpen} onClick={() => setTasksOpen(!tasksOpen)}>{T.tasks} ({tasks.length})</button>
+        {tasksOpen && <div className="room-task-body">
+          {tasks.map(t => <div className="room-task-row" key={t.id}><label><input className="check" type="checkbox" checked={false} onChange={() => update(d => ({...d, tasks: d.tasks.map(x => x.id === t.id ? {...x, done: true} : x)}))} />{t.text}</label><button className="btn ghost" aria-pressed={(a?.task ?? pickedTask)?.id === t.id} onClick={() => focusTask(t)}>{T.roomTaskFocus}</button></div>)}
+          <form onSubmit={e => {e.preventDefault(); if (draft.trim()) {update(d => ({...d, tasks: [...d.tasks, {id: uid(), text: draft.trim(), done: false}]})); setDraft('');}}}><input className="input" aria-label={T.captureTask} placeholder={T.captureTask} value={draft} onChange={e => setDraft(e.target.value)} /><button className="btn" type="submit">{T.roomTaskAdd}</button></form>
+        </div>}
+      </section>
       <div className="room-stage">
         <div className="focus-ring room-ring">
           {a ? <Ring a={a} size={340} stroke={8} /> : <svg width={340} height={340} viewBox="0 0 340 340" aria-hidden="true"><circle cx={170} cy={170} r={166} fill="none" stroke="var(--raised)" strokeWidth={8} /></svg>}

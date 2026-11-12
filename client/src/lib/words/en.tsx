@@ -27,6 +27,8 @@ export const en = {
     notes: 'Notes',
     goals: 'Goals'
   },
+  calendarViews: {month: 'Month', week: 'Week', day: 'Day', agenda: 'Agenda', jump: 'Jump to date', more: 'Show more', empty: 'Nothing planned'}, roomTaskFocus: 'Focus on this',
+  roomTaskAdd: 'Add task',
   locale: 'en-GB',
   featuresTitle: 'Features',
   stepsChip: (d: number, n: number) => `${d} of ${n} ${s(n, 'step', 'steps')} done`, stepsOf: (t: string) => `Steps of ${t}`,

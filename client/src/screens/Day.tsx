@@ -1,3 +1,4 @@
+import { CalendarView } from '../components/CalendarView';
 import { useEffect, useRef, useState } from 'react';
 import { useSettings } from '../App';
 import { Checklist } from '../components/Checklist';
@@ -72,7 +73,7 @@ export function Day({ date }: { date: string }) {
         <h1>{title}</h1>
         <p className="sub">{day ? <Finding day={day} isToday={isToday} now={now} past={date < t} /> : ' '}</p>
       </div>
-      <div className="title-actions">
+      <div className="title-actions"><CalendarView view="day" date={date} />
         <SaveStamp status={status} />
         <div className="stepper">
           <a className="btn icon" href={`/day/${addDays(date, -1)}`} onClick={onLinkClick} aria-label={T.prevDay}><IconLeft /></a>

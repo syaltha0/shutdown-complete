@@ -1,3 +1,4 @@
+import { CalendarView } from '../components/CalendarView';
 import { useSettings } from '../App';
 import { Checklist } from '../components/Checklist';
 import { DocNotice, SaveStamp } from '../components/Common';
@@ -51,7 +52,7 @@ export function Week({ id }: { id: string }) {
             {dayDocs && id <= thisWeek && T.shutdownOnDays(shutdowns, id === thisWeek ? daysSoFar : 7)}
           </p>
         </div>
-        <div className="title-actions">
+        <div className="title-actions"><CalendarView view="week" date={days[0]} />
           <SaveStamp status={status} />
           {id <= thisWeek && <a className="btn" href={`/review/${id}`} onClick={onLinkClick}>{T.review.open}</a>}
           {id >= thisWeek && (
