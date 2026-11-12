@@ -2,6 +2,8 @@
 import type { Words } from './en';
 
 export const tr: Words = {
+  calendarViews: {month: 'Ay', week: 'Hafta', day: 'Gün', agenda: 'Ajanda', jump: 'Tarihe git', more: 'Daha fazla göster', empty: 'Henüz plan yok'}, roomTaskFocus: 'Buna odaklan',
+  roomTaskAdd: 'Görev ekle',
   locale: 'tr-TR',
   featuresTitle: 'Özellikler',
   stepsChip: (d, n) => `${n} adımın ${d} tanesi bitti`, stepsOf: (t) => `${t} adımları`,

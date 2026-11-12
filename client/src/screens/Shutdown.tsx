@@ -80,7 +80,7 @@ export function Shutdown({ date }: { date: string }) {
         </div>
       )}
 
-      <div className="grid">
+      <div className="grid top shutdown-grid">
         <section className="panel span-7 fill" aria-labelledby="rit-h">
           <header><h2 id="rit-h">{T.theRitual}</h2><a className="card-link" style={{ fontWeight: 400 }} href="/settings" onClick={onLinkClick}>{T.editSteps}</a></header>
           {!day ? <div className="skeleton" style={{ height: 260 }} /> : (

@@ -1,3 +1,4 @@
+import { CalendarView } from '../components/CalendarView';
 import { useState } from 'react';
 import { useSettings } from '../App';
 import { Checklist } from '../components/Checklist';
@@ -69,7 +70,7 @@ export function Month({ id }: { id: string }) {
             {' · '}<a className="card-link" style={{ fontWeight: 400 }} href={`/quarter/${quarterOf(`${id}-01`)}`} onClick={onLinkClick}>{T.quarterShort(quarterOf(`${id}-01`))}</a>
           </p>
         </div>
-        <div className="title-actions">
+        <div className="title-actions"><CalendarView view="month" date={`${id}-01`} />
           <SaveStamp status={status} />
           {featureOn(settings, 'exams') && <button type="button" className="btn" onClick={() => setExamOpen({ exam: null })}>{T.examPlan}</button>}
           <div className="stepper">

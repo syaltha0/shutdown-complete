@@ -70,7 +70,7 @@ export function Focus() {
       </div>
       <DocNotice status={status} error={error} retry={retry} />
 
-      <div className="grid">
+      <div className="grid top focus-grid">
         <section className={`panel span-7 focus-panel${a ? ` phase-${a.phase}` : ''}`} aria-labelledby="fp-h" data-anim>
           <h2 id="fp-h" className="sr-only">{T.focusRunning}</h2>
           <div className="focus-stage">
@@ -110,20 +110,22 @@ export function Focus() {
                   onClick={() => startFocus({ blockId: chosen, label: task?.text || chosenBlock?.label || T.freeFocus, minutes: len ?? f.focusMin, task: taskRef })}>
                   {T.startFocus}
                 </button>
-                <button type="button" className="btn" onClick={openRoom}>{T.roomOpen}</button>
+                <button type="button" className="btn ghost" onClick={openRoom}>{T.roomOpen}</button>
               </div>
             )}
 
             {a && (
               <div className="focus-controls">
                 {a.pausedLeft == null
-                  ? <button type="button" className="btn" onClick={() => pauseFocus()}>{T.pause}</button>
+                  ? <button type="button" className="btn primary" onClick={() => pauseFocus()}>{T.pause}</button>
                   : <button type="button" className="btn primary" onClick={() => resumeFocus()}>{T.resume}</button>}
+                <details className="focus-options"><summary className="btn ghost">{T.nav.more}</summary>
                 {a.phase === 'focus'
                   ? <button type="button" className="btn" onClick={finish}>{T.finishNow}</button>
                   : <button type="button" className="btn primary" onClick={finish}>{T.skipBreak}</button>}
                 <button type="button" className="btn ghost" onClick={() => cancelFocus()}>{T.stop}</button>
-                <button type="button" className="btn" onClick={openRoom}>{T.roomOpen}</button>
+                <button type="button" className="btn ghost" onClick={openRoom}>{T.roomOpen}</button>
+                </details>
               </div>
             )}
             {deepDef && <p className="muted focus-note">{T.addsTo(deepDef.name)}</p>}

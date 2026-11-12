@@ -51,6 +51,7 @@ function fetchAhead() {
   const next = (i: number) => { if (i < loaders.length) idle(() => { loaders[i]().catch(() => {}).finally(() => next(i + 1)); }); };
   window.setTimeout(() => next(0), 2500);
 }
+const Agenda = lazy(() => import('./screens/Agenda').then(m => ({default: m.Agenda})));
 const Wait = () => <div className="screen-wait" aria-busy="true" />;
 
 /** The screen's blocks rise in one after another (see .canvas [data-anim] in styles/motion.css), once it has arrived. */
@@ -157,6 +158,7 @@ function route(path: string) {
       const m = MONTH.test(arg) ? arg : monthOf(today());
       return { nav: 'habits', el: <Habits id={m} key={m} /> };
     }
+    case 'agenda': return { nav: 'agenda', el: <Agenda date={DATE.test(arg) ? arg : today()} key={arg} /> };
     case 'metrics': return { nav: 'metrics', el: <Metrics /> };
     case 'shutdown': {
       const d = DATE.test(arg) ? arg : today();
@@ -219,7 +221,8 @@ function Shell() {
 
   // the phone's bottom bar: four destinations and More
   const phoneMain = [home, plan[0], plan[1], work[0]];
-  const phoneMore = [boards, countdown, inbox, plan[2], plan[3], work[1], work[2], work[3], settingsItem].filter((x) => on(x.id));
+  const agenda: NavItem = {id: 'agenda', href: '/agenda', label: T.calendarViews.agenda, icon: <IconDay />};
+  const phoneMore = [agenda, boards, countdown, inbox, plan[2], plan[3], work[1], work[2], work[3], settingsItem].filter((x) => on(x.id));
   const moreActive = phoneMore.some((x) => x.id === r?.nav);
 
   return (

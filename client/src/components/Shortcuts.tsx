@@ -32,7 +32,7 @@ export function Shortcuts() {
         return;
       }
       if (e.ctrlKey || e.metaKey || e.altKey || e.defaultPrevented || typing(e.target)) return;
-      if (document.querySelector('dialog[open]') || document.querySelector('.more-sheet, .tour')) return;
+      if (document.querySelector('dialog[open]') || document.querySelector('.more-sheet, .tour, .focus-room')) return;
       const t = today();
       const go = (to: string) => { e.preventDefault(); navigate(to); };
       const step = (dir: 'first' | 'last') => {
@@ -42,6 +42,7 @@ export function Shortcuts() {
       const tell = (action: ShortcutAction) => { e.preventDefault(); window.dispatchEvent(new CustomEvent(SHORTCUT, { detail: action })); };
       switch (e.key) {
         case '?': e.preventDefault(); setHelp(true); break;
+        case 'a': go('/agenda'); break;
         case 't': go(`/day/${t}`); break;
         case 'w': go(`/week/${weekOf(t)}`); break;
         case 'm': go(`/month/${monthOf(t)}`); break;
@@ -70,7 +71,7 @@ export function Shortcuts() {
 
   const rows: [string[], string][] = [
     [['N'], K.newBlock], [['R'], K.revise], [['←', '→'], K.prevNext], [['T'], K.today], [['W'], K.week], [['M'], K.month],
-    [['Q'], K.quarter], [['P'], K.planWeek], [['F'], K.focus], [['H'], K.habits], [['I'], K.inbox], [['S'], K.shutdown], [['Ctrl', 'Z'], K.undo], [['?'], K.help],
+    [['A'], T.calendarViews.agenda], [['Q'], K.quarter], [['P'], K.planWeek], [['F'], K.focus], [['H'], K.habits], [['I'], K.inbox], [['S'], K.shutdown], [['Ctrl', 'Z'], K.undo], [['?'], K.help],
   ];
   return (
     <>
