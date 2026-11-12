@@ -23,7 +23,7 @@ try {
   await context.setOffline(true);
   await page.locator('#tk-new').fill('Persist through offline reload');
   await page.locator('#tk-new').press('Enter');
-  await until(() => page.locator('.offline-queue').textContent().then((s) => s.includes('1 changes')));
+  await until(() => page.locator('.offline-queue').textContent().then((s) => s.includes('1 change')));
   await page.reload();
   await page.getByText('Persist through offline reload', { exact: true }).waitFor();
   check('offline queue survives reload');
@@ -34,7 +34,7 @@ try {
   await until(() => page.locator('.offline-queue').count().then((n) => n === 0));
   await context.setOffline(true);
   await page.locator('#tk-new').fill('Losing concurrent version'); await page.locator('#tk-new').press('Enter');
-  await until(() => page.locator('.offline-queue').textContent().then((s) => s.includes('1 changes')));
+  await until(() => page.locator('.offline-queue').textContent().then((s) => s.includes('1 change')));
   const inbox = (await api.get('inbox')).value;
   await api.put('inbox', { ...inbox, items: [...inbox.items, { id: 'remote', text: 'Newer remote version', done: false }] });
   await context.setOffline(false); await page.evaluate(() => window.dispatchEvent(new Event('focus')));
