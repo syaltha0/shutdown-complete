@@ -1,0 +1,41 @@
+#!/bin/sh
+# new-project: .env commit'ini engeller, AGENTS.md <-> CLAUDE.md eşitler.
+root=$(git rev-parse --show-toplevel) || exit 1
+cd "$root" || exit 1
+
+bad=$(git diff --cached --name-only --diff-filter=ACMR | grep -E '(^|/)\.env($|\.)' | grep -vE '(^|/)\.env\.example$')
+if [ -n "$bad" ]; then
+  echo "pre-commit: .env dosyası commit'lenemez:" >&2
+  echo "$bad" >&2
+  exit 1
+fi
+
+a=AGENTS.md
+c=CLAUDE.md
+# 0 = dosya HEAD'deki halinden farklı (ya da HEAD'de yok)
+changed() {
+  git cat-file -e "HEAD:$1" 2>/dev/null || return 0
+  git show "HEAD:$1" | cmp -s - "$1" && return 1
+  return 0
+}
+
+[ -f "$a" ] || [ -f "$c" ] || exit 0
+src=
+if [ ! -f "$c" ]; then src=$a dst=$c
+elif [ ! -f "$a" ]; then src=$c dst=$a
+elif ! cmp -s "$a" "$c"; then
+  changed "$a"; ac=$?
+  changed "$c"; cc=$?
+  if [ $ac -eq 0 ] && [ $cc -ne 0 ]; then src=$a dst=$c
+  elif [ $cc -eq 0 ] && [ $ac -ne 0 ]; then src=$c dst=$a
+  elif [ "$c" -nt "$a" ]; then src=$c dst=$a
+  else src=$a dst=$c
+  fi
+  [ $ac -eq 0 ] && [ $cc -eq 0 ] && git rev-parse -q --verify HEAD >/dev/null && echo "pre-commit: iki dosya da değişmiş; daha yeni olan $src esas alındı" >&2
+fi
+if [ -n "$src" ]; then
+  cp "$src" "$dst"
+  git add -- "$a" "$c"
+  echo "pre-commit: $src -> $dst eşitlendi" >&2
+fi
+exit 0

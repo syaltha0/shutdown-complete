@@ -1,0 +1,30 @@
+node_modules/
+dist/
+data/
+.env
+*.log
+# local tooling, not part of the project
+CLAUDE.md
+.claude/
+.taste-skill/
+# photos of the paper planner used as design references (not ours to publish)
+fan/
+tools/tutorial/.cache/
+tools/brand/.out/
+
+# new-project
+.env.*
+!.env.example
+*.pem
+*.key
+.claude/settings.local.json
+.DS_Store
+Thumbs.db
+
+# agent project files (local only, user 2026-11-12)
+AGENTS.md
+NOTES.md
+CONST.md
+BACKLOG.md
+BACKLOG_LOG.md
+reports/
