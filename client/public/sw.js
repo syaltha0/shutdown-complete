@@ -66,13 +66,29 @@ self.addEventListener('fetch', (e) => {
 });
 
 // signing out forgets the cached planner
-self.addEventListener('message', (e) => { if (e.data?.type === 'clear-data') caches.delete(DATA); });
+self.addEventListener('message', (e) => {
+  if (e.data?.type === 'clear-data') e.waitUntil(caches.delete(DATA));
+  if (e.data?.type === 'push-words') e.waitUntil(caches.open(DATA).then((c) => c.put('/push-words', new Response(JSON.stringify({ title: e.data.title, body: e.data.body })))));
+});
+
+self.addEventListener('push', (e) => {
+  e.waitUntil((async () => {
+    const words = await (await caches.match('/push-words'))?.json();
+    const now = new Date(), pad = (n) => String(n).padStart(2, '0');
+    const date = `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}`;
+    await self.registration.showNotification(words?.title || 'Shutdown Complete', {
+      body: words?.body, icon: '/icons/icon-192.png', badge: '/icons/icon-192.png', tag: 'block', data: { url: `/day/${date}` },
+    });
+  })());
+});
 
 // a tap on a focus notification brings the planner forward
 self.addEventListener('notificationclick', (e) => {
   e.notification.close();
   e.waitUntil(self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then((list) => {
     const open = list.find((c) => 'focus' in c);
-    return open ? open.focus() : self.clients.openWindow(e.notification.data?.url || '/focus');
+    const target = new URL(e.notification.data?.url || '/focus', self.location.origin);
+    const url = target.origin === self.location.origin ? target.href : self.location.origin;
+    return open ? open.navigate(url).then((c) => c?.focus()) : self.clients.openWindow(url);
   }));
 });

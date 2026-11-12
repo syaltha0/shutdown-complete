@@ -8,6 +8,7 @@ import { resolve } from 'node:path';
 import { createHmac, randomBytes, randomUUID, timingSafeEqual } from 'node:crypto';
 import QRCode from 'qrcode';
 import { openDb } from './db.mjs';
+import { pushService, validSubscription } from './push.mjs';
 import { hashPassword, verifyPassword } from './password.mjs';
 import {
   clearLimit, describeAgent, limited, newRecoveryCodes, newTotpSecret, otpauthUrl, passwordProblem, randomToken,
@@ -420,6 +421,18 @@ app.use('/api/*', async (c, next) => {
 
 const me = (c) => c.get('me');
 const uid = (c) => me(c).user.id;
+const push = pushService(db);
+push.start();
+app.get('/api/push', (c) => c.json({ publicKey: push.publicKey, subscribed: db.push.has(uid(c), c.req.query('endpoint') || '') }));
+app.post('/api/push', async (c) => {
+  if (limited(`push:${uid(c)}`, 30, 3600_000)) return fail(c, 'too-many', 429);
+  const b = await body(c);
+  if (!validSubscription(b)) return fail(c, 'subscription');
+  if (db.push.all().filter((s) => s.user_id === uid(c)).length >= 20 && !db.push.has(uid(c), b.endpoint)) return fail(c, 'too-many', 429);
+  db.push.put(uid(c), b);
+  return c.json({ ok: true });
+});
+app.delete('/api/push', async (c) => { const b = await body(c); db.push.remove(uid(c), String(b.endpoint || '')); return c.json({ ok: true }); });
 
 app.get('/api/session', (c) => c.json({ ok: true }));
 app.get('/api/account/calendar-feed', (c) => c.json(db.feeds.get(uid(c)) ?? null));

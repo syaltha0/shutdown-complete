@@ -119,6 +119,9 @@ export const api = {
   calendarFeed: () => request<{ timezone: string; tasks: number } | null>('/api/account/calendar-feed'),
   createCalendarFeed: (timezone: string, tasks: boolean) => post<{ path: string }>('/api/account/calendar-feed', { timezone, tasks }),
   disableCalendarFeed: () => request('/api/account/calendar-feed', { method: 'DELETE' }),
+  pushInfo: (endpoint = '') => request<{ publicKey: string; subscribed: boolean }>(`/api/push?endpoint=${encodeURIComponent(endpoint)}`),
+  pushSubscribe: (subscription: PushSubscription) => post('/api/push', { ...subscription.toJSON(), timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone }),
+  pushRemove: (endpoint: string) => request('/api/push', { method: 'DELETE', body: JSON.stringify({ endpoint }) }),
   // documents
   get: <T>(key: string) => request<Doc<T>>(`/api/doc/${encodeURIComponent(key)}`),
   put: <T>(key: string, value: T, version: number, keepalive = false) =>
@@ -161,7 +164,12 @@ export const api = {
   resend: (email: string) => post<{ ok: true }>('/api/auth/resend', { email }),
   login: (email: string, password: string, remember: boolean) => post<{ ok?: true; twoFactor?: true; ticket?: string }>('/api/auth/login', { email, password, remember }),
   login2fa: (ticket: string, code: string) => post<{ ok: true }>('/api/auth/login/2fa', { ticket, code }),
-  logout: () => post<{ ok: true }>('/api/auth/logout').finally(() => clearOfflineData()),
+  logout: async () => {
+    const reg = await navigator.serviceWorker?.getRegistration();
+    const sub = await reg?.pushManager?.getSubscription();
+    if (sub) { await api.pushRemove(sub.endpoint); await sub.unsubscribe(); }
+    return post<{ ok: true }>('/api/auth/logout').finally(() => clearOfflineData());
+  },
   forgot: (email: string, lang: string) => post<{ ok: true; mail: boolean }>('/api/auth/forgot', { email, lang }),
   reset: (token: string, password: string) => post<{ ok: true }>('/api/auth/reset', { token, password }),
 

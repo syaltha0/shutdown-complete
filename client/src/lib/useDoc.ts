@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState, useSyncExternalStore } from 'react';
 import { api, ApiError, type Doc } from './api';
+import { keepPending, openOutbox } from './outbox';
 
 export type SaveStatus = 'loading' | 'saved' | 'saving' | 'unsaved' | 'error' | 'conflict' | 'offline';
 
@@ -26,6 +27,18 @@ interface Entry {
 }
 
 const entries = new Map<string, Entry>();
+const queueListeners = new Set<() => void>();
+export async function restorePending(user: string) {
+  for (const doc of await openOutbox(user)) {
+    const e = entry(doc.key);
+    e.value = e.pending = doc.value; e.version = doc.version; e.loaded = true; e.status = 'offline'; emit(e);
+  }
+  if (navigator.onLine) retryPending();
+}
+function retryPending() { entries.forEach((e, k) => { if (e.pending != null) { e.status = 'unsaved'; void flush(k); } }); }
+export function usePendingCount() {
+  return useSyncExternalStore((l) => { queueListeners.add(l); return () => { queueListeners.delete(l); }; }, () => [...entries.values()].filter((e) => e.pending != null || e.inflight).length);
+}
 
 function entry(key: string): Entry {
   let e = entries.get(key);
@@ -37,6 +50,7 @@ function entry(key: string): Entry {
 }
 
 function emit(e: Entry) {
+  queueListeners.forEach((l) => l());
   e.snap = { value: e.value, status: e.status, error: e.error };
   e.listeners.forEach((l) => l());
 }
@@ -88,6 +102,7 @@ async function flush(key: string, keepalive = false) {
     }
   } finally {
     e.inflight = false;
+    keepPending(e.pending == null ? null : { key, value: e.pending, version: e.version }, key);
     emit(e);
     if (e.pending != null && e.status !== 'error' && e.status !== 'offline') e.timer = window.setTimeout(() => flush(key), DEBOUNCE);
   }
@@ -100,6 +115,7 @@ export async function updateKey<T>(key: string, fallback: () => T, fn: (v: T) =>
   const next = fn(((e.pending ?? e.value) as T | null) ?? fallback());
   e.value = next;
   e.pending = next;
+  keepPending({ key, value: next, version: e.version }, key);
   if (e.status !== 'error' && e.status !== 'offline') e.status = 'unsaved';
   emit(e);
   window.clearTimeout(e.timer);
@@ -131,7 +147,8 @@ if (typeof document !== 'undefined') {
   document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'hidden') flushAll(); });
   window.addEventListener('pagehide', flushAll);
   // back online: send what could not be sent
-  window.addEventListener('online', () => entries.forEach((e, k) => { if (e.pending != null) { e.status = 'unsaved'; flush(k); } }));
+  window.addEventListener('online', retryPending);
+  window.addEventListener('focus', retryPending);
 }
 
 /** Whether any document is still waiting to be saved. */

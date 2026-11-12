@@ -1,7 +1,8 @@
 import { createContext, lazy, Suspense, useContext, useEffect, useLayoutEffect, useState, type ComponentType } from 'react';
 import { api, signedOut, type AuthState, type User } from './lib/api';
 import { navigate, onLinkClick, usePath } from './lib/router';
-import { useDoc } from './lib/useDoc';
+import { useDoc, restorePending } from './lib/useDoc';
+import { OfflineQueue } from './components/OfflineQueue';
 import { defaultSettings, type Settings } from './lib/model';
 import { dict, getLang, setLang, useT } from './lib/i18n';
 import { monthOf, quarterOf, today, weekOf } from './lib/dates';
@@ -77,7 +78,7 @@ export function App() {
   const path = usePath();
   // a server that cannot be reached is said so (and tried again), not mistaken for a signed-out visitor
   const [unreachable, setUnreachable] = useState(false);
-  const load = () => api.state().then((s) => { setPasswordPolicy(s.policy); setUnreachable(false); setState(s); }).catch(() => setUnreachable(true));
+  const load = () => api.state().then(async (s) => { if (!state && s.user) await restorePending(s.user.id); setPasswordPolicy(s.policy); setUnreachable(false); setState(s); }).catch(() => setUnreachable(true));
   useEffect(() => {
     load();
     // a session that ends (signed out elsewhere, expired) goes back to the sign-in screen with a clean slate
@@ -258,6 +259,7 @@ function Shell() {
       )}
 
       <main className="canvas" key={r?.nav}>
+        <OfflineQueue />
         <div className="phone-only phone-brand"><Mark />Shutdown Complete</div>
         <Suspense fallback={<Wait />}>{r?.el}<Stagger key={path} /></Suspense>
       </main>
