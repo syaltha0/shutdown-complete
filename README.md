@@ -114,6 +114,11 @@ sudo nginx -t && sudo systemctl reload nginx
 sudo certbot --nginx -d planner.example.com
 ```
 
+Sign-in, two-step and app-password limits count requests per address. The planner believes `X-Forwarded-For` (its
+last entry, the one your proxy appended) only from a proxy on the same machine or a private network, as with the nginx
+example; reached directly from the internet it uses the connection's own address. Pages carry a content security
+policy, and request bodies are capped (1 MB of JSON, 16 MB for an import, 6 MB for a calendar file, 1 MB over CalDAV).
+
 ### E-mail (optional)
 
 Set `SMTP_URL` (for example `smtps://user:password@smtp.example.com:465`), `MAIL_FROM` and `APP_URL` in `.env`.
@@ -179,7 +184,7 @@ keep its bearer URL secret, and use CalDAV for task edits.
 
 | Variable | Default | What it does |
 |---|---|---|
-| `APP_URL` | taken from the request | Public address used in e-mail links |
+| `APP_URL` | taken from the request | Public address used in e-mail links. Set it whenever `SMTP_URL` is set: otherwise a visitor can choose the host in a password-reset link |
 | `TZ` | system timezone | IANA timezone for planner task dates and new timed CalDAV exports |
 | `CALENDAR_PRIVATE_HOSTS` | empty | Comma-separated exact hostnames allowed on private networks for ICS and DAV sync |
 | `CALENDAR_ALLOW_PRIVATE` | unset | `on` disables private-address protection globally; isolated tests only |
