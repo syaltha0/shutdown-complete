@@ -29,3 +29,10 @@ test('unsupported and invalid input stays literal; metadata alone keeps a title'
   }
   assert.equal(parseTaskDraft('Read tomorrow', lists, '2026-12-31').due, '2027-01-01');
 });
+test('a date beside a weekly rule moves to the rule\'s next weekday', () => {
+  // 2026-11-14 is a Saturday; the next Friday is 2026-11-20
+  const p = parseTaskDraft('Review tomorrow every friday', lists, '2026-11-13');
+  assert.equal(p.due, '2026-11-20');
+  assert.deepEqual(p.repeat, { every: 1, unit: 'week', days: [4] });
+  assert.equal(parseTaskDraft('Oku her pazartesi 2026-11-16', lists, '2026-11-13').due, '2026-11-16');
+});

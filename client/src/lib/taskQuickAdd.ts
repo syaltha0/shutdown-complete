@@ -47,6 +47,12 @@ export function parseTaskDraft(input: string, lists: TaskList[], base: string): 
     result.due = due;
     if (m[2]) result.dueTime = `${m[2].padStart(2, '0')}:${m[3] ?? '00'}`;
   });
+  // a weekly rule counts from one of its own weekdays: a date beside it moves on to the next such day
+  if (result.due && result.repeat?.days?.length) {
+    const d = new Date(`${result.due}T12:00:00`);
+    for (let i = 0; i < 7 && !result.repeat.days.includes((d.getDay() + 6) % 7); i++) d.setDate(d.getDate() + 1);
+    result.due = dateKey(d);
+  }
   const title = text.replace(/\s+/g, ' ').trim();
   // A title is mandatory: never turn a metadata-only entry into an unnamed task.
   return title ? { ...result, text: title } : { text: input.trim() };

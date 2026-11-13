@@ -47,7 +47,7 @@
 .tk-add { display: flex; gap: 8px; margin-bottom: 6px; }
 .tk-add .input { flex: 1; min-width: 0; }
 .tk-quick-help { font-size: 13px; margin: 0 0 8px; min-height: 18px; overflow-wrap: anywhere; }
-.tk-quick-help .card-link { display: inline; }
+.tk-quick-help .card-link { display: inline; margin-left: 8px; text-decoration: underline; text-underline-offset: 2px; }
 .tk-list { display: grid; margin: 0; padding: 0; list-style: none; }
 .tk-row { position: relative; display: grid; grid-template-columns: 14px auto minmax(0, 1fr) auto; align-items: center; gap: 10px; min-height: 52px; margin-inline: calc(-1 * var(--card-pad)); padding-inline: var(--card-pad); border-bottom: 1px solid var(--rule); transition: background-color var(--t-hover) ease; animation: rise-in 260ms var(--ease-out) backwards; }
 /* dragging: a grip on the left, the lifted row faded, a line where it would go, the side item it would go into */
