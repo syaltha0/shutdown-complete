@@ -171,7 +171,7 @@
   .date-add { grid-template-columns: minmax(0, 1fr) auto; }
   .date-add input[type="date"] { grid-column: 1 / -1; }
   .habit-add { grid-template-columns: minmax(0, 1fr) auto; padding: 16px; }
-  .cal-day { min-height: 64px; padding: 4px 4px 8px; }
+  .cal-day { min-height: 68px; padding: 4px 4px 8px; }
   .cal-day .dv, .cal-day .rem { display: none; }
   .cal-row { grid-template-columns: 28px repeat(7, minmax(0, 1fr)); }
   .cal-day .shut { top: 6px; right: 4px; width: 7px; height: 7px; }
@@ -251,11 +251,7 @@
 .fw-capture label { display: block; margin-bottom: 6px; font-size: 13px; }
 .fw-capture .input { width: 100%; min-width: 0; }
 
-/* Focus preferences share one layout in Settings and the modal sheet. */
-dialog.sheet.focus-settings-sheet { position: fixed; inset: 0 0 0 auto; margin: 0; width: 420px; max-width: 100%; height: 100dvh; max-height: 100dvh; border-radius: 0; padding: 24px; overflow-y: auto; background: var(--surface); color: var(--text); }
-.focus-settings-sheet::backdrop { background: rgb(0 0 0 / 16%); }
-.focus-settings-sheet > header { display: flex; justify-content: space-between; align-items: start; gap: 16px; margin-bottom: 28px; }
-.focus-settings-sheet h2 { font-size: 22px; margin: 0 0 6px; }
+/* Focus preferences share one layout in Settings and the timer card. */
 .focus-config { display: grid; gap: 28px; width: 100%; max-height: none; overflow: visible; margin: 0; }
 .focus-config section { display: grid; gap: 16px; min-width: 0; }
 .focus-config section + section { border-top: 1px solid var(--border); padding-top: 24px; }
@@ -273,16 +269,15 @@ dialog.sheet.focus-settings-sheet { position: fixed; inset: 0 0 0 auto; margin: 
 .focus-special { display: grid; gap: 16px; }
 .focus-special .field { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
 .focus-special input { min-width: 0; width: 100%; }
-@media (max-width: 600px) { dialog.sheet.focus-settings-sheet { width: 100%; padding: 20px; } .focus-settings-sheet .btn { min-height: 44px; } }
-.focus-mini-body { margin: 0; background: var(--surface); color: var(--text); overflow: hidden; }
-.focus-mini { box-sizing: border-box; height: 100dvh; padding: 16px 20px 12px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; background: var(--surface); border-radius: 12px; }
-.focus-mini-track { width: 100%; height: 2px; background: var(--raised); margin-bottom: 6px; }
-.focus-mini-track i { display: block; height: 100%; background: var(--phase-color); }
-.focus-mini-time { font-size: clamp(28px, 18vw, 64px); font-weight: 500; line-height: 1.05; letter-spacing: -.02em; font-variant-numeric: tabular-nums; }
-.focus-mini-phase { font-size: 12px; color: var(--phase-color); }
-.focus-mini-controls { display: flex; gap: 12px; margin-top: 8px; }
-.focus-mini-controls .btn { border-radius: 50%; width: 30px; height: 30px; min-height: 30px; padding: 5px; }
 .focus-mini-trigger[aria-pressed=true] { color: var(--hue); border-color: var(--hue); }
-@media (max-height: 110px), (max-width: 170px) {
-  .focus-mini .focus-mini-phase, .focus-mini .focus-mini-controls, .focus-mini .focus-mini-track { display: none; }
-}
+
+/* Both views occupy the timer's existing space; only preferences scroll. */
+.focus-card-body { position: relative; display: flex; flex: 1; width: 100%; min-width: 0; }
+.focus-card-body .focus-stage { transition: opacity 140ms ease, transform 140ms ease; }
+.focus-card-body.is-config .focus-stage { visibility: hidden; opacity: 0; transform: translateY(4px); pointer-events: none; }
+.focus-settings-view { position: absolute; inset: 0; overflow-y: auto; overscroll-behavior: contain; padding: 24px 4px 24px 0; animation: focus-config-in 160ms ease both; }
+.focus-config-time { display: block; margin-top: 4px; color: var(--phase-color); font-size: 12px; font-weight: 400; }
+@keyframes focus-config-in { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
+@media (prefers-reduced-motion: reduce) { .focus-card-body .focus-stage { transition: none; } .focus-settings-view { animation: none; } }
+
+.focus-panel > .focus-card-head { min-height: 68px; }

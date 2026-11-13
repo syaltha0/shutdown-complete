@@ -2,7 +2,7 @@ import { FocusMini } from '../components/FocusMini';
 import { FocusWidgets } from '../components/FocusWidgets';
 import { Segmented } from '../components/Segmented';
 import { useEffect, useLayoutEffect, useRef, useState } from 'react';
-import { FocusSettingsSheet } from '../components/FocusSettingsSheet';
+import { FocusConfig } from '../components/FocusConfig';
 import type { FocusPhase } from '../lib/model';
 import { useSettings } from '../App';
 import { DocNotice, SaveStamp } from '../components/Common';
@@ -40,6 +40,18 @@ export function Focus() {
   const [blockId, setBlockId] = useState<string | null | undefined>(undefined);
   const [readyPhase, setReadyPhase] = useState<FocusPhase>('focus');
   const [config, setConfig] = useState(false);
+  const configButton = useRef<HTMLButtonElement>(null);
+  const configView = useRef<HTMLDivElement>(null);
+  const closeConfig = () => { setConfig(false); configButton.current?.focus(); };
+  useEffect(() => {
+    if (!config) return;
+    configView.current?.focus();
+    const escape = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && !document.querySelector('dialog[open], .focus-room')) { e.preventDefault(); closeConfig(); }
+    };
+    window.addEventListener('keydown', escape);
+    return () => window.removeEventListener('keydown', escape);
+  }, [config]);
   const [picking, setPicking] = useState(false);
   const [noteDraft, setNoteDraft] = useState<{ id: string; text: string } | null>(null);
   const [room, setRoom] = useState(false);
@@ -116,7 +128,7 @@ export function Focus() {
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       const el = e.target as HTMLElement;
-      if (e.repeat || e.ctrlKey || e.metaKey || e.altKey || el?.isContentEditable || el?.closest('input, textarea, select, button, [role="dialog"], dialog') || document.querySelector('dialog[open], [role="dialog"], .focus-room')) return;
+      if (config || e.repeat || e.ctrlKey || e.metaKey || e.altKey || el?.isContentEditable || el?.closest('input, textarea, select, button, [role="dialog"], dialog') || document.querySelector('dialog[open], [role="dialog"], .focus-room')) return;
       const k = e.key.toLowerCase();
       if (![' ', 's', 'r', '+', '='].includes(k)) return;
       e.preventDefault();
@@ -144,12 +156,12 @@ export function Focus() {
 
       <div className="grid top focus-grid">
         <section className={`panel span-7 focus-panel phase-${phase}`} aria-labelledby="fp-h" data-anim>
-          <header className="focus-card-head"><h2 id="fp-h">{T.focusRunning}</h2><div className="focus-card-actions">
-          <FocusMini />
+          <header className="focus-card-head"><h2 id="fp-h">{config ? T.focusSettings : T.focusRunning}{config && a && <small className="focus-config-time num">{T.phase[a.phase]} · {mmss(secondsLeft(a))}</small>}</h2><div className="focus-card-actions">
+          {!config && <FocusMini />}
           <button type="button" className="btn ghost sm focus-room-btn" onClick={openRoom}>{T.roomOpen}</button>
-          <div className="focus-config-anchor"><button type="button" className="btn sm" aria-haspopup="dialog" aria-expanded={config} onClick={() => setConfig(true)}>{T.nav.settings}</button>{config && <FocusSettingsSheet onClose={() => setConfig(false)} />}</div>
+          <div className="focus-config-anchor"><button ref={configButton} type="button" className="btn sm" aria-expanded={config} aria-controls="focus-settings-view" onClick={() => config ? closeConfig() : setConfig(true)}>{config ? T.focusBackTimer : T.nav.settings}</button></div>
           </div></header>
-          <div className="focus-stage">
+          <div className={`focus-card-body${config ? ' is-config' : ''}`}><div className="focus-stage" inert={config} aria-hidden={config || undefined}>
             <Segmented className="focus-tabs sm" role="group" aria-label={T.focusRunning}>{(['focus', 'short', 'long'] as const).map((p) => <button type="button" key={p} className={`phase-${p}`} aria-pressed={phase === p} disabled={!!a && a.phase !== p} onClick={() => setReadyPhase(p)}>{T.phase[p]}</button>)}</Segmented>
             <div className="focus-ring">
               {a ? <Ring a={a} size={248} stroke={5} /> : <svg width={248} height={248} viewBox="0 0 248 248" aria-hidden="true"><circle cx={124} cy={124} r={119} fill="none" stroke="var(--phase-color)" strokeWidth={5} /></svg>}
@@ -200,6 +212,8 @@ export function Focus() {
               </div>
             )}
             {deepDef && !a && <p className="muted focus-note">{T.addsTo(deepDef.name)}</p>}
+          </div>
+          {config && <div id="focus-settings-view" ref={configView} className="focus-settings-view" tabIndex={-1} role="region" aria-label={T.focusSettings}><FocusConfig /></div>}
           </div>
         </section>
 

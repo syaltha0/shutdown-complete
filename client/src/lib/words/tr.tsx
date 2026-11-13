@@ -364,6 +364,7 @@ export const tr: Words = {
   currentRun: (d) => `Şu anki seri ${d}`,
   habitRates: 'Bu ay yapılanlar', allDoneDays: 'Bütün alışkanlıkların yapıldığı günler, haftalık',
   focusRunning: 'Odak zamanlayıcı',
+  focusBackTimer: '← Sayaç',
   focusSettings: 'Odak ayarları',
   focusAbout: 'Pomodoro tarzı oturumlar zaman bloklarının içinde çalışır. Biten oturum güne kaydedilir; derin odak bloklarında geçen süre seçtiğin metriğe eklenir.',
   miniTimer: 'Mini saya?',

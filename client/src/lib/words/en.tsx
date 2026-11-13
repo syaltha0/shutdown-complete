@@ -378,6 +378,7 @@ export const en = {
   currentRun: (d: string) => `Current run ${d}`,
   habitRates: 'Done this month', allDoneDays: 'Days with every habit done, per week',
   focusRunning: 'Focus timer',
+  focusBackTimer: '← Timer',
   focusSettings: 'Focus settings',
   focusAbout: 'Pomodoro-style sessions run inside your time blocks. A finished session is logged on the day, and time spent in deep-focus blocks is added to the metric you pick.',
   miniTimer: 'Mini timer',
