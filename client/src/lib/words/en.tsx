@@ -337,6 +337,14 @@ export const en = {
 
   // focus (pomodoro)
   focusMetric: 'Focus',
+  fwCapture: 'Capture a thought',
+  fwPlaceholder: 'A task or idea on your mind…',
+  fwAdded: 'Added to inbox',
+  fwGoal: 'Daily focus goal',
+  fwToday: (time: string) => `Today: ${time} of focus`,
+  fwEnds: (time: string) => `This block ends at ${time}`,
+  fwNext: (name: string, start: string, end: string) => `Next: ${name} (${start}–${end})`,
+  fwNoBlocks: 'No more blocks planned today',
   focusTitle: 'Focus',
   focusOptions: { shortcuts: 'Focus: start/pause, finish/skip, reset, +5 min, mini timer', mini: 'Mini timer', voice: 'Spoken notifications', sound: 'Bell sound', bell: 'Bell', classic: 'Classic', soft: 'Soft', single: 'Single', breakVoice: 'Time for a break', focusVoice: 'Time to focus', scheduled: 'Scheduled breaks', breakName: 'Break name', breakTime: 'Break time', addBreak: 'Add break', removeBreak: 'Remove break', strict: 'Strict focus mode', fullscreenBreak: 'Open focus room during breaks', autoBreak: 'Start breaks automatically', autoFocus: 'Start focus automatically' },
   phase: { focus: 'Focus', short: 'Short break', long: 'Long break' } as Record<string, string>,

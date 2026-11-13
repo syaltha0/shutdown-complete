@@ -246,3 +246,13 @@
 
 .focus-config > label:has(input[type="checkbox"]) { flex-wrap: nowrap; margin: 0; }
 .focus-config input[type="checkbox"] { width: 16px; height: 16px; min-height: 16px; flex: 0 0 16px; }
+/* Compact context and capture above today's sessions; keep the chart last. */
+.focus-widgets { min-width: 0; }
+.fw-goal { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+.fw-goal svg { flex-shrink: 0; }
+.fw-goal circle:last-child { stroke: var(--hue); }
+.fw-goal circle.complete { stroke: var(--positive); }
+.fw-next { display: block; color: var(--muted); overflow-wrap: anywhere; font-size: 13px; }
+.fw-capture { margin-top: 14px; }
+.fw-capture label { display: block; margin-bottom: 6px; font-size: 13px; }
+.fw-capture .input { width: 100%; min-width: 0; }
