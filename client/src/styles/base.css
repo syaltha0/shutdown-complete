@@ -121,3 +121,9 @@ textarea.input { height: auto; padding: 8px 12px; line-height: 20px; resize: ver
 .check-row.adder .text::placeholder { color: var(--muted); }
 .list-foot { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding-top: 12px; color: var(--muted); font-size: var(--fs-small); }
 .screen-wait { min-height: 60vh; }
+
+/* phones: segmented choices tighten so four long options (e.g. reminder timing) fit 360-390px */
+@media (max-width: 480px) {
+  .segmented button { padding: 0 9px; font-size: 13px; }
+  .segmented.sm button { padding: 0 8px; }
+}
