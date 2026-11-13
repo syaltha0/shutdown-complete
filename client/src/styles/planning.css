@@ -333,7 +333,23 @@ kbd { display: inline-grid; place-items: center; min-width: 26px; height: 24px; 
 .pw-cal b { font-weight: 500; }
 .pw-cal span, .pw-cal small { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .pw-cal small { color: var(--muted); font-size: 12px; }
-.pw-spread-row { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 16px; align-items: center; min-height: 52px; border-bottom: 1px solid var(--rule); }
+.pw-spread-row { display: grid; grid-template-columns: minmax(0, 1fr) auto auto; gap: 16px; align-items: center; min-height: 52px; border-bottom: 1px solid var(--rule); }
+/* the room each day has while the week's items are put on the days */
+.pw-cap { display: grid; gap: 10px; margin-bottom: 8px; }
+.pw-cap-week { margin: 0; font-size: 14px; color: var(--muted); }
+.pw-cap-days { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); border: 1px solid var(--border); border-radius: var(--radius-card); }
+.pw-cap-day { display: grid; gap: 6px; align-content: start; min-width: 0; padding: 10px; font-size: 13px; }
+.pw-cap-day + .pw-cap-day { border-left: 1px solid var(--border); }
+.pw-cap-day b { font-weight: 500; }
+.pw-cap-day small { color: var(--muted); font-size: 12px; }
+.pw-cap-day.past { color: var(--muted); }
+.pw-bar { display: flex; height: 4px; overflow: hidden; border-radius: 2px; background: var(--rule); }
+.pw-bar i { display: block; height: 100%; flex: none; transition: width 160ms ease; }
+.pw-bar .fixed { background: var(--line-strong); }
+.pw-bar .deep { background: var(--hue); }
+.pw-bar .tasks { background: var(--line-soft); }
+.pw-cap-day.over .pw-cap-left { color: var(--text); font-weight: 500; }
+:root[data-motion="reduce"] .pw-bar i { transition: none; }
 .pw-spread-row .done { color: var(--muted); text-decoration: line-through; }
 .week-nudge { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; padding: 10px 12px 10px 16px; margin-bottom: var(--gap); border: 1px solid var(--border); border-radius: var(--radius-card); background: var(--surface); font-size: 14px; }
 .week-nudge span { flex: 1; min-width: 200px; }
@@ -343,6 +359,10 @@ kbd { display: inline-grid; place-items: center; min-width: 26px; height: 24px; 
   .pw-cal > div + div { border-left: 0; }
   .pw-cal > div { border-bottom: 1px solid var(--border); }
   .pw-spread-row { grid-template-columns: 1fr; gap: 8px; padding: 10px 0; }
+  .pw-cap-days { grid-template-columns: 1fr; }
+  .pw-cap-day { grid-template-columns: 44px minmax(0, 1fr) auto; align-items: center; gap: 4px 12px; }
+  .pw-cap-day + .pw-cap-day { border-left: 0; border-top: 1px solid var(--border); }
+  .pw-cap-day small { grid-column: 2 / -1; }
   .pw-stats b { font-size: 18px; }
 }
 

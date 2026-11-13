@@ -1,7 +1,10 @@
 import { useEffect, useMemo, useState } from 'react';
+import { useSettings } from '../App';
 import { Checklist } from '../components/Checklist';
-import { addWeeks, clock, duration, monthOf, quarterOf, rangeLabel, shortDate, weekDays, weekNumber, weekdayShort } from '../lib/dates';
+import { TaskMeta } from '../components/TaskMeta';
+import { addWeeks, clock, duration, monthOf, nowMinutes, quarterOf, rangeLabel, shortDate, today, weekDays, weekNumber, weekdayShort } from '../lib/dates';
 import { useCalendar } from '../lib/calendar';
+import { dayCapacity, type DayCapacity } from '../lib/dayCapacity';
 import { useT } from '../lib/i18n';
 import { emptyDay, emptyMonth, emptyQuarter, emptyWeek, uid, type DayDoc, type Item, type MonthDoc, type QuarterDoc, type WeekDoc } from '../lib/model';
 import { navigate, onLinkClick } from '../lib/router';
@@ -22,6 +25,8 @@ export function WeekPlan({ id }: { id: string }) {
   const { value: monthB } = useDoc<MonthDoc>(`month:${monthOf(days[6])}`, emptyMonth);
   const { value: quarter } = useDoc<QuarterDoc>(`quarter:${quarterOf(days[3])}`, emptyQuarter);
   const cal = useCalendar(days[0], days[6]);
+  const { settings } = useSettings();
+  const { docs: dayDocs } = useRange<DayDoc>(`day:${days[0]}`, `day:${days[6]}`);
   const [step, setStep] = useState(0);
   const [carry, setCarry] = useState<Set<string> | null>(null);
   const [items, setItems] = useState<Item[] | null>(null);
@@ -47,11 +52,19 @@ export function WeekPlan({ id }: { id: string }) {
     for (const it of plan) {
       for (const d of assign[it.id] ?? []) {
         await updateKey<DayDoc>(`day:${days[d]}`, emptyDay, (doc) => (doc.tasks.some((x) => x.text.trim().toLowerCase() === it.text.trim().toLowerCase())
-          ? doc : { ...doc, tasks: [...doc.tasks, { id: uid(), text: it.text, done: false, up: { key: `week:${id}`, id: it.id } }] }));
+          ? doc : { ...doc, tasks: [...doc.tasks, { id: uid(), text: it.text, done: false, estimate: it.estimate, up: { key: `week:${id}`, id: it.id } }] }));
       }
     }
     navigate(`/week/${id}`);
   }
+
+  // the room each day has, with the items put on it so far (a day that has passed has none)
+  const t0 = today();
+  const caps: (DayCapacity | null)[] = dayDocs && step === 3 ? days.map((d, i) => (d < t0 ? null : dayCapacity({
+    date: d, doc: dayDocs.get(`day:${d}`), events: cal?.days[d], settings, from: d === t0 ? nowMinutes() : undefined,
+    adding: plan.filter((it) => (assign[it.id] ?? []).includes(i)),
+  }))) : [];
+  const capSum = (f: (c: DayCapacity) => number) => caps.reduce((n, c) => n + (c ? f(c) : 0), 0);
 
   // last week in numbers
   const prevDone = (prev?.items ?? []).filter((i) => i.done).length, prevAll = (prev?.items ?? []).length;
@@ -158,11 +171,44 @@ export function WeekPlan({ id }: { id: string }) {
           {step === 3 && (
             <>
               <p className="welcome-body">{P.spreadBody}</p>
+              {plan.length > 0 && caps.length > 0 && (
+                <div className="pw-cap" role="group" aria-label={P.capacityTitle} data-testid="week-capacity">
+                  <p className="pw-cap-week num" data-cap="week">
+                    {P.capacityWeek(duration(Math.max(0, capSum((c) => c.left))), duration(capSum((c) => c.fixed)),
+                      duration(capSum((c) => c.planned)))}
+                    {capSum((c) => c.unestimated) > 0 && <span data-cap="week-unestimated"> · {P.capacityNoEstimate(capSum((c) => c.unestimated))}</span>}
+                  </p>
+                  <div className="pw-cap-days">
+                    {days.map((d, i) => {
+                      const c = caps[i];
+                      if (!c) return <div key={d} className="pw-cap-day past" data-date={d}><b>{weekdayShort(d)}</b><span className="muted">{P.capacityPast}</span></div>;
+                      const span = Math.max(c.available, c.fixed + c.planned + c.estimated, 1);
+                      const pct = (m: number) => `${(m / span) * 100}%`;
+                      const over = c.left < 0;
+                      return (
+                        <div key={d} className={`pw-cap-day${over ? ' over' : ''}`} data-date={d}>
+                          <b>{weekdayShort(d)}</b>
+                          <div className="pw-bar" role="img" aria-label={P.capacityBar(duration(c.fixed), duration(c.planned), duration(c.estimated), duration(Math.max(0, c.left)))}>
+                            <i className="fixed" style={{ width: pct(c.fixed) }} />
+                            <i className="deep" style={{ width: pct(c.planned) }} />
+                            <i className="tasks" style={{ width: pct(c.estimated) }} />
+                          </div>
+                          <span className="pw-cap-left num" data-cap="left" data-minutes={c.left} title={over ? P.capacityOverTip : undefined}>
+                            {over ? P.capacityOver(duration(-c.left)) : P.capacityFree(duration(c.left))}
+                          </span>
+                          {c.unestimated > 0 && <small data-cap="unestimated">{P.capacityNoEstimate(c.unestimated)}</small>}
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
               {plan.length === 0 ? <p className="muted">{P.emptyPlan}</p> : (
                 <div className="pw-spread">
                   {plan.map((it) => (
                     <div key={it.id} className="pw-spread-row">
                       <span className={it.done ? 'done' : ''}>{it.text}</span>
+                      <TaskMeta item={it} onChange={(p) => setItems(plan.map((x) => (x.id === it.id ? { ...x, ...p } : x)))} />
                       <DayChips days={assign[it.id] ?? []} label={P.daysFor(it.text)} onChange={(d) => setAssign((a) => ({ ...a, [it.id]: d }))} />
                     </div>
                   ))}
