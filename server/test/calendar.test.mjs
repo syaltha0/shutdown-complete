@@ -1,6 +1,23 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { parseFeed, eventsBetween } from '../src/calendar.mjs';
+import { parseFeed, eventsBetween, feedProblem } from '../src/calendar.mjs';
+
+test('private-host exception is exact and never permits credentials or other schemes', async () => {
+  const prev = process.env.CALENDAR_PRIVATE_HOSTS;
+  const all = process.env.CALENDAR_ALLOW_PRIVATE;
+  delete process.env.CALENDAR_ALLOW_PRIVATE;
+  process.env.CALENDAR_PRIVATE_HOSTS = 'cloud.internal';
+  try {
+    assert.equal(await feedProblem('https://cloud.internal/a.ics'), null);
+    assert.equal(await feedProblem('https://other.internal/a.ics'), 'private');
+    assert.equal(await feedProblem('https://cloud.internal.evil.internal/a.ics'), 'private');
+    assert.equal(await feedProblem('https://user:pw@cloud.internal/a.ics'), 'url');
+    assert.equal(await feedProblem('file://cloud.internal/a.ics'), 'url');
+  } finally {
+    if (prev === undefined) delete process.env.CALENDAR_PRIVATE_HOSTS; else process.env.CALENDAR_PRIVATE_HOSTS = prev;
+    if (all === undefined) delete process.env.CALENDAR_ALLOW_PRIVATE; else process.env.CALENDAR_ALLOW_PRIVATE = all;
+  }
+});
 
 const feed = (...events) => parseFeed(['BEGIN:VCALENDAR', ...events.flatMap(lines => ['BEGIN:VEVENT', ...lines, 'END:VEVENT']), 'END:VCALENDAR'].join('\r\n'));
 test('RRULE excludes EXDATE and replaces a moved RECURRENCE-ID occurrence', () => {

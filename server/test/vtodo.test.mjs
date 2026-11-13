@@ -23,7 +23,10 @@ test('RELATED-TO round trip attaches a subtask to its parent', () => {
   const ics = stepIcs({ id: 'child', text: 'Child', done: true }, parent);
   assert.equal(parseTodo(ics).parent, parent.id);
   const result = upsert({ items: [parent] }, 'inbox', 'child.ics', ics, '2026-11-12');
-  assert.deepEqual(result.doc.items[0].steps, [{ id: 'child', text: 'Child', done: true }]);
+  const { davRaw, davBase, ...step } = result.doc.items[0].steps[0];
+  assert.deepEqual(step, { id: 'child', text: 'Child', done: true });
+  assert.equal(davRaw, ics);
+  assert.equal(davBase.text, 'Child');
   assert.equal(parent.steps.length, 0);
 });
 test('non-VTODO data is rejected', () => {

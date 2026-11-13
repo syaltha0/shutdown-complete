@@ -27,8 +27,9 @@ export async function feedProblem(raw) {
   let u;
   try { u = new URL(String(raw).trim().replace(/^webcals?:\/\//i, 'https://')); } catch { return 'url'; }
   if (!['http:', 'https:'].includes(u.protocol) || u.username || u.password) return 'url';
-  if (process.env.CALENDAR_ALLOW_PRIVATE === 'on') return null; // for the tools' local test feeds only
+  if (process.env.CALENDAR_ALLOW_PRIVATE === 'on') return null; // Explicit server-wide opt-in; prefer the host allowlist.
   const host = u.hostname.replace(/^\[|\]$/g, '');
+  if ((process.env.CALENDAR_PRIVATE_HOSTS ?? '').split(',').map(x => x.trim().toLowerCase()).filter(Boolean).includes(host.toLowerCase())) return null;
   if (host === 'localhost' || host.endsWith('.localhost') || host.endsWith('.local') || host.endsWith('.internal')) return 'private';
   try {
     const addrs = isIP(host) ? [{ address: host }] : await lookup(host, { all: true });

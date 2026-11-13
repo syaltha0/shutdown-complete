@@ -517,6 +517,8 @@ export const tr: Words = {
     add: (n) => (n ? `${n} dersi haftalık programa ekle` : 'Ekle'), added: (n) => `${n} ders haftalık programa eklendi`,
   },
   dav: {
+    duplicateWarning: 'Nextcloud listeleri doğrudan CalDAV bağlantısında varsayılan olarak gizlidir. Aynı listeyi telefonda iki hesaptan eşitlemek görevleri iki kez gösterir; yalnızca telefonda tek hesabı kullanıyorsanız yayınlayın.',
+    viaNextcloud: 'Nextcloud üzerinden', publishDirect: 'Doğrudan CalDAV üzerinden de yayınla',
     appsTitle: 'Görev uygulamaları',
     appsAbout: 'Görev listelerini telefonundaki ya da bilgisayarındaki bir görev uygulamasında tut: Android’de DAVx⁵ ile Tasks.org veya OpenTasks, Thunderbird, Apple cihazlarda Anımsatıcılar. Aşağıdaki adres ve kullanıcı adıyla bir CalDAV hesabı ekle; parola olarak burada her cihaz için ayrı üretilen uygulama parolasını kullan.',
     serverAddress: 'Sunucu adresi', userName: 'Kullanıcı adı', copy: 'Kopyala', copied: 'Kopyalandı', copyAddress: 'Sunucu adresini kopyala', copyPassword: 'Uygulama parolasını kopyala',
@@ -531,7 +533,8 @@ export const tr: Words = {
     linkedTo: (u) => `${u} adresine bağlı`, as: (u) => `${u} olarak`, listsN: (n) => `${n} liste`, synced: (when) => `${when} eşitlendi`,
     howItSyncs: 'Bağlantıyı kaldırınca iki taraftaki her şey yerinde kalır; sadece birbirlerini izlemeyi bırakırlar.',
     errors: {
-      url: 'Bu bir web adresi değil.', missing: 'Üçünü de doldur.', private: 'Bu adres özel bir ağda; oraya yalnızca bu sunucunun sahibi bağlanabilir.',
+      url: 'Bu bir web adresi değil.', missing: 'Üçünü de doldur.', private: 'Adres özel ağa çözümleniyor; evdeki DNS buna neden olabilir. Nextcloud bağlantısını sunucu sahibi kurabilir. Takvim aboneliği için yöneticiden tam alan adını CALENDAR_PRIVATE_HOSTS ile izinli kılmasını isteyin.',
+      conflict: 'Uzak görev eşitleme sırasında değişti. Üzerine yazılmadı; yeniden eşitleyin.',
       unreachable: 'Sunucu yanıt vermedi. Adresi kontrol et.', auth: 'Kullanıcı adı ya da uygulama parolası kabul edilmedi.',
       'no-caldav': 'Bu adreste CalDAV bulunamadı.', busy: 'Eşitleme sırasında görevler değişti; birazdan yeniden çalışacak.',
       'too-many': 'Çok fazla deneme. Biraz bekle.', failed: 'Son eşitleme başarısız oldu; birkaç dakika içinde yeniden denenecek.',
@@ -708,7 +711,7 @@ export const tr: Words = {
   calRemove: (n) => `${n} takvimini kaldır`, calNone: 'Bağlı takvim yok.',
   calErrors: {
     url: 'Bu bir takvim adresi değil (https:// ya da webcal:// ile başlar).',
-    private: 'Bu sunucudaki ya da iç ağdaki adresler okunmaz.',
+    private: 'Adres özel ağa çözümleniyor; evdeki DNS buna neden olabilir. Yöneticiden tam alan adını CALENDAR_PRIVATE_HOSTS değişkenine ekleyip hizmeti yeniden başlatmasını isteyin.',
     unreachable: 'Takvime ulaşılamadı. Adresi kontrol et.',
     denied: 'Takvim isteği reddetti. Gizli (özel) adresi kullan.',
     'not-calendar': 'Bu adres iCal biçiminde bir takvim vermiyor.',
