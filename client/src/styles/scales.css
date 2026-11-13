@@ -269,7 +269,7 @@
 .focus-widgets { min-width: 0; }
 .fw-goal { display: flex; align-items: center; gap: 16px; padding: 8px 0 20px; }
 .fw-goal svg { flex: 0 0 56px; }
-.fw-goal circle:last-child { stroke: #1d5fbf; stroke-linecap: round; }
+.fw-goal circle:last-child { stroke: var(--hue); stroke-linecap: round; }
 .fw-goal circle.complete { stroke: var(--positive); }
 .fw-goal-copy { display: grid; gap: 4px; min-width: 0; }
 .fw-caption { display: block; color: var(--muted); font-size: 12px; line-height: 1.5; }

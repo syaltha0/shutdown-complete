@@ -341,7 +341,7 @@ export const en = {
   fwCapture: 'Capture a thought',
   fwPlaceholder: 'A task or idea on your mind…',
   fwAdded: 'Added to inbox',
-  fwGoal: 'Daily focus goal',
+  fwGoal: 'Deep focus goal',
   fwToday: (time: string) => `Today: ${time} of focus`,
   fwEnds: (time: string) => `This block ends at ${time}`,
   fwNext: (name: string, start: string, end: string) => `Next: ${name} (${start}–${end})`,

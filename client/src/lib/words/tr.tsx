@@ -327,7 +327,7 @@ export const tr: Words = {
   fwCapture: 'Bir düşünce yakala',
   fwPlaceholder: 'Aklına gelen bir iş ya da fikir…',
   fwAdded: 'Gelen kutusuna eklendi',
-  fwGoal: 'Günlük odak hedefi',
+  fwGoal: 'Derin odak hedefi',
   fwToday: (time: string) => `Bugün ${time} odak`,
   fwEnds: (time: string) => `Bu blok ${time}’da bitiyor`,
   fwNext: (name: string, start: string, end: string) => `sonra: ${name} (${start}–${end})`,
