@@ -7,29 +7,25 @@
 // network (the planner must not become a way to reach them), a short timeout, a size cap, a few redirects at most.
 import { lookup } from 'node:dns/promises';
 import { isIP } from 'node:net';
+import { guardedFetch, privateAddress } from './safefetch.mjs';
 
 const TIMEOUT = 10_000, MAX_BYTES = 5 * 1024 * 1024, CACHE_MS = 10 * 60_000, MAX_DAYS = 62;
 
 // ---------------- fetching, safely ----------------
-function privateAddress(ip) {
-  if (isIP(ip) === 4) {
-    const [a, b] = ip.split('.').map(Number);
-    return a === 10 || a === 127 || a === 0 || (a === 169 && b === 254) || (a === 172 && b >= 16 && b <= 31) || (a === 192 && b === 168)
-      || (a === 100 && b >= 64 && b <= 127) || a >= 224;
-  }
-  const v = ip.toLowerCase();
-  if (v.startsWith('::ffff:')) return privateAddress(v.slice(7));
-  return v === '::1' || v === '::' || v.startsWith('fc') || v.startsWith('fd') || v.startsWith('fe80');
+const hostOf = (u) => u.hostname.replace(/^\[|\]$/g, '');
+/** Whether the owner allowed this host on a private network (CALENDAR_PRIVATE_HOSTS, or everything with CALENDAR_ALLOW_PRIVATE=on). */
+export function privateAllowed(host) {
+  if (process.env.CALENDAR_ALLOW_PRIVATE === 'on') return true; // Explicit server-wide opt-in; prefer the host allowlist.
+  return (process.env.CALENDAR_PRIVATE_HOSTS ?? '').split(',').map((x) => x.trim().toLowerCase()).filter(Boolean).includes(String(host).toLowerCase());
 }
 
-/** Why a feed address cannot be used ('url', 'private'), or null. */
+/** Why a feed address cannot be used ('url', 'private'), or null. Connections are checked again where they are made (safefetch.mjs). */
 export async function feedProblem(raw) {
   let u;
   try { u = new URL(String(raw).trim().replace(/^webcals?:\/\//i, 'https://')); } catch { return 'url'; }
   if (!['http:', 'https:'].includes(u.protocol) || u.username || u.password) return 'url';
-  if (process.env.CALENDAR_ALLOW_PRIVATE === 'on') return null; // Explicit server-wide opt-in; prefer the host allowlist.
-  const host = u.hostname.replace(/^\[|\]$/g, '');
-  if ((process.env.CALENDAR_PRIVATE_HOSTS ?? '').split(',').map(x => x.trim().toLowerCase()).filter(Boolean).includes(host.toLowerCase())) return null;
+  const host = hostOf(u);
+  if (privateAllowed(host)) return null;
   if (host === 'localhost' || host.endsWith('.localhost') || host.endsWith('.local') || host.endsWith('.internal')) return 'private';
   try {
     const addrs = isIP(host) ? [{ address: host }] : await lookup(host, { all: true });
@@ -43,32 +39,13 @@ async function fetchFeed(raw) {
   for (let hop = 0; hop < 4; hop++) {
     const problem = await feedProblem(url);
     if (problem) throw Object.assign(new Error(problem), { code: problem });
-    const ctl = new AbortController();
-    const timer = setTimeout(() => ctl.abort(), TIMEOUT);
     let res;
     try {
-      res = await fetch(url, { redirect: 'manual', signal: ctl.signal, headers: { accept: 'text/calendar, text/plain;q=0.8, */*;q=0.1', 'user-agent': 'ShutdownComplete-calendar/1' } });
-    } catch { clearTimeout(timer); throw Object.assign(new Error('unreachable'), { code: 'unreachable' }); }
-    if (res.status >= 300 && res.status < 400 && res.headers.get('location')) {
-      clearTimeout(timer);
-      url = new URL(res.headers.get('location'), url).href;
-      continue;
-    }
-    if (!res.ok) { clearTimeout(timer); throw Object.assign(new Error('unreachable'), { code: res.status === 401 || res.status === 403 || res.status === 404 ? 'denied' : 'unreachable' }); }
-    // read at most MAX_BYTES
-    const reader = res.body.getReader();
-    const chunks = [];
-    let size = 0;
-    try {
-      for (;;) {
-        const { done, value } = await reader.read();
-        if (done) break;
-        size += value.length;
-        if (size > MAX_BYTES) { ctl.abort(); throw Object.assign(new Error('too-big'), { code: 'too-big' }); }
-        chunks.push(value);
-      }
-    } finally { clearTimeout(timer); }
-    const text = Buffer.concat(chunks).toString('utf8');
+      res = await guardedFetch(url, { timeoutMs: TIMEOUT, maxBytes: MAX_BYTES, allowPrivate: privateAllowed(hostOf(new URL(url))), headers: { accept: 'text/calendar, text/plain;q=0.8, */*;q=0.1', 'user-agent': 'ShutdownComplete-calendar/1' } });
+    } catch (e) { throw Object.assign(new Error(e.code || 'unreachable'), { code: ['private', 'too-big'].includes(e.code) ? e.code : 'unreachable' }); }
+    if (res.status >= 300 && res.status < 400 && res.headers.location) { url = new URL(res.headers.location, url).href; continue; }
+    if (res.status < 200 || res.status >= 300) throw Object.assign(new Error('unreachable'), { code: res.status === 401 || res.status === 403 || res.status === 404 ? 'denied' : 'unreachable' });
+    const text = res.body.toString('utf8');
     if (!/BEGIN:VCALENDAR/i.test(text)) throw Object.assign(new Error('not-calendar'), { code: 'not-calendar' });
     return text;
   }
@@ -145,7 +122,7 @@ export function parseFeed(text) {
   const events = [];
   let ev = null;
   for (const { name, params, value } of lines(text)) {
-    if (name === 'BEGIN' && value.toUpperCase() === 'VEVENT') { ev = { exdates: [] }; continue; }
+    if (name === 'BEGIN' && value.toUpperCase() === 'VEVENT') { if (events.length >= MAX_EVENTS) break; ev = { exdates: [] }; continue; }
     if (name === 'END' && value.toUpperCase() === 'VEVENT') { if (ev && ev.start) events.push(ev); ev = null; continue; }
     if (!ev) continue;
     if (name === 'UID') ev.uid = value.trim();
@@ -166,6 +143,7 @@ export function parseFeed(text) {
 
 // ---------------- unrolling repeats ----------------
 const DAY = 86_400_000;
+const MAX_EVENTS = 20_000, BUDGET_MS = 1_000;
 const DOW = ['SU', 'MO', 'TU', 'WE', 'TH', 'FR', 'SA'];
 const wallMs = (w) => Date.UTC(w.y, w.mo - 1, w.d, w.h, w.mi, w.s || 0); // a wall time read as if it were UTC, for stepping
 const fromWallMs = (ms) => { const d = new Date(ms); return { y: d.getUTCFullYear(), mo: d.getUTCMonth() + 1, d: d.getUTCDate(), h: d.getUTCHours(), mi: d.getUTCMinutes(), s: d.getUTCSeconds() }; };
@@ -190,7 +168,10 @@ function occurrences(ev, fromWall, toWall) {
   const take = (t) => { if (t < first || t > until || n >= count) return false; n++; if (t <= toWall) out.push(t); return true; };
   const start = new Date(first);
   const hms = first % DAY;
-  for (let step = 0, guard = 0; guard < 5000; step += interval, guard++) {
+  // without COUNT nothing depends on the occurrences before the window, so start near it (steps are days, weeks, months, years)
+  const unit = { DAILY: DAY, WEEKLY: 7 * DAY, MONTHLY: 31 * DAY, YEARLY: 366 * DAY }[freq] ?? DAY;
+  const skip = r.COUNT ? 0 : Math.max(0, Math.floor((fromWall - first) / (unit * interval)) - 2) * interval;
+  for (let step = skip, guard = 0; guard < 5000; step += interval, guard++) {
     let cands = [];
     if (freq === 'DAILY') cands = [first + step * DAY];
     else if (freq === 'WEEKLY') {
@@ -233,10 +214,12 @@ export function eventsBetween(feed, from, to, viewerTz) {
   const put = (date, e) => { (out[date] ||= []).push(e); };
   const iso = (p) => `${p.y}-${String(p.mo).padStart(2, '0')}-${String(p.d).padStart(2, '0')}`;
   const fromMs = Date.parse(`${from}T00:00:00Z`) - DAY, toMs = Date.parse(`${to}T23:59:59Z`) + DAY;
+  const deadline = Date.now() + BUDGET_MS; // a feed made to be slow to unroll gets what fits in this time
   const overrides = new Map(); // uid -> Set of recurrence-id wall ms
   for (const ev of feed) if (ev.recurrenceId && ev.uid) { if (!overrides.has(ev.uid)) overrides.set(ev.uid, new Set()); overrides.get(ev.uid).add(wallMs(ev.recurrenceId.wall)); }
 
   for (const ev of feed) {
+    if (Date.now() > deadline) break;
     if (ev.cancelled || ev.free) continue;
     const tz = ev.start.allDay ? null : ev.start.tz || viewerTz;
     const lengthMs = ev.end ? Math.max(0, wallMs(ev.end.wall) - wallMs(ev.start.wall)) : parseDuration(ev.duration) ?? (ev.start.allDay ? DAY : 0);
@@ -245,7 +228,9 @@ export function eventsBetween(feed, from, to, viewerTz) {
     for (const t of occurrences(ev, fromMs, toMs)) {
       if (skip.has(t) || (moved && moved.has(t))) continue;
       if (ev.start.allDay) {
-        for (let d = t; d < t + Math.max(DAY, lengthMs); d += DAY) {
+        // only the days that can be asked for: an event "lasting" thousands of years must not be walked day by day
+        const first = t < fromMs ? t + Math.floor((fromMs - t) / DAY) * DAY : t;
+        for (let d = first; d < Math.min(t + Math.max(DAY, lengthMs), toMs + DAY); d += DAY) {
           const date = new Date(d).toISOString().slice(0, 10);
           if (date >= from && date <= to) put(date, { uid: ev.uid, location: ev.location, description: ev.description, title: ev.title || '', start: 0, end: 1440, allDay: true });
         }
@@ -253,7 +238,7 @@ export function eventsBetween(feed, from, to, viewerTz) {
       }
       // timed: the instant, then the viewer's wall clock, cut at midnights
       const s = zonedToUtc(fromWallMs(t), tz), e = s + lengthMs;
-      for (let cur = s; cur < Math.max(e, s + 1);) {
+      for (let cur = Math.max(s, fromMs); cur < Math.max(e, s + 1) && cur <= toMs;) {
         const p = partsIn(cur, viewerTz), date = iso(p);
         const startMin = p.h * 60 + p.mi;
         const dayEnd = cur + (1440 - startMin) * 60_000 - p.s * 1000;
