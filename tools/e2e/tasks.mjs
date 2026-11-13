@@ -281,6 +281,16 @@ try {
   check('quick add sets due, time, list, priority and tag', qa?.due === tomorrow && qa.dueTime === '09:00' && qa.priority === 1 && qa.tags?.join() === 'study' && qa.list === school.id, JSON.stringify(qa));
   const trWeekly = await task('Okuma'), enWeekly = await task('Review');
   check('quick add reads Turkish and English weekly rules', trWeekly?.repeat?.unit === 'week' && trWeekly.repeat.days?.join() === '0' && enWeekly?.repeat?.days?.join() === '4' && wd(trWeekly.due) === 0 && wd(enWeekly.due) === 4, JSON.stringify([trWeekly?.repeat, enWeekly?.repeat]));
+  await page.getByRole('button', { name: '+ New list' }).click();
+  await page.locator('#tk-list-name').fill('İş');
+  await page.locator('#tk-list-name').press('Enter');
+  await page.locator('#tk-h').filter({ hasText: 'İş' }).waitFor();
+  await add('Rapor yarın 9 #iş !1 @inceleme');
+  await wait(1000);
+  const work = (await tasks()).lists.find((l) => l.name === 'İş');
+  const report = await task('Rapor');
+  check('Turkish quick add sets tomorrow, time, Turkish list, priority and tag', report?.due === tomorrow && report.dueTime === '09:00' && report.list === work?.id && report.priority === 1 && report.tags?.join() === 'inceleme', JSON.stringify(report));
+  await page.locator('.tk-lists li', { hasText: 'School' }).locator('button[data-drop]').click();
   const literal = await task('Call tomorrow !1');
   check('plain text opt-out keeps the whole title', literal && !literal.due && !literal.priority);
   await page.locator('#tk-new').fill('Read 9 pages');
