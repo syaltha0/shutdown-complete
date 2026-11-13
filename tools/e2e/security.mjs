@@ -19,7 +19,7 @@ const totp = (secret, now = Date.now()) => {
   return String((((h[o] & 127) << 24) | (h[o + 1] << 16) | (h[o + 2] << 8) | h[o + 3]) % 1e6).padStart(6, '0');
 };
 // a server that turns a body away may hang up while the client is still sending it: that counts as refused too
-const status = async (p) => { try { return (await p).status; } catch { return 413; } finally { await sleep(300); } };
+const status = async (p) => { try { return (await p).status; } catch { return 413; } finally { await sleep(1000); } };
 const raw = (srv, path, { method = 'GET', headers = {}, body, cookie } = {}) =>
   fetch(srv.url + path, { method, headers: { ...(cookie ? { cookie } : {}), ...headers }, body, redirect: 'manual' });
 
@@ -81,7 +81,7 @@ try {
   const dav = (path, method, body) => raw(srv, path, { method, body, headers: { authorization: `Basic ${Buffer.from(`ann@sec.test:${pw}`).toString('base64')}`, 'x-forwarded-for': '198.51.100.60' } });
   const annId = (await ann.call('/api/account')).body.id, bobId = (await bob.call('/api/account')).body.id;
   check('a 3 MB CalDAV body is refused', (await status(dav(`/dav/calendars/${annId}/inbox/x.ics`, 'PUT', 'x'.repeat(3 * 1024 * 1024)))) === 413);
-  check('a CalDAV question of 100 KB is not one of an app's', (await dav(`/dav/calendars/${annId}/`, 'PROPFIND', '<prop '.repeat(17_000))).status === 413);
+  check('a CalDAV question of 100 KB is not an app question', (await dav(`/dav/calendars/${annId}/`, 'PROPFIND', '<prop '.repeat(17_000))).status === 413);
   check('a normal PROPFIND is still answered', (await dav(`/dav/calendars/${annId}/`, 'PROPFIND', '<d:propfind xmlns:d="DAV:"><d:prop><d:displayname/></d:prop></d:propfind>')).status === 207);
   check('a normal document is still accepted', (await ann.call('/api/doc/settings', { value: { a: 'x' }, version: 0 }, 'PUT')).status === 200);
 
