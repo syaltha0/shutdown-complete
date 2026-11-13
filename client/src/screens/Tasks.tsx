@@ -18,6 +18,7 @@ import { insertAt, offerUndo } from '../lib/undo';
 import { DayChips } from './Templates';
 import { refreshKey, updateKey, useDoc } from '../lib/useDoc';
 import { parseTaskDraft } from '../lib/taskQuickAdd';
+import { taskMatches } from '../lib/taskSearch';
 
 const TINTS: LabelColor[] = ['blue', 'green', 'amber', 'red', 'grey'];
 /** reminders, in minutes before the due time */
@@ -87,10 +88,7 @@ export function Tasks({ view: asked }: { view?: string }) {
   }, []);
 
   const set = (id: string, p: Partial<Item>) => update((b) => ({ ...b, items: b.items.map((x) => (x.id === id ? { ...x, ...p } : x)) }));
-  const matches = (t: Item) => {
-    const s = q.trim().toLocaleLowerCase();
-    return !s || t.text.toLocaleLowerCase().includes(s) || !!t.notes?.toLocaleLowerCase().includes(s) || !!t.tags?.some((g) => g.toLocaleLowerCase().includes(s));
-  };
+  const matches = (t: Item) => taskMatches(t, q);
   const shown = sortTasks(items.filter((t) => inView(t, view) && matches(t)), sort);
   // in a list, its done tasks fold away under the open ones
   const doneHere = isList ? sortTasks(items.filter((t) => t.done && listOf(t) === view && matches(t)), sort) : [];

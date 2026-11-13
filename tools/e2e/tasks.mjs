@@ -175,6 +175,12 @@ try {
   check('search finds by words', (await page.locator('.tk-main .tk-row').count()) === 1);
   await page.locator('.tk-search input').fill('odd ones');
   check('search finds by notes', await row('Maths homework').isVisible());
+  await page.locator('.tk-search input').fill('question');
+  check('search finds a task by the title of its subtask', await row('Maths homework').isVisible() && (await page.locator('.tk-main .tk-row').count()) === 1);
+  await page.locator('.tk-search input').fill('odd  maths exam');
+  check('search needs every word, in any order and field', await row('Maths homework').isVisible() && (await page.locator('.tk-main .tk-row').count()) === 1);
+  await page.locator('.tk-search input').fill('maths passport');
+  check('a word that matches nothing leaves no task', (await page.locator('.tk-main .tk-row').count()) === 0);
   await page.locator('.tk-search input').fill('');
   await page.locator('.tk-sort select').selectOption('title');
   const titles = await page.locator('.tk-main .tk-row .tk-title').allTextContents();
