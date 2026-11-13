@@ -868,5 +868,6 @@ if (existsSync(STATIC_DIR)) {
 serve({ fetch: app.fetch, port: PORT, hostname: process.env.HOST || '0.0.0.0' }, (info) => {
   console.log(`Shutdown Complete listening on :${info.port}${db.users.count() === 0 ? ' — open it in a browser to create the first account' : ''}`);
   if (!mailEnabled) console.log('E-mail is off (no SMTP_URL): sign-ups are not verified, and passwords are reset with: node server/src/cli.mjs reset-password <email>');
+  if (mailEnabled && !APP_URL) console.warn('WARNING: SMTP_URL is set but APP_URL is not. Links in e-mails (password reset, address confirmation, invites) are then built from the request\'s Host header, which a visitor can choose. Set APP_URL to your public address.');
   headers.setIndex(index);
 });
