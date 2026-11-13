@@ -506,6 +506,7 @@ export const en = {
   tomorrow: 'Tomorrow', toDayLabel: (t: string) => `Put “${t}” on a day`,
   fromInbox: 'Add from your tasks', addToToday: (n: number) => (n ? `Add ${n} to today` : 'Add to today'),
   review: {
+    focusNotes: 'Focus notes', focusBlocks: 'Focus by block / subject',
     open: 'Week in review', home: 'Your week in review', title: (n: number) => `Week ${n} in review`, prev: 'The week before', next: 'The week after', toWeek: 'The week',
     focused: 'Focused', ofDeep: (d: string) => `deep focus planned ${d}`, shutdowns: 'Days closed', tasksDone: 'Tasks done', ofDayTasks: (d: number, n: number) => (n ? `${d} of ${n} on the days` : ''),
     weekPlan: 'Weekly plan', noPlan: 'not planned', byDay: 'Day by day', planned: 'planned', focusedShort: 'focused',

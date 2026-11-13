@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { WeekFocus } from '../components/WeekFocus';
 import { useSettings } from '../App';
 import { IconLeft, IconRight } from '../components/Icons';
 import { api, type WeekReviewData } from '../lib/api';
@@ -78,6 +79,8 @@ export function WeekReview({ id }: { id: string }) {
               </>
             )}
           </section>
+
+          <WeekFocus id={id} />
 
           <section className="panel span-12 wr-mail">
             {r.mail ? (

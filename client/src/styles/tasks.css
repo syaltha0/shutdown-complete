@@ -225,3 +225,16 @@ label.btn { cursor: pointer; }
   .wr-stats > div:nth-child(n + 3) { border-top: 1px solid var(--rule); }
   .wr-bars { height: 160px; gap: 4px; }
 }
+.week-focus header { display: flex; justify-content: space-between; gap: 16px; }
+.week-focus-days { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 8px; margin: 16px 0; }
+.week-focus-days > div { display: grid; gap: 4px; font-size: 12px; }
+.week-focus-days span { color: var(--muted); }
+.week-focus b { font-weight: 500; }
+.week-focus-blocks { list-style: none; padding: 0; margin: 0; }
+.week-focus-blocks li { padding: 10px 0; border-bottom: 1px solid var(--rule); }
+.week-focus-blocks li > div { display: flex; justify-content: space-between; gap: 16px; overflow-wrap: anywhere; }
+.week-focus-blocks i { display: block; height: 2px; background: #1d5fbf; margin-top: 8px; }
+.week-focus-notes { margin-top: 20px; }
+.week-focus-notes summary { cursor: pointer; }
+.week-focus-notes h3 { font-size: 13px; margin-top: 18px; }
+@media (max-width: 480px) { .week-focus-days { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
