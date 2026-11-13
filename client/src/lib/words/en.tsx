@@ -356,6 +356,7 @@ export const en = {
   stopAsk: (n: number) => `Discard ${n} min?`, focusPaused: 'paused',
   inBlock: (l: string) => `In block: ${l}`,
   freeFocus: 'Unplanned focus',
+  sessionCount: (n: number, total: string) => `${n} sessions · ${total}`,
   sessionsToday: 'Today’s sessions',
   noSessions: 'No focus sessions yet today',
   focusSummary: (n: number, d: string) => `${n} ${s(n, 'session', 'sessions')} · ${d} of focus today`,

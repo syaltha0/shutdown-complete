@@ -92,13 +92,23 @@ export function Focus() {
     const el = listRef.current;
     if (!el) return;
     const fit = () => {
-      const rows = [...el.children].slice(0, ROWS) as HTMLElement[];
-      const h = `${rows.reduce((n, r) => n + r.offsetHeight, 0)}px`;
+      const rows = [...el.children] as HTMLElement[];
+      const available = el.parentElement!.clientHeight - (el.parentElement!.querySelector('.total')?.clientHeight ?? 0);
+      let height = 0;
+      for (const [i, row] of rows.slice(0, ROWS).entries()) {
+        const rowHeight = row.getBoundingClientRect().height;
+        if (i >= 2 && height + rowHeight > available) break;
+        height += rowHeight;
+      }
+      const h = `${height}px`;
       if (el.style.getPropertyValue('--rows-h') !== h) el.style.setProperty('--rows-h', h);
+      el.tabIndex = el.scrollHeight > el.clientHeight ? 0 : -1;
     };
     fit();
     const ro = new ResizeObserver(fit);
     ro.observe(el);
+    ro.observe(el.parentElement!);
+    [...el.children].forEach((row) => ro.observe(row));
     return () => ro.disconnect();
   }, [sessions]);
 
@@ -235,7 +245,7 @@ export function Focus() {
             <Chart label={T.focusFourWeeks} deps={[past, T.locale, total]} draw={(el, C) => C.bars(el, {
               labels: days28.map((d) => shortDate(d)),
               values: days28.map((d) => (d === today() && day ? focusMinutes(day) : (past.get(`day:${d}`) ? focusMinutes(past.get(`day:${d}`)!) : null))),
-              highlight: 27, colour: themeColor('--hue'), mutedColour: themeColor('--chart-1'), height: Math.max(96, el.clientHeight),
+              colour: themeColor('--chart-1'), mutedColour: themeColor('--chart-1'), height: Math.min(240, Math.max(120, el.clientHeight)),
               format: (v: number) => duration(v), tickFormat: (v: number) => T.minShort(v),
               xAt: days28.map((_, i) => (i % (el.clientWidth < 640 ? 14 : 7) === 0 ? i : -1)).filter((i) => i >= 0),
             })} />
@@ -247,12 +257,12 @@ export function Focus() {
         <FocusWidgets day={day} />
         <section className="panel focus-sessions" aria-labelledby="fs-h" data-anim>
           <header>
-            <h2 id="fs-h">{T.sessionsToday}</h2>
+            <h2 id="fs-h">{T.sessionsToday}<small className="session-count num">{T.sessionCount(sessions.length, duration(total))}</small></h2>
             <a className="card-link" href={`/day/${today()}`} onClick={onLinkClick}>{T.nav.today}</a>
           </header>
           {sessions.length === 0 ? <div className="empty">{T.noSessions}</div> : (
             <div className="sessions">
-              <div className="session-scroll" ref={listRef} tabIndex={sessions.length > ROWS ? 0 : -1} role="region" aria-label={T.sessionsToday}>
+              <div className="session-scroll" ref={listRef} tabIndex={-1} role="region" aria-label={T.sessionsToday}>
               {[...sessions].reverse().map((s) => {
                 const st = new Date(s.start), en = new Date(s.end);
                 return (
