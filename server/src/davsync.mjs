@@ -10,11 +10,20 @@ import { TINT_HEX, nearestTint } from './caldav.mjs';
 import { guardedFetch } from './safefetch.mjs';
 import { privateAllowed } from './calendar.mjs';
 
-const MAX_REPLY = 32 * 1024 * 1024; // what another server may answer with, at most
+const MAX_REPLY = 16 * 1024 * 1024; // what another server may answer with, at most
 const TIMEOUT = 15_000, EVERY = 5 * 60_000, SOON = 15_000;
 const unxml = (s) => String(s).replace(/<!\[CDATA\[([\s\S]*?)\]\]>/g, '$1').replace(/&#x([0-9a-f]+);/gi, (_, h) => String.fromCodePoint(parseInt(h, 16)))
   .replace(/&#(\d+);/g, (_, d) => String.fromCodePoint(Number(d))).replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&quot;/g, '"').replace(/&apos;/g, "'").replace(/&amp;/g, '&');
-const tag = (block, name) => { const m = new RegExp(`<(?:[\\w-]+:)?${name}\\b[^>]*>([\\s\\S]*?)</(?:[\\w-]+:)?${name}>`).exec(block); return m ? unxml(m[1].trim()) : null; };
+// The text of the first <name>…</name>. The patterns are bounded: a reply made of endless opening tags must not make this slow.
+export const xmlTag = (block, name) => {
+  const open = new RegExp(`<(?:[\\w-]+:)?${name}\\b[^>]{0,300}>`).exec(block);
+  if (!open) return null;
+  const from = open.index + open[0].length, close = new RegExp(`</(?:[\\w-]+:)?${name}>`, 'g');
+  close.lastIndex = from;
+  const end = close.exec(block);
+  return end ? unxml(block.slice(from, end.index).trim()) : null;
+};
+const tag = xmlTag;
 /** The responses of a multistatus, each with its address and its (found) properties' raw text. */
 const responses = (xml) => String(xml).split(/<(?:[\w-]+:)?response[\s>]/).slice(1).map((r) => {
   const ok = r.split(/<(?:[\w-]+:)?propstat[\s>]/).slice(1).filter((p) => /HTTP\/1\.\d 2\d\d/.test(tag(p, 'status') ?? 'HTTP/1.1 200')).join('');

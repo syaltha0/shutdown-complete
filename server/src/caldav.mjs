@@ -29,13 +29,19 @@ export function nearestTint(hex) {
 }
 
 /** The properties a PROPFIND or REPORT asks for, as namespace + name (none: all we have). */
-function askedProps(xml) {
+// The patterns are bounded: a body of thousands of "<prop " with no ">" made the unbounded ones take minutes.
+export function askedProps(xml) {
   if (!xml || /<(\w+:)?allprop\b/.test(xml)) return null;
   const ns = { '': 'DAV:' };
   for (const m of xml.matchAll(/xmlns(?::(\w+))?="([^"]*)"/g)) ns[m[1] ?? ''] = m[2];
-  const prop = /<(?:(\w+):)?prop\b[^>]*>([\s\S]*?)<\/(?:\w+:)?prop>/.exec(xml);
-  if (!prop) return null;
-  return [...prop[2].matchAll(/<(?:(\w+):)?([\w-]+)[^>]*?\/?>/g)].map((m) => ({ ns: ns[m[1] ?? ''] ?? 'DAV:', name: m[2] }));
+  const open = /<(?:(\w+):)?prop\b[^>]{0,300}>/.exec(xml);
+  if (!open) return null;
+  const from = open.index + open[0].length;
+  const close = /<\/(?:\w+:)?prop>/g;
+  close.lastIndex = from;
+  const end = close.exec(xml);
+  if (!end) return null;
+  return [...xml.slice(from, end.index).matchAll(/<(?:(\w+):)?([\w-]+)[^>]{0,300}>/g)].map((m) => ({ ns: ns[m[1] ?? ''] ?? 'DAV:', name: m[2] }));
 }
 const hrefsOf = (xml) => [...String(xml).matchAll(/<(?:\w+:)?href>([^<]*)<\/(?:\w+:)?href>/g)].map((m) => decodeURIComponent(m[1].trim()));
 
@@ -166,6 +172,8 @@ export function davRoutes(app, { db, sha256, clientIp, onChange = () => {} }) {
     const list = where.list ? lists.find((l) => l.id === where.list) : null;
     if ((where.kind === 'list' || where.kind === 'item') && !list && method !== 'MKCALENDAR' && method !== 'MKCOL') return c.body('No such list', 404);
     const body = ['PROPFIND', 'REPORT', 'PROPPATCH', 'MKCALENDAR', 'MKCOL', 'PUT'].includes(method) ? await c.req.text() : '';
+    // the questions apps ask are short (a multiget names its tasks): more than this is not one of them
+    if (method !== 'PUT' && body.length > (method === 'REPORT' ? 256 * 1024 : 32 * 1024)) return c.body('Too large', 413);
     const depth = c.req.header('depth') ?? (method === 'PROPFIND' ? 'infinity' : '0');
 
     switch (method) {
