@@ -15,7 +15,6 @@ import { useT } from '../lib/i18n';
 import { activeColumn, type DayDoc, featureOn } from '../lib/model';
 import { onLinkClick } from '../lib/router';
 import { useRange } from '../lib/useDoc';
-import { kindSwatch } from './TimeGrid';
 import { FocusRoom } from '../components/FocusRoom';
 import { FriendsPanel } from '../components/Friends';
 
@@ -217,7 +216,7 @@ export function Focus() {
         <section className="panel focus-sessions" aria-labelledby="fs-h" data-anim>
           <header>
             <h2 id="fs-h">{T.sessionsToday}</h2>
-            <a className="card-link" style={{ fontWeight: 400 }} href={`/day/${today()}`} onClick={onLinkClick}>{T.nav.today}</a>
+            <a className="card-link" href={`/day/${today()}`} onClick={onLinkClick}>{T.nav.today}</a>
           </header>
           {sessions.length === 0 ? <div className="empty">{T.noSessions}</div> : (
             <div className="sessions">
@@ -226,21 +225,20 @@ export function Focus() {
                 const st = new Date(s.start), en = new Date(s.end);
                 return (
                   <div className="session" key={s.id}>
-                    <i style={{ background: 'var(--hue)' }} />
                     <span className="t num">{clock(st.getHours() * 60 + st.getMinutes())}–{clock(en.getHours() * 60 + en.getMinutes())}</span>
-                    <span className="l">{s.label || T.freeFocus}</span>
+                    <span className="l" title={s.label || T.freeFocus}>{s.label || T.freeFocus}</span>
                     <span className="n num">{duration(s.minutes)}</span>
                     {(s.intent || s.note) && <span className="more">{[s.intent, s.note].filter(Boolean).join(' · ')}</span>}
                   </div>
                 );
               })}
               </div>
-              <div className="session total"><span /><span /><span className="l">{T.totalCol}</span><span className="n num">{duration(total)}</span></div>
+              <div className="session total"><span className="l">{T.totalCol}</span><span className="n num">{duration(total)}</span></div>
             </div>
           )}
         </section>
 
-        {focused.length > 0 && <section className="panel" aria-labelledby="fb-h" data-anim>
+        {focused.length > 0 && <section className="panel focus-byblock" aria-labelledby="fb-h" data-anim>
           <header><h2 id="fb-h">{T.focusByBlock}</h2></header>
           {(
             <div className="byblock">
@@ -248,7 +246,7 @@ export function Focus() {
                 const got = byBlock(b), len = b.end - b.start;
                 return (
                   <div className="bb" key={b.id}>
-                    <div className="bb-top"><span className="l"><i className="kind-dot" style={kindSwatch(b.kind)} />{b.label || T.untitledBlock}</span><span className="num muted">{T.focusedOf(duration(got), duration(len))}</span></div>
+                    <div className="bb-top"><span className="l">{b.label || T.untitledBlock}</span><span className="num muted">{T.focusedOf(duration(got), duration(len))}</span></div>
                     <div className="bb-track"><i style={{ transform: `scaleX(${Math.min(1, got / len)})` }} /></div>
                   </div>
                 );
