@@ -201,8 +201,6 @@
 .focus-card-actions { display: flex; align-items: center; gap: 4px; }
 .focus-card-head .focus-room-btn { position: static; }
 .focus-stage { flex: 1; align-content: center; gap: 14px; padding: 28px 0; }
-.focus-tabs button[aria-pressed="true"] { color: var(--phase-color); }
-.focus-tabs button:disabled { cursor: default; }
 .focus-ring { width: 264px; height: 264px; margin: 4px 0; }
 .focus-read b { font-size: 48px; line-height: 56px; }
 .focus-read .focus-label { display: none; }
@@ -231,7 +229,6 @@
   .focus-read b { font-size: 42px; line-height: 48px; }
   .focus-go { position: static; margin: 0; padding: 0; }
   .focus-block-row { text-align: center; }
-  .focus-tabs.sm button { padding: 0 10px; }
 }
 
 .focus-config { max-height: min(70dvh, 680px); overflow-y: auto; }

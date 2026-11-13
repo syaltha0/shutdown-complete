@@ -1,5 +1,4 @@
 import { FocusWidgets } from '../components/FocusWidgets';
-import { Segmented } from '../components/Segmented';
 import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { FocusConfig } from '../components/FocusConfig';
 import type { FocusPhase } from '../lib/model';
@@ -37,7 +36,6 @@ export function Focus() {
   const pickerBlocks = [...blocks].sort((a, b) => blockRank(a) - blockRank(b) || a.start - b.start);
   const current = running ?? blocks.find((b) => b.start > now && b.kind === 'deep') ?? blocks.find((b) => b.start > now && b.kind !== 'personal') ?? null;
   const [blockId, setBlockId] = useState<string | null | undefined>(undefined);
-  const [readyPhase, setReadyPhase] = useState<FocusPhase>('focus');
   const [config, setConfig] = useState(false);
   const configButton = useRef<HTMLButtonElement>(null);
   const configView = useRef<HTMLDivElement>(null);
@@ -73,9 +71,9 @@ export function Focus() {
   // a revision gives a block a new id, so a session also counts for a block of the same name
   const byBlock = (b: { id: string; label: string }) => sessions.filter((x) => x.blockId === b.id || (!!b.label && x.label === b.label)).reduce((n, x) => n + x.minutes, 0);
   const focused = workBlocks.filter((b) => byBlock(b) > 0);
-  const phase = a?.phase ?? readyPhase;
-  const minutes = readyPhase === 'focus' ? f.focusMin : readyPhase === 'short' ? f.shortMin : f.longMin;
-  const begin = { blockId: chosen, label: chosenBlock?.label || T.freeFocus, minutes, breakMin: f.shortMin, phase: readyPhase };
+  const phase: FocusPhase = a?.phase ?? 'focus';
+  const minutes = f.focusMin;
+  const begin = { blockId: chosen, label: chosenBlock?.label || T.freeFocus, minutes, breakMin: f.shortMin, phase: 'focus' as const };
   // the note belongs to the session a break follows
   const lastSession = a && a.phase !== 'focus' ? (holder?.focus?.sessions ?? []).find((x) => x.id === a.sessionId) ?? null : null;
   // a note being typed is kept even when the break ends (or is skipped) before the field loses focus
@@ -160,7 +158,6 @@ export function Focus() {
           <div className="focus-config-anchor"><button ref={configButton} type="button" className="btn sm" aria-expanded={config} aria-controls="focus-settings-view" onClick={() => config ? closeConfig() : setConfig(true)}>{config ? T.focusBackTimer : T.nav.settings}</button></div>
           </div></header>
           <div className={`focus-card-body${config ? ' is-config' : ''}`}><div className="focus-stage" inert={config} aria-hidden={config || undefined}>
-            <Segmented className="focus-tabs sm" role="group" aria-label={T.focusRunning}>{(['focus', 'short', 'long'] as const).map((p) => <button type="button" key={p} className={`phase-${p}`} aria-pressed={phase === p} disabled={!!a && a.phase !== p} onClick={() => setReadyPhase(p)}>{T.phase[p]}</button>)}</Segmented>
             <div className="focus-ring">
               {a ? <Ring a={a} size={248} stroke={5} /> : <svg width={248} height={248} viewBox="0 0 248 248" aria-hidden="true"><circle cx={124} cy={124} r={119} fill="none" stroke="var(--phase-color)" strokeWidth={5} /></svg>}
               <div className="focus-read">
