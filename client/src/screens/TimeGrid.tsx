@@ -46,7 +46,19 @@ export function TimeGrid({
   const touchStart = useRef<{ y: number; x: number; t: number } | null>(null);
   const focusRef = useRef<HTMLDivElement>(null);
   useEffect(() => {
-    if (focusAt != null) focusRef.current?.scrollIntoView({ block: 'center', inline: 'nearest' });
+    if (focusAt == null) return;
+    // content that arrives a moment later (notes above the grid, loaded data) pushes the grid down: centre again once
+    // the page has settled, unless the person has started scrolling themselves
+    let moved = false;
+    const own = () => { moved = true; };
+    const go = () => { if (!moved) focusRef.current?.scrollIntoView({ block: 'center', inline: 'nearest' }); };
+    go();
+    const frame = requestAnimationFrame(go), soon = window.setTimeout(go, 400), later = window.setTimeout(go, 1200);
+    window.addEventListener('wheel', own, { passive: true }); window.addEventListener('touchstart', own, { passive: true }); window.addEventListener('keydown', own);
+    return () => {
+      cancelAnimationFrame(frame); window.clearTimeout(soon); window.clearTimeout(later);
+      window.removeEventListener('wheel', own); window.removeEventListener('touchstart', own); window.removeEventListener('keydown', own);
+    };
   }, [focusKey, focusAt != null]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const active = day.columns[last];

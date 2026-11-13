@@ -153,7 +153,9 @@ try {
   await page.locator('.time-grid, .grid-wrap').first().waitFor();
   const labels = await page.locator('.hours span').allTextContents();
   check('a whole day runs from 00:00 to 24:00', labels[0] === '00:00' && labels.at(-1) === '24:00', `${labels[0]} … ${labels.at(-1)}`);
-  const seen = await page.evaluate(() => { const n = document.querySelector('.now-line')?.getBoundingClientRect(); return !!n && n.top >= 0 && n.bottom <= innerHeight; });
+  // the grid centres the current time again once the page settles (notes and data arrive a moment later)
+  let seen = false;
+  for (let i = 0; i < 20 && !seen; i++) { seen = await page.evaluate(() => { const n = document.querySelector('.now-line')?.getBoundingClientRect(); return !!n && n.top >= 0 && n.bottom <= innerHeight; }); if (!seen) await wait(100); }
   check('a whole day opens with the current time in view', seen);
   await page.goto(`${srv.url}/settings`);
   await page.getByRole('button', { name: 'Set hours' }).click();
