@@ -12,13 +12,13 @@ const cache = new Map<string, { at: number; p: Promise<{ days: Record<string, Ca
 const FRESH = 5 * 60_000;
 
 /** The linked calendars' events from one date to another (inclusive), by day; null while loading or with none linked. */
-export function useCalendar(from: string, to: string) {
+export function useCalendar(from: string, to: string, enabled = true) {
   const { settings } = useSettings();
   const cals = settings.calendars ?? [];
   const sig = cals.map((c) => `${c.id}:${c.url}`).join('|');
   const [data, setData] = useState<{ days: Record<string, CalEvent[]>; errors: { id: string; error: string }[] } | null>(null);
   useEffect(() => {
-    if (!cals.length) { setData(null); return; }
+    if (!cals.length || !enabled) { setData(null); return; }
     let live = true;
     const key = `${from}|${to}|${sig}`;
     let hit = cache.get(key);
@@ -30,7 +30,7 @@ export function useCalendar(from: string, to: string) {
     hit.p.then((d) => { if (live) setData(d); }, () => { if (live) setData(null); });
     return () => { live = false; };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [from, to, sig]);
+  }, [from, to, sig, enabled]);
   return data;
 }
 

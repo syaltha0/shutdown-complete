@@ -11,7 +11,8 @@ export interface Block {
   task?: { id: string; list?: 'inbox' | 'day'; day?: string };
   taskLabel?: string;
   taskLabelCustom?: boolean;
-  source?: { calendar: string; uid: string; date: string };
+  /** the calendar event this block was made from, and when it was (start/end: minutes of that day) at that moment */
+  source?: { calendar: string; uid: string; date: string; start?: number; end?: number };
   id: string;
   start: number; // minutes since midnight
   end: number;

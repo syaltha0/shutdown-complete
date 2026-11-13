@@ -1,8 +1,9 @@
 import { BlockTaskLink } from '../components/TaskBlockLink';
 import { FocusLog } from '../components/FocusLog';
 import { useEffect, useRef, useState } from 'react';
-import { clock, duration } from '../lib/dates';
+import { clock, duration, shortDate } from '../lib/dates';
 import { useT } from '../lib/i18n';
+import type { Drift } from '../lib/drift';
 import { KIND_IDS, type Block, type DayDoc, type FocusSession } from '../lib/model';
 import { kindSwatch, type ReviseMode } from './TimeGrid';
 import { Segmented } from '../components/Segmented';
@@ -27,7 +28,7 @@ function useModal(open: boolean) {
 
 /** Edits one block of the active column. Every change applies at once; Done closes. */
 export function BlockEditor({
-  date, day, sessions, block, min, max, onChange, onDelete, onClose, subjects = [], repeatDays = [], onRepeat, estimate, repeatEvery = 1, onRepeatEvery,
+  date, day, sessions, block, min, max, onChange, onDelete, onClose, subjects = [], repeatDays = [], onRepeat, estimate, repeatEvery = 1, onRepeatEvery, drift, onDrift,
 }: {
   date?: string;
   day?: DayDoc;
@@ -48,6 +49,9 @@ export function BlockEditor({
   onRepeatEvery?: (n: number) => void;
   /** how long blocks like this one really took, when they usually run long */
   estimate?: { ratio: number; n: number; suggested: number } | null;
+  /** the block's calendar event changed: what happened, and what to do about it (never written to the calendar) */
+  drift?: Drift | null;
+  onDrift?: (act: 'update' | 'keep' | 'remove') => void;
 }) {
   const T = useT();
   const ref = useModal(!!block);
@@ -56,6 +60,7 @@ export function BlockEditor({
     <dialog ref={ref} className="sheet" onClose={onClose} aria-labelledby="be-title">
       {block && kind && <form method="dialog" onSubmit={onClose}>
         <h2 id="be-title">{block.label ? T.editBlock : T.newBlock}</h2>
+        {drift && onDrift && <DriftNote drift={drift} onAct={onDrift} />}
         <FocusLog sessions={sessions} block={block} />
         <BlockTaskLink block={block} day={day} date={date} />
         <div className="field">
@@ -132,6 +137,30 @@ export function BlockEditor({
 }
 
 const listOf = (xs: string[]) => new Intl.ListFormat(useT().locale, { type: 'conjunction' }).format(xs);
+
+/** What the calendar did to the event behind a block, with the two ways forward. */
+function DriftNote({ drift, onAct }: { drift: Drift; onAct: (act: 'update' | 'keep' | 'remove') => void }) {
+  const T = useT();
+  const title = drift.block.label || T.untitledBlock;
+  const span = (x: { start: number; end: number }) => `${clock(x.start)}–${clock(x.end)}`;
+  const now = drift.now && (drift.now.date === drift.was.date ? span(drift.now) : `${shortDate(drift.now.date)} ${span(drift.now)}`);
+  return (
+    <div className="drift-note" role="group" aria-label={T.calDrift.mark}>
+      <p role="status">{drift.kind === 'moved' && now ? T.calDrift.moved(title, span(drift.was), now) : `${title}: ${T.calDrift.gone}`}</p>
+      <div className="drift-acts">
+        {drift.kind === 'moved'
+          ? <>
+              <button type="button" className="btn" onClick={() => onAct('update')}>{T.calDrift.update}</button>
+              <button type="button" className="btn" onClick={() => onAct('keep')}>{T.calDrift.keep}</button>
+            </>
+          : <>
+              <button type="button" className="btn" onClick={() => onAct('remove')}>{T.calDrift.remove}</button>
+              <button type="button" className="btn" onClick={() => onAct('keep')}>{T.calDrift.keepGone}</button>
+            </>}
+      </div>
+    </div>
+  );
+}
 
 /** The move when the day breaks: cross out the rest and redraw from now in the next column. */
 export function ReviseDialog({
