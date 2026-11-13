@@ -2,10 +2,10 @@ import { FocusRoom } from './FocusRoom';
 import { showNotification } from '../lib/pwa';
 import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { useSettings } from '../App';
-import { today } from '../lib/dates';
+import { clock, nowMinutes, today } from '../lib/dates';
 import { chime, extendFocus, MAX_PLANNED, finishPhase, mmss, notify, pauseFocus, refreshFocus, resumeFocus, secondsLeft, settingsFocus, startFocus, useFocusDay } from '../lib/focus';
 import { useT } from '../lib/i18n';
-import { type FocusActive, featureOn } from '../lib/model';
+import { type Block, type FocusActive, activeColumn, featureOn } from '../lib/model';
 import { onLinkClick, usePath } from '../lib/router';
 import { ambientPlaying, stopAmbient } from '../lib/ambient';
 import { api } from '../lib/api';
@@ -48,7 +48,7 @@ export function FocusRunner() {
   const path = usePath();
   const [closedBreak, setClosedBreak] = useState<string | null>(null);
   const f = settingsFocus(settings);
-  const { active: a, key, holder } = useFocusDay();
+  const { active: a, key, holder, value: day } = useFocusDay();
   useTick(!!a && a.pausedLeft == null);
 
   useEffect(() => {
@@ -124,11 +124,11 @@ export function FocusRunner() {
 
   if (!a || path.startsWith('/focus')) return null;
   return <>{f.fullscreenBreak && a.phase !== 'focus' && closedBreak !== a.startedAt && <FocusRoom start={{blockId: a.blockId, label: a.label, minutes: a.plannedMin}} onClose={() => setClosedBreak(a.startedAt)} />}
-    <FocusMiniPanel a={a} docKey={key} count={holder?.focus?.sessions.length ?? 0} />
+    <FocusMiniPanel a={a} docKey={key} count={holder?.focus?.sessions.length ?? 0} blocks={day ? activeColumn(day).blocks : []} />
   </>;
 }
 
-function FocusMiniPanel({ a, docKey, count }: { a: FocusActive; docKey: string; count: number }) {
+function FocusMiniPanel({ a, docKey, count, blocks }: { a: FocusActive; docKey: string; count: number; blocks: Block[] }) {
   const T = useT();
   const { settings } = useSettings();
   const f = settingsFocus(settings);
@@ -174,6 +174,15 @@ function FocusMiniPanel({ a, docKey, count }: { a: FocusActive; docKey: string; 
   const next = a.phase !== 'focus' ? 'focus' : (count + 1) % cycle === 0 ? 'long' : 'short';
   const nextMin = next === 'focus' ? f.focusMin : next === 'long' ? f.longMin : a.breakMin ?? f.shortMin;
   const end = new Date(Date.now() + left * 1000).toLocaleTimeString(T.locale, { hour: '2-digit', minute: '2-digit' });
+  // the block the next focus belongs to (same pick as the Focus screen): the one running now, else the next deep, else the next that is not personal
+  const nowMin = nowMinutes();
+  const running = blocks.find((b) => nowMin >= b.start && nowMin < b.end && b.kind !== 'personal');
+  const upNext = a.phase === 'focus' ? null : running ?? blocks.find((b) => b.start > nowMin && b.kind === 'deep') ?? blocks.find((b) => b.start > nowMin && b.kind !== 'personal') ?? null;
+  const startNext = async () => {
+    // a break that sits in yesterday's document is closed first; otherwise the new focus replaces it in one write, so the card never flickers
+    if (docKey !== `day:${today()}`) await finishPhase(settings, true, { key: docKey, startedAt: a.startedAt });
+    await startFocus({ phase: 'focus', blockId: upNext?.id ?? null, label: upNext?.label || T.freeFocus, minutes: f.focusMin, breakMin: f.shortMin });
+  };
   const togglePause = () => a.pausedLeft == null ? pauseFocus(docKey) : resumeFocus(docKey);
   const shrink = (on: boolean) => {
     setCompact(on); saveCompact(on);
@@ -225,11 +234,13 @@ function FocusMiniPanel({ a, docKey, count }: { a: FocusActive; docKey: string; 
         <strong className="mt-label">{a.label || T.freeFocus}</strong>
         <div className="mt-meta"><span>{T.sessionN(session, cycle)}</span><span>{a.pausedLeft == null ? T.miniEnds(end) : T.miniPaused}</span></div>
         <p className="mt-next">{T.miniNext(T.phase[next], nextMin)}</p>
+        {upNext && <p className="mt-next mt-block">{running ? T.miniBlockNow(upNext.label || T.freeFocus, clock(upNext.end)) : T.miniBlockNext(upNext.label || T.freeFocus, clock(upNext.start))}</p>}
         <div className="mt-actions">
           <button type="button" className="btn sm" disabled={a.plannedMin >= MAX_PLANNED} onClick={() => extendFocus(5, docKey)}>{T.plusFive}</button>
           <button type="button" className="btn sm ghost" disabled={locked} onClick={() => finishPhase(settings, true, {key: docKey, startedAt: a.startedAt})}>{a.phase === 'focus' ? T.finishNow : T.skipBreak}</button>
           <a className="card-link mt-link" href="/focus" onClick={onLinkClick}>{T.miniGoFocus}</a>
         </div>
+        {a.phase !== 'focus' && <button type="button" className="btn sm primary mt-start-next" onClick={() => void startNext()}>{T.miniStartNext}</button>}
         <div className="mt-tools">
           <button type="button" className="btn sm ghost mt-corner" onClick={() => place(nextCorner(corner, phone))}>{T.miniCorner}</button>
           <button type="button" className="btn sm ghost mt-compact" onClick={() => shrink(!compact)}>{compact ? T.miniExpand : T.miniShrink}</button>

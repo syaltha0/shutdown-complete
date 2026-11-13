@@ -229,6 +229,49 @@ try {
    await c2.close();
    await api.put(key,live);await p.goto(s.url+'/');await p.locator('.mini-timer').waitFor();
   }
+  // --- in a break: the next block (name and start time) and a button that ends the break and starts that focus ---
+  {
+   const d=new Date(),nowMin=d.getHours()*60+d.getMinutes(),start=Math.min(nowMin+20,1400);
+   const col=base.columns[base.columns.length-1];
+   const hhmm=`${String(Math.floor(start/60)).padStart(2,'0')}:${String(start%60).padStart(2,'0')}`;
+   const withBlock=(active)=>({...base,columns:[...base.columns.slice(0,-1),{...col,blocks:[{id:'b-next',start,end:start+30,label:'Review draft',note:'',kind:'deep'}]}],focus:{sessions:[],active}});
+   const brk={phase:'short',startedAt:new Date(Date.now()-60000).toISOString(),plannedMin:5,pausedLeft:null,blockId:null,label:lang==='en'?'Break':'Mola'};
+   const root=p.locator('.mini-timer'), panel=p.locator('.mt-panel');
+   await api.put('settings',{...settings,focus:{...settings.focus,fullscreenBreak:false,sound:false,autoFocus:false,strict:false}});
+   await api.put(key,withBlock(brk));await p.goto(s.url+'/');await root.waitFor();
+   await p.locator('.mt-trigger').hover();
+   const text=await panel.innerText();
+   check('break: the next block name and start time are shown',/Review draft/.test(text)&&text.includes(hhmm)&&/Next block|Sıradaki blok/.test(text));
+   check('break: "Start next focus" button is there',await p.locator('.mt-start-next').isVisible());
+   const pr=await root.boundingBox(),sb=await p.locator('.mt-start-next').boundingBox();
+   check('break: details stay inside the 300 px card',Math.round(pr.width)===300&&sb.x>=pr.x&&sb.x+sb.width<=pr.x+pr.width&&pr.y>=0);
+   await p.screenshot({path:`${dir}/${lang}-break-open.png`});
+   await p.mouse.move(700,450);await p.locator('body').click({position:{x:2,y:2}});await p.screenshot({path:`${dir}/${lang}-break-closed.png`});
+   await p.locator('.mt-trigger').hover();
+   await p.locator('.mt-start-next').click();await p.waitForTimeout(900);
+   const a1=(await api.get(key)).value.focus.active;
+   check('start next focus: a focus phase starts',a1&&a1.phase==='focus'&&a1.pausedLeft===null);
+   check('start next focus: on the next block, at the set focus length',a1.blockId==='b-next'&&a1.label==='Review draft'&&a1.plannedMin===(settings.focus.focusMin||25));
+   check('the button is only for breaks',await p.locator('.mt-start-next').count()===0);
+   // strict mode keeps its rules: the break can be skipped or left, the focus that starts cannot be paused or finished
+   await api.put('settings',{...settings,focus:{...settings.focus,fullscreenBreak:false,sound:false,autoFocus:false,strict:true}});
+   await api.put(key,withBlock(brk));await p.goto(s.url+'/');await root.waitFor();await p.locator('.mt-trigger').hover();
+   check('strict: skipping the break and starting the next focus stay available',await panel.locator('button').nth(1).isEnabled()&&await p.locator('.mt-start-next').isEnabled());
+   await p.locator('.mt-start-next').click();await p.waitForTimeout(900);
+   check('strict: the new focus is locked as before',(await api.get(key)).value.focus.active.phase==='focus'&&await p.locator('.mt-pause').isDisabled()&&await panel.locator('button').nth(1).isDisabled());
+   await api.put('settings',{...settings,focus:{...settings.focus,fullscreenBreak:false,sound:false,autoFocus:false,strict:false}});
+   // the card is not rebuilt, so the phase cue still plays (motion allowed)
+   const c3=await b.newContext({viewport:{width:1440,height:900},reducedMotion:'no-preference'});
+   await c3.addCookies([{name:'sc_session',value:api.cookie.split('=')[1],url:s.url}]);
+   const q=await c3.newPage();
+   await api.put(key,withBlock(brk));await q.goto(s.url+'/');await q.locator('.mini-timer').waitFor();
+   await q.locator('.mt-trigger').hover();await q.locator('.mt-start-next').click();
+   await q.locator('.mini-timer.mt-flash').waitFor({timeout:3000});
+   check('break to focus: the phase cue plays',true);
+   await c3.close();
+   await api.put(key,{...base,focus:{sessions:[],active:{phase:'focus',startedAt:new Date(Date.now()-120000).toISOString(),plannedMin:25,pausedLeft:null,blockId:null,label:'Pilot'}}});
+   await p.goto(s.url+'/');await root.waitFor();
+  }
   //__MORE__
   await c.close();
  }

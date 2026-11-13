@@ -101,6 +101,8 @@
 .mt-label { display: block; margin-top: 4px; font-weight: 500; overflow-wrap: anywhere; }
 .mt-meta { display: flex; justify-content: space-between; gap: 8px; margin-top: 8px; }
 .mt-meta, .mt-next { color: var(--muted); font-size: 12px; }
+.mt-start-next { margin-top: 10px; }
+.mt-block { margin-top: 2px; overflow-wrap: anywhere; }
 .mt-tools { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px; }
 .mt-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin-top: 14px; }
 .mini-timer .mt-link { margin-left: auto; font-size: 13px; font-weight: 400; color: var(--muted); }
