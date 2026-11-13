@@ -100,6 +100,12 @@ td a { font-weight: 500; }
 /* ---------- the chart wrapper ---------- */
 .chart { position: relative; min-width: 0; }
 .chart-head { display: flex; align-items: baseline; justify-content: space-between; flex-wrap: wrap; gap: 4px 12px; margin-bottom: 8px; }
+.notif-panel { display: grid; gap: 12px; }
+.notif-status { margin: 0; display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; }
+.notif-choices { display: grid; gap: 12px; border: 0; margin: 0; padding: 0; min-width: 0; }
+.notif-choices:disabled { opacity: .55; }
+.notif-line { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px 16px; }
+.notif-line .input { width: auto; min-width: 7.5rem; }
 .set-panel.features { display: grid; gap: 6px; }
 .feature-row { align-items: flex-start; }
 .feature-row > span { display: grid; gap: 1px; }

@@ -261,6 +261,17 @@ export const FEATURES: Feature[] = ['inbox', 'boards', 'countdown', 'habits', 'm
 /** Whether a part is on: everything is, unless it was turned off. */
 export const featureOn = (s: { features?: Partial<Record<Feature, boolean>> }, f: Feature) => s.features?.[f] !== false;
 
+export interface NotifyChoices {
+  focus?: boolean;
+  morning?: boolean;
+  /** "HH:MM" in the device's time zone; missing = 08:30 */
+  morningAt?: string;
+  evening?: boolean;
+  /** "HH:MM"; missing = the end of the workday set in Settings, else 17:30 */
+  eveningAt?: string;
+  weekends?: boolean;
+}
+
 export interface Settings {
   /** the week in review by e-mail every Sunday (when the server sends e-mail) */
   weeklyMail?: boolean;
@@ -290,6 +301,8 @@ export interface Settings {
   subjects?: string[];
   /** a notification as a block begins (`before` minutes ahead; null = none) and a focus session started by itself */
   reminders?: { before: number | null; autoFocus: boolean };
+  /** push notifications while the app is closed: the end of a focus or break phase (on unless turned off), a morning "plan your day" and an evening "time to shut down" reminder (off until turned on) */
+  notify?: NotifyChoices;
   /** the first-run answers: what the planner is for, what it is used for, whether to focus with friends */
   profile?: { uses: string[]; activities: string[]; together: boolean };
   /** open tasks of earlier days: offered on today ('ask', the default) or moved by themselves ('auto') */

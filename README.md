@@ -251,6 +251,15 @@ reminder signal, never block titles or schedule details. Tapping opens today's p
 and push service. Active subscriptions replace in-page block notifications, while automatic focus still works.
 Signing out unsubscribes this browser. Set `VAPID_SUBJECT` to a real contact URI before enabling push.
 
+Settings → Notifications also covers a subscribed device while the app is closed: a push when a focus session or a
+break ends (on by default; the server reads the running phase from the day document, plans the push for its end
+time, reads it again when that time comes, and re-plans on every restart), a morning "plan your day" reminder
+(08:30, says how many blocks are planned) and an evening "time to shut down" reminder (the end of your workday,
+else 17:30; not sent once the day's shutdown is done), each at a time of your choice in the device's time zone, with
+weekends optional. An open page in front announces a phase end itself, so the service worker stays quiet then. The
+notification's button ("Start break" / "Start focus", only when the next phase does not start by itself) opens the
+app, where that phase starts. One account causes at most 240 pushes an hour. These need no new settings of the server.
+
 Edits are queued by account in IndexedDB (localStorage fallback), survive reloads, and retry when connectivity
 or window focus returns. The status line reports waiting changes. Concurrent edits retain the existing conflict
 behavior: a 409 loads the newer server copy instead of overwriting it. Home Screen shortcuts open Today, Focus,
