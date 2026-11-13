@@ -239,3 +239,7 @@
   .focus-block-row { text-align: center; }
   .focus-tabs.sm button { padding: 0 10px; }
 }
+
+.focus-config { max-height: min(70dvh, 680px); overflow-y: auto; }
+.focus-config > label { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-block: 10px; }
+.focus-special .input { min-width: 0; max-width: 100%; }

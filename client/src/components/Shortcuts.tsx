@@ -33,6 +33,7 @@ export function Shortcuts() {
       }
       if (e.ctrlKey || e.metaKey || e.altKey || e.defaultPrevented || typing(e.target)) return;
       if (document.querySelector('dialog[open]') || document.querySelector('.more-sheet, .tour, .focus-room')) return;
+      if (location.pathname.startsWith('/focus') && [' ', 's', 'r', '+', '=', 'm'].includes(e.key.toLowerCase())) return;
       const t = today();
       const go = (to: string) => { e.preventDefault(); navigate(to); };
       const step = (dir: 'first' | 'last') => {
@@ -70,6 +71,7 @@ export function Shortcuts() {
   }, [help]);
 
   const rows: [string[], string][] = [
+    [['Space', 'S', 'R', '+', 'M'], T.focusOptions.shortcuts],
     [['N'], K.newBlock], [['R'], K.revise], [['←', '→'], K.prevNext], [['T'], K.today], [['W'], K.week], [['M'], K.month],
     [['A'], T.calendarViews.agenda], [['Q'], K.quarter], [['P'], K.planWeek], [['F'], K.focus], [['H'], K.habits], [['I'], K.inbox], [['S'], K.shutdown], [['Ctrl', 'Z'], K.undo], [['?'], K.help],
   ];

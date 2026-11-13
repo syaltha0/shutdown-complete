@@ -324,7 +324,7 @@ export const tr: Words = {
 
   focusMetric: 'Odak',
   focusTitle: 'Odak',
-  focusOptions: { mini: 'Mini saya?', voice: 'Sesli bildirimler', sound: 'Zil sesi', bell: 'Zil', classic: 'Klasik', soft: 'Yumu?ak', single: 'Tek ton', breakVoice: 'Mola zaman?', focusVoice: 'Odak zaman?', scheduled: 'Planl? molalar', breakName: 'Mola ad?', breakTime: 'Mola saati', addBreak: 'Mola ekle', removeBreak: 'Molay? sil', strict: 'S?k? odak modu', fullscreenBreak: 'Molalarda odak odas?n? a?', autoBreak: 'Molalar? otomatik ba?lat', autoFocus: 'Oda?? otomatik ba?lat' },
+  focusOptions: { shortcuts: 'Odak: ba?lat/duraklat, bitir/atla, s?f?rla, +5 dk, mini saya?', mini: 'Mini saya?', voice: 'Sesli bildirimler', sound: 'Zil sesi', bell: 'Zil', classic: 'Klasik', soft: 'Yumu?ak', single: 'Tek ton', breakVoice: 'Mola zaman?', focusVoice: 'Odak zaman?', scheduled: 'Planl? molalar', breakName: 'Mola ad?', breakTime: 'Mola saati', addBreak: 'Mola ekle', removeBreak: 'Molay? sil', strict: 'S?k? odak modu', fullscreenBreak: 'Molalarda odak odas?n? a?', autoBreak: 'Molalar? otomatik ba?lat', autoFocus: 'Oda?? otomatik ba?lat' },
   phase: { focus: 'Odak', short: 'Kısa mola', long: 'Uzun mola' },
   startFocus: 'Odaklanmaya başla',
   focusOn: (l) => `Odaklan: ${l}`,

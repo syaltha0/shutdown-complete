@@ -113,6 +113,25 @@ export function Focus() {
     if (r !== 'none' && f.sound) chime(f);
   }
 
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      const el = e.target as HTMLElement;
+      if (e.repeat || e.ctrlKey || e.metaKey || e.altKey || el?.isContentEditable || el?.closest('input, textarea, select, button, [role="dialog"], dialog') || document.querySelector('dialog[open], [role="dialog"], .focus-room')) return;
+      const k = e.key.toLowerCase();
+      if (![' ', 's', 'r', '+', '=', 'm'].includes(k)) return;
+      e.preventDefault();
+      if (k === 'm') { window.dispatchEvent(new Event('sc:mini')); return; }
+      if (!a) { if (k === ' ' && day) void startFocus(begin); return; }
+      if (k === '+' || k === '=') { void extendFocus(5, key); return; }
+      if (f.strict && a.phase === 'focus') return;
+      if (k === ' ') { if (a.pausedLeft == null) void pauseFocus(key); else void resumeFocus(key); }
+      if (k === 's') void finish();
+      if (k === 'r' && !a.roomId) stop(true);
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  });
+
   return (
     <>
       <div className="title-row focus-title">
