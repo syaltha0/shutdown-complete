@@ -19,8 +19,10 @@ type Drag =
   | { mode: 'resize'; id: string; start: number; end: number; pointerId: number };
 
 export function TimeGrid({
-  day, range, now, onColumns, onOpen, shownCol, preview, events = [], onEvent, focusAt = null, focusKey, sessions = [],
+  day, range, now, onColumns, onOpen, shownCol, preview, events = [], onEvent, focusAt = null, focusKey, sessions = [], drifts,
 }: {
+  /** blocks whose calendar event changed since they were made (by block id): marked, and told of when opened */
+  drifts?: Map<string, 'moved' | 'gone'>;
   /** the focus sessions done on this day (a past day or today): a thin strip on the edge of the active column, where they ran */
   sessions?: FocusSession[];
   /** a minute to bring into view when the day opens (a whole-day grid is taller than the screen) */
@@ -275,13 +277,16 @@ export function TimeGrid({
                   const short = h < 44;
                   // a quarter hour is 16px tall: one line of smaller type, centred
                   const tiny = h < 26;
+                  const drift = isActive ? drifts?.get(b.id) : undefined;
+                  const driftText = drift ? (drift === 'gone' ? T.calDrift.goneMark : T.calDrift.mark) : '';
                   return (
                     <div
                       key={b.id}
                       role={isActive ? 'button' : undefined}
                       tabIndex={isActive ? 0 : undefined}
-                      aria-label={T.blockAria(b.label || T.untitledBlock, clock(start), clock(end), T.kinds[b.kind].name, crossed)}
-                      className={`block k-${b.kind}${crossed ? ' crossed' : ''}${current ? ' current' : ''}${short ? ' short' : ''}${tiny ? ' tiny' : ''}${b.label ? '' : ' untitled'}${live && (live.mode !== 'move' || live.moved) ? ' dragging' : ''}`}
+                      aria-label={T.blockAria(b.label || T.untitledBlock, clock(start), clock(end), T.kinds[b.kind].name, crossed) + (driftText ? `. ${driftText}` : '')}
+                      title={driftText || undefined}
+                      className={`block k-${b.kind}${crossed ? ' crossed' : ''}${current ? ' current' : ''}${short ? ' short' : ''}${tiny ? ' tiny' : ''}${b.label ? '' : ' untitled'}${drift ? ' drifted' : ''}${live && (live.mode !== 'move' || live.moved) ? ' dragging' : ''}`}
                       style={{ top: (start - r0) * PPM + 1, height: Math.max(14, h - 2) }}
                       onPointerDown={isActive ? (e) => onBlockDown(e, b) : undefined}
                       onClick={(e) => {
@@ -293,6 +298,7 @@ export function TimeGrid({
                       <span className="bl">{b.repeatId && <span className="rep" title={T.repeatsWeekly}><IconRepeat /></span>}{b.label || T.untitled}{day.tasks.find(t => b.task ? t.id === b.task.id : t.text === b.label)?.done && <span aria-label={T.taskBlock.done}> {T.taskBlock.done}</span>}{b.task?.list === 'day' && b.task.day && !day.tasks.some(t => t.id === b.task!.id) && <span>{T.taskBlock.deleted}</span>}</span>
                       <span className="bt">{b.subject && <span className="subj">{b.subject} · </span>}{clock(start)}–{clock(end)}{short ? '' : ` · ${duration(end - start)}`}</span>
                       {!short && b.note && h >= 64 && <span className="bn">{b.note}</span>}
+                      {driftText && !tiny && <span className="bd">{driftText}</span>}
                       {isActive && <span className="grip" aria-hidden="true" />}
                     </div>
                   );

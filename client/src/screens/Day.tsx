@@ -25,6 +25,7 @@ import { kindSwatch, PPM, revise, TimeGrid, undoRevision, useNow } from './TimeG
 import { applyTemplate, templateFromBlocks, TemplatesDialog, weekdayIndex } from './Templates';
 import { Segmented } from '../components/Segmented';
 import { eventUid, useCalendar, type CalEvent } from '../lib/calendar';
+import { DRIFT_SPAN, driftOf } from '../lib/drift';
 import { offerUndo } from '../lib/undo';
 import { SHORTCUT, type ShortcutAction } from '../components/Shortcuts';
 import { TaskMeta } from '../components/TaskMeta';
@@ -60,6 +61,9 @@ export function Day({ date }: { date: string }) {
   const t = today();
   const title = isToday ? T.todayTitle(longDate(date)) : longDate(date);
   const cal = useCalendar(date, date);
+  // blocks made from a calendar event are compared with the event as the calendar has it now (today and later days only)
+  const watching = !!day && date >= t && activeColumn(day).blocks.some((b) => b.source?.start != null);
+  const watch = useCalendar(addDays(date, -DRIFT_SPAN), addDays(date, DRIFT_SPAN), watching);
   const weekId = weekOf(date);
   const { value: weekDoc } = useDoc<WeekDoc>(`week:${weekId}`, emptyWeek);
   // the week's items a task can serve
@@ -115,6 +119,10 @@ export function Day({ date }: { date: string }) {
   const focusAt = settings.wholeDay ? (isToday ? now : blocks.length ? Math.min(...blocks.map((b) => b.start)) : settings.startHour * 60) : null;
   const floor = Math.max(r0, col.from ?? r0);
   const openBlock = col.blocks.find((b) => b.id === openId) ?? null;
+  const linked = (settings.calendars ?? []).map((c) => c.id);
+  const drifts = watch && date >= t ? col.blocks.flatMap((b) => driftOf(b, date, watch.days, watch.errors, linked) ?? []) : [];
+  const driftKinds = new Map(drifts.map((d) => [d.block.id, d.kind] as const));
+  const openDrift = openBlock ? drifts.find((d) => d.block.id === openBlock.id) ?? null : null;
 
   const setCols = (fn: (c: DayDoc['columns']) => DayDoc['columns']) => update((d) => ({ ...d, columns: fn(d.columns) }));
   const patchBlock = (id: string, patch: Partial<Block>) => {
@@ -130,6 +138,42 @@ export function Day({ date }: { date: string }) {
     }
   };
   const repeatOf = openBlock?.repeatId ? (settings.schedule ?? []).find((r) => r.id === openBlock.repeatId) : undefined;
+  function deleteBlock(gone: Block) {
+    setCols((cols) => cols.map((c, i) => (i === cols.length - 1 ? { ...c, blocks: c.blocks.filter((b) => b.id !== gone.id) } : c)));
+    offerUndo(T.deleted(gone.label || T.untitledBlock), () =>
+      setCols((cols) => cols.map((c, i) => (i === cols.length - 1 ? { ...c, blocks: [...c.blocks, gone].sort((a, z) => a.start - z.start) } : c))));
+  }
+  // The calendar moved or dropped the event behind a block. Only the plan changes, and only its active column, never before
+  // that column's start (as with every other edit); nothing is written to the calendar.
+  function driftAct(act: 'update' | 'keep' | 'remove') {
+    const d = openDrift, src = d?.block.source;
+    if (!d || !src) return;
+    const b = d.block;
+    if (act === 'remove') { deleteBlock(b); setOpenId(null); return; }
+    const n = d.now;
+    if (act === 'keep') {
+      // a changed time is accepted as it stands; an event that moved to another day or left lets go of the block
+      patchBlock(b.id, { source: n && n.date === date ? { ...src, start: n.start, end: n.end } : undefined });
+      return;
+    }
+    if (!n) return;
+    if (n.date === date) {
+      const s0 = Math.max(floor, n.start), e0 = Math.min(r1, n.end);
+      const start = e0 - s0 >= 5 ? s0 : Math.min(s0, r1 - 15), end = e0 - s0 >= 5 ? e0 : Math.min(r1, start + 15);
+      patchBlock(b.id, { start, end, source: { ...src, start: n.start, end: n.end } });
+    } else {
+      const carried: Block = { ...b, source: { ...src, date: n.date, start: n.start, end: n.end } };
+      updateKey<DayDoc>(`day:${n.date}`, emptyDay, (dd) => {
+        if (dd.columns.some((c) => c.blocks.some((x) => x.source?.calendar === src.calendar && x.source.uid === src.uid && x.source.date === n.date))) return dd;
+        const last = dd.columns.length - 1, from = dd.columns[last].from ?? 0;
+        const start = Math.min(Math.max(from, n.start), 24 * 60 - 15), end = Math.min(24 * 60, Math.max(n.end, start + 15));
+        return { ...dd, columns: dd.columns.map((c, i) => (i === last ? { ...c, blocks: [...c.blocks, { ...carried, start, end }].sort((a, z) => a.start - z.start) } : c)) };
+      });
+      setCols((cols) => cols.map((c, i) => (i === cols.length - 1 ? { ...c, blocks: c.blocks.filter((x) => x.id !== b.id) } : c)));
+      setOpenId(null);
+    }
+    setFlash(T.calDrift.updated);
+  }
   function setRepeat(days: number[]) {
     if (!openBlock) return;
     if (!days.length) {
@@ -184,7 +228,7 @@ export function Day({ date }: { date: string }) {
   // a calendar event becomes a meeting block, kept inside the column's hours
   const asBlock = (e: CalEvent): Block | null => {
     const start = Math.max(floor, e.start), end = Math.min(r1, e.end);
-    return end - start >= 5 ? { id: uid(), start, end, label: e.title, note: [e.location, e.description].filter(Boolean).join('\n').slice(0, 1000), kind: 'shallow', source: { calendar: e.cal, uid: eventUid(e), date } } : null;
+    return end - start >= 5 ? { id: uid(), start, end, label: e.title, note: [e.location, e.description].filter(Boolean).join('\n').slice(0, 1000), kind: 'shallow', source: { calendar: e.cal, uid: eventUid(e), date, start: e.start, end: e.end } } : null;
   };
   const overlaps = (s: number, e: number) => col.blocks.some((b) => b.start < e && b.end > s);
   const isPlanned = (e: CalEvent) => blocks.some((b) => b.source?.calendar === e.cal && b.source.uid === eventUid(e) && b.source.date === date);
@@ -265,6 +309,12 @@ export function Day({ date }: { date: string }) {
           <span>{T.carryOffer(carry.offer.count, carry.offer.from === addDays(date, -1) ? T.yesterday : T.fromDay(shortDate(carry.offer.from)))}</span>
           <button type="button" className="btn primary" onClick={carry.bring}>{T.carryBring}</button>
           <button type="button" className="btn ghost" onClick={carry.dismiss}>{T.carryLeave}</button>
+        </div>
+      )}
+      {drifts.length > 1 && (
+        <div className="week-nudge" role="note">
+          <span>{T.calDrift.summary(drifts.length)}</span>
+          <button type="button" className="btn" onClick={() => setOpenId(drifts[0].block.id)}>{T.calDrift.review}</button>
         </div>
       )}
       <div className="spread">
@@ -352,7 +402,7 @@ export function Day({ date }: { date: string }) {
             </div>
           )}
           <TimeGrid day={day} range={[r0, r1]} now={isToday ? now : null} onColumns={setCols} onOpen={setOpenId} shownCol={shownCol}
-            focusAt={focusAt} focusKey={date} sessions={actual}
+            focusAt={focusAt} focusKey={date} sessions={actual} drifts={driftKinds}
             preview={drag?.slot ? { ...drag.slot, label: drag.item.text } : null} events={timedEvents} onEvent={blockOutEvent} />
         </section>
       </div>
@@ -364,13 +414,9 @@ export function Day({ date }: { date: string }) {
         onRepeatEvery={repeatOf ? (n) => updateSettings((s) => ({ ...s, schedule: (s.schedule ?? []).map((r) => (r.id === repeatOf.id ? { ...r, every: n, since: date } : r)) })) : undefined}
         estimate={openBlock && history ? estimateFor(insights(history.values()), openBlock) : null}
         onChange={(p) => openBlock && patchBlock(openBlock.id, p)}
+        drift={openDrift} onDrift={driftAct}
         onDelete={() => {
-          if (openBlock) {
-            const gone = openBlock;
-            setCols((cols) => cols.map((c, i) => (i === cols.length - 1 ? { ...c, blocks: c.blocks.filter((b) => b.id !== gone.id) } : c)));
-            offerUndo(T.deleted(gone.label || T.untitledBlock), () =>
-              setCols((cols) => cols.map((c, i) => (i === cols.length - 1 ? { ...c, blocks: [...c.blocks, gone].sort((a, z) => a.start - z.start) } : c))));
-          }
+          if (openBlock) deleteBlock(openBlock);
           setOpenId(null);
         }}
         onClose={closeEditor}
