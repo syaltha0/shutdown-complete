@@ -1,7 +1,8 @@
+import { FocusLog } from '../components/FocusLog';
 import { useEffect, useRef, useState } from 'react';
 import { clock, duration } from '../lib/dates';
 import { useT } from '../lib/i18n';
-import { KIND_IDS, type Block } from '../lib/model';
+import { KIND_IDS, type Block, type FocusSession } from '../lib/model';
 import { kindSwatch, type ReviseMode } from './TimeGrid';
 import { Segmented } from '../components/Segmented';
 import { DayChips, weekdayNames } from './Templates';
@@ -25,8 +26,9 @@ function useModal(open: boolean) {
 
 /** Edits one block of the active column. Every change applies at once; Done closes. */
 export function BlockEditor({
-  block, min, max, onChange, onDelete, onClose, subjects = [], repeatDays = [], onRepeat, estimate, repeatEvery = 1, onRepeatEvery,
+  sessions, block, min, max, onChange, onDelete, onClose, subjects = [], repeatDays = [], onRepeat, estimate, repeatEvery = 1, onRepeatEvery,
 }: {
+  sessions?: FocusSession[];
   block: Block | null;
   min: number;
   max: number;
@@ -51,6 +53,7 @@ export function BlockEditor({
     <dialog ref={ref} className="sheet" onClose={onClose} aria-labelledby="be-title">
       {block && kind && <form method="dialog" onSubmit={onClose}>
         <h2 id="be-title">{block.label ? T.editBlock : T.newBlock}</h2>
+        <FocusLog sessions={sessions} block={block} />
         <div className="field">
           <label htmlFor="be-label">{T.whatFor}</label>
           <input id="be-label" className="input" autoFocus value={block.label} placeholder={T.labelPh}

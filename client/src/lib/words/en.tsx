@@ -4,6 +4,7 @@ import type { ReactNode } from 'react';
 const s = (n: number, one: string, many: string) => (n === 1 ? one : many);
 
 export const en = {
+  focusJournal: 'Focus journal',
   publication: {
     title: 'Calendar subscription',
     about: 'Read-only active plans: 7 days back and 30 days ahead. Keep the address private; it is shown only once. Renewing invalidates the previous address.',

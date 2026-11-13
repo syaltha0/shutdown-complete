@@ -105,3 +105,9 @@ td a { font-weight: 500; }
 .feature-row > span { display: grid; gap: 1px; }
 .feature-row b { font-weight: 500; }
 .feature-row small { font-size: 13px; }
+
+.focus-log { margin: 12px 0; font-size: .9rem; }
+.focus-log summary { cursor: pointer; color: var(--muted); }
+.focus-log ul { list-style: none; padding: 0; max-height: 240px; overflow: auto; }
+.focus-log li { padding: 8px 0; border-bottom: 1px solid var(--border); overflow-wrap: anywhere; }
+.focus-log p { margin: 4px 0; white-space: pre-wrap; }
