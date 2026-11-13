@@ -151,7 +151,8 @@ export function Focus() {
       <DocNotice status={status} error={error} retry={retry} />
 
       <div className="grid top focus-grid">
-        <section className={`panel span-7 focus-panel phase-${phase}`} aria-labelledby="fp-h" data-anim>
+        <div className="span-7 focus-left">
+        <section className={`panel focus-panel phase-${phase}`} aria-labelledby="fp-h" data-anim>
           <header className="focus-card-head"><h2 id="fp-h">{config ? T.focusSettings : T.focusRunning}{config && a && <small className="focus-config-time num">{T.phase[a.phase]} · {mmss(secondsLeft(a))}</small>}</h2><div className="focus-card-actions">
           <button type="button" className="btn ghost sm focus-room-btn" onClick={openRoom}>{T.roomOpen}</button>
           <div className="focus-config-anchor"><button ref={configButton} type="button" className="btn sm" aria-expanded={config} aria-controls="focus-settings-view" onClick={() => config ? closeConfig() : setConfig(true)}>{config ? T.focusBackTimer : T.nav.settings}</button></div>
@@ -211,6 +212,38 @@ export function Focus() {
           </div>
         </section>
 
+        <section className="panel" aria-labelledby="f4-h" data-anim>
+          <div className="chart-head">
+            <h2 id="f4-h" style={{ fontSize: 16, fontWeight: 500 }}>{T.focusFourWeeks}</h2>
+            <span className="meta">{T.todayInBlue}</span>
+          </div>
+          {past && (() => {
+            // three figures above the chart: a card that stretches with the timer card is not just a tall chart
+            const mins = days28.map((d) => (d === today() && day ? focusMinutes(day) : (past.get(`day:${d}`) ? focusMinutes(past.get(`day:${d}`)!) : 0)));
+            const sinceMon = (new Date(`${today()}T12:00`).getDay() + 6) % 7;
+            const week = mins.slice(27 - sinceMon).reduce((n, m) => n + m, 0);
+            const logged = mins.filter((m) => m > 0);
+            const bestAt = mins.indexOf(Math.max(...mins));
+            return (
+              <dl className="focus-stats">
+                <div><dt>{T.focusStats.week}</dt><dd className="num">{duration(week)}</dd></div>
+                <div><dt>{T.focusStats.avg}</dt><dd className="num">{logged.length ? duration(Math.round(logged.reduce((n, m) => n + m, 0) / logged.length)) : '—'}</dd></div>
+                <div><dt>{T.focusStats.best}</dt><dd className="num">{mins[bestAt] > 0 ? <>{duration(mins[bestAt])} <small>{shortDate(days28[bestAt])}</small></> : '—'}</dd></div>
+              </dl>
+            );
+          })()}
+          {past ? (
+            <Chart label={T.focusFourWeeks} deps={[past, T.locale, total]} draw={(el, C) => C.bars(el, {
+              labels: days28.map((d) => shortDate(d)),
+              values: days28.map((d) => (d === today() && day ? focusMinutes(day) : (past.get(`day:${d}`) ? focusMinutes(past.get(`day:${d}`)!) : null))),
+              highlight: 27, colour: themeColor('--hue'), mutedColour: themeColor('--chart-1'), height: Math.max(200, el.clientHeight),
+              format: (v: number) => duration(v), tickFormat: (v: number) => T.minShort(v),
+              xAt: days28.map((_, i) => (i % (el.clientWidth < 640 ? 14 : 7) === 0 ? i : -1)).filter((i) => i >= 0),
+            })} />
+          ) : <div className="skeleton" style={{ height: 200 }} />}
+        </section>
+        </div>
+
         <div className="stack span-5">
         <FocusWidgets day={day} />
         <section className="panel focus-sessions" aria-labelledby="fs-h" data-anim>
@@ -255,36 +288,7 @@ export function Focus() {
           )}
         </section>}
         {featureOn(settings, 'friends') && <FriendsPanel />}
-        <section className="panel" aria-labelledby="f4-h" data-anim>
-          <div className="chart-head">
-            <h2 id="f4-h" style={{ fontSize: 16, fontWeight: 500 }}>{T.focusFourWeeks}</h2>
-            <span className="meta">{T.todayInBlue}</span>
-          </div>
-          {past && (() => {
-            // three figures above the chart: a card that stretches with the timer card is not just a tall chart
-            const mins = days28.map((d) => (d === today() && day ? focusMinutes(day) : (past.get(`day:${d}`) ? focusMinutes(past.get(`day:${d}`)!) : 0)));
-            const sinceMon = (new Date(`${today()}T12:00`).getDay() + 6) % 7;
-            const week = mins.slice(27 - sinceMon).reduce((n, m) => n + m, 0);
-            const logged = mins.filter((m) => m > 0);
-            const bestAt = mins.indexOf(Math.max(...mins));
-            return (
-              <dl className="focus-stats">
-                <div><dt>{T.focusStats.week}</dt><dd className="num">{duration(week)}</dd></div>
-                <div><dt>{T.focusStats.avg}</dt><dd className="num">{logged.length ? duration(Math.round(logged.reduce((n, m) => n + m, 0) / logged.length)) : '—'}</dd></div>
-                <div><dt>{T.focusStats.best}</dt><dd className="num">{mins[bestAt] > 0 ? <>{duration(mins[bestAt])} <small>{shortDate(days28[bestAt])}</small></> : '—'}</dd></div>
-              </dl>
-            );
-          })()}
-          {past ? (
-            <Chart label={T.focusFourWeeks} deps={[past, T.locale, total]} draw={(el, C) => C.bars(el, {
-              labels: days28.map((d) => shortDate(d)),
-              values: days28.map((d) => (d === today() && day ? focusMinutes(day) : (past.get(`day:${d}`) ? focusMinutes(past.get(`day:${d}`)!) : null))),
-              highlight: 27, colour: themeColor('--hue'), mutedColour: themeColor('--chart-1'), height: Math.max(200, el.clientHeight),
-              format: (v: number) => duration(v), tickFormat: (v: number) => T.minShort(v),
-              xAt: days28.map((_, i) => (i % (el.clientWidth < 640 ? 14 : 7) === 0 ? i : -1)).filter((i) => i >= 0),
-            })} />
-          ) : <div className="skeleton" style={{ height: 200 }} />}
-        </section>
+
         </div>
 
         {room && <FocusRoom start={begin} onClose={() => setRoom(false)} />}
