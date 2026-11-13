@@ -53,6 +53,7 @@ export function Shortcuts() {
         case 't': go(`/day/${t}`); break;
         case 'w': go(`/week/${weekOf(t)}`); break;
         case 'm': go(`/month/${monthOf(t)}`); break;
+        case 'y': go(`/year/${t.slice(0,4)}`); break;
         case 'q': go(`/quarter/${quarterOf(t)}`); break;
         case 'f': go('/focus'); break;
         case 'h': if (featureOn(settingsRef.current, 'habits')) go(`/habits/${monthOf(t)}`); break;
@@ -80,7 +81,7 @@ export function Shortcuts() {
     [['Ctrl / Cmd', 'K'], T.palette.title],
     [['Space', 'S', 'R', '+'], T.focusOptions.shortcuts], [['Alt', 'P'], K.pauseFocus],
     [['N'], K.newBlock], [['N'], K.newTask], [['/'], K.searchTasks], [['X'], K.selectTasks], [['R'], K.revise], [['←', '→'], K.prevNext], [['T'], K.today], [['W'], K.week], [['M'], K.month],
-    [['A'], T.calendarViews.agenda], [['Q'], K.quarter], [['P'], K.planWeek], [['F'], K.focus], [['H'], K.habits], [['I'], K.inbox], [['S'], K.shutdown], [['Ctrl', 'Z'], K.undo], [['?'], K.help],
+    [['A'], T.calendarViews.agenda], [['Y'], T.year.current], [['Q'], K.quarter], [['P'], K.planWeek], [['F'], K.focus], [['H'], K.habits], [['I'], K.inbox], [['S'], K.shutdown], [['Ctrl', 'Z'], K.undo], [['?'], K.help],
   ];
   return (
     <>

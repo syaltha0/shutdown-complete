@@ -129,6 +129,7 @@ export function keysForPath(path: string, today: string): string[] {
     case 'day': case 'shutdown': return arg ? [`day:${arg}`] : [`day:${today}`];
     case 'week': case 'plan': case 'review': return arg ? [`week:${arg}`] : [];
     case 'month': return arg ? [`month:${arg}`] : [];
+    case 'year': return arg ? [`year:${arg}`] : [];
     case 'quarter': return arg ? [`quarter:${arg}`] : [];
     case 'tasks': case 'inbox': return ['inbox'];
     case 'settings': return ['settings'];

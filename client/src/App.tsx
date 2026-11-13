@@ -42,6 +42,7 @@ const PersonalProject = later(() => import('./screens/boards/Project'), 'Persona
 const TeamProject = later(() => import('./screens/boards/Project'), 'TeamProject');
 const Week = later(() => import('./screens/Week'), 'Week');
 const Month = later(() => import('./screens/Month'), 'Month');
+const Year = later(() => import('./screens/Year'), 'Year');
 const Quarter = later(() => import('./screens/Quarter'), 'Quarter');
 const Focus = later(() => import('./screens/Focus'), 'Focus');
 const Habits = later(() => import('./screens/Habits'), 'Habits');
@@ -162,6 +163,7 @@ function route(path: string) {
     case 'day': if (DATE.test(arg)) return { nav: 'day', el: <Day date={arg} key={arg} /> }; break;
     case 'week': if (/^\d{4}-W\d{2}$/.test(arg)) return { nav: 'week', el: <Week id={arg} key={arg} /> }; break;
     case 'month': if (MONTH.test(arg)) return { nav: 'month', el: <Month id={arg} key={arg} /> }; break;
+    case 'year': if (/^[1-9]\d{3}$/.test(arg)) return { nav: 'year', el: <Year id={arg} key={arg} /> }; break;
     case 'quarter': if (/^\d{4}-Q[1-4]$/.test(arg)) return { nav: 'quarter', el: <Quarter id={arg} key={arg} /> }; break;
     case 'plan': if (/^\d{4}-W\d{2}$/.test(arg)) return { nav: 'week', el: <WeekPlan id={arg} key={arg} /> }; break;
     case 'review': if (/^\d{4}-W\d{2}$/.test(arg)) return { nav: 'week', el: <WeekReview id={arg} key={arg} /> }; break;
@@ -226,6 +228,7 @@ function Shell() {
     { id: 'day', href: `/day/${t}`, label: T.nav.today, icon: <IconDay /> },
     { id: 'week', href: `/week/${weekOf(t)}`, label: T.nav.week, icon: <IconWeek /> },
     { id: 'month', href: `/month/${monthOf(t)}`, label: T.nav.month, icon: <IconMonth /> },
+    { id: 'year', href: `/year/${t.slice(0,4)}`, label: T.nav.year, icon: <IconQuarter /> },
     { id: 'quarter', href: `/quarter/${quarterOf(t)}`, label: T.nav.quarter, icon: <IconQuarter /> },
   ];
   const work: NavItem[] = [
