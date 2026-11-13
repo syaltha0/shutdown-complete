@@ -1,3 +1,4 @@
+import { FocusMini } from '../components/FocusMini';
 import { FocusWidgets } from '../components/FocusWidgets';
 import { Segmented } from '../components/Segmented';
 import { useEffect, useLayoutEffect, useRef, useState } from 'react';
@@ -144,6 +145,7 @@ export function Focus() {
       <div className="grid top focus-grid">
         <section className={`panel span-7 focus-panel phase-${phase}`} aria-labelledby="fp-h" data-anim>
           <header className="focus-card-head"><h2 id="fp-h">{T.focusRunning}</h2><div className="focus-card-actions">
+          <FocusMini />
           <button type="button" className="btn ghost sm focus-room-btn" onClick={openRoom}>{T.roomOpen}</button>
           <div className="focus-config-anchor"><button type="button" className="btn sm" aria-haspopup="dialog" aria-expanded={config} onClick={() => setConfig(true)}>{T.nav.settings}</button>{config && <FocusSettingsSheet onClose={() => setConfig(false)} />}</div>
           </div></header>
