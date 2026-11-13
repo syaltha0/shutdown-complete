@@ -624,6 +624,7 @@ export const tr: Words = {
   friendAsked: 'Gönderildi. Bu adresle burada bir hesap varsa istek onu bekliyor.',
   friendSelf: 'Bu senin kendi adresin.', friendFailed: 'Gönderilemedi. Biraz sonra tekrar dene.',
   shareFocus: 'Arkadaşlarım odakta olduğumu görsün', shareLabel: 've bloğumun adını da',
+  shareLabelOff: 'Önce yukarıdaki seçeneği aç.', friendsOptions: 'Seçenekler',
   roomOpen: 'Odak odası', roomTitle: 'Odak odası', roomLeave: 'Odadan çık',
   ambientLabel: 'Ses', volume: 'Ses düzeyi',
   ambient: { off: 'Sessiz', rain: 'Yağmur', waves: 'Dalga', fire: 'Şömine', brown: 'Kahverengi gürültü' },

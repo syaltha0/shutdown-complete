@@ -68,7 +68,17 @@
 
 /* ======================= focusing together ======================= */
 .friends { display: grid; gap: 12px; }
+.friends > header { margin-bottom: 0; align-items: center; }
+.friends h3 { margin: 0; font-size: 14px; font-weight: 500; }
 .friends-empty { margin: 0; }
+.friends-opt { display: inline-flex; align-items: center; gap: 4px; min-height: 32px; padding: 0 4px 0 8px; border: 0; border-radius: var(--radius-control); background: transparent; color: var(--text); font: inherit; font-size: 14px; font-weight: 500; cursor: pointer; }
+.friends-opt svg { transition: transform 160ms ease; }
+.friends-opt[aria-expanded="true"] svg { transform: rotate(90deg); }
+:root[data-motion="reduce"] .friends-opt svg { transition: none; }
+.friends-online { display: grid; gap: 6px; }
+.friends-online.is-empty { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; }
+.friends-options { display: grid; gap: 12px; padding-top: 12px; border-top: 1px solid var(--rule); }
+.share-why { margin: -2px 0 0 30px; font-size: var(--fs-small); }
 .friend-list { margin: 0; padding: 0; list-style: none; display: grid; gap: 2px; }
 .friend-list li { display: grid; grid-template-columns: 10px minmax(0, 1fr) auto; align-items: center; gap: 10px; padding: 6px 0; }
 .friend-list .dot, .room-people .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--control); }
@@ -113,7 +123,6 @@
 
 .together-link { display: grid; gap: 6px; min-width: 0; font-size: var(--fs-small); }
 .together-link input { width: 100%; min-width: 0; }
-.friends details > summary { cursor: pointer; }
 /* Room layout keeps navigation and sound controls available at every size. */
 .focus-room { padding: 80px 24px 72px; overflow-y: auto; overscroll-behavior: contain; }
 .room-stage { width: min(640px, 100%); gap: 24px; min-width: 0; }
