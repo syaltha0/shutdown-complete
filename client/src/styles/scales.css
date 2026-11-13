@@ -80,7 +80,11 @@
 .mini-timer[data-compact="true"]:not([data-open="true"]) .mt-row { position: relative; padding: 3px; }
 .mini-timer[data-compact="true"]:not([data-open="true"]) .mt-trigger { position: absolute; inset: 0; border-radius: 999px; }
 .mini-timer[data-compact="true"]:not([data-open="true"]) :is(.mt-trigger > *, .mt-pause) { display: none; }
-.mini-timer[data-dragging="true"] { transition: none; box-shadow: 0 16px 40px rgba(0, 0, 0, 0.2); }
+/* carried: a small ring chip under the pointer, lifted by a deeper shadow; it lands as the full card */
+.mini-timer[data-dragging="true"] { width: 52px; border-radius: 999px; transition: none; animation: none; box-shadow: 0 18px 44px rgba(0, 0, 0, 0.24); scale: 1.04; cursor: grabbing; }
+.mini-timer[data-dragging="true"] .mt-panel, .mini-timer[data-dragging="true"] :is(.mt-trigger > *, .mt-pause) { display: none; }
+.mini-timer[data-dragging="true"] .mt-row { position: relative; justify-content: center; padding: 7px; }
+.mini-timer[data-dragging="true"] .mt-trigger { position: absolute; inset: 0; }
 .mini-timer[data-v="top"] .mt-body { border-bottom: 0; border-top: 1px solid var(--rule); }
 .mt-row { display: flex; align-items: center; gap: 10px; padding: 8px 8px 8px 10px; transition: padding 200ms var(--ease-out); cursor: grab; touch-action: none; user-select: none; }
 .mini-timer[data-dragging="true"] .mt-row { cursor: grabbing; }
@@ -101,11 +105,14 @@
 .mt-label { display: block; margin-top: 4px; font-weight: 500; overflow-wrap: anywhere; }
 .mt-meta { display: flex; justify-content: space-between; gap: 8px; margin-top: 8px; }
 .mt-meta, .mt-next { color: var(--muted); font-size: 12px; }
-.mt-start-next { margin-top: 10px; }
+.mt-start-next { margin-top: 12px; width: 100%; }
 .mt-block { margin-top: 2px; overflow-wrap: anywhere; }
-.mt-tools { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px; }
-.mt-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin-top: 14px; }
-.mini-timer .mt-link { margin-left: auto; font-size: 13px; font-weight: 400; color: var(--muted); }
+.mt-tools { display: flex; gap: 2px; margin-left: auto; }
+.mini-timer .mt-tools .btn.icon { width: 32px; padding: 0; display: grid; place-items: center; color: var(--muted); }
+.mini-timer .mt-tools .btn.icon:hover { color: var(--text); }
+.mt-head { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; }
+.mt-actions { display: flex; align-items: center; gap: 6px; margin-top: 14px; }
+.mini-timer .mt-link { font-size: 13px; font-weight: 400; color: var(--muted); }
 .mini-timer .mt-link:hover { color: var(--text); text-decoration: none; }
 /* the phase change cue: the edge turns the phase colour and back (border-color only, no glow) */
 .mini-timer::after { content: ""; position: absolute; inset: 0; border: 2px solid transparent; border-radius: inherit; pointer-events: none; }

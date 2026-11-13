@@ -10,7 +10,7 @@ import { onLinkClick, usePath } from '../lib/router';
 import { ambientPlaying, stopAmbient } from '../lib/ambient';
 import { api } from '../lib/api';
 import { SkipChoice, useSkip } from './SkipChoice';
-import { type Corner, nearestCorner, nextCorner, readCompact, readCorner, reducedMotion, saveCompact, saveCorner, usePhone } from './MiniTimerPrefs';
+import { type Corner, nearestCorner, readCompact, readCorner, reducedMotion, saveCompact, saveCorner, usePhone } from './MiniTimerPrefs';
 
 /** Ticks once a second while a timer runs. */
 export function useTick(on: boolean) {
@@ -224,7 +224,8 @@ function FocusMiniPanel({ a, docKey, count, blocks }: { a: FocusActive; docKey: 
         row.setPointerCapture(start.id);
         setDragging(true); suppressed.current = true; setOpen(false);
       }
-      el.style.translate = `${dx}px ${dy}px`;
+      // while carried it is a small ring chip held under the pointer
+      el.style.left = `${m.clientX - 26}px`; el.style.top = `${m.clientY - 26}px`; el.style.right = 'auto'; el.style.bottom = 'auto';
     };
     const finish = (u: PointerEvent) => {
       if (u.pointerId !== start.id) return;
@@ -232,7 +233,7 @@ function FocusMiniPanel({ a, docKey, count, blocks }: { a: FocusActive; docKey: 
       press.current = null;
       if (!start.moved) return;
       const r = el.getBoundingClientRect();
-      el.style.translate = '';
+      el.style.left = el.style.top = el.style.right = el.style.bottom = '';
       setDragging(false);
       justDragged.current = true;
       window.setTimeout(() => { justDragged.current = false; }, 0);
@@ -249,7 +250,7 @@ function FocusMiniPanel({ a, docKey, count, blocks }: { a: FocusActive; docKey: 
   const panel = (
     <section id="mini-focus-details" className="mt-panel" aria-label={T.focusRunning} inert={!open} aria-hidden={!open}>
       <div className="mt-panel-clip"><div className="mt-body">
-        <span className="mt-phase">{T.phase[a.phase]}</span>
+        <div className="mt-head"><span className="mt-phase">{T.phase[a.phase]}</span><a className="card-link mt-link" href="/focus" onClick={onLinkClick}>{T.miniGoFocus}</a></div>
         <strong className="mt-label">{a.label || T.freeFocus}</strong>
         <div className="mt-meta"><span>{T.sessionN(session, cycle)}</span><span>{a.pausedLeft == null ? T.miniEnds(end) : T.miniPaused}</span></div>
         <p className="mt-next">{T.miniNext(T.phase[next], nextMin)}</p>
@@ -257,15 +258,13 @@ function FocusMiniPanel({ a, docKey, count, blocks }: { a: FocusActive; docKey: 
         <div className="mt-actions">
           <button type="button" className="btn sm ghost focus-act num" disabled={a.plannedMin >= MAX_PLANNED} onClick={() => extendFocus(5, docKey)}>{T.plusFive}</button>
           <button type="button" className="btn sm ghost focus-act" disabled={skip.locked} onClick={skip.request}>{T.skip}</button>
-          <a className="card-link mt-link" href="/focus" onClick={onLinkClick}>{T.miniGoFocus}</a>
+          <span className="mt-tools">
+            {count % cycle >= 1 && <button type="button" className="btn sm ghost icon mt-cycle" aria-label={T.cycleReset} title={T.cycleReset} onClick={() => void resetCycle(docKey)}><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M4 12a8 8 0 1 0 2.4-5.7" /><path d="M4 4v4.5h4.5" /></svg></button>}
+            <button type="button" className="btn sm ghost icon mt-compact" aria-label={compact ? T.miniExpand : T.miniShrink} title={compact ? T.miniExpand : T.miniShrink} onClick={() => shrink(!compact)}><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" aria-hidden="true">{compact ? <path d="M5 12h14M12 5v14" /> : <path d="M5 12h14" />}</svg></button>
+          </span>
         </div>
         {skip.asking && <SkipChoice a={a} skip={skip} className="mt-skip" />}
         {a.phase !== 'focus' && <button type="button" className="btn sm primary mt-start-next" onClick={() => void startNext()}>{T.miniStartNext}</button>}
-        <div className="mt-tools">
-          {count % cycle >= 1 && <button type="button" className="btn sm ghost mt-cycle" onClick={() => void resetCycle(docKey)}>{T.cycleReset}</button>}
-          <button type="button" className="btn sm ghost mt-corner" onClick={() => place(nextCorner(corner, phone))}>{T.miniCorner}</button>
-          <button type="button" className="btn sm ghost mt-compact" onClick={() => shrink(!compact)}>{compact ? T.miniExpand : T.miniShrink}</button>
-        </div>
       </div></div>
     </section>
   );
@@ -275,7 +274,14 @@ function FocusMiniPanel({ a, docKey, count, blocks }: { a: FocusActive; docKey: 
     onPointerLeave={e => { if (e.pointerType === 'mouse' && !root.current?.contains(document.activeElement)) setOpen(false); }}
     onFocus={() => { if (!suppressed.current) setOpen(true); }}
     onBlur={e => { if (!e.currentTarget.contains(e.relatedTarget)) { suppressed.current = false; setOpen(false); } }}
-    onKeyDown={e => { if (e.key === 'Escape') { e.preventDefault(); suppressed.current = true; trigger.current?.focus(); setOpen(false); } }}>
+    onKeyDown={e => {
+      // no corner button: Alt + an arrow key moves the card (the keyboard way to do what dragging does)
+      if (e.altKey && !e.ctrlKey && !e.metaKey && e.key.startsWith('Arrow')) {
+        const v = e.key === 'ArrowUp' ? 't' : e.key === 'ArrowDown' ? 'b' : corner[0];
+        const h = phone ? corner[1] : e.key === 'ArrowLeft' ? 'l' : e.key === 'ArrowRight' ? 'r' : corner[1];
+        e.preventDefault(); place(`${v}${h}` as Corner); return;
+      }
+      if (e.key === 'Escape') { e.preventDefault(); suppressed.current = true; trigger.current?.focus(); setOpen(false); } }}>
     {/* one body: the details unfold above the pill row (below it when the card sits at the top), inside the same card */}
     {!atTop && panel}
     <div className="mt-row" onPointerDown={onRowDown}

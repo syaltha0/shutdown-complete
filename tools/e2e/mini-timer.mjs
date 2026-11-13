@@ -103,8 +103,9 @@ try {
    // the keyboard way
    await p.mouse.move(700,450);await trigger.focus();
    const before=await stored();
-   await p.locator('.mt-corner').focus();await p.keyboard.press('Enter');
-   check('"move to another corner" cycles the corner',await stored()!==before&&['br','bl','tl','tr'].includes(await stored()));
+   check('no corner button: dragging or the keyboard moves it',await p.locator('.mt-corner').count()===0);
+   await trigger.focus();await p.keyboard.press('Alt+ArrowDown');await p.keyboard.press('Alt+ArrowLeft');
+   check('Alt + arrow keys move the card to another corner',await stored()!==before&&await stored()==='bl');
    await p.locator('.mini-timer').evaluate(()=>0);
    // a phone: only top or bottom, full width, clear of the tab bar and below the header
    await p.setViewportSize({width:390,height:800});await p.evaluate(()=>localStorage.setItem('sc-mini-corner','br'));await p.reload();await root.waitFor();
