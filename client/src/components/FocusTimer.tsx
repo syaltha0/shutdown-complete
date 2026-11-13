@@ -3,12 +3,13 @@ import { showNotification } from '../lib/pwa';
 import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { useSettings } from '../App';
 import { clock, nowMinutes, today } from '../lib/dates';
-import { chime, extendFocus, MAX_PLANNED, finishPhase, mmss, notify, pauseFocus, refreshFocus, resumeFocus, secondsLeft, settingsFocus, startFocus, useFocusDay } from '../lib/focus';
+import { chime, cycleDone, extendFocus, resetCycle, MAX_PLANNED, finishPhase, mmss, notify, pauseFocus, refreshFocus, resumeFocus, secondsLeft, settingsFocus, startFocus, useFocusDay } from '../lib/focus';
 import { useT } from '../lib/i18n';
 import { type Block, type FocusActive, activeColumn, featureOn } from '../lib/model';
 import { onLinkClick, usePath } from '../lib/router';
 import { ambientPlaying, stopAmbient } from '../lib/ambient';
 import { api } from '../lib/api';
+import { SkipChoice, useSkip } from './SkipChoice';
 import { type Corner, nearestCorner, nextCorner, readCompact, readCorner, reducedMotion, saveCompact, saveCorner, usePhone } from './MiniTimerPrefs';
 
 /** Ticks once a second while a timer runs. */
@@ -142,7 +143,7 @@ export function FocusRunner() {
 
   if (!a || path.startsWith('/focus')) return null;
   return <>{f.fullscreenBreak && a.phase !== 'focus' && closedBreak !== a.startedAt && <FocusRoom start={{blockId: a.blockId, label: a.label, minutes: a.plannedMin}} onClose={() => setClosedBreak(a.startedAt)} />}
-    <FocusMiniPanel a={a} docKey={key} count={holder?.focus?.sessions.length ?? 0} blocks={day ? activeColumn(day).blocks : []} />
+    <FocusMiniPanel a={a} docKey={key} count={cycleDone(holder?.focus)} blocks={day ? activeColumn(day).blocks : []} />
   </>;
 }
 
@@ -186,7 +187,7 @@ function FocusMiniPanel({ a, docKey, count, blocks }: { a: FocusActive; docKey: 
     el.animate([{ translate: `${from.x - to.left}px ${from.y - to.top}px` }, { translate: '0 0' }], { duration: 220, easing: 'cubic-bezier(0.2, 0.8, 0.2, 1)' });
   }, [corner]);
   const left = secondsLeft(a);
-  const locked = !!f.strict && a.phase === 'focus';
+  const skip = useSkip(a, docKey);
   const cycle = Math.max(1, f.longEvery);
   const session = (count % cycle + (a.phase === 'focus' ? 1 : 0)) || cycle;
   const next = a.phase !== 'focus' ? 'focus' : (count + 1) % cycle === 0 ? 'long' : 'short';
@@ -254,12 +255,14 @@ function FocusMiniPanel({ a, docKey, count, blocks }: { a: FocusActive; docKey: 
         <p className="mt-next">{T.miniNext(T.phase[next], nextMin)}</p>
         {upNext && <p className="mt-next mt-block">{running ? T.miniBlockNow(upNext.label || T.freeFocus, clock(upNext.end)) : T.miniBlockNext(upNext.label || T.freeFocus, clock(upNext.start))}</p>}
         <div className="mt-actions">
-          <button type="button" className="btn sm" disabled={a.plannedMin >= MAX_PLANNED} onClick={() => extendFocus(5, docKey)}>{T.plusFive}</button>
-          <button type="button" className="btn sm ghost" disabled={locked} onClick={() => finishPhase(settings, true, {key: docKey, startedAt: a.startedAt})}>{a.phase === 'focus' ? T.finishNow : T.skipBreak}</button>
+          <button type="button" className="btn sm ghost focus-act num" disabled={a.plannedMin >= MAX_PLANNED} onClick={() => extendFocus(5, docKey)}>{T.plusFive}</button>
+          <button type="button" className="btn sm ghost focus-act" disabled={skip.locked} onClick={skip.request}>{T.skip}</button>
           <a className="card-link mt-link" href="/focus" onClick={onLinkClick}>{T.miniGoFocus}</a>
         </div>
+        {skip.asking && <SkipChoice a={a} skip={skip} className="mt-skip" />}
         {a.phase !== 'focus' && <button type="button" className="btn sm primary mt-start-next" onClick={() => void startNext()}>{T.miniStartNext}</button>}
         <div className="mt-tools">
+          {count % cycle >= 1 && <button type="button" className="btn sm ghost mt-cycle" onClick={() => void resetCycle(docKey)}>{T.cycleReset}</button>}
           <button type="button" className="btn sm ghost mt-corner" onClick={() => place(nextCorner(corner, phone))}>{T.miniCorner}</button>
           <button type="button" className="btn sm ghost mt-compact" onClick={() => shrink(!compact)}>{compact ? T.miniExpand : T.miniShrink}</button>
         </div>
@@ -284,7 +287,7 @@ function FocusMiniPanel({ a, docKey, count, blocks }: { a: FocusActive; docKey: 
         onClick={() => { suppressed.current = false; setOpen(true); }}>
         <b className="num">{mmss(left)}</b><span>{a.label || T.freeFocus}</span>
       </button>
-      <button type="button" className="btn ghost mt-pause" disabled={locked} onClick={togglePause}>{a.pausedLeft == null ? T.pause : T.resume}</button>
+      <button type="button" className="btn ghost mt-pause focus-act" disabled={skip.locked} onClick={togglePause}>{a.pausedLeft == null ? T.pause : T.resume}</button>
     </div>
     {atTop && panel}
   </div>;

@@ -280,7 +280,7 @@
 .focus-read b { font-weight: 500; letter-spacing: -0.02em; font-size: 48px; line-height: 56px; }
 .focus-read .focus-label { display: none; }
 .focus-controls .btn.primary { min-width: 180px; height: 44px; }
-.focus-secondary { display: flex; flex-wrap: wrap; justify-content: center; align-items: center; gap: 4px; width: 100%; padding-top: 12px; border-top: 1px solid var(--rule); }
+.focus-secondary { display: flex; flex-wrap: nowrap; justify-content: center; align-items: center; gap: 4px; width: 100%; padding-top: 12px; border-top: 1px solid var(--rule); }
 .focus-secondary .btn { font-size: 13px; }
 .focus-run { display: grid; justify-items: center; width: min(420px, 100%); text-align: center; gap: 16px; }
 .focus-cycle-summary { display: flex; align-items: center; justify-content: center; gap: 12px; font-size: 12px; margin: 2px 0; }
@@ -290,10 +290,7 @@
 .focus-rounds i { width: 10px; height: 10px; border: 1px solid var(--control); background: var(--raised); border-radius: 50%; }
 .focus-rounds i.done { background: var(--phase-color); border-color: var(--phase-color); }
 .focus-rounds i.current { background: var(--surface); border: 2px solid var(--phase-color); outline: 1px solid var(--phase-color); outline-offset: 2px; }
-.focus-secondary .focus-stop { margin-left: 12px; padding-left: 16px; border-left: 1px solid var(--border); border-radius: 0; }
 .focus-config-hint { font-size: 13px; line-height: 1.5; margin: 0; }
-.focus-block-row { display: flex; align-items: center; justify-content: center; max-width: 100%; gap: 6px; font-size: 13px; color: var(--muted); }
-.focus-block-row span { overflow-wrap: anywhere; min-width: 0; }
 .focus-setup { display: grid; gap: 16px; width: min(220px, 100%); }
 @media (max-width: 860px) {
   .focus-card-actions .btn { padding: 0 8px; font-size: 12px; }
@@ -301,7 +298,6 @@
   .focus-ring { width: 224px; height: 224px; }
   .focus-read b { font-size: 42px; line-height: 48px; }
   .focus-go { position: static; margin: 0; padding: 0; }
-  .focus-block-row { text-align: center; }
 }
 .focus-config > label { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-block: 10px; }
 .focus-special .input { min-width: 0; max-width: 100%; }
@@ -355,16 +351,12 @@
 @media (prefers-reduced-motion: reduce) { .focus-card-body .focus-stage { transition: none; } .focus-settings-view { animation: none; } }
 .focus-panel > .focus-card-head { width: 100%; align-items: center; padding-bottom: 16px; border-bottom: 1px solid var(--rule); margin: 0; min-height: 68px; }
 .focus-panel .focus-card-body { flex: 0 0 auto; }
-.focus-panel .focus-block-row { width: min(420px, 100%); line-height: 1.5; }
-.focus-panel .focus-block-row > .btn { flex-shrink: 0; min-height: 36px; }
 .focus-panel .focus-secondary .btn { min-height: 40px; }
 .focus-panel .focus-note-field { padding-top: 16px; border-top: 1px solid var(--rule); }
 .focus-panel .focus-note-field .input { width: 100%; min-width: 0; }
 .focus-panel .focus-intent { max-width: 100%; overflow-wrap: anywhere; }
 @media (max-width: 420px) {
   .focus-panel > .focus-card-head { flex-wrap: wrap; gap: 10px; }
-  .focus-panel .focus-secondary { column-gap: 2px; }
-  .focus-panel .focus-secondary .focus-stop { margin-left: 0; padding-left: 12px; }
 }
 .focus-grid > .focus-left { display: flex; flex-direction: column; gap: var(--gap); min-width: 0; }
 .focus-left > .focus-panel { width: 100%; }
@@ -497,3 +489,80 @@
   .focus-grid .focus-byblock .bb-top .l { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .focus-grid .focus-byblock > header { margin-bottom: 8px; }
 }
+
+/* Skipping a focus phase that has run for a while asks what to count (card: over the timer's body; mini timer and room: below the buttons) */
+.skip-choice { display: grid; gap: 4px; justify-items: center; text-align: center; }
+.skip-choice strong { font-size: 15px; font-weight: 500; }
+.skip-choice p { margin: 0; font-size: 13px; }
+.skip-actions { display: grid; gap: 6px; width: min(320px, 100%); margin-top: 8px; }
+.focus-card-body > .skip-choice { position: absolute; inset: 0; z-index: 3; align-content: safe center; padding: 12px 0; background: var(--surface); overflow-y: auto; }
+.mt-skip { margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--rule); }
+.mt-skip .skip-actions { width: 100%; }
+.room-stage > .skip-choice { margin-top: 16px; }
+@media (min-width: 1000px) and (max-height: 820px) { .focus-card-body > .skip-choice { padding: 4px 0; gap: 2px; } .skip-actions { gap: 4px; margin-top: 4px; } .skip-actions .btn { height: 32px; } }
+
+/* The block the focus belongs to: a chip on the timer card; pressing it opens the list over the card's body */
+.bp-chip { display: inline-flex; align-items: center; gap: 8px; width: min(320px, 100%); min-height: 40px; padding: 0 12px; border: 1px solid var(--control); border-radius: var(--radius-control); background: var(--surface); color: var(--text); font: inherit; font-size: 14px; text-align: left; }
+button.bp-chip { cursor: pointer; transition: background-color var(--t-hover) ease; }
+button.bp-chip:hover { background: var(--raised); }
+.bp-name { flex: 1 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.bp-chip .bp-name { font-weight: 500; }
+.bp-time { flex: none; color: var(--muted); font-size: 12px; }
+.bp-chevron { flex: none; width: 12px; height: 12px; background: var(--muted); -webkit-mask: var(--chevron) center / 12px no-repeat; mask: var(--chevron) center / 12px no-repeat; rotate: 90deg; }
+.bp-chip[aria-expanded="true"] .bp-chevron { rotate: -90deg; }
+.bp-chip.is-locked { border-color: var(--rule); color: var(--muted); }
+.bp-chip.is-locked .bp-name { font-weight: 400; }
+.bp-kind { flex: none; width: 8px; height: 8px; border: 1.5px solid currentColor; border-radius: 50%; }
+.bp-kind.deep { background: currentColor; }
+.bp-sheet { position: absolute; inset: 0; z-index: 3; display: flex; flex-direction: column; gap: 6px; min-height: 0; padding-top: 8px; background: var(--surface); }
+.bp-search { display: flex; align-items: center; gap: 8px; }
+.bp-search .input { flex: 1; }
+.bp-list { flex: 1; min-height: 0; overflow-y: auto; overscroll-behavior: contain; scrollbar-width: thin; }
+.bp-heading { padding: 10px 12px 4px; font-size: 12px; color: var(--muted); }
+.bp-group.bp-free { margin-top: 6px; padding-top: 6px; border-top: 1px solid var(--rule); }
+.bp-option { display: grid; gap: 2px; padding: 8px 12px; border-radius: var(--radius-control); cursor: pointer; }
+.bp-option[data-active="true"] { background: var(--raised); }
+.bp-option[aria-selected="true"] { box-shadow: inset 2px 0 0 var(--text); }
+.bp-option.is-past { color: var(--muted); }
+.bp-line { display: flex; align-items: center; gap: 8px; min-width: 0; font-size: 14px; }
+.bp-line .bp-name { flex: 0 1 auto; }
+.bp-meta { color: var(--muted); font-size: 12px; }
+.bp-none { margin: 8px 12px; font-size: 13px; }
+:root[data-motion="reduce"] button.bp-chip { transition: none; }
+@media (min-width: 1000px) and (max-height: 820px) { .bp-chip { min-height: 32px; font-size: 13px; } .bp-option { padding: 4px 12px; } .bp-heading { padding-top: 6px; } }
+@media (min-width: 1000px) and (min-height: 601px) and (max-height: 700px) { .bp-chip { min-height: 0; height: 20px; padding: 0 8px; font-size: 12px; line-height: 18px; gap: 6px; } .bp-time { font-size: 11px; } .bp-option { padding: 2px 12px; } }
+
+/* The running controls share one look (card, mini timer, room): the same pill shape, hover, focus ring and disabled state.
+   Reset, +5 and Skip are the quiet row; a thin rule sets Stop apart, and asking for its second press turns it to the danger tone. */
+.focus-act { border-radius: 999px; }
+.focus-act:focus-visible { border-radius: 999px; outline: 2px solid var(--hue); outline-offset: 2px; }
+.focus-act:disabled { cursor: not-allowed; color: var(--muted); opacity: 0.55; }
+.focus-act.ghost:disabled:hover { background: transparent; }
+.focus-act.danger { color: var(--negative); border-color: var(--error-border); }
+.focus-act.danger:hover { background: color-mix(in srgb, var(--negative) 8%, transparent); }
+.focus-sep { flex: none; width: 1px; height: 16px; margin: 0 8px; background: var(--border); }
+.focus-secondary .btn { flex: 0 1 auto; }
+@media (max-width: 480px) {
+  .focus-secondary { gap: 2px; min-width: 0; } .focus-secondary .btn { padding: 0 8px; } .focus-sep { margin: 0 4px; }
+  /* while one asks for its second press (a longer label), the others give up their padding so the row stays one line */
+  .focus-secondary:has(.danger) .btn:not(.danger) { padding: 0 4px; } .focus-secondary:has(.danger) .focus-sep { margin: 0 2px; }
+}
+@media (pointer: coarse) { .mt-panel .btn, .mt-panel .mt-link { min-height: 44px; } }
+
+/* Reset cycle sits beside the round count and keeps that row's height (the card does not grow when it appears) */
+.focus-cycle-summary { min-height: 20px; }
+.focus-cycle-reset { height: 20px; min-height: 0; padding: 0 8px; font-size: 12px; font-weight: 400; color: var(--muted); border-radius: 999px; }
+.focus-cycle-reset:hover { color: var(--text); }
+.focus-cycle-reset:focus-visible { border-radius: 999px; }
+@media (pointer: coarse) { .focus-grid .focus-cycle-reset { min-height: 44px; margin-block: -12px; } }
+
+/* On a desktop window the note field of a break is one line (its placeholder says what it is), so the break fits the card */
+@media (min-width: 1000px) and (min-height: 601px) {
+  .focus-panel .focus-note-field { padding-top: 0; border-top: 0; gap: 0; }
+  .focus-panel .focus-note-field > label { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+}
+/* and while a break carries that field the ring is a little smaller, so the card still holds everything */
+@media (min-width: 1000px) and (min-height: 701px) { .focus-stage:has(.focus-note-field) .focus-ring { width: 180px; height: 180px; } }
+@media (min-width: 1000px) and (min-height: 701px) and (max-height: 960px) { .focus-stage:has(.focus-note-field) .focus-ring { width: 150px; height: 150px; } }
+@media (min-width: 1000px) and (min-height: 701px) and (max-height: 820px) { .focus-stage:has(.focus-note-field) .focus-ring { width: 110px; height: 110px; } }
+@media (min-width: 1000px) and (min-height: 701px) and (max-height: 760px) { .focus-stage:has(.focus-note-field) .focus-ring { width: 84px; height: 84px; margin: 0; } .focus-stage:has(.focus-note-field) .focus-read b { font-size: 24px; line-height: 28px; } }

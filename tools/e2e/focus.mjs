@@ -101,7 +101,8 @@ try {
   await p.reload();
   await p.locator('.focus-ring .ring-fill').waitFor();
   { const r = await ringLeft(); check('ten minutes into fifty, the ring has drained to about four fifths', r > 0.78 && r < 0.82); }
-  await p.getByRole('button', { name: 'Finish now', exact: true }).click();
+  await p.getByRole('button', { name: 'Skip', exact: true }).click();
+  await p.getByRole('button', { name: /^Count the time so far/ }).click();
   const a3 = await until(async () => { const x = await doc(); return x.focus?.active?.phase === 'short' ? x : null; });
   check('finishing logs a session', a3 && a3.focus.sessions.length === 1 && a3.focus.sessions[0].minutes >= 9);
   check('the break has the chosen length', a3.focus.active.plannedMin === 10 && a3.focus.active.sessionId === a3.focus.sessions[0].id);
@@ -116,7 +117,7 @@ try {
   const shown = await p.locator('.session .more').innerText();
   check("Today's sessions shows the note", shown.includes('data table'));
 
-  await p.getByRole('button', { name: 'Skip the break', exact: true }).click();
+  await p.getByRole('button', { name: 'Skip', exact: true }).click();
   check('skipping the break ends it', !!(await until(async () => (await doc()).focus.active === null)));
   check('the setup returns', await p.locator('.focus-setup').isVisible());
 
@@ -177,11 +178,12 @@ try {
   await btn('Pause').waitFor({ timeout: 4000 });
   check("a session begun before midnight still shows after it", (await p.locator('.focus-read .focus-label').innerText()) === 'Edge');
   check('the carried timer shows round four from yesterday', (await p.locator('.focus-cycle-summary').innerText()).includes('4/4') && await p.locator('.focus-rounds .done').count() === 3 && await p.locator('.focus-rounds .current').count() === 1);
-  await btn('Finish now').click();
+  await btn('Skip').click();
+  await p.getByRole('button', { name: /^Count the time so far/ }).click();
   const yd = await until(async () => { const v = (await api.get('day:' + Y)).value; return v.focus.active?.phase === 'long' ? v : null; });
   check("it is logged on the day it began, and its break follows", yd && yd.focus.sessions.length === 4 && (await doc()).focus.sessions.length === 0);
   check('the carried long break shows all four completed rounds', await p.locator('.focus-rounds .done').count() === 4 && await p.locator('.focus-rounds .current').count() === 0);
-  await btn('Skip the break').click();
+  await btn('Skip').click();
   check('the carried break ends too', !!(await until(async () => (await api.get('day:' + Y)).value.focus.active === null)));
   await p.locator('.focus-setup').waitFor();
   check('idle cycle returns to today without yesterday rounds', await p.locator('.focus-rounds .done').count() === 0);
@@ -207,18 +209,19 @@ try {
   check('+5 min stops at 240 minutes', !!(await until(async () => (await doc()).focus.active?.plannedMin === 240)));
   check('and the button then rests', await btn('+5 min').isDisabled());
 
-  // a double click on Finish now logs once and keeps the break it started
+  // a double click on the skip choice logs once and keeps the break it started
   await setActive('day:' + D, run(25, 12), []);
   await p.goto(s.url + '/focus');
-  await btn('Finish now').waitFor();
-  await p.evaluate(() => { const x = [...document.querySelectorAll('button')].find((e) => e.textContent === 'Finish now'); x.click(); x.click(); });
+  await btn('Skip').click();
+  await p.getByRole('button', { name: /^Count the time so far/ }).waitFor();
+  await p.evaluate(() => { const x = [...document.querySelectorAll('button')].find((e) => e.textContent.startsWith('Count the time so far')); x.click(); x.click(); });
   await p.waitForTimeout(1500);
   const dc = await doc();
-  check('a double click on Finish now does not skip the break', dc.focus.sessions.length === 1 && dc.focus.active?.phase === 'short');
+  check('a double click on the skip choice does not skip the break', dc.focus.sessions.length === 1 && dc.focus.active?.phase === 'short');
 
   // a note typed during the break is kept when the break is skipped straight away
   await p.getByLabel('A note on the session').fill('Kept without leaving the field');
-  await p.evaluate(() => [...document.querySelectorAll('button')].find((e) => e.textContent === 'Skip the break').click());
+  await p.evaluate(() => [...document.querySelectorAll('button')].find((e) => e.textContent === 'Skip').click());
   check('a note survives the break ending', (await until(async () => (await doc()).focus.sessions[0].note)) === 'Kept without leaving the field');
 
   // another device pauses it: this one sees it on coming back to the tab
@@ -243,11 +246,11 @@ try {
   check('no task or intent field in the setup', await p.locator('#fc-task, #fc-intent').count() === 0);
   await p.getByRole('button', { name: 'Start focus', exact: true }).click();
   check('Start focus starts it', !!(await until(async () => (await doc()).focus.active?.phase === 'focus')));
-  await btn('Finish now').waitFor();
+  await btn('Skip').waitFor();
   await setActive('day:' + D, run(25, 3, { phase: 'short', plannedMin: 5 }), []);
   await p.reload();
-  await btn('Skip the break').waitFor();
-  check('on a break, pause and skip remain available', await btn('Pause').isVisible() && await btn('Skip the break').isVisible());
+  await btn('Skip').waitFor();
+  check('on a break, pause and skip remain available', await btn('Pause').isVisible() && await btn('Skip').isVisible());
   await setActive('day:' + D, null, []);
 
   // Pomatez-inspired options persist in the shared settings document.
@@ -255,7 +258,7 @@ try {
   await setActive('day:' + D, run(25, 3), []);
   await p.reload();
   await btn('Pause').waitFor();
-  check('strict mode locks pause, finish and reset', await btn('Pause').isDisabled() && await btn('Finish now').isDisabled() && await btn('Reset').isDisabled());
+  check('strict mode locks pause, finish and reset', await btn('Pause').isDisabled() && await btn('Skip').isDisabled() && await btn('Reset').isDisabled());
   check('strict mode keeps extension available', await btn('+5 min').isEnabled());
   await p.locator('h1').click();
   await p.keyboard.press('Space');
