@@ -19,7 +19,7 @@ function lines(ics) {
     for (; i < l.length; i++) { if (l[i] === '"') q = !q; else if (l[i] === ':' && !q) break; }
     const [name, ...ps] = l.slice(0, i).split(';');
     const params = Object.fromEntries(ps.map((p) => { const [k, ...v] = p.split('='); return [k.toUpperCase(), v.join('=').replace(/^"|"$/g, '')]; }));
-    return { name: name.toUpperCase(), params, value: l.slice(i + 1) };
+    return { name: name.toUpperCase(), params, value: l.slice(i + 1), raw: l };
   });
 }
 /** A DATE or DATE-TIME as the planner's day; a time in UTC is read in this server's time. */
@@ -36,6 +36,20 @@ const time = (v, params) => {
   const z = local(v);
   return z ? `${pad2(z.getHours())}:${pad2(z.getMinutes())}` : `${v.slice(9, 11)}:${v.slice(11, 13)}`;
 };
+// Resolve an IANA TZID without depending on the process's local timezone.
+function zonedValue(v, params) {
+  if (!params.TZID || !/^\d{8}T\d{6}$/.test(v)) return v;
+  const target = Date.UTC(+v.slice(0, 4), +v.slice(4, 6) - 1, +v.slice(6, 8), +v.slice(9, 11), +v.slice(11, 13), +v.slice(13, 15));
+  try {
+    const fmt = new Intl.DateTimeFormat('en-CA', { timeZone: params.TZID, year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', second: '2-digit', hourCycle: 'h23' });
+    let instant = target;
+    for (let i = 0; i < 3; i++) {
+      const p = Object.fromEntries(fmt.formatToParts(instant).map(x => [x.type, x.value]));
+      instant += target - Date.UTC(+p.year, +p.month - 1, +p.day, +p.hour, +p.minute, +p.second);
+    }
+    return new Date(instant).toISOString().replace(/[-:]/g, '').replace('.000', '');
+  } catch { return v; } // Preserve unknown/custom zones verbatim on export.
+}
 /** An alarm's trigger as minutes before (-PT15M -> 15, -P1D -> 1440, PT0S -> 0); null when it is not before. */
 function beforeMinutes(v) {
   const m = /^([+-])?P(?:(\d+)W)?(?:(\d+)D)?(?:T(?:(\d+)H)?(?:(\d+)M)?(?:(\d+)S)?)?$/.exec(v.trim());
@@ -59,13 +73,13 @@ export function parseTodo(ics) {
     // of an alarm inside, only when it rings (the first one, before the due time)
     if (depth === 1 && l.name === 'TRIGGER' && t.remind == null) { const m = beforeMinutes(l.value); if (m != null) t.remind = m; continue; }
     if (depth > 0) continue;
-    const v = l.value;
+    const v = ['DUE', 'DTSTART'].includes(l.name) ? zonedValue(l.value, l.params) : l.value;
     switch (l.name) {
       case 'UID': t.uid = v; break;
       case 'SUMMARY': t.text = unescape(v); break;
       case 'DESCRIPTION': t.notes = unescape(v); break;
       case 'DUE': t.due = day(v); t.dueTime = time(v, l.params); break;
-      case 'DTSTART': t.start = day(v); break;
+      case 'DTSTART': t.start = day(v); t.startTime = time(v, l.params); break;
       case 'PRIORITY': { const p = Number(v); t.priority = p >= 1 && p <= 4 ? 1 : p === 5 ? 5 : p >= 6 && p <= 9 ? 9 : undefined; break; }
       case 'PERCENT-COMPLETE': t.percent = Math.max(0, Math.min(100, Number(v) || 0)) || undefined; break;
       case 'STATUS': t.status = v.toUpperCase(); break;
@@ -133,8 +147,8 @@ export function taskIcs(t) {
   if (t.created) L.push(`CREATED:${stamp(t.created)}`);
   L.push(`SUMMARY:${esc(t.text)}`);
   if (t.notes) L.push(`DESCRIPTION:${esc(t.notes)}`);
-  if (t.start) L.push(`DTSTART;VALUE=DATE:${dateVal(t.start)}`);
-  if (t.due) L.push(t.dueTime ? `DUE:${dateVal(t.due)}T${t.dueTime.replace(':', '')}00` : `DUE;VALUE=DATE:${dateVal(t.due)}`);
+  if (t.start) L.push(t.startTime ? `DTSTART:${stamp(new Date(`${t.start}T${t.startTime}:00`).toISOString())}` : `DTSTART;VALUE=DATE:${dateVal(t.start)}`);
+  if (t.due) L.push(t.dueTime ? `DUE:${stamp(new Date(`${t.due}T${t.dueTime}:00`).toISOString())}` : `DUE;VALUE=DATE:${dateVal(t.due)}`);
   if (t.priority) L.push(`PRIORITY:${t.priority}`);
   if (t.percent && !t.done) L.push(`PERCENT-COMPLETE:${t.percent}`);
   if (t.done) L.push('STATUS:COMPLETED', 'PERCENT-COMPLETE:100', `COMPLETED:${dateVal(t.doneAt ?? '2026-01-01')}T120000Z`);
@@ -148,12 +162,71 @@ export function taskIcs(t) {
   if (t.lastDone) L.push(`X-SC-LAST-DONE;VALUE=DATE:${dateVal(t.lastDone)}`);
   if (t.remind != null && t.dueTime && !t.done) L.push('BEGIN:VALARM', 'ACTION:DISPLAY', `DESCRIPTION:${esc(t.text)}`, `TRIGGER;RELATED=END:${t.remind ? `-PT${t.remind}M` : 'PT0S'}`, 'END:VALARM');
   L.push('END:VTODO');
-  return wrap(L);
+  return preserved(t, L);
 }
 /** A subtask as a calendar object of its own, pointing at its task. */
 export function stepIcs(step, parent) {
-  return wrap(['BEGIN:VTODO', `UID:${step.id}`, `DTSTAMP:${stamp(parent.created ?? '2026-01-01T00:00:00Z')}`, `SUMMARY:${esc(step.text)}`,
+  return preserved(step, ['BEGIN:VTODO', `UID:${step.id}`, `DTSTAMP:${stamp(parent.created ?? '2026-01-01T00:00:00Z')}`, `SUMMARY:${esc(step.text)}`,
     `STATUS:${step.done ? 'COMPLETED' : 'NEEDS-ACTION'}`, ...(step.done ? ['PERCENT-COMPLETE:100'] : []), `RELATED-TO;RELTYPE=PARENT:${parent.id}`, 'END:VTODO']);
+}
+
+// Keep opaque properties, parameters and nested components. Only fields actually changed by
+// the planner replace their original lines; a title edit must not rewrite recurrence or alarms.
+function preserved(t, generated) {
+  if (!t.davRaw) return wrap(generated);
+  let original = lines(t.davRaw);
+  const parsed = parseTodo(t.davRaw);
+  if (!parsed) return wrap(generated);
+  if (t.remind !== t.davBase?.remind) {
+    let replaced = false;
+    for (let i = 0; i < original.length; i++) {
+      if (original[i].name !== 'BEGIN' || original[i].value !== 'VALARM') continue;
+      const end = original.findIndex((l, j) => j > i && l.name === 'END' && l.value === 'VALARM');
+      if (end < 0) break;
+      const alarm = original.slice(i, end + 1);
+      const trigger = alarm.find(l => l.name === 'TRIGGER');
+      if (replaced || !alarm.some(l => l.name === 'ACTION' && l.value === 'DISPLAY') || !trigger || beforeMinutes(trigger.value) == null || (trigger.params.RELATED && trigger.params.RELATED !== 'END') || trigger.params.VALUE === 'DATE-TIME') { i = end; continue; }
+      if (t.remind == null) original.splice(i, end - i + 1);
+      else trigger.raw = `TRIGGER;RELATED=END:${t.remind ? `-PT${t.remind}M` : 'PT0S'}`;
+      replaced = true;
+      break;
+    }
+    if (!replaced && t.remind != null) {
+      const begin = generated.indexOf('BEGIN:VALARM');
+      if (begin >= 0) original.splice(original.findIndex(l => l.name === 'END' && l.value === 'VTODO'), 0, ...lines(generated.slice(begin, generated.indexOf('END:VALARM') + 1).join('\n')));
+    }
+  }
+  const fields = { UID: ['id'], SUMMARY: ['text'], DESCRIPTION: ['notes'], DUE: ['due', 'dueTime'], DTSTART: ['start', 'startTime'], PRIORITY: ['priority'], 'PERCENT-COMPLETE': ['percent', 'done'], STATUS: ['done'], COMPLETED: ['done', 'doneAt'], CATEGORIES: ['tags'], RRULE: ['repeat'], 'RELATED-TO': ['parent'], 'X-SC-ESTIMATE': ['estimate'], 'X-SC-SPENT': ['spent'], 'X-SC-AFTER': ['repeat'], 'X-SC-DONE-COUNT': ['doneCount'], 'X-SC-LAST-DONE': ['lastDone'] };
+  const changed = new Set(Object.entries(fields).filter(([, keys]) => keys.some(k => JSON.stringify(t[k]) !== JSON.stringify(t.davBase?.[k]))).map(([k]) => k));
+  const out = []; let todo = false, depth = 0;
+  for (const l of original) {
+    if (l.name === 'BEGIN' && l.value === 'VTODO') { todo = true; out.push(l.raw); continue; }
+    if (todo && l.name === 'END' && l.value === 'VTODO' && depth === 0) {
+      let nested = 0;
+      for (const g of generated.slice(1, -1)) {
+        const n = g.split(/[;:]/)[0];
+        if (n === 'BEGIN') nested++;
+        if (!nested && changed.has(n)) {
+          if (n === 'RRULE') {
+            const oldParts = original.find(l => l.name === 'RRULE')?.value.split(';') ?? [];
+            const keys = { FREQ: 'unit', INTERVAL: 'every', BYDAY: 'days', BYMONTHDAY: 'monthDay', COUNT: 'count', UNTIL: 'until' };
+            const keep = oldParts.filter(p => {
+              const field = keys[p.split('=')[0].toUpperCase()];
+              return !field || JSON.stringify(t.repeat?.[field]) === JSON.stringify(t.davBase?.repeat?.[field]);
+            });
+            const keptKeys = new Set(keep.map(p => p.split('=')[0].toUpperCase()));
+            out.push([...g.slice(6).split(';').filter(p => !keptKeys.has(p.split('=')[0])), ...keep].join(';').replace(/^/, 'RRULE:'));
+          } else out.push(g);
+        }
+        if (n === 'END') nested--;
+      }
+      todo = false;
+    }
+    if (todo && l.name === 'BEGIN') depth++;
+    if (!todo || depth || !changed.has(l.name)) out.push(l.raw);
+    if (todo && l.name === 'END') depth--;
+  }
+  return out.map(fold).join('\r\n') + '\r\n';
 }
 
 // ---------- a list as resources ----------
@@ -197,6 +270,9 @@ export function upsert(doc, list, name, ics, today) {
   if (parent || at?.step) {
     const owner = at?.step ? at.task : parent;
     const step = { id: v.uid, text: v.text ?? '', done: v.done, ...(href ? { href } : {}) };
+    step.davRaw = ics;
+    step.davBase = { ...step, parent: v.parent };
+    delete step.davBase.davRaw;
     const steps = owner.steps?.some((s) => s.id === v.uid) ? owner.steps.map((s) => (s.id === v.uid ? step : s)) : [...(owner.steps ?? []), step];
     return { doc: { ...doc, items: items.map((x) => (x.id === owner.id ? { ...x, steps } : x)) } };
   }
@@ -204,13 +280,20 @@ export function upsert(doc, list, name, ics, today) {
   let t = {
     ...(old ?? {}),
     id: v.uid, text: v.text ?? '', done: v.done, list: list === DEFAULT_LIST ? undefined : list,
-    due: v.due, dueTime: v.due ? v.dueTime : undefined, remind: v.due && v.dueTime ? v.remind : undefined, start: v.start, priority: v.priority, percent: v.done ? undefined : v.percent,
+    due: v.due, dueTime: v.due ? v.dueTime : undefined, remind: v.due && v.dueTime ? v.remind : undefined, start: v.start, startTime: v.startTime, priority: v.priority, percent: v.done ? undefined : v.percent,
     tags: v.categories.length ? v.categories : undefined, notes: v.notes || undefined, repeat: v.repeat,
     estimate: v.estimate ?? old?.estimate, spent: v.spent ?? old?.spent, doneCount: v.doneCount ?? old?.doneCount, lastDone: v.lastDone ?? old?.lastDone,
     created: old?.created ?? v.created ?? new Date().toISOString(), doneAt: v.done ? (old?.doneAt ?? v.completed ?? today) : undefined,
     ...(href ? { href } : {}),
   };
-  if (t.done && t.repeat) { const p = rollOn(t, today); t = { ...t, ...p, done: !!p.done, doneAt: p.done ? today : undefined }; }
+  // The planner cannot calculate arbitrary RFC recurrence sets. Keep their completion and
+  // full recurrence untouched rather than moving them to an incorrect date.
+  const complex = /^(?:EXDATE|EXRULE|RDATE|RECURRENCE-ID)[;:]/m.test(ics) || /(?:BYSETPOS|BYMONTH|BYYEARDAY|BYWEEKNO|BYHOUR|BYMINUTE|BYSECOND|WKST)=/.test(ics) || /BYDAY=[^;\r\n]*\d/.test(ics) || (t.repeat?.unit !== 'week' && /BYDAY=/.test(ics));
+  if (t.done && t.repeat && !complex) { const p = rollOn(t, today); t = { ...t, ...p, done: !!p.done, doneAt: p.done ? today : undefined }; }
+  t.davRaw = ics;
+  t.davBase = { ...t, due: v.due, dueTime: v.dueTime, start: v.start, done: v.done, doneAt: v.done ? v.completed ?? today : undefined, repeat: v.repeat };
+  delete t.davBase.davRaw;
+  delete t.davBase.davBase;
   for (const k of Object.keys(t)) if (t[k] === undefined) delete t[k];
   return { doc: { ...doc, items: old ? items.map((x) => (x.id === old.id ? t : x)) : [...items, t] } };
 }
