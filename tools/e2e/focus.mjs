@@ -220,7 +220,12 @@ try {
   await p.locator('h1').click();
   await p.keyboard.press('Space');
   check('strict mode blocks keyboard pause', (await doc()).focus.active.pausedLeft === null);
-  check('mini timer is hidden without document PiP', await p.evaluate(() => !!window.documentPictureInPicture) || await btn('Mini timer').count() === 0);
+  const noPip = await c.newPage();
+  await noPip.addInitScript(() => Object.defineProperty(window, 'documentPictureInPicture', {value: undefined, configurable: true}));
+  await noPip.goto(s.url + '/focus');
+  await noPip.locator('.focus-controls').waitFor();
+  check('mini timer is hidden without document PiP', await noPip.getByRole('button', {name: 'Mini timer', exact: true}).count() === 0);
+  await noPip.close();
   await p.locator('.focus-config-anchor > button').click();
   await p.getByText('Start focus automatically', {exact: true}).click();
   check('options write to settings.focus', await until(async () => (await api.get('settings')).value.focus.autoFocus === false));
