@@ -1,3 +1,6 @@
+import { decideMoves } from '../lib/taskDeferral';
+import { emptyInbox, type InboxDoc } from '../lib/model';
+import { updateKey } from '../lib/useDoc';
 import { FocusLog } from '../components/FocusLog';
 import { useEffect, useRef, useState } from 'react';
 import { drawDayCard } from '../lib/daycard';
@@ -5,7 +8,7 @@ import { useSettings } from '../App';
 import { DocNotice, SaveStamp } from '../components/Common';
 import { addDays, clock, longDate, today, weekdayLong, weekOf } from '../lib/dates';
 import { useT } from '../lib/i18n';
-import { activeColumn, effectivePlan, emptyDay, emptyWeek, minutesOfKind, uid, type Block, type DayDoc, type Settings, type WeekDoc } from '../lib/model';
+import { activeColumn, effectivePlan, emptyDay, emptyWeek, minutesOfKind, type Block, type DayDoc, type Settings, type WeekDoc } from '../lib/model';
 import { onLinkClick } from '../lib/router';
 import { useDoc } from '../lib/useDoc';
 import { placeRepeats } from '../lib/repeat';
@@ -35,10 +38,12 @@ export function Shutdown({ date }: { date: string }) {
   const setStep = (id: string, v: boolean) => update((d) => ({ ...d, shutdown: { ...d.shutdown, steps: { ...d.shutdown.steps, [id]: v } } }));
   const complete = (v: boolean) => update((d) => ({ ...d, shutdown: { ...d.shutdown, done: v, at: v ? new Date().toISOString() : null } }));
 
-  function moveTasks() {
+  async function moveTasks() {
     if (!day || !next) return;
-    const moving = day.tasks.filter((t) => !t.done);
-    updateNext((n) => ({ ...n, tasks: [...n.tasks, ...moving.map((t) => ({ ...t, id: uid(), since: t.since ?? date }))] }));
+    const result = await decideMoves(day.tasks.filter(t=>!t.done),T); if (!result) return;
+    const moving = result.moving;
+    if(result.back.length || result.deleted.length) await updateKey<InboxDoc>('inbox',emptyInbox,b=>({...b,items:[...b.items,...result.back],trash:[...(b.trash??[]),...result.deleted.map(item=>({item,deletedAt:new Date().toISOString()}))]}));
+    updateNext((n) => ({ ...n, tasks: [...n.tasks, ...moving.map((t) => ({ ...t, since: t.since ?? date }))] }));
     update((d) => ({ ...d, tasks: d.tasks.filter((t) => t.done) }));
   }
 

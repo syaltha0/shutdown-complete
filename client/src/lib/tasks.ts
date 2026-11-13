@@ -7,7 +7,7 @@ import type { Words } from './words/en';
 /** The list every task without one belongs to (the old inbox), always there. */
 export const DEFAULT_LIST = 'inbox';
 /** Collections: tasks gathered from every list by what they are. */
-export const COLLECTIONS = ['all', 'today', 'week', 'important', 'current', 'completed'] as const;
+export const COLLECTIONS = ['all', 'today', 'week', 'important', 'current', 'waiting', 'completed'] as const;
 export type Collection = (typeof COLLECTIONS)[number];
 export type Sort = 'due' | 'priority' | 'start' | 'created' | 'title' | 'manual';
 export const SORTS: Sort[] = ['due', 'priority', 'start', 'created', 'title', 'manual'];
@@ -26,7 +26,8 @@ export function inView(t: Item, view: string): boolean {
   switch (view) {
     case 'all': return isOpen(t);
     // due or started by today, late ones too
-    case 'today': return isOpen(t) && ((!!t.due && t.due <= now) || (!!t.start && t.start <= now));
+    case 'waiting': return isOpen(t) && !!t.waiting;
+    case 'today': return isOpen(t) && (!t.waiting || (!!t.review && t.review <= now)) && ((!!t.waiting && !!t.review && t.review <= now) || (!!t.due && t.due <= now) || (!!t.start && t.start <= now));
     case 'week': return isOpen(t) && !!t.due && daysTo(t.due) <= 7;
     case 'important': return isOpen(t) && t.priority === 1;
     // begun: started, partly done, or some of its steps ticked
