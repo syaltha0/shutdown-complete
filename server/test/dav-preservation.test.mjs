@@ -39,17 +39,18 @@ test('unsupported recurrence completion preserves its set instead of rolling to 
   const raw = wrap('DUE;VALUE=DATE:20261130\nRRULE:FREQ=MONTHLY;BYDAY=MO;BYSETPOS=-1;COUNT=8\nEXDATE;VALUE=DATE:20261228\nSTATUS:COMPLETED');
   const t = upsert({ items: [] }, 'inbox', 'opaque.ics', raw, '2026-11-13').doc.items[0];
   assert.equal(t.done, true); assert.equal(t.due, '2026-11-30');
+  assert.equal(t.repeat, undefined, 'the UI must not calculate a lossy recurrence approximation');
   assert.match(taskIcs(t), /BYSETPOS=-1;COUNT=8/);
 });
 test('editing representable recurrence fields retains opaque RRULE parts', () => {
   const raw = wrap('RRULE:FREQ=MONTHLY;BYSETPOS=-1;BYDAY=MO');
   const t = upsert({ items: [] }, 'inbox', 'opaque.ics', raw, '2026-11-13').doc.items[0];
-  assert.match(taskIcs({ ...t, repeat: { ...t.repeat, every: 2 } }), /BYSETPOS=-1/);
+  assert.match(taskIcs({ ...t, repeat: { ...parseTodo(raw).repeat, every: 2 } }), /BYSETPOS=-1/);
 });
 test('recurrence interval edit preserves timed UNTIL and ordinal BYDAY exactly', () => {
   const raw = wrap('RRULE:FREQ=MONTHLY;BYDAY=-1MO;UNTIL=20271231T230000Z');
   const t = upsert({ items: [] }, 'inbox', 'opaque.ics', raw, '2026-11-13').doc.items[0];
-  const out = taskIcs({ ...t, repeat: { ...t.repeat, every: 2 } });
+  const out = taskIcs({ ...t, repeat: { ...parseTodo(raw).repeat, every: 2 } });
   assert.match(out, /UNTIL=20271231T230000Z/); assert.match(out, /BYDAY=-1MO/); assert.match(out, /INTERVAL=2/);
 });
 test('editing a supported reminder changes its trigger without losing alarm extensions', () => {

@@ -212,7 +212,7 @@ function preserved(t, generated) {
             const keys = { FREQ: 'unit', INTERVAL: 'every', BYDAY: 'days', BYMONTHDAY: 'monthDay', COUNT: 'count', UNTIL: 'until' };
             const keep = oldParts.filter(p => {
               const field = keys[p.split('=')[0].toUpperCase()];
-              return !field || JSON.stringify(t.repeat?.[field]) === JSON.stringify(t.davBase?.repeat?.[field]);
+              return !field || JSON.stringify(t.repeat?.[field]) === JSON.stringify((t.davBase?.repeat ?? parsed.repeat)?.[field]);
             });
             const keptKeys = new Set(keep.map(p => p.split('=')[0].toUpperCase()));
             out.push([...g.slice(6).split(';').filter(p => !keptKeys.has(p.split('=')[0])), ...keep].join(';').replace(/^/, 'RRULE:'));
@@ -289,9 +289,11 @@ export function upsert(doc, list, name, ics, today) {
   // The planner cannot calculate arbitrary RFC recurrence sets. Keep their completion and
   // full recurrence untouched rather than moving them to an incorrect date.
   const complex = /^(?:EXDATE|EXRULE|RDATE|RECURRENCE-ID)[;:]/m.test(ics) || /(?:BYSETPOS|BYMONTH|BYYEARDAY|BYWEEKNO|BYHOUR|BYMINUTE|BYSECOND|WKST)=/.test(ics) || /BYDAY=[^;\r\n]*\d/.test(ics) || (t.repeat?.unit !== 'week' && /BYDAY=/.test(ics));
+  // Do not expose a lossy approximation to the UI's recurrence calculator either.
+  if (complex) t.repeat = undefined;
   if (t.done && t.repeat && !complex) { const p = rollOn(t, today); t = { ...t, ...p, done: !!p.done, doneAt: p.done ? today : undefined }; }
   t.davRaw = ics;
-  t.davBase = { ...t, due: v.due, dueTime: v.dueTime, start: v.start, done: v.done, doneAt: v.done ? v.completed ?? today : undefined, repeat: v.repeat };
+  t.davBase = { ...t, due: v.due, dueTime: v.dueTime, start: v.start, done: v.done, doneAt: v.done ? v.completed ?? today : undefined, repeat: complex ? undefined : v.repeat };
   delete t.davBase.davRaw;
   delete t.davBase.davBase;
   for (const k of Object.keys(t)) if (t[k] === undefined) delete t[k];
