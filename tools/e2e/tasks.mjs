@@ -241,6 +241,30 @@ try {
   await wait(900);
   check('and comes back with them', (await tasks()).lists?.length === 1 && !!(await task('Gym')));
 
+  // ---------- quick add: dates, list, priority, tags, rules in either language ----------
+  await page.locator('.tk-lists li', { hasText: 'School' }).locator('button[data-drop]').click();
+  await page.locator('#tk-h').filter({ hasText: 'School' }).waitFor();
+  await page.locator('#tk-new').fill('Essay tomorrow at 9 #School !1 @study');
+  const preview = await page.locator('#tk-add-help').textContent();
+  check('quick add previews what it understood', /Detected: Essay/.test(preview) && /09:00/.test(preview) && /School/.test(preview), preview);
+  await page.locator('#tk-new').press('Enter');
+  await add('Okuma her pazartesi');
+  await add('Review every friday');
+  await page.locator('#tk-new').fill('Call tomorrow !1');
+  await page.getByRole('button', { name: 'Keep as plain text' }).click();
+  await page.locator('#tk-new').press('Enter');
+  await wait(1100);
+  const qa = await task('Essay'), tomorrow = addD(D, 1);
+  check('quick add sets due, time, list, priority and tag', qa?.due === tomorrow && qa.dueTime === '09:00' && qa.priority === 1 && qa.tags?.join() === 'study' && qa.list === school.id, JSON.stringify(qa));
+  const trWeekly = await task('Okuma'), enWeekly = await task('Review');
+  check('quick add reads Turkish and English weekly rules', trWeekly?.repeat?.unit === 'week' && trWeekly.repeat.days?.join() === '0' && enWeekly?.repeat?.days?.join() === '4' && wd(trWeekly.due) === 0 && wd(enWeekly.due) === 4, JSON.stringify([trWeekly?.repeat, enWeekly?.repeat]));
+  const literal = await task('Call tomorrow !1');
+  check('plain text opt-out keeps the whole title', literal && !literal.due && !literal.priority);
+  await page.locator('#tk-new').fill('Read 9 pages');
+  check('numbers alone are not a time', (await page.locator('#tk-add-help').textContent()).startsWith('Try:'));
+  await page.locator('#tk-new').fill('');
+  await shot(page, 'quick-add');
+
   // ---------- Turkish words for a rule ----------
   // ---------- phones ----------
   await page.setViewportSize({ width: 390, height: 844 });

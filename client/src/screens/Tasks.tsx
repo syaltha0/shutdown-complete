@@ -17,6 +17,7 @@ import {
 import { insertAt, offerUndo } from '../lib/undo';
 import { DayChips } from './Templates';
 import { refreshKey, updateKey, useDoc } from '../lib/useDoc';
+import { parseTaskDraft } from '../lib/taskQuickAdd';
 
 const TINTS: LabelColor[] = ['blue', 'green', 'amber', 'red', 'grey'];
 /** reminders, in minutes before the due time */
@@ -72,6 +73,8 @@ export function Tasks({ view: asked }: { view?: string }) {
   const [openId, setOpenId] = useState<string | null>(null);
   const [showDone, setShowDone] = useState(false);
   const [draft, setDraft] = useState('');
+  const [smartAdd, setSmartAdd] = useState(true);
+  const parsedDraft = smartAdd ? parseTaskDraft(draft, lists, today()) : { text: draft.trim() };
   const addInput = useRef<HTMLInputElement>(null);
   useEffect(() => { if (new URLSearchParams(location.search).has('add')) addInput.current?.focus(); }, [!!doc]);
   useEffect(() => { setOpenId(null); setShowDone(false); }, [view]);
@@ -121,7 +124,11 @@ export function Tasks({ view: asked }: { view?: string }) {
     if (view === 'important') t.priority = 1;
     if (view === 'current') t.start = today();
     if (view.startsWith(TAG)) t.tags = [view.slice(TAG.length)];
-    update((b) => ({ ...b, items: [...b.items, t] }));
+    const parsed = smartAdd ? parseTaskDraft(text, lists, today()) : { text };
+    const tags = [...new Set([...(t.tags ?? []), ...(parsed.tags ?? [])])];
+    const task: Item = { ...t, ...parsed, tags: tags.length ? tags : undefined };
+    if (task.list === DEFAULT_LIST) task.list = undefined;
+    update((b) => ({ ...b, items: [...b.items, task] }));
   };
   const clearDone = () => {
     const gone = items.filter((t) => t.done && (view === 'completed' || listOf(t) === view));
@@ -305,12 +312,18 @@ export function Tasks({ view: asked }: { view?: string }) {
             </label>
           </header>
           {view !== 'completed' && (
-            <form className="tk-add" onSubmit={(e) => { e.preventDefault(); const t = draft.trim(); if (t) { add(t); setDraft(''); } }}>
+            <form className="tk-add" onSubmit={(e) => { e.preventDefault(); const t = draft.trim(); if (t) { add(t); setDraft(''); setSmartAdd(true); } }}>
               <label htmlFor="tk-new" className="sr-only">{isList ? T.tkAddPh(viewName) : T.tkAddPhAny}</label>
-              <input id="tk-new" ref={addInput} className="input" autoComplete="off" placeholder={isList ? T.tkAddPh(viewName) : T.tkAddPhAny} value={draft} onChange={(e) => setDraft(e.target.value)} />
+              <input id="tk-new" ref={addInput} className="input" autoComplete="off" aria-describedby="tk-add-help" placeholder={isList ? T.tkAddPh(viewName) : T.tkAddPhAny} value={draft} onChange={(e) => setDraft(e.target.value)} />
               <button type="submit" className="btn primary" disabled={!draft.trim()}>{T.tkAdd}</button>
             </form>
           )}
+          {view !== 'completed' && <div id="tk-add-help" className="muted tk-quick-help">
+            {draft.trim() && parsedDraft.text !== draft.trim() ? <>
+              <span role="status">{T.tkDetected}: {parsedDraft.text} · {[parsedDraft.due, parsedDraft.dueTime, parsedDraft.list && lists.find((l) => l.id === parsedDraft.list)?.name, parsedDraft.priority && `${T.tkPriority} ${parsedDraft.priority}`, parsedDraft.tags?.map((g) => `@${g}`).join(' '), parsedDraft.repeat && recurWords(T, parsedDraft.repeat)].filter(Boolean).join(' · ')}</span>{' '}
+              <button type="button" className="card-link quiet" onClick={() => setSmartAdd(false)}>{T.tkLiteral}</button>
+            </> : <span>{T.tkQuickHelp}</span>}
+          </div>}
           {shown.length > 0 && <ul className="tk-list">{shown.map(row)}</ul>}
           {doc && shown.length === 0 && <p className="muted tk-empty">{q.trim() ? T.tkNoMatch : T.tkEmpty[view as keyof typeof T.tkEmpty] ?? T.tkEmpty.list}</p>}
           {(doneHere.length > 0 || (view === 'completed' && shown.length > 0)) && (

@@ -551,6 +551,8 @@ export const tr: Words = {
     completed: 'Biten görevler sen silene kadar burada durur.', list: 'Bu liste boş. Yukarıya bir görev yaz.',
   },
   tkNoMatch: 'Aramaya uyan görev yok.',
+  tkDetected: 'Algılanan', tkLiteral: 'Düz metin olarak tut',
+  tkQuickHelp: 'Örnek: Yaz yarın 9 #İş !1 @inceleme · her pazartesi',
   tkSearch: 'Görevlerde ara', tkSortLabel: 'Sıralama',
   tkSorts: { due: 'Teslim tarihine göre', priority: 'Önceliğe göre', start: 'Başlangıca göre', created: 'En yeni önce', title: 'Ada göre', manual: 'Kendi sıram' },
   tkFromLists: 'Listelerinden', tkDragHint: 'blok için saatlere sürükle', tkDragToDay: (t) => `${t}: saatlere sürükle`, tkAddToDay: (t) => `${t}: bu günün görevlerine ekle`, tkMoreInLists: (n) => `Listelerinde ${n} tane daha`,

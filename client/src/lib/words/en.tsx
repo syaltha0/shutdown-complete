@@ -565,6 +565,8 @@ export const en = {
     completed: 'Done tasks show here until you delete them.', list: 'This list is empty. Write a task above.',
   } as Record<string, string>,
   tkNoMatch: 'No task matches the search.',
+  tkDetected: 'Detected', tkLiteral: 'Keep as plain text',
+  tkQuickHelp: 'Try: Write tomorrow 9 #Work !1 @review · every monday',
   tkSearch: 'Search tasks', tkSortLabel: 'Order',
   tkSorts: { due: 'By due date', priority: 'By priority', start: 'By start date', created: 'Newest first', title: 'By title', manual: 'Your own order' },
   tkFromLists: 'From your lists', tkDragHint: 'drag onto the hours for a block', tkDragToDay: (t: string) => `Drag ${t} onto the hours`, tkAddToDay: (t: string) => `Add ${t} to this day’s tasks`, tkMoreInLists: (n: number) => `${n} more in your lists`,
