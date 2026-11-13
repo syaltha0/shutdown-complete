@@ -8,6 +8,7 @@ import { emptyDay, uid, type DayDoc } from '../lib/model';
 import { useDoc } from '../lib/useDoc';
 import { Ring, useTick } from './FocusTimer';
 import { IconX } from './Icons';
+import { fill } from './FocusConfig';
 import { useSocial } from '../lib/social';
 
 /**
@@ -136,8 +137,8 @@ export function FocusRoom({ start, onClose }: { start: { blockId: string | null;
           </div>
           <label className="room-volume">
             <span className="sr-only">{T.volume}</span>
-            <input type="range" min={0} max={1} step={0.05} value={volume} disabled={!sound}
-              onChange={(e) => { const v = Number(e.target.value); setVolume(v); setAmbientVolume(v); }} />
+            <span className="focus-range" style={fill(volume, 0, 1)}><input type="range" min={0} max={1} step={0.05} value={volume} disabled={!sound}
+              onChange={(e) => { const v = Number(e.target.value); setVolume(v); setAmbientVolume(v); }} /></span>
           </label>
         </div>
         {together.length > 0 && <p className="room-people"><i className="dot" aria-hidden="true" />{T.roomPeople(together.join(', '))}</p>}

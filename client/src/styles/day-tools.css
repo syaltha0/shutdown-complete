@@ -141,3 +141,5 @@
   .room-controls { gap: 8px; }
   .room-sound { padding-top: 16px; }
 }
+.room-volume .focus-range { display: block; width: min(240px, 65vw); }
+.room-volume .focus-range:has(input:disabled) { opacity: .45; }
