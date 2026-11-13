@@ -66,9 +66,6 @@
    drawn into all the rest. On a wide, tall window the grid reaches the bottom of the window (the user saw the lower
    half of the page empty), and the chart grows with it, so neither the page nor the card is left blank. */
 .focus-grid > .stack > .focus-sessions { flex: 0 0 auto; display: flex; flex-direction: column; }
-.focus-grid > .stack > .panel:last-child { flex: 1 0 auto; display: flex; flex-direction: column; }
-.focus-grid > .stack > .panel:last-child > .chart { flex: 1; position: relative; min-height: 200px; }
-.focus-grid > .stack > .panel:last-child > .chart > svg { position: absolute; inset: 0 0 auto; }
 @media (min-width: 1040px) and (min-height: 700px) {
   .grid.top.focus-grid { min-height: calc(100dvh - 128px); }
 }
@@ -339,4 +336,28 @@
   .focus-panel > .focus-card-head { flex-wrap: wrap; gap: 10px; }
   .focus-panel .focus-secondary { column-gap: 2px; }
   .focus-panel .focus-secondary .focus-stop { margin-left: 0; padding-left: 12px; }
+}
+/* Keep the history below the timer without stretching the timer itself. */
+.focus-grid > .focus-left { display: flex; flex-direction: column; gap: var(--gap); min-width: 0; }
+.focus-left > .focus-panel { width: 100%; }
+.focus-left > [aria-labelledby="f4-h"] { min-width: 0; }
+@media (min-width: 1000px) and (max-width: 1180px) {
+  .focus-grid > .span-7 { grid-column: span 7; }
+  .focus-grid > .span-5 { grid-column: span 5; }
+}
+@media (max-width: 999px) {
+  .focus-grid > .focus-left { display: contents; }
+  .focus-left > .focus-panel { grid-column: 1 / -1; order: 0; }
+  .focus-grid > .span-5 { order: 1; }
+  .focus-left > [aria-labelledby="f4-h"] { grid-column: 1 / -1; order: 2; }
+}
+@media (pointer: coarse) {
+  .focus-grid .focus-panel .btn,
+  .focus-grid :is(button, .btn, select, input:not([type="checkbox"])),
+  .focus-room :is(button, .btn, select, input:not([type="checkbox"])) { min-height: 44px; }
+  .focus-grid button, .focus-room button { min-width: 44px; }
+}
+@media (max-width: 480px) {
+  .focus-left .focus-stats { grid-template-columns: minmax(0, 1fr); }
+  .focus-left .focus-stats dd { white-space: normal; overflow: visible; overflow-wrap: anywhere; }
 }
