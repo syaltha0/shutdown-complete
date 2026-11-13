@@ -232,6 +232,7 @@ export interface FocusSettings {
   volume?: number;
   scheduled?: boolean;
   breaks?: { id: string; time: string; minutes: number; label: string }[];
+  miniKeepOpen?: boolean;
   strict?: boolean;
   fullscreenBreak?: boolean;
   autoBreak?: boolean;
