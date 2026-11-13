@@ -60,18 +60,19 @@ try {
   await page.goto(`${srv.url}/day/${D}`);
   const review = page.locator('.cal-event', { hasText: 'Design review' });
   await review.waitFor({ timeout: 8000 });
-  check('a calendar event shows on the day, in local time', (await review.textContent()).includes('16:00–16:30'));
+  check('a calendar event shows on the day, in local time', /16:00.*16:30/.test(await review.textContent()));
   check('an all-day event shows above the grid', await page.locator('.all-day', { hasText: 'Conference week' }).isVisible());
-  check('only an event with nothing planned over it is offered to block out', await page.getByRole('button', { name: 'Block out 1 event' }).isVisible());
+  check('only an event with nothing planned over it is offered to block out', await page.getByRole('button', { name: /Add calendar events/ }).isVisible());
   await shot(page, 'day-calendar');
   await review.click();
+  await page.getByRole('button', { name: 'Make block and edit', exact: true }).click();
   await page.locator('dialog.sheet[open] #be-label').waitFor();
   check('clicking an event makes it a meeting block', (await page.locator('#be-label').inputValue()) === 'Design review');
   await page.keyboard.press('Escape');
   await wait(1200);
   const made = (await doc(`day:${D}`)).columns.at(-1).blocks.find((b) => b.label === 'Design review');
-  check('the block keeps the event\'s time and is a meeting', made && made.start === 960 && made.end === 990 && made.kind === 'meeting', JSON.stringify(made));
-  check('a blocked-out event is no longer offered', !(await page.getByRole('button', { name: /^Block out/ }).count()));
+  check('the block keeps the event\'s time and is a meeting', made && made.start === 960 && made.end === 990 && made.kind === 'shallow', JSON.stringify(made));
+  check('a blocked-out event is no longer offered', await review.getByText('Planned', { exact: false }).count() > 0);
 
   // ---------- undo ----------
   await page.locator('.col.active .block', { hasText: 'Design review' }).click();

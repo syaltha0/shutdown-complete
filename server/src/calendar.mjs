@@ -149,6 +149,8 @@ export function parseFeed(text) {
     if (name === 'END' && value.toUpperCase() === 'VEVENT') { if (ev && ev.start) events.push(ev); ev = null; continue; }
     if (!ev) continue;
     if (name === 'UID') ev.uid = value.trim();
+    else if (name === 'LOCATION') ev.location = unescape(value);
+    else if (name === 'DESCRIPTION') ev.description = unescape(value);
     else if (name === 'SUMMARY') ev.title = unescape(value);
     else if (name === 'DTSTART') ev.start = when(value, params);
     else if (name === 'DTEND') ev.end = when(value, params);
@@ -245,7 +247,7 @@ export function eventsBetween(feed, from, to, viewerTz) {
       if (ev.start.allDay) {
         for (let d = t; d < t + Math.max(DAY, lengthMs); d += DAY) {
           const date = new Date(d).toISOString().slice(0, 10);
-          if (date >= from && date <= to) put(date, { title: ev.title || '', start: 0, end: 1440, allDay: true });
+          if (date >= from && date <= to) put(date, { uid: ev.uid, location: ev.location, description: ev.description, title: ev.title || '', start: 0, end: 1440, allDay: true });
         }
         continue;
       }
@@ -257,7 +259,7 @@ export function eventsBetween(feed, from, to, viewerTz) {
         const dayEnd = cur + (1440 - startMin) * 60_000 - p.s * 1000;
         const endMs = Math.min(e, dayEnd);
         const endMin = endMs >= dayEnd ? 1440 : startMin + Math.round((endMs - cur) / 60_000);
-        if (date >= from && date <= to) put(date, { title: ev.title || '', start: startMin, end: Math.max(endMin, startMin), allDay: false });
+        if (date >= from && date <= to) put(date, { uid: ev.uid, location: ev.location, description: ev.description, title: ev.title || '', start: startMin, end: Math.max(endMin, startMin), allDay: false });
         if (e <= dayEnd) break;
         cur = dayEnd;
       }

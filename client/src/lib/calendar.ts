@@ -3,7 +3,7 @@ import { useSettings } from '../App';
 import { api } from './api';
 
 /** One calendar event on one day, in this device's time zone (minutes since midnight). */
-export interface CalEvent { title: string; start: number; end: number; allDay: boolean; cal: string }
+export interface CalEvent { uid?: string; location?: string; description?: string; title: string; start: number; end: number; allDay: boolean; cal: string }
 
 export const viewerZone = () => { try { return Intl.DateTimeFormat().resolvedOptions().timeZone || 'UTC'; } catch { return 'UTC'; } };
 
@@ -36,3 +36,5 @@ export function useCalendar(from: string, to: string) {
 
 /** Forget what was fetched, after a calendar is added or removed. */
 export const refreshCalendars = () => cache.clear();
+
+export const eventUid = (e: CalEvent) => e.uid || JSON.stringify([e.title, e.start, e.end]);

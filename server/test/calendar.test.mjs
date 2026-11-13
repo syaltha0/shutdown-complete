@@ -30,13 +30,13 @@ test('RRULE excludes EXDATE and replaces a moved RECURRENCE-ID occurrence', () =
   ]);
   const days = eventsBetween(parsed, '2026-11-09', '2026-11-12', 'Europe/Istanbul');
   assert.deepEqual(Object.keys(days).sort(), ['2026-11-09', '2026-11-11', '2026-11-12']);
-  assert.deepEqual(days['2026-11-11'], [{ title: 'Moved', start: 660, end: 720, allDay: false }]);
+  assert.deepEqual(days['2026-11-11'], [{ uid: 'series', location: undefined, description: undefined, title: 'Moved', start: 660, end: 720, allDay: false }]);
   assert.equal(days['2026-11-09'][0].start, 540);
 });
 test('Windows TZID maps to IANA and converts to the viewer zone', () => {
   const parsed = feed(['UID:windows', 'DTSTART;TZID="Turkey Standard Time":20261112T090000', 'DTEND;TZID="Turkey Standard Time":20261112T100000']);
   assert.equal(parsed[0].start.tz, 'Europe/Istanbul');
-  assert.deepEqual(eventsBetween(parsed, '2026-11-12', '2026-11-12', 'UTC')['2026-11-12'], [{ title: '', start: 360, end: 420, allDay: false }]);
+  assert.deepEqual(eventsBetween(parsed, '2026-11-12', '2026-11-12', 'UTC')['2026-11-12'], [{ uid: 'windows', location: undefined, description: undefined, title: '', start: 360, end: 420, allDay: false }]);
 });
 test('weekly RRULE respects BYDAY, interval and inclusive UNTIL', () => {
   const parsed = feed(['UID:weekly', 'DTSTART;VALUE=DATE:20261109', 'RRULE:FREQ=WEEKLY;INTERVAL=2;BYDAY=MO,FR;UNTIL=20261123']);

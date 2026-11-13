@@ -4,7 +4,9 @@ import { useT } from '../lib/i18n';
 import { IconRepeat } from '../components/Icons';
 import { lockSwipe } from '../lib/swipe';
 import { MAX_COLUMNS, uid, type Block, type Column, type DayDoc, type Kind } from '../lib/model';
-import type { CalEvent } from '../lib/calendar';
+import { eventUid, type CalEvent } from '../lib/calendar';
+import { Pop } from '../components/Pop';
+import { useSettings } from '../App';
 
 export const PPM = 1.2; // pixels per minute: a half hour is 36px
 const SNAP = 15;
@@ -24,7 +26,7 @@ export function TimeGrid({
   focusKey?: string;
   /** the linked calendars' timed events of this day, drawn faintly behind the blocks; a click blocks one out */
   events?: CalEvent[];
-  onEvent?: (e: CalEvent) => void;
+  onEvent?: (e: CalEvent, edit?: boolean) => void;
   preview?: { start: number; end: number; label: string } | null;
   day: DayDoc;
   range: [number, number];
@@ -247,12 +249,7 @@ export function TimeGrid({
                 {isActive && events.filter((ev) => ev.end > r0 && ev.start < r1).map((ev, k) => {
                   const s = Math.max(r0, ev.start), e = Math.min(r1, ev.end);
                   return (
-                    <button key={`${ev.cal}-${k}`} type="button" className={`cal-event${(e - s) * PPM < 44 ? ' short' : ''}`}
-                      style={{ top: (s - r0) * PPM + 1, height: Math.max(14, (e - s) * PPM - 2) }}
-                      aria-label={T.calEventAria(ev.title, clock(ev.start), clock(ev.end))} title={`${ev.title} · ${clock(ev.start)}–${clock(ev.end)}`}
-                      onPointerDown={(pe) => pe.stopPropagation()} onClick={() => onEvent?.(ev)}>
-                      <span className="ct">{ev.title}</span><span className="cw num">{clock(ev.start)}–{clock(ev.end)}</span>
-                    </button>
+                    <CalendarEvent key={ev.cal + k} event={ev} top={(s - r0) * PPM + 1} height={Math.max(14, (e - s) * PPM - 2)} planned={day.columns.some((c) => c.blocks.some((b) => b.source?.calendar === ev.cal && b.source.uid === eventUid(ev)))} onEvent={onEvent} />
                   );
                 })}
                 {col.blocks.map((b) => {
@@ -377,4 +374,25 @@ export function useNow(enabled: boolean) {
     return () => window.clearInterval(t);
   }, [enabled]);
   return now.getHours() * 60 + now.getMinutes();
+}
+
+function CalendarEvent({ event: ev, top, height, planned, onEvent }: { event: CalEvent; top: number; height: number; planned: boolean; onEvent?: (e: CalEvent, edit?: boolean) => void }) {
+  const T = useT();
+  const { settings } = useSettings();
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLButtonElement>(null);
+  const close = () => { setOpen(false); ref.current?.focus(); };
+  return <div className="cal-event-wrap" style={{ position: 'absolute', top, height, left: 0, right: 0 }} onPointerDown={(e) => e.stopPropagation()}>
+    <button ref={ref} type="button" className="cal-event" style={{ top: 0, height: '100%' }} aria-expanded={open}
+      aria-label={T.calEventAria(ev.title, clock(ev.start), clock(ev.end))}
+      onKeyDown={(e) => { if (e.key === 'Escape') close(); }} onClick={() => setOpen(!open)}>
+      <span className="ct">{ev.title}{planned && <small> {'\u00b7'} {T.calPlanned}</small>}</span><span className="cw num">{clock(ev.start)}{'\u2013'}{clock(ev.end)}</span>
+    </button>
+    <Pop open={open} onClose={close} title={ev.title} beside>
+      <p>{clock(ev.start)}{'\u2013'}{clock(ev.end)} {'\u00b7'} {settings.calendars?.find((c) => c.id === ev.cal)?.name ?? ev.cal}</p>
+      {planned && <p role="status">{T.calAlreadyPlanned}</p>}
+      <button type="button" className="btn" onClick={() => { close(); onEvent?.(ev); }}>{T.calMakeBlock}</button>
+      <button type="button" className="btn" onClick={() => { close(); onEvent?.(ev, true); }}>{T.calMakeEdit}</button>
+    </Pop>
+  </div>;
 }

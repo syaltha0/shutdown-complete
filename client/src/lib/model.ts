@@ -7,6 +7,7 @@ export type Kind = 'deep' | 'shallow' | 'meeting' | 'overflow' | 'personal';
 export const KIND_IDS: Kind[] = ['deep', 'shallow', 'meeting', 'overflow', 'personal'];
 
 export interface Block {
+  source?: { calendar: string; uid: string; date: string };
   id: string;
   start: number; // minutes since midnight
   end: number;

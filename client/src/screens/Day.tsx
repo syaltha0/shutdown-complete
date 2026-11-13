@@ -22,7 +22,7 @@ import { BlockEditor, ReviseDialog } from './BlockDialogs';
 import { kindSwatch, PPM, revise, TimeGrid, undoRevision, useNow } from './TimeGrid';
 import { applyTemplate, templateFromBlocks, TemplatesDialog, weekdayIndex } from './Templates';
 import { Segmented } from '../components/Segmented';
-import { useCalendar, type CalEvent } from '../lib/calendar';
+import { eventUid, useCalendar, type CalEvent } from '../lib/calendar';
 import { offerUndo } from '../lib/undo';
 import { SHORTCUT, type ShortcutAction } from '../components/Shortcuts';
 import { TaskMeta } from '../components/TaskMeta';
@@ -172,21 +172,24 @@ export function Day({ date }: { date: string }) {
 
   // a calendar event becomes a meeting block, kept inside the column's hours
   const asBlock = (e: CalEvent): Block | null => {
-    const start = Math.max(floor, Math.round(e.start / 5) * 5), end = Math.min(r1, Math.round(e.end / 5) * 5);
-    return end - start >= 5 ? { id: uid(), start, end, label: e.title, note: '', kind: 'meeting' } : null;
+    const start = Math.max(floor, e.start), end = Math.min(r1, e.end);
+    return end - start >= 5 ? { id: uid(), start, end, label: e.title, note: [e.location, e.description].filter(Boolean).join('\n').slice(0, 1000), kind: 'shallow', source: { calendar: e.cal, uid: eventUid(e), date } } : null;
   };
   const overlaps = (s: number, e: number) => col.blocks.some((b) => b.start < e && b.end > s);
-  const uncovered = timedEvents.filter((e) => e.end > floor && !overlaps(Math.max(floor, e.start), e.end));
-  function blockOutEvent(e: CalEvent) {
+  const isPlanned = (e: CalEvent) => blocks.some((b) => b.source?.calendar === e.cal && b.source.uid === eventUid(e) && b.source.date === date);
+  const uncovered = timedEvents.filter((e) => e.end > floor && !isPlanned(e));
+  function blockOutEvent(e: CalEvent, edit = false) {
+    if (isPlanned(e)) { setFlash(T.calAlreadyPlanned); return; }
     const b = asBlock(e);
     if (!b) return;
     setCols((cols) => cols.map((c, i) => (i === cols.length - 1 ? { ...c, blocks: [...c.blocks, b].sort((a, z) => a.start - z.start) } : c)));
-    setOpenId(b.id);
+    if (edit) setOpenId(b.id);
   }
   function blockOutAll() {
-    const add = uncovered.map(asBlock).filter((b): b is Block => !!b);
+    const add: Block[] = [];
+    for (const e of uncovered) { const b = asBlock(e); if (b && !overlaps(b.start, b.end) && !add.some((x) => x.start < b.end && x.end > b.start)) add.push(b); }
     setCols((cols) => cols.map((c, i) => (i === cols.length - 1 ? { ...c, blocks: [...c.blocks, ...add].sort((a, z) => a.start - z.start) } : c)));
-    setFlash(T.calBlocked(add.length));
+    setFlash(T.calBatchResult(add.length, uncovered.length - add.length));
   }
 
   function applyTpl(t: DayTemplate) {
