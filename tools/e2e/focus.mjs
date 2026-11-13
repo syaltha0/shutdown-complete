@@ -22,7 +22,7 @@ try {
   check('the default length shows on the ring', (await ring()) === '25:00');
 
   await p.locator('.focus-config-anchor > button').click();
-  const sliders = p.locator('.focus-config input');
+  const sliders = p.locator('.focus-config input[type=range]');
   const setRange = async (i, value) => { await sliders.nth(i).fill(String(value)); };
   await setRange(0, 45);
   check('a configured length sets the ring', (await ring()) === '45:00');
@@ -34,6 +34,14 @@ try {
   await setRange(0, 40);
   check('a configured length of 40 shows', (await ring()) === '40:00');
   await setRange(1, 10);
+  for (const width of [390, 360]) {
+    await p.setViewportSize({width, height: 900});
+    check('sheet fits ' + width, await p.locator('.focus-settings-sheet').evaluate(el => el.scrollWidth <= el.clientWidth && Math.abs(el.getBoundingClientRect().width - innerWidth) < 2));
+  }
+  await p.setViewportSize({width: 1440, height: 900});
+  await p.keyboard.press('Escape');
+  check('Esc restores settings trigger focus', await p.locator('.focus-config-anchor > button').evaluate(el => el === document.activeElement));
+  await p.locator('.focus-config-anchor > button').click();
   await p.getByRole('dialog').getByRole('button', { name: 'Close', exact: true }).click();
 
   await p.getByRole('button', { name: 'Start focus', exact: true }).click();
@@ -220,15 +228,23 @@ try {
   await p.locator('h1').click();
   await p.keyboard.press('Space');
   check('strict mode blocks keyboard pause', (await doc()).focus.active.pausedLeft === null);
-  const noPip = await c.newPage();
-  await noPip.addInitScript(() => Object.defineProperty(window, 'documentPictureInPicture', {value: undefined, configurable: true}));
-  await noPip.goto(s.url + '/focus');
-  await noPip.locator('.focus-controls').waitFor();
-  check('mini timer is hidden without document PiP', await noPip.getByRole('button', {name: 'Mini timer', exact: true}).count() === 0);
-  await noPip.close();
+  check('mini timer is removed', await p.getByRole('button', {name: 'Mini timer', exact: true}).count() === 0);
   await p.locator('.focus-config-anchor > button').click();
-  await p.getByText('Start focus automatically', {exact: true}).click();
+  await p.getByRole('switch', {name: /Start focus automatically/}).click();
   check('options write to settings.focus', await until(async () => (await api.get('settings')).value.focus.autoFocus === false));
+  const configSaved = async (fn) => check('preferences persist: ' + fn.toString(), await until(async () => fn((await api.get('settings')).value.focus)));
+  await p.getByRole('switch', {name: 'Scheduled breaks', exact: true}).check();
+  await p.getByRole('button', {name: 'Add break', exact: true}).click();
+  await p.getByLabel('Break name', {exact: true}).fill('Tea');
+  await p.getByLabel('Break time', {exact: true}).fill('15:45');
+  await p.getByLabel('min', {exact: true}).fill('12');
+  await configSaved(f => f.breaks?.some(b => b.label === 'Tea' && b.time === '15:45' && b.minutes === 12));
+  await p.getByRole('button', {name: 'Remove break', exact: true}).click();
+  await configSaved(f => f.breaks.length === 0);
+  await p.locator('.focus-config select').selectOption('soft');
+  await p.getByLabel('Volume', {exact: true}).fill('0.4');
+  await p.getByRole('switch', {name: 'Spoken notifications', exact: true}).check();
+  await configSaved(f => f.bell === 'soft' && f.volume === 0.4 && f.voice === true);
   await p.getByRole('dialog').getByRole('button', {name: 'Close', exact: true}).click();
   await api.put('settings', {...settings0, focus: {...settings0.focus, autoFocus: true}});
   await setActive('day:' + D, run(1, 2, {phase: 'short', plannedMin: 1}), []);
