@@ -338,6 +338,7 @@ export const en = {
   // focus (pomodoro)
   focusMetric: 'Focus',
   focusTitle: 'Focus',
+  focusOptions: { autoBreak: 'Start breaks automatically', autoFocus: 'Start focus automatically' },
   phase: { focus: 'Focus', short: 'Short break', long: 'Long break' } as Record<string, string>,
   startFocus: 'Start focus',
   focusOn: (l: string) => `Focus on ${l}`,

@@ -324,6 +324,7 @@ export const tr: Words = {
 
   focusMetric: 'Odak',
   focusTitle: 'Odak',
+  focusOptions: { autoBreak: 'Molalar? otomatik ba?lat', autoFocus: 'Oda?? otomatik ba?lat' },
   phase: { focus: 'Odak', short: 'Kısa mola', long: 'Uzun mola' },
   startFocus: 'Odaklanmaya başla',
   focusOn: (l) => `Odaklan: ${l}`,

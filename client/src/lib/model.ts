@@ -226,6 +226,8 @@ export interface MetricDef {
 }
 
 export interface FocusSettings {
+  autoBreak?: boolean;
+  autoFocus?: boolean;
   focusMin: number;
   shortMin: number;
   longMin: number;

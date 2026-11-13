@@ -119,7 +119,7 @@ export async function finishPhase(settings: Settings, early = false, opts: { key
     if (opts.startedAt && a.startedAt !== opts.startedAt) return d;
     const left = secondsLeft(a);
     if (!early && left > 0) return d; // not finished yet (another device may have resumed or extended it)
-    if (a.phase !== 'focus') { result = 'break-over'; return { ...x, focus: { ...x.focus, active: null } }; }
+    if (a.phase !== 'focus') { result = 'break-over'; return { ...x, focus: { ...x.focus, active: !early && f.autoFocus ? { phase: 'focus', startedAt: new Date().toISOString(), plannedMin: f.focusMin, pausedLeft: null, blockId: a.blockId, label: a.label, ...(a.task ? { task: a.task } : {}) } : null } }; }
     const minutes = Math.round((a.plannedMin * 60 - left) / 60);
     if (minutes < 1) return { ...x, focus: { ...x.focus, active: null } };
     const block = x.columns.flatMap((c) => c.blocks).find((b) => b.id === a.blockId);
@@ -144,7 +144,7 @@ export async function finishPhase(settings: Settings, early = false, opts: { key
       ...x, metrics, tasks,
       focus: { sessions, active: {
         phase: long ? 'long' : 'short', startedAt: end.toISOString(), plannedMin: long ? f.longMin : (a.breakMin ?? f.shortMin),
-        pausedLeft: null, blockId: a.blockId, label: a.label, sessionId: session.id, ...(a.task ? { task: a.task } : {}),
+        pausedLeft: f.autoBreak === false ? (long ? f.longMin : (a.breakMin ?? f.shortMin)) * 60 : null, blockId: a.blockId, label: a.label, sessionId: session.id, ...(a.task ? { task: a.task } : {}),
       } },
     };
   });
