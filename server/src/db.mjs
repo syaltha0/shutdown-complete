@@ -288,6 +288,7 @@ export function openDb(file) {
     },
     push: {
       all: () => db.prepare('SELECT * FROM push_subscriptions').all(),
+      forUser: (u) => db.prepare('SELECT * FROM push_subscriptions WHERE user_id=?').all(u),
       has: (u, e) => !!db.prepare('SELECT 1 FROM push_subscriptions WHERE user_id=? AND endpoint=?').get(u, e),
       put: (u, b) => db.prepare('INSERT INTO push_subscriptions VALUES (?, ?, ?, ?, ?) ON CONFLICT(endpoint) DO UPDATE SET user_id=excluded.user_id, keys=excluded.keys, timezone=excluded.timezone').run(b.endpoint, u, JSON.stringify(b.keys), b.timeZone, now()),
       remove: (u, e) => db.prepare('DELETE FROM push_subscriptions WHERE user_id=? AND endpoint=?').run(u, e),

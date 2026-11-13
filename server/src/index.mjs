@@ -833,6 +833,8 @@ app.put('/api/doc/:key', async (c) => {
   const res = db.docs.put(uid(c), key, b.value, b.version);
   if (res.conflict) return c.json({ error: 'Changed on another device', current: res.conflict }, 409);
   if (key === 'inbox') syncer.schedule(uid(c));
+  // a focus timer or the notification choices changed: send what is due and plan the push for the new end time
+  if (key === 'settings' || key.startsWith('day:')) void push.refresh(uid(c)).catch(() => {});
   return c.json(res.doc);
 });
 
