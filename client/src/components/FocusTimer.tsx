@@ -163,7 +163,7 @@ function FocusMiniPanel({ a, docKey, count }: { a: FocusActive; docKey: string; 
         <div className="mt-actions">
           <button type="button" className="btn sm" disabled={a.plannedMin >= MAX_PLANNED} onClick={() => extendFocus(5, docKey)}>{T.plusFive}</button>
           <button type="button" className="btn sm ghost" disabled={locked} onClick={() => finishPhase(settings, true, {key: docKey, startedAt: a.startedAt})}>{a.phase === 'focus' ? T.finishNow : T.skipBreak}</button>
-          <a className="mt-link" href="/focus" onClick={onLinkClick}>{T.miniGoFocus}</a>
+          <a className="card-link mt-link" href="/focus" onClick={onLinkClick}>{T.miniGoFocus}</a>
         </div>
       </div></div>
     </section>
