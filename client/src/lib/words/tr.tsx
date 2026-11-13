@@ -360,7 +360,7 @@ export const tr: Words = {
   openFocus: 'Odağı aç',
   focusByBlock: 'Bloklara göre odak', noDeepBlocks: 'Bugün derin odak bloğu yok',
   focusedOf: (a, b) => `${a} / ${b}`,
-  focusFourWeeks: 'Günlük odak, son dört hafta', todayInBlue: 'bugün mavi',
+  focusFourWeeks: 'Günlük odak, son dört hafta',
   focusStats: { week: 'Bu hafta', avg: 'Günlük ortalama', best: 'En iyi gün' },
   currentRun: (d) => `Şu anki seri ${d}`,
   habitRates: 'Bu ay yapılanlar', allDoneDays: 'Bütün alışkanlıkların yapıldığı günler, haftalık',

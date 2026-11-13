@@ -215,7 +215,6 @@ export function Focus() {
         <section className="panel" aria-labelledby="f4-h" data-anim>
           <div className="chart-head">
             <h2 id="f4-h" style={{ fontSize: 16, fontWeight: 500 }}>{T.focusFourWeeks}</h2>
-            <span className="meta">{T.todayInBlue}</span>
           </div>
           {past && (() => {
             // three figures above the chart: a card that stretches with the timer card is not just a tall chart

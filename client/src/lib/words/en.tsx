@@ -374,7 +374,7 @@ export const en = {
   openFocus: 'Open focus',
   focusByBlock: 'Focus by block', noDeepBlocks: 'No deep-focus blocks today',
   focusedOf: (a: string, b: string) => `${a} of ${b}`,
-  focusFourWeeks: 'Focus per day, last four weeks', todayInBlue: 'today in blue',
+  focusFourWeeks: 'Focus per day, last four weeks',
   focusStats: { week: 'This week', avg: 'Daily average', best: 'Best day' },
   currentRun: (d: string) => `Current run ${d}`,
   habitRates: 'Done this month', allDoneDays: 'Days with every habit done, per week',
