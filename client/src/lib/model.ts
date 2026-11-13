@@ -148,7 +148,7 @@ export interface Countdown { id: string; name: string; date: string; time: numbe
 /** Things to do that belong to no day yet; moved onto a day when there is room for them. */
 /** The tasks (the doc keeps its first name, 'inbox'): all lists' tasks in one array, done ones too, and the lists. */
 export interface SavedTaskFilter { id: string; name: string; list?: string; tag?: string; priority?: string; date?: string; from?: string; to?: string; status?: string }
-export interface InboxDoc { items: Item[]; lists?: TaskList[]; filters?: SavedTaskFilter[] }
+export interface InboxDoc { items: Item[]; lists?: TaskList[]; filters?: SavedTaskFilter[]; trash?: { item: Item; deletedAt: string }[] }
 export const emptyInbox = (): InboxDoc => ({ items: [] });
 
 export type FocusPhase = 'focus' | 'short' | 'long';
