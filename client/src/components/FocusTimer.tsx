@@ -1,3 +1,5 @@
+import { FocusRoom } from './FocusRoom';
+import { showNotification } from '../lib/pwa';
 import { useEffect, useRef, useState } from 'react';
 import { useSettings } from '../App';
 import { today } from '../lib/dates';
@@ -42,6 +44,7 @@ export function FocusRunner() {
   const T = useT();
   const { settings } = useSettings();
   const path = usePath();
+  const [closedBreak, setClosedBreak] = useState<string | null>(null);
   const f = settingsFocus(settings);
   const { active: a, key } = useFocusDay();
   useTick(!!a && a.pausedLeft == null);
@@ -56,7 +59,7 @@ export function FocusRunner() {
         localStorage.setItem(stamp, '1');
         if (a) await finishPhase(settings, true, {key, startedAt: a.startedAt});
         await startFocus({phase: 'long', minutes: b.minutes, blockId: null, label: b.label || T.phase.long});
-        notify(T.focusDone, b.label || T.phase.long);
+        showNotification(T.focusDone, b.label || T.phase.long);
         break;
       }
     };
@@ -119,7 +122,7 @@ export function FocusRunner() {
 
   if (!a || path.startsWith('/focus')) return null;
   return (
-    <div className={`mini-timer phase-${a.phase}`} role="status" aria-label={T.focusRunning}>
+    <>{f.fullscreenBreak && a.phase !== 'focus' && closedBreak !== a.startedAt && <FocusRoom start={{blockId: a.blockId, label: a.label, minutes: a.plannedMin}} onClose={() => setClosedBreak(a.startedAt)} />}<div className={`mini-timer phase-${a.phase}`} role="status" aria-label={T.focusRunning}>
       <Ring a={a} size={36} stroke={4} />
       <a href="/focus" onClick={onLinkClick} className="mt-text">
         <b className="num">{mmss(left)}</b>
@@ -128,6 +131,6 @@ export function FocusRunner() {
       {a.pausedLeft == null
         ? <button type="button" className="btn ghost" disabled={!!f.strict && a.phase === 'focus'} onClick={() => pauseFocus(key)}>{T.pause}</button>
         : <button type="button" className="btn ghost" disabled={!!f.strict && a.phase === 'focus'} onClick={() => resumeFocus(key)}>{T.resume}</button>}
-    </div>
+    </div></>
   );
 }

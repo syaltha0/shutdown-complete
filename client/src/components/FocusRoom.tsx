@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { useSettings } from '../App';
 import { AMBIENTS, ambientPlaying, ambientPref, onAmbient, playAmbient, setAmbientVolume, type Ambient } from '../lib/ambient';
 import { today } from '../lib/dates';
-import { cancelFocus, chime, extendFocus, finishPhase, MAX_PLANNED, mmss, pauseFocus, resumeFocus, secondsLeft, settingsFocus, startFocus, useFocusDay } from '../lib/focus';
+import { cancelFocus, chime, extendFocus, finishPhase, MAX_PLANNED, mmss, pauseFocus, resumeFocus, resetFocus, secondsLeft, settingsFocus, startFocus, useFocusDay } from '../lib/focus';
 import { useT } from '../lib/i18n';
 import { emptyDay, uid, type DayDoc } from '../lib/model';
 import { useDoc } from '../lib/useDoc';
@@ -51,6 +51,15 @@ export function FocusRoom({ start, onClose }: { start: { blockId: string | null;
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
+      const target = e.target as HTMLElement;
+      if (!e.repeat && !e.ctrlKey && !e.metaKey && !e.altKey && !target?.isContentEditable && !target?.closest('input, textarea, select, button') && a) {
+        const k = e.key.toLowerCase();
+        if (k === '+' || k === '=') { e.preventDefault(); void extendFocus(5, key); }
+        if (!(f.strict && a.phase === 'focus')) {
+          if (k === 's') { e.preventDefault(); void finish(); }
+          if (k === 'r' && !a.roomId) { e.preventDefault(); void resetFocus(key); }
+        }
+      }
       if (e.key === 'Escape') { e.preventDefault(); leave(); }
       if (e.key === 'Tab' && rootRef.current) { // Tab stays inside the room
         const all = [...rootRef.current.querySelectorAll<HTMLElement>('button:not([disabled]), input:not([disabled]), select, a[href]')];

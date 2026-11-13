@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { useSettings } from '../App';
-import { mmss, pauseFocus, resumeFocus, secondsLeft, settingsFocus, useFocusDay } from '../lib/focus';
+import { mmss, pauseFocus, resumeFocus, secondsLeft, settingsFocus, startFocus, useFocusDay } from '../lib/focus';
 import { useT } from '../lib/i18n';
 import { Ring, useTick } from './FocusTimer';
 
@@ -14,7 +14,7 @@ export function FocusMini() {
   const pending = useRef(false);
   const api = (window as Window & {documentPictureInPicture?: Pip}).documentPictureInPicture;
   async function open() {
-    if (!api || pending.current) return;
+    if (!api || f.mini === false || pending.current) return;
     if (pip && !pip.closed) { pip.focus(); return; }
     pending.current = true;
     try {
@@ -28,6 +28,6 @@ export function FocusMini() {
   }
   useEffect(() => { const close = () => pip?.close(); window.addEventListener('pagehide', close); return () => { window.removeEventListener('pagehide', close); pip?.close(); }; }, [pip]);
   useEffect(() => { const openMini = () => void open(); window.addEventListener('sc:mini', openMini); return () => window.removeEventListener('sc:mini', openMini); });
-  if (!api) return null;
-  return <><button className="btn ghost sm" onClick={() => void open()}>{T.focusOptions.mini}</button>{pip && createPortal(<div className={`focus-stage phase-${a?.phase ?? 'focus'}`}><div className="focus-ring">{a && <Ring a={a} size={220} stroke={5} />}<div className="focus-read"><b className="num">{mmss(a ? secondsLeft(a) : f.focusMin * 60)}</b></div></div>{a && <button className="btn" disabled={!!f.strict && a.phase === 'focus'} onClick={() => a.pausedLeft == null ? pauseFocus(key) : resumeFocus(key)}>{a.pausedLeft == null ? T.pause : T.resume}</button>}</div>, pip.document.body)}</>;
+  if (!api || f.mini === false) return null;
+  return <><button className="btn ghost sm" onClick={() => void open()}>{T.focusOptions.mini}</button>{pip && createPortal(<div className={`focus-stage phase-${a?.phase ?? 'focus'}`}><div className="focus-ring">{a && <Ring a={a} size={220} stroke={5} />}<div className="focus-read"><b className="num">{mmss(a ? secondsLeft(a) : f.focusMin * 60)}</b></div></div>{!a && <button className="btn" onClick={() => startFocus({blockId: null, label: T.freeFocus, minutes: f.focusMin})}>{T.startFocus}</button>}{a && <button className="btn" disabled={!!f.strict && a.phase === 'focus'} onClick={() => a.pausedLeft == null ? pauseFocus(key) : resumeFocus(key)}>{a.pausedLeft == null ? T.pause : T.resume}</button>}</div>, pip.document.body)}</>;
 }
