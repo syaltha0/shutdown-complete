@@ -126,26 +126,30 @@
 .btn.focus-start .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--hue); }
 
 /* the floating timer (it floats, so it may carry a shadow) */
-.mini-timer { position: fixed; right: 24px; bottom: 24px; z-index: 30; display: flex; align-items: center; gap: 10px; padding: 8px 8px 8px 10px; border: 1px solid var(--border); border-radius: 999px; background: var(--surface); box-shadow: 0 10px 30px rgba(0, 0, 0, 0.12); animation: rise-in 420ms var(--ease-out) both; } /* taste-skill-ignore: a floating timer */
+.mini-timer { position: fixed; right: 24px; bottom: 24px; z-index: 30; display: flex; flex-direction: column; align-items: stretch; width: auto; interpolate-size: allow-keywords; border: 1px solid var(--border); border-radius: 26px; background: var(--surface); box-shadow: 0 10px 30px rgba(0, 0, 0, 0.12); overflow: hidden; animation: rise-in 420ms var(--ease-out) both; transition: width 200ms var(--ease-out), border-radius 200ms var(--ease-out); } /* taste-skill-ignore: a floating timer */
+.mini-timer[data-open="true"] { width: 320px; border-radius: 18px; }
+.mt-row { display: flex; align-items: center; gap: 10px; padding: 8px 8px 8px 10px; }
+.mt-row .mt-trigger { flex: 1; }
 .mini-timer .mt-text { display: grid; line-height: 16px; min-width: 0; max-width: 200px; }
 .mini-timer .mt-text b { font-size: 16px; line-height: 20px; font-weight: 500; }
 .mini-timer .mt-text span { font-size: 12px; color: var(--muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .mini-timer .btn { height: 32px; border-radius: 999px; }
 .mini-timer.phase-focus { --phase-color: #1d5fbf; }
 .mt-trigger { border: 0; background: none; color: inherit; padding: 0; text-align: left; cursor: pointer; font: inherit; }
-.mt-panel { position: absolute; bottom: 100%; right: 0; width: 340px; max-width: calc(100vw - 24px); max-height: calc(100dvh - 150px); overflow-y: auto; padding: 20px; border: 1px solid var(--border); border-radius: 16px; background: var(--surface); box-shadow: 0 10px 30px rgba(0,0,0,.12); transform-origin: bottom right; transform: translateY(8px) scale(.98); opacity: 0; visibility: hidden; transition: opacity 180ms ease, transform 180ms ease, visibility 180ms; }
-.mini-timer[data-open="true"] .mt-panel { opacity: 1; visibility: visible; transform: none; }
+/* the details grow out of the pill itself: the row stays at the bottom, the card gets taller and wider */
+.mt-panel { display: grid; grid-template-rows: 0fr; transition: grid-template-rows 200ms var(--ease-out); }
+.mini-timer[data-open="true"] .mt-panel { grid-template-rows: 1fr; }
+.mt-panel-clip { min-height: 0; overflow: hidden; }
+.mt-body { padding: 16px 16px 12px; border-bottom: 1px solid var(--rule); opacity: 0; transition: opacity 160ms ease; max-height: calc(100dvh - 150px); overflow-y: auto; }
+.mini-timer[data-open="true"] .mt-body { opacity: 1; transition-delay: 60ms; }
 .mt-phase { color: var(--phase-color); font-size: 13px; }
-.mt-clock { display: block; font-size: 48px; font-weight: 500; line-height: 1.3; }
-.mt-progress { height: 3px; background: var(--raised); margin: 12px 0 18px; }
-.mt-progress i { display: block; height: 100%; background: var(--phase-color); }
-.mt-label { display: block; font-weight: 500; overflow-wrap: anywhere; }
+.mt-label { display: block; margin-top: 4px; font-weight: 500; overflow-wrap: anywhere; }
 .mt-meta { display: flex; justify-content: space-between; gap: 8px; margin-top: 8px; }
 .mt-meta, .mt-next { color: var(--muted); font-size: 12px; }
-.mt-actions { display: flex; flex-wrap: wrap; gap: 6px; margin: 16px 0; }
-.mt-link { font-size: 13px; text-decoration: underline; text-underline-offset: 3px; }
-:root[data-motion="reduce"] .mini-timer, :root[data-motion="reduce"] .mt-panel { animation: none; transition: none; }
-@media (prefers-reduced-motion: reduce) { .mini-timer, .mt-panel { animation: none; transition: none; } }
+.mt-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin-top: 14px; }
+.mt-link { margin-left: auto; font-size: 13px; color: var(--muted); text-decoration: underline; text-underline-offset: 3px; }
+:root[data-motion="reduce"] :is(.mini-timer, .mt-panel, .mt-body) { animation: none; transition: none; }
+@media (prefers-reduced-motion: reduce) { :is(.mini-timer, .mt-panel, .mt-body) { animation: none; transition: none; } }
 
 
 /* phone tab bar and the More sheet */
@@ -189,6 +193,7 @@
   .tab-item[aria-current="page"] .label { font-weight: 500; }
   .mini-timer { right: 12px; left: 12px; bottom: 76px; }
   .mini-timer .mt-text { flex: 1; max-width: none; }
+  .mini-timer[data-open="true"] { width: auto; }
   .date-add { grid-template-columns: minmax(0, 1fr) auto; }
   .date-add input[type="date"] { grid-column: 1 / -1; }
   .habit-add { grid-template-columns: minmax(0, 1fr) auto; padding: 16px; }

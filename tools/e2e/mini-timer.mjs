@@ -32,7 +32,7 @@ try {
    await trigger.hover();check('hover opens',await trigger.getAttribute('aria-expanded')==='true');
    await p.screenshot({path:`${dir}/${lang}-${width}-${theme}-${state}-open.png`});
    const box=await panel.boundingBox(), pill=await root.boundingBox();
-   check('panel fits',box.x>=12 && box.x+box.width<=width-12 && box.y>=0 && box.y+box.height<=pill.y+1);
+   check('one body: details inside the pill, all on screen',box.x>=pill.x-1 && box.x+box.width<=pill.x+pill.width+1 && box.y>=pill.y-1 && pill.x>=12 && pill.x+pill.width<=width-12 && pill.y>=0 && pill.y+pill.height<=900);
    check('phone tab clearance',width!==390 || pill.y+pill.height<=824);
    await p.mouse.move(0,0);check('leave closes',await trigger.getAttribute('aria-expanded')==='false');
    await trigger.focus();check('keyboard opens',await trigger.getAttribute('aria-expanded')==='true');
@@ -42,20 +42,21 @@ try {
   }
   await seed('focus');
   const panel=p.locator('.mt-panel');await p.locator('.mt-trigger').hover();
-  await panel.locator('button').nth(0).click();
+  const pause=p.locator('.mt-pause');
+  await pause.click();
   await p.waitForTimeout(800);
   check('pause persisted',(await api.get(key)).value.focus.active.pausedLeft!=null);
-  await panel.locator('button').nth(1).click();await p.waitForTimeout(800);
-  check('extend persisted',(await api.get(key)).value.focus.active.plannedMin===30);
   await panel.locator('button').nth(0).click();await p.waitForTimeout(800);
+  check('extend persisted',(await api.get(key)).value.focus.active.plannedMin===30);
+  await pause.click();await p.waitForTimeout(800);
   check('resume persisted',(await api.get(key)).value.focus.active.pausedLeft===null);
-  await panel.locator('button').nth(2).click();await p.waitForTimeout(800);
+  await panel.locator('button').nth(1).click();await p.waitForTimeout(800);
   check('finish enters break',(await api.get(key)).value.focus.active.phase==='short');
-  await panel.locator('button').nth(2).click();await p.waitForTimeout(800);
+  await panel.locator('button').nth(1).click();await p.waitForTimeout(800);
   check('skip ends break',(await api.get(key)).value.focus.active===null);
   await api.put('settings',{...settings,focus:{...settings.focus,strict:true,fullscreenBreak:false}});await seed('focus');
   await p.locator('.mt-trigger').hover();
-  check('strict locks pause and finish',await panel.locator('button').nth(0).isDisabled() && await panel.locator('button').nth(2).isDisabled());
+  check('strict locks pause and finish',await p.locator('.mt-pause').isDisabled() && await panel.locator('button').nth(1).isDisabled());
   await p.goto(s.url+'/focus');check('hidden on focus',await p.locator('.mini-timer').count()===0);
   await c.close();
  }

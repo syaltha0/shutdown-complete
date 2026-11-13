@@ -153,26 +153,28 @@ function FocusMiniPanel({ a, docKey, count }: { a: FocusActive; docKey: string; 
     onFocus={() => { if (!suppressed.current) setOpen(true); }}
     onBlur={e => { if (!e.currentTarget.contains(e.relatedTarget)) { suppressed.current = false; setOpen(false); } }}
     onKeyDown={e => { if (e.key === 'Escape') { e.preventDefault(); suppressed.current = true; trigger.current?.focus(); setOpen(false); } }}>
-    <Ring a={a} size={36} stroke={4} />
-    <button ref={trigger} type="button" className="mt-text mt-trigger" aria-expanded={open} aria-controls="mini-focus-details"
-      onPointerDown={e => { if (e.pointerType !== 'mouse') { e.preventDefault(); suppressed.current = false; setOpen(true); } }}
-      onClick={() => { suppressed.current = false; setOpen(true); }}>
-      <b className="num">{mmss(left)}</b><span>{a.label || T.freeFocus}</span>
-    </button>
-    <button type="button" className="btn ghost" disabled={locked} onClick={togglePause}>{a.pausedLeft == null ? T.pause : T.resume}</button>
+    {/* one body: the details unfold above the pill row, inside the same card */}
     <section id="mini-focus-details" className="mt-panel" aria-label={T.focusRunning} inert={!open} aria-hidden={!open}>
-      <span className="mt-phase">{T.phase[a.phase]}</span>
-      <b className="mt-clock num">{mmss(left)}</b>
-      <div className="mt-progress" aria-hidden="true"><i style={{width: `${Math.max(0, Math.min(100, 100 * (1 - left / (a.plannedMin * 60))))}%`}} /></div>
-      <strong className="mt-label">{a.label || T.freeFocus}</strong>
-      <div className="mt-meta"><span>{T.sessionN(session, cycle)}</span><span>{a.pausedLeft == null ? T.miniEnds(end) : T.miniPaused}</span></div>
-      <p className="mt-next">{T.miniNext(T.phase[next], nextMin)}</p>
-      <div className="mt-actions">
-        <button type="button" className="btn" disabled={locked} onClick={togglePause}>{a.pausedLeft == null ? T.pause : T.resume}</button>
-        <button type="button" className="btn" disabled={a.plannedMin >= MAX_PLANNED} onClick={() => extendFocus(5, docKey)}>{T.plusFive}</button>
-        <button type="button" className="btn ghost" disabled={locked} onClick={() => finishPhase(settings, true, {key: docKey, startedAt: a.startedAt})}>{a.phase === 'focus' ? T.finishNow : T.skipBreak}</button>
-      </div>
-      <a className="mt-link" href="/focus" onClick={onLinkClick}>{T.miniGoFocus}</a>
+      <div className="mt-panel-clip"><div className="mt-body">
+        <span className="mt-phase">{T.phase[a.phase]}</span>
+        <strong className="mt-label">{a.label || T.freeFocus}</strong>
+        <div className="mt-meta"><span>{T.sessionN(session, cycle)}</span><span>{a.pausedLeft == null ? T.miniEnds(end) : T.miniPaused}</span></div>
+        <p className="mt-next">{T.miniNext(T.phase[next], nextMin)}</p>
+        <div className="mt-actions">
+          <button type="button" className="btn sm" disabled={a.plannedMin >= MAX_PLANNED} onClick={() => extendFocus(5, docKey)}>{T.plusFive}</button>
+          <button type="button" className="btn sm ghost" disabled={locked} onClick={() => finishPhase(settings, true, {key: docKey, startedAt: a.startedAt})}>{a.phase === 'focus' ? T.finishNow : T.skipBreak}</button>
+          <a className="mt-link" href="/focus" onClick={onLinkClick}>{T.miniGoFocus}</a>
+        </div>
+      </div></div>
     </section>
+    <div className="mt-row">
+      <Ring a={a} size={36} stroke={4} />
+      <button ref={trigger} type="button" className="mt-text mt-trigger" aria-expanded={open} aria-controls="mini-focus-details"
+        onPointerDown={e => { if (e.pointerType !== 'mouse') { e.preventDefault(); suppressed.current = false; setOpen(true); } }}
+        onClick={() => { suppressed.current = false; setOpen(true); }}>
+        <b className="num">{mmss(left)}</b><span>{a.label || T.freeFocus}</span>
+      </button>
+      <button type="button" className="btn ghost mt-pause" disabled={locked} onClick={togglePause}>{a.pausedLeft == null ? T.pause : T.resume}</button>
+    </div>
   </div>;
 }
