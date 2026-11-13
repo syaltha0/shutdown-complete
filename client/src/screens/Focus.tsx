@@ -1,3 +1,4 @@
+import { FocusMini } from '../components/FocusMini';
 import { Segmented } from '../components/Segmented';
 import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { FocusConfig } from '../components/FocusConfig';
@@ -127,7 +128,7 @@ export function Focus() {
         <section className={`panel span-7 focus-panel phase-${phase}`} aria-labelledby="fp-h" data-anim>
           <header className="focus-card-head"><h2 id="fp-h">{T.focusRunning}</h2><div className="focus-card-actions">
           <button type="button" className="btn ghost sm focus-room-btn" onClick={openRoom}>{T.roomOpen}</button>
-          <div className="focus-config-anchor"><button type="button" className="btn sm" aria-expanded={config} onClick={() => setConfig(!config)}>{T.nav.settings}</button><Pop open={config} onClose={() => setConfig(false)} title={T.focusSettings}><FocusConfig /></Pop></div>
+          <FocusMini /><div className="focus-config-anchor"><button type="button" className="btn sm" aria-expanded={config} onClick={() => setConfig(!config)}>{T.nav.settings}</button><Pop open={config} onClose={() => setConfig(false)} title={T.focusSettings}><FocusConfig /></Pop></div>
           </div></header>
           <div className="focus-stage">
             <Segmented className="focus-tabs sm" role="group" aria-label={T.focusRunning}>{(['focus', 'short', 'long'] as const).map((p) => <button type="button" key={p} className={`phase-${p}`} aria-pressed={phase === p} disabled={!!a && a.phase !== p} onClick={() => setReadyPhase(p)}>{T.phase[p]}</button>)}</Segmented>
