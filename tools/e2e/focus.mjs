@@ -1,4 +1,5 @@
 // The Focus screen: length and break choice, start/pause, +5 min, finishing with a note, skipping the break, the room.
+import { mkdirSync } from 'node:fs';
 import { launch } from '../lib/browser.mjs';
 import { startServer, client } from '../lib/server.mjs';
 import { demoAccount, iso } from '../lib/demo.mjs';
@@ -14,14 +15,19 @@ let passed = 0;
 const check = (name, ok) => { if (!ok) throw Error(name); passed++; console.log('PASS ' + name); };
 const doc = async () => (await api.get('day:' + D)).value;
 const until = async (fn, ms = 5000) => { const t = Date.now(); while (Date.now() - t < ms) { const v = await fn(); if (v) return v; await p.waitForTimeout(150); } return false; };
-const ring = () => p.locator('.focus-read b').innerText();
+const ring = () => p.locator('.focus-read b').textContent();
 
+const shots = process.env.FOCUS_SETTINGS_SHOTS;
+if (shots) mkdirSync(shots, {recursive: true});
 try {
   await p.goto(s.url + '/focus');
   await p.locator('.focus-setup').waitFor();
   check('the default length shows on the ring', (await ring()) === '25:00');
 
+  const initialHeight = await p.locator('.focus-panel').evaluate(el => el.getBoundingClientRect().height);
   await p.locator('.focus-config-anchor > button').click();
+  check('settings preserve card height', Math.abs(initialHeight - await p.locator('.focus-panel').evaluate(el => el.getBoundingClientRect().height)) < 1);
+  if (shots) await p.screenshot({path: shots + '/1440-idle.png', fullPage:true});
   const sliders = p.locator('.focus-config input[type=range]');
   const setRange = async (i, value) => { await sliders.nth(i).fill(String(value)); };
   await setRange(0, 45);
@@ -36,13 +42,16 @@ try {
   await setRange(1, 10);
   for (const width of [390, 360]) {
     await p.setViewportSize({width, height: 900});
-    check('sheet fits ' + width, await p.locator('.focus-settings-sheet').evaluate(el => el.scrollWidth <= el.clientWidth && Math.abs(el.getBoundingClientRect().width - innerWidth) < 2));
+    check('inline settings fit ' + width, await p.locator('.focus-settings-view').evaluate(el => el.scrollWidth <= el.clientWidth && !!el.closest('.focus-panel')));
+    if (shots && width === 390) await p.screenshot({path: shots + '/390.png', fullPage:true});
+    check('no sheet or backdrop', await p.locator('dialog[open], .focus-settings-sheet').count() === 0);
   }
   await p.setViewportSize({width: 1440, height: 900});
   await p.keyboard.press('Escape');
   check('Esc restores settings trigger focus', await p.locator('.focus-config-anchor > button').evaluate(el => el === document.activeElement));
   await p.locator('.focus-config-anchor > button').click();
-  await p.getByRole('dialog').getByRole('button', { name: 'Close', exact: true }).click();
+  await p.getByRole('button', { name: '\u2190 Timer', exact: true }).click();
+  check('back returns to timer and restores focus', await p.locator('.focus-stage').isVisible() && await p.locator('.focus-config-anchor > button').evaluate(el => el === document.activeElement));
 
   await p.getByRole('button', { name: 'Start focus', exact: true }).click();
   const a1 = await until(async () => (await doc()).focus?.active);
@@ -50,9 +59,27 @@ try {
   check('the setup gives way to the controls', await p.locator('.focus-setup').count() === 0 && await p.getByRole('button', { name: 'Pause', exact: true }).isVisible());
   check('the current round is distinguished from upcoming rounds', await p.locator('.focus-rounds .current').count() === 1 && await p.locator('.focus-rounds .done').count() === 0);
   await p.locator('.focus-config-anchor > button').click();
+  if (shots) {
+    await p.screenshot({path: shots + '/1440-running.png', fullPage:true});
+    await p.evaluate(() => document.documentElement.setAttribute('data-theme','dark'));
+    await p.screenshot({path: shots + '/dark.png', fullPage:true});
+    await p.evaluate(() => document.documentElement.setAttribute('data-theme','light'));
+  }
+  check('running time remains visible', /Focus \u00b7 \d+:\d{2}/.test(await p.locator('.focus-config-time').innerText()));
+  const timeBefore = await p.locator('.focus-config-time').innerText();
+  check('timer keeps ticking inside settings', await until(async () => await p.locator('.focus-config-time').innerText() !== timeBefore));
+  for (const width of [390, 360]) {
+    await p.setViewportSize({width, height:900});
+    const openHeight = await p.locator('.focus-panel').evaluate(el => el.getBoundingClientRect().height);
+    await p.locator('.focus-config-anchor > button').click();
+    const timerHeight = await p.locator('.focus-panel').evaluate(el => el.getBoundingClientRect().height);
+    check('running settings preserve phone height ' + width, Math.abs(openHeight - timerHeight) < 1);
+    await p.locator('.focus-config-anchor > button').click();
+  }
+  await p.setViewportSize({width:1440, height:900});
   check('running timer settings explain when durations apply', await p.locator('.focus-config-hint').isVisible());
   check('duration sliders reference the explanation', await p.locator('.focus-config input').first().getAttribute('aria-describedby') === await p.locator('.focus-config-hint').getAttribute('id'));
-  await p.getByRole('dialog').getByRole('button', { name: 'Close', exact: true }).click();
+  await p.getByRole('button', { name: '\u2190 Timer', exact: true }).click();
 
   await p.getByRole('button', { name: 'Pause', exact: true }).click();
   check('pause keeps the time left', !!(await until(async () => (await doc()).focus?.active?.pausedLeft != null)));
@@ -228,7 +255,7 @@ try {
   await p.locator('h1').click();
   await p.keyboard.press('Space');
   check('strict mode blocks keyboard pause', (await doc()).focus.active.pausedLeft === null);
-  check('mini timer is removed', await p.getByRole('button', {name: 'Mini timer', exact: true}).count() === 0);
+
   await p.locator('.focus-config-anchor > button').click();
   await p.getByRole('switch', {name: /Start focus automatically/}).click();
   check('options write to settings.focus', await until(async () => (await api.get('settings')).value.focus.autoFocus === false));
@@ -245,7 +272,7 @@ try {
   await p.getByLabel('Volume', {exact: true}).fill('0.4');
   await p.getByRole('switch', {name: 'Spoken notifications', exact: true}).check();
   await configSaved(f => f.bell === 'soft' && f.volume === 0.4 && f.voice === true);
-  await p.getByRole('dialog').getByRole('button', {name: 'Close', exact: true}).click();
+  await p.getByRole('button', { name: '\u2190 Timer', exact: true }).click();
   await api.put('settings', {...settings0, focus: {...settings0.focus, autoFocus: true}});
   await setActive('day:' + D, run(1, 2, {phase: 'short', plannedMin: 1}), []);
   await p.reload();
