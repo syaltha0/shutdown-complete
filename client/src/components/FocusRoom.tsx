@@ -125,7 +125,7 @@ export function FocusRoom({ start, onClose }: { start: { blockId: string | null;
               <button type="button" className="btn num" disabled={a.plannedMin >= MAX_PLANNED} onClick={() => extendFocus(5, key)}>{T.plusFive}</button>
               {a.phase === 'focus'
                 ? <button type="button" className="btn" disabled={!!f.strict && a.phase === 'focus'} onClick={finish}>{T.finishNow}</button>
-                : <button type="button" className="btn primary" disabled={!!f.strict && a.phase === 'focus'} onClick={finish}>{T.skipBreak}</button>}
+                : <button type="button" className="btn primary" onClick={finish}>{T.skipBreak}</button>}
               <button type="button" className="btn ghost" disabled={!!f.strict && a.phase === 'focus'} onClick={() => cancelFocus(key)}>{T.stop}</button>
             </>
           )}

@@ -161,7 +161,7 @@ export function Focus() {
                 </div>
                 <div className="focus-secondary">
                   <button type="button" className="btn ghost sm" disabled={!!a.roomId || (!!f.strict && a.phase === 'focus')} aria-describedby={a.roomId ? 'focus-reset-hint' : undefined} onClick={() => stop(true)}>{stopAsk === 'reset' ? T.stopAsk(ranMin) : T.focusReset}</button>
-                  {a.phase !== 'focus' && <button type="button" className="btn ghost sm" disabled={!!f.strict && a.phase === 'focus'} onClick={finish}>{T.skipBreak}</button>}
+                  {a.phase !== 'focus' && <button type="button" className="btn ghost sm" onClick={finish}>{T.skipBreak}</button>}
                   <button type="button" className="btn ghost sm num" disabled={a.plannedMin >= MAX_PLANNED} onClick={() => extendFocus(5, key)}>{T.plusFive}</button>
                   {a.phase === 'focus' && <button type="button" className="btn ghost" disabled={!!f.strict && a.phase === 'focus'} onClick={finish}>{T.finishNow}</button>}
                   <button type="button" className={`btn ghost focus-stop${stopAsk === 'stop' ? ' danger' : ''}`} aria-live="polite" disabled={!!f.strict && a.phase === 'focus'} onClick={() => stop()}>{stopAsk === 'stop' ? T.stopAsk(ranMin) : T.stop}</button>
