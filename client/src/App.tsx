@@ -53,6 +53,7 @@ function fetchAhead() {
   const next = (i: number) => { if (i < loaders.length) idle(() => { loaders[i]().catch(() => {}).finally(() => next(i + 1)); }); };
   window.setTimeout(() => next(0), 2500);
 }
+const CommandPalette = lazy(() => import('./components/CommandPalette'));
 const Agenda = lazy(() => import('./screens/Agenda').then(m => ({default: m.Agenda})));
 const Wait = () => <div className="screen-wait" aria-busy="true" />;
 
@@ -195,6 +196,7 @@ function Shell() {
   const path = usePath();
   const r = route(path);
   const T = useT();
+  const [palette, setPalette] = useState(false);
   const [more, setMore] = useState(false);
   const { settings } = useSettings();
   const on = (id: string) => !(FEATURE_OF[id] && !featureOn(settings, FEATURE_OF[id]!));
@@ -202,6 +204,13 @@ function Shell() {
   useEffect(() => { if (!r || !on(r.nav)) navigate('/', true); }, [r?.nav, settings.features]); // eslint-disable-line react-hooks/exhaustive-deps
   useEffect(() => setMore(false), [path]);
   useEffect(fetchAhead, []);
+  useEffect(() => {
+    const open = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && !e.altKey && e.key.toLowerCase() === 'k') { e.preventDefault(); setMore(false); setPalette(v => !v); }
+    };
+    window.addEventListener('keydown', open);
+    return () => window.removeEventListener('keydown', open);
+  }, []);
   const t = today();
 
   const home: NavItem = { id: 'home', href: '/', label: T.nav.home, icon: <IconHome /> };
@@ -267,6 +276,7 @@ function Shell() {
               <b>{T.nav.more}</b>
               <button type="button" className="btn ghost icon" aria-label={T.close} onClick={() => setMore(false)}><IconX /></button>
             </div>
+            <button className="more-item" onClick={() => { setMore(false); setPalette(true); }}>{T.palette.title}<kbd>Ctrl / Cmd K</kbd></button>
             {phoneMore.map((x) => link(x, 'more-item'))}
           </div>
         </div>
@@ -281,6 +291,7 @@ function Shell() {
       <BlockReminders />
       <FriendsWatcher />
       <Shortcuts />
+      {palette && <Suspense fallback={null}><CommandPalette onClose={() => setPalette(false)} /></Suspense>}
       {r?.nav === 'day' && <Tour />}
     </div>
   );

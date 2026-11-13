@@ -2,6 +2,7 @@
 import type { Words } from './en';
 
 export const tr: Words = {
+  palette: {"title":"Komut paleti","placeholder":"Komut, tarih, Görev ekle: ... veya Yakala: ...","none":"Komut bulunamadı","task":"Görev ekle","capture":"Yakala","date":"Tarihe git","start":"Odak başlat","pause":"Odağı duraklat","resume":"Odağa devam et","skip":"Aşamayı atla","reset":"Döngüyü sıfırla","theme":"Temayı değiştir","motion":"Azaltılmış hareketi değiştir","error":"Kaydedilemedi. Yeniden deneyin.","preview":"Önizleme","taskAliases":["task","add task","görev ekle"],"captureAliases":["capture","yakala"]},
   focusJournal: 'Odak günlüğü',
   publication: {
     title: 'Takvim aboneliği',
