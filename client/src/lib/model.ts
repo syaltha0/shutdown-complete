@@ -226,6 +226,9 @@ export interface MetricDef {
 }
 
 export interface FocusSettings {
+  voice?: boolean;
+  bell?: string;
+  volume?: number;
   scheduled?: boolean;
   breaks?: { id: string; time: string; minutes: number; label: string }[];
   strict?: boolean;

@@ -86,7 +86,11 @@ export function FocusRunner() {
     const f = settingsFocus(settings);
     finishPhase(settings, false, { key, startedAt: a.startedAt }).then((r) => {
       if (r === 'none') return;
-      if (f.sound) chime();
+      if (f.voice && 'speechSynthesis' in window) {
+        const speech = new SpeechSynthesisUtterance(r === 'logged' ? T.focusOptions.breakVoice : T.focusOptions.focusVoice);
+        speech.lang = T.locale; speech.volume = f.volume ?? 1; window.speechSynthesis.speak(speech);
+      }
+      if (f.sound) chime(f);
       if (r === 'logged') { notify(T.focusDone, T.takeBreak(f.shortMin)); stopAmbient(); }
       else notify(T.breakOver, T.backToPlan);
     });

@@ -84,7 +84,7 @@ export function FocusRoom({ start, onClose }: { start: { blockId: string | null;
   async function finish() {
     if (!a || (f.strict && a.phase === 'focus')) return;
     const r = await finishPhase(settings, true, { key, startedAt: a.startedAt });
-    if (r !== 'none' && f.sound) chime();
+    if (r !== 'none' && f.sound) chime(f);
   }
 
   async function focusTask(task: { id: string; text: string }) {

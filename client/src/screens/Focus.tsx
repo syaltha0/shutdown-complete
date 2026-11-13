@@ -109,7 +109,7 @@ export function Focus() {
     if (!a || (f.strict && a.phase === 'focus')) return;
     if (a.phase !== 'focus') saveNote();
     const r = await finishPhase(settings, true, { key, startedAt: a.startedAt });
-    if (r !== 'none' && f.sound) chime();
+    if (r !== 'none' && f.sound) chime(f);
   }
 
   return (

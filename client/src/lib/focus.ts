@@ -155,16 +155,16 @@ export async function finishPhase(settings: Settings, early = false, opts: { key
 
 // ---- sound and notifications ----
 let ctx: AudioContext | null = null;
-export function chime() {
+export function chime(f?: FocusSettings) {
   try {
     ctx = ctx || new AudioContext();
     const t0 = ctx.currentTime;
-    [660, 880, 1320].forEach((freq, i) => {
+    (f?.bell === 'soft' ? [440, 660] : f?.bell === 'single' ? [880] : [660, 880, 1320]).forEach((freq, i) => {
       const o = ctx!.createOscillator(), g = ctx!.createGain();
       o.type = 'sine';
       o.frequency.value = freq;
       g.gain.setValueAtTime(0, t0 + i * 0.16);
-      g.gain.linearRampToValueAtTime(0.18, t0 + i * 0.16 + 0.02);
+      g.gain.linearRampToValueAtTime(0.18 * Math.max(0, Math.min(1, f?.volume ?? 1)), t0 + i * 0.16 + 0.02);
       g.gain.exponentialRampToValueAtTime(0.001, t0 + i * 0.16 + 0.6);
       o.connect(g).connect(ctx!.destination);
       o.start(t0 + i * 0.16);
