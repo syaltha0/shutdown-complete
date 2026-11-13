@@ -70,9 +70,21 @@
 .focus-sessions :is(a, .session-scroll):focus-visible { outline: 2px solid var(--text); outline-offset: 3px; border-radius: 2px; }
 
 /* the floating timer (it floats, so it may carry a shadow) */
-.mini-timer { position: fixed; right: 24px; bottom: 24px; z-index: 30; display: flex; flex-direction: column; align-items: stretch; width: 300px; max-width: calc(100vw - 24px); border: 1px solid var(--border); border-radius: 26px; background: var(--surface); box-shadow: 0 10px 30px rgba(0, 0, 0, 0.12); overflow: hidden; animation: rise-in 420ms var(--ease-out) both; transition: border-radius 200ms var(--ease-out); } /* taste-skill-ignore: a floating timer */
+.mini-timer { position: fixed; right: 24px; bottom: 24px; z-index: 30; display: flex; flex-direction: column; align-items: stretch; width: 300px; max-width: calc(100vw - 24px); border: 1px solid var(--border); border-radius: 26px; background: var(--surface); box-shadow: 0 10px 30px rgba(0, 0, 0, 0.12); overflow: hidden; animation: rise-in 420ms var(--ease-out) both; transition: border-radius 200ms var(--ease-out), width 200ms var(--ease-out); } /* taste-skill-ignore: a floating timer */
 .mini-timer[data-open="true"] { border-radius: 18px; }
-.mt-row { display: flex; align-items: center; gap: 10px; padding: 8px 8px 8px 10px; }
+/* the corner it sits in (dragged there, or picked in the details); the details open away from the screen edge */
+.mini-timer[data-h="left"] { right: auto; left: calc(var(--rail-width, 56px) + 24px); }
+.mini-timer[data-v="top"] { bottom: auto; top: 24px; }
+/* shrunk to a ring: only the phase ring stays; hover, focus or a tap brings the whole card back */
+.mini-timer[data-compact="true"]:not([data-open="true"]) { width: 44px; border-radius: 999px; }
+.mini-timer[data-compact="true"]:not([data-open="true"]) .mt-row { position: relative; padding: 3px; }
+.mini-timer[data-compact="true"]:not([data-open="true"]) .mt-trigger { position: absolute; inset: 0; border-radius: 999px; }
+.mini-timer[data-compact="true"]:not([data-open="true"]) :is(.mt-trigger > *, .mt-pause) { display: none; }
+.mini-timer[data-dragging="true"] { transition: none; box-shadow: 0 16px 40px rgba(0, 0, 0, 0.2); }
+.mini-timer[data-v="top"] .mt-body { border-bottom: 0; border-top: 1px solid var(--rule); }
+.mt-row { display: flex; align-items: center; gap: 10px; padding: 8px 8px 8px 10px; transition: padding 200ms var(--ease-out); cursor: grab; touch-action: none; user-select: none; }
+.mini-timer[data-dragging="true"] .mt-row { cursor: grabbing; }
+.mt-row .mt-trigger { cursor: inherit; }
 .mt-row .mt-trigger { flex: 1; }
 .mini-timer .mt-text { display: grid; line-height: 16px; min-width: 0; max-width: 200px; }
 .mini-timer .mt-text b { font-size: 16px; line-height: 20px; font-weight: 500; }
@@ -89,11 +101,20 @@
 .mt-label { display: block; margin-top: 4px; font-weight: 500; overflow-wrap: anywhere; }
 .mt-meta { display: flex; justify-content: space-between; gap: 8px; margin-top: 8px; }
 .mt-meta, .mt-next { color: var(--muted); font-size: 12px; }
+.mt-start-next { margin-top: 10px; }
+.mt-block { margin-top: 2px; overflow-wrap: anywhere; }
+.mt-tools { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px; }
 .mt-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin-top: 14px; }
 .mini-timer .mt-link { margin-left: auto; font-size: 13px; font-weight: 400; color: var(--muted); }
 .mini-timer .mt-link:hover { color: var(--text); text-decoration: none; }
-:root[data-motion="reduce"] :is(.mini-timer, .mt-panel, .mt-body) { animation: none; transition: none; }
-@media (prefers-reduced-motion: reduce) { :is(.mini-timer, .mt-panel, .mt-body) { animation: none; transition: none; } }
+/* the phase change cue: the edge turns the phase colour and back (border-color only, no glow) */
+.mini-timer::after { content: ""; position: absolute; inset: 0; border: 2px solid transparent; border-radius: inherit; pointer-events: none; }
+.mini-timer.mt-flash::after { animation: mt-flash 1200ms ease-in-out 1; }
+@keyframes mt-flash { 0%, 100% { border-color: transparent; } 50% { border-color: var(--phase-color); } }
+:root[data-motion="reduce"] .mini-timer.mt-flash::after { animation: none; }
+@media (prefers-reduced-motion: reduce) { .mini-timer.mt-flash::after { animation: none; } }
+:root[data-motion="reduce"] :is(.mini-timer, .mt-row, .mt-panel, .mt-body) { animation: none; transition: none; }
+@media (prefers-reduced-motion: reduce) { :is(.mini-timer, .mt-row, .mt-panel, .mt-body) { animation: none; transition: none; } }
 
 
 /* phone tab bar and the More sheet */
@@ -132,8 +153,10 @@
   .tab-item[aria-current="page"] { color: var(--text); }
   .tab-item[aria-current="page"] .label { font-weight: 500; }
   .mini-timer { right: 12px; left: 12px; bottom: 76px; }
+  .mini-timer[data-h] { right: 12px; left: auto; }
+  .mini-timer[data-v="top"] { top: calc(env(safe-area-inset-top, 0px) + 52px); bottom: auto; }
   .mini-timer .mt-text { flex: 1; max-width: none; }
-  .mini-timer, .mini-timer[data-open="true"] { width: auto; max-width: none; }
+  .mini-timer, .mini-timer[data-open="true"] { width: calc(100vw - 24px); max-width: none; }
   .date-add { grid-template-columns: minmax(0, 1fr) auto; }
   .date-add input[type="date"] { grid-column: 1 / -1; }
   .habit-add { grid-template-columns: minmax(0, 1fr) auto; padding: 16px; }

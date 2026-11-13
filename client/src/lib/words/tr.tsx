@@ -354,7 +354,7 @@ export const tr: Words = {
   intentLabel: 'Niyet', intentPh: 'Ne üzerinde çalışacaksın? (isteğe bağlı)',
   breakLabel: 'Mola', lengthCustom: 'Özel', customMin: 'Özel süre (dakika)', plusFive: '+5 dk',
   noteLabel: 'Oturum notu', sessionNotePh: 'Nasıl geçti? (isteğe bağlı)',
-  miniGoFocus: 'Oda\u011fa git', miniPaused: 'Duraklat\u0131ld\u0131', miniEnds: (time) => `${time}\u2019te biter`, miniNext: (phase, min) => `S\u0131radaki: ${phase} \u00b7 ${min} dk`,
+  miniStartNext: 'Sonraki odağı başlat', miniBlockNext: (label, time) => `Sıradaki blok: ${label} · ${time}`, miniBlockNow: (label, time) => `Şu anki blok: ${label} · bitiş ${time}`, miniShrink: 'Küçült', miniExpand: 'Açık tut', miniAria: (what, min, paused) => `${what}, ${min} dk kaldı${paused ? ', duraklatıldı' : ''}`, miniCorner: 'Başka köşeye taşı', miniGoFocus: 'Oda\u011fa git', miniPaused: 'Duraklat\u0131ld\u0131', miniEnds: (time) => `${time}\u2019te biter`, miniNext: (phase, min) => `S\u0131radaki: ${phase} \u00b7 ${min} dk`,
   sessionN: (n, of) => `Oturum ${n}/${of}`,
   minShort: (n) => `${n} dk`,
   focusRow: (n, d) => `${n} oturum · ${d}`,
@@ -694,7 +694,7 @@ export const tr: Words = {
   undo: 'Geri al', deleted: (what) => `Silindi: ${what}`, metricWord: 'metrik',
   needsAttention: (n) => `Sunucu ayarlarında seni bekleyen ${n} şey var`,
   keys: {
-    title: 'Klavye kısayolları', newBlock: 'Yeni blok (gün ekranında)', revise: 'Şimdiden revize et (gün ekranında)', prevNext: 'Önceki / sonraki gün, hafta ya da ay',
+    title: 'Klavye kısayolları', pauseFocus: 'Odak zamanlayıcıyı duraklat / sürdür (her ekranda)', newBlock: 'Yeni blok (gün ekranında)', revise: 'Şimdiden revize et (gün ekranında)', prevNext: 'Önceki / sonraki gün, hafta ya da ay',
     today: 'Bugün', week: 'Bu hafta', month: 'Bu ay', quarter: 'Bu çeyrek', planWeek: 'Bu haftayı planla', focus: 'Odak',
     habits: 'Alışkanlıklar', inbox: 'Görevler', shutdown: 'Bugünün kapanışı', undo: 'Son silmeyi geri al', help: 'Bu liste',
   },

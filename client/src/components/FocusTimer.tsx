@@ -1,14 +1,15 @@
 import { FocusRoom } from './FocusRoom';
 import { showNotification } from '../lib/pwa';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { useSettings } from '../App';
-import { today } from '../lib/dates';
+import { clock, nowMinutes, today } from '../lib/dates';
 import { chime, extendFocus, MAX_PLANNED, finishPhase, mmss, notify, pauseFocus, refreshFocus, resumeFocus, secondsLeft, settingsFocus, startFocus, useFocusDay } from '../lib/focus';
 import { useT } from '../lib/i18n';
-import { type FocusActive, featureOn } from '../lib/model';
+import { type Block, type FocusActive, activeColumn, featureOn } from '../lib/model';
 import { onLinkClick, usePath } from '../lib/router';
 import { ambientPlaying, stopAmbient } from '../lib/ambient';
 import { api } from '../lib/api';
+import { type Corner, nearestCorner, nextCorner, readCompact, readCorner, reducedMotion, saveCompact, saveCorner, usePhone } from './MiniTimerPrefs';
 
 /** Ticks once a second while a timer runs. */
 export function useTick(on: boolean) {
@@ -47,7 +48,7 @@ export function FocusRunner() {
   const path = usePath();
   const [closedBreak, setClosedBreak] = useState<string | null>(null);
   const f = settingsFocus(settings);
-  const { active: a, key, holder } = useFocusDay();
+  const { active: a, key, holder, value: day } = useFocusDay();
   useTick(!!a && a.pausedLeft == null);
 
   useEffect(() => {
@@ -81,6 +82,24 @@ export function FocusRunner() {
     window.addEventListener('focus', look);
     return () => { window.clearInterval(t); document.removeEventListener('visibilitychange', look); window.removeEventListener('focus', look); };
   }, [key, running]);
+  // Alt+P pauses or resumes the timer from any screen, except while typing or with a dialog open (the Focus screen keeps Space as well)
+  const hotkey = useRef({ a, key, locked: !!f.strict && a?.phase === 'focus' });
+  hotkey.current = { a, key, locked: !!f.strict && a?.phase === 'focus' };
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.code !== 'KeyP' || !e.altKey || e.ctrlKey || e.metaKey || e.shiftKey || e.repeat || e.defaultPrevented) return;
+      const el = e.target instanceof HTMLElement ? e.target : null;
+      if (el?.isContentEditable || el?.closest('input, textarea, select')) return;
+      if (document.querySelector('dialog[open], [role="dialog"], .more-sheet, .tour')) return;
+      const { a: now, key: docKey, locked } = hotkey.current;
+      if (!now) return;
+      e.preventDefault();
+      if (locked) return;
+      void (now.pausedLeft == null ? pauseFocus(docKey) : resumeFocus(docKey));
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, []);
   const ending = useRef<string | null>(null);
   const left = a ? secondsLeft(a) : 0;
 
@@ -123,23 +142,49 @@ export function FocusRunner() {
 
   if (!a || path.startsWith('/focus')) return null;
   return <>{f.fullscreenBreak && a.phase !== 'focus' && closedBreak !== a.startedAt && <FocusRoom start={{blockId: a.blockId, label: a.label, minutes: a.plannedMin}} onClose={() => setClosedBreak(a.startedAt)} />}
-    <FocusMiniPanel a={a} docKey={key} count={holder?.focus?.sessions.length ?? 0} />
+    <FocusMiniPanel a={a} docKey={key} count={holder?.focus?.sessions.length ?? 0} blocks={day ? activeColumn(day).blocks : []} />
   </>;
 }
 
-function FocusMiniPanel({ a, docKey, count }: { a: FocusActive; docKey: string; count: number }) {
+function FocusMiniPanel({ a, docKey, count, blocks }: { a: FocusActive; docKey: string; count: number; blocks: Block[] }) {
   const T = useT();
   const { settings } = useSettings();
   const f = settingsFocus(settings);
   const [open, setOpen] = useState(false);
+  const [corner, setCorner] = useState<Corner>(readCorner);
+  const [dragging, setDragging] = useState(false);
+  const [compact, setCompact] = useState(readCompact);
+  const phone = usePhone();
   const root = useRef<HTMLDivElement>(null);
   const trigger = useRef<HTMLButtonElement>(null);
   const suppressed = useRef(false);
+  const press = useRef<{ id: number; x: number; y: number; moved: boolean } | null>(null);
+  const settleFrom = useRef<{ x: number; y: number } | null>(null);
+  const justDragged = useRef(false);
+  // a phase change (focus to break, break to focus) draws the card's edge in the new phase's colour once
+  const lastPhase = useRef(a.phase);
+  const [flash, setFlash] = useState(false);
+  useEffect(() => {
+    if (lastPhase.current === a.phase) return;
+    lastPhase.current = a.phase;
+    if (reducedMotion()) return;
+    setFlash(true);
+    const t = window.setTimeout(() => setFlash(false), 1300);
+    return () => window.clearTimeout(t);
+  }, [a.phase]);
   useEffect(() => {
     const outside = (e: PointerEvent) => { if (!root.current?.contains(e.target as Node)) { suppressed.current = true; setOpen(false); } };
     document.addEventListener('pointerdown', outside);
     return () => document.removeEventListener('pointerdown', outside);
   }, []);
+  // after a drop the card is already at its new corner: slide it in from where it was let go
+  useLayoutEffect(() => {
+    const from = settleFrom.current, el = root.current;
+    settleFrom.current = null;
+    if (!from || !el || reducedMotion()) return;
+    const to = el.getBoundingClientRect();
+    el.animate([{ translate: `${from.x - to.left}px ${from.y - to.top}px` }, { translate: '0 0' }], { duration: 220, easing: 'cubic-bezier(0.2, 0.8, 0.2, 1)' });
+  }, [corner]);
   const left = secondsLeft(a);
   const locked = !!f.strict && a.phase === 'focus';
   const cycle = Math.max(1, f.longEvery);
@@ -147,35 +192,100 @@ function FocusMiniPanel({ a, docKey, count }: { a: FocusActive; docKey: string; 
   const next = a.phase !== 'focus' ? 'focus' : (count + 1) % cycle === 0 ? 'long' : 'short';
   const nextMin = next === 'focus' ? f.focusMin : next === 'long' ? f.longMin : a.breakMin ?? f.shortMin;
   const end = new Date(Date.now() + left * 1000).toLocaleTimeString(T.locale, { hour: '2-digit', minute: '2-digit' });
+  // the block the next focus belongs to (same pick as the Focus screen): the one running now, else the next deep, else the next that is not personal
+  const nowMin = nowMinutes();
+  const running = blocks.find((b) => nowMin >= b.start && nowMin < b.end && b.kind !== 'personal');
+  const upNext = a.phase === 'focus' ? null : running ?? blocks.find((b) => b.start > nowMin && b.kind === 'deep') ?? blocks.find((b) => b.start > nowMin && b.kind !== 'personal') ?? null;
+  const startNext = async () => {
+    // a break that sits in yesterday's document is closed first; otherwise the new focus replaces it in one write, so the card never flickers
+    if (docKey !== `day:${today()}`) await finishPhase(settings, true, { key: docKey, startedAt: a.startedAt });
+    await startFocus({ phase: 'focus', blockId: upNext?.id ?? null, label: upNext?.label || T.freeFocus, minutes: f.focusMin, breakMin: f.shortMin });
+  };
   const togglePause = () => a.pausedLeft == null ? pauseFocus(docKey) : resumeFocus(docKey);
-  return <div ref={root} className={`mini-timer phase-${a.phase}`} data-open={open}
-    onPointerEnter={e => { if (e.pointerType === 'mouse') { suppressed.current = false; setOpen(true); } }}
-    onPointerLeave={e => { if (e.pointerType === 'mouse' && !root.current?.contains(document.activeElement)) setOpen(false); }}
-    onFocus={() => { if (!suppressed.current) setOpen(true); }}
-    onBlur={e => { if (!e.currentTarget.contains(e.relatedTarget)) { suppressed.current = false; setOpen(false); } }}
-    onKeyDown={e => { if (e.key === 'Escape') { e.preventDefault(); suppressed.current = true; trigger.current?.focus(); setOpen(false); } }}>
-    {/* one body: the details unfold above the pill row, inside the same card */}
+  const shrink = (on: boolean) => {
+    setCompact(on); saveCompact(on);
+    if (on) { suppressed.current = true; trigger.current?.focus(); setOpen(false); }
+  };
+  const place = (c: Corner) => { setCorner(c); saveCorner(c); };
+
+  // drag the pill row to another corner: a press that moves 6 px is a drag, anything less stays a click
+  const onRowDown = (e: React.PointerEvent) => {
+    const el = root.current, row = e.currentTarget;
+    if (e.button !== 0 || !el || press.current || (e.target as Element).closest('.mt-pause')) return;
+    const start = { id: e.pointerId, x: e.clientX, y: e.clientY, moved: false };
+    press.current = start;
+    const move = (m: PointerEvent) => {
+      if (m.pointerId !== start.id) return;
+      const dx = m.clientX - start.x, dy = m.clientY - start.y;
+      if (!start.moved) {
+        if (Math.hypot(dx, dy) < 6) return;
+        start.moved = true;
+        row.setPointerCapture(start.id);
+        setDragging(true); suppressed.current = true; setOpen(false);
+      }
+      el.style.translate = `${dx}px ${dy}px`;
+    };
+    const finish = (u: PointerEvent) => {
+      if (u.pointerId !== start.id) return;
+      window.removeEventListener('pointermove', move); window.removeEventListener('pointerup', finish); window.removeEventListener('pointercancel', finish);
+      press.current = null;
+      if (!start.moved) return;
+      const r = el.getBoundingClientRect();
+      el.style.translate = '';
+      setDragging(false);
+      justDragged.current = true;
+      window.setTimeout(() => { justDragged.current = false; }, 0);
+      const to = u.type === 'pointercancel' ? corner : nearestCorner(r.left + r.width / 2, r.top + r.height / 2, window.innerWidth, window.innerHeight, phone, corner[1] as 'l' | 'r');
+      if (to === corner) {
+        // dropped near where it started: it eases back
+        const back = el.getBoundingClientRect();
+        if (!reducedMotion()) el.animate([{ translate: `${r.left - back.left}px ${r.top - back.top}px` }, { translate: '0 0' }], { duration: 220, easing: 'cubic-bezier(0.2, 0.8, 0.2, 1)' });
+      } else { settleFrom.current = { x: r.left, y: r.top }; place(to); }
+    };
+    window.addEventListener('pointermove', move); window.addEventListener('pointerup', finish); window.addEventListener('pointercancel', finish);
+  };
+
+  const panel = (
     <section id="mini-focus-details" className="mt-panel" aria-label={T.focusRunning} inert={!open} aria-hidden={!open}>
       <div className="mt-panel-clip"><div className="mt-body">
         <span className="mt-phase">{T.phase[a.phase]}</span>
         <strong className="mt-label">{a.label || T.freeFocus}</strong>
         <div className="mt-meta"><span>{T.sessionN(session, cycle)}</span><span>{a.pausedLeft == null ? T.miniEnds(end) : T.miniPaused}</span></div>
         <p className="mt-next">{T.miniNext(T.phase[next], nextMin)}</p>
+        {upNext && <p className="mt-next mt-block">{running ? T.miniBlockNow(upNext.label || T.freeFocus, clock(upNext.end)) : T.miniBlockNext(upNext.label || T.freeFocus, clock(upNext.start))}</p>}
         <div className="mt-actions">
           <button type="button" className="btn sm" disabled={a.plannedMin >= MAX_PLANNED} onClick={() => extendFocus(5, docKey)}>{T.plusFive}</button>
           <button type="button" className="btn sm ghost" disabled={locked} onClick={() => finishPhase(settings, true, {key: docKey, startedAt: a.startedAt})}>{a.phase === 'focus' ? T.finishNow : T.skipBreak}</button>
           <a className="card-link mt-link" href="/focus" onClick={onLinkClick}>{T.miniGoFocus}</a>
         </div>
+        {a.phase !== 'focus' && <button type="button" className="btn sm primary mt-start-next" onClick={() => void startNext()}>{T.miniStartNext}</button>}
+        <div className="mt-tools">
+          <button type="button" className="btn sm ghost mt-corner" onClick={() => place(nextCorner(corner, phone))}>{T.miniCorner}</button>
+          <button type="button" className="btn sm ghost mt-compact" onClick={() => shrink(!compact)}>{compact ? T.miniExpand : T.miniShrink}</button>
+        </div>
       </div></div>
     </section>
-    <div className="mt-row">
+  );
+  const atTop = corner[0] === 't';
+  return <div ref={root} className={`mini-timer phase-${a.phase}${flash ? ' mt-flash' : ''}`} data-open={open} data-v={atTop ? 'top' : 'bottom'} data-h={corner[1] === 'l' ? 'left' : 'right'} data-dragging={dragging} data-compact={compact}
+    onPointerEnter={e => { if (e.pointerType === 'mouse' && !press.current?.moved) { suppressed.current = false; setOpen(true); } }}
+    onPointerLeave={e => { if (e.pointerType === 'mouse' && !root.current?.contains(document.activeElement)) setOpen(false); }}
+    onFocus={() => { if (!suppressed.current) setOpen(true); }}
+    onBlur={e => { if (!e.currentTarget.contains(e.relatedTarget)) { suppressed.current = false; setOpen(false); } }}
+    onKeyDown={e => { if (e.key === 'Escape') { e.preventDefault(); suppressed.current = true; trigger.current?.focus(); setOpen(false); } }}>
+    {/* one body: the details unfold above the pill row (below it when the card sits at the top), inside the same card */}
+    {!atTop && panel}
+    <div className="mt-row" onPointerDown={onRowDown}
+      onClickCapture={e => { if (justDragged.current) { e.preventDefault(); e.stopPropagation(); } }}>
       <Ring a={a} size={36} stroke={4} />
+      {/* shrunk to a ring, the name carries the time left to the minute, so a screen reader is not read the clock every second */}
       <button ref={trigger} type="button" className="mt-text mt-trigger" aria-expanded={open} aria-controls="mini-focus-details"
-        onPointerDown={e => { if (e.pointerType !== 'mouse') { e.preventDefault(); suppressed.current = false; setOpen(true); } }}
+        aria-label={compact && !open ? T.miniAria(a.phase === 'focus' ? a.label || T.freeFocus : T.phase[a.phase], Math.ceil(left / 60), a.pausedLeft != null) : undefined}
         onClick={() => { suppressed.current = false; setOpen(true); }}>
         <b className="num">{mmss(left)}</b><span>{a.label || T.freeFocus}</span>
       </button>
       <button type="button" className="btn ghost mt-pause" disabled={locked} onClick={togglePause}>{a.pausedLeft == null ? T.pause : T.resume}</button>
     </div>
+    {atTop && panel}
   </div>;
 }

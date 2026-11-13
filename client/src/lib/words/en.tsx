@@ -368,7 +368,7 @@ export const en = {
   intentLabel: 'Intent', intentPh: 'What will you work on? (optional)',
   breakLabel: 'Break', lengthCustom: 'Custom', customMin: 'Custom length in minutes', plusFive: '+5 min',
   noteLabel: 'A note on the session', sessionNotePh: 'How did it go? (optional)',
-  miniGoFocus: 'Go to focus', miniPaused: 'Paused', miniEnds: (time: string) => `Ends at ${time}`, miniNext: (phase: string, min: number) => `Next: ${phase} \u00b7 ${min} min`,
+  miniGoFocus: 'Go to focus', miniCorner: 'Move to another corner', miniStartNext: 'Start next focus', miniBlockNext: (label: string, time: string) => `Next block: ${label} · ${time}`, miniBlockNow: (label: string, time: string) => `Current block: ${label} · until ${time}`, miniShrink: 'Minimize', miniExpand: 'Keep expanded', miniAria: (what: string, min: number, paused: boolean) => `${what}, ${min} min left${paused ? ', paused' : ''}`, miniPaused: 'Paused', miniEnds: (time: string) => `Ends at ${time}`, miniNext: (phase: string, min: number) => `Next: ${phase} \u00b7 ${min} min`,
   sessionN: (n: number, of: number) => `Session ${n}/${of}`,
   minShort: (n: number) => `${n} min`,
   focusRow: (n: number, d: string) => `${n} ${s(n, 'session', 'sessions')} · ${d}`,
@@ -711,7 +711,7 @@ export const en = {
   undo: 'Undo', deleted: (what: string) => `Deleted: ${what}`, metricWord: 'metric',
   needsAttention: (n: number) => (n === 1 ? '1 thing waits for you in Server settings' : `${n} things wait for you in Server settings`),
   keys: {
-    title: 'Keyboard shortcuts', newBlock: 'A new block (on a day)', revise: 'Revise from now (on a day)', prevNext: 'The day, week or month before / after',
+    title: 'Keyboard shortcuts', pauseFocus: 'Pause or resume the focus timer (on any screen)', newBlock: 'A new block (on a day)', revise: 'Revise from now (on a day)', prevNext: 'The day, week or month before / after',
     today: 'Today', week: 'This week', month: 'This month', quarter: 'This quarter', planWeek: 'Plan this week', focus: 'Focus',
     habits: 'Habits', inbox: 'Tasks', shutdown: 'Today’s shutdown', undo: 'Undo the last deletion', help: 'This list',
   },
