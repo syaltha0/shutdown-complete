@@ -100,3 +100,12 @@
 .hours .now-tag { right: 4px; left: auto; }
 .grid-focus { position: absolute; left: 0; width: 1px; height: 1px; pointer-events: none; }
 .col-empty { position: absolute; left: 12px; right: 12px; display: grid; place-items: center; padding: 0 12px; border: 1px dashed var(--line-mid); border-radius: var(--radius-control); background: var(--ground); color: var(--muted); text-align: center; pointer-events: none; }
+
+/* Keep calendar actions reachable beside the editable plan. */
+.cal-event-wrap { pointer-events: none; z-index: 2; }
+.cal-event-wrap .cal-event { left: 73%; pointer-events: auto; cursor: pointer; }
+.cal-event-wrap .kb-pop { pointer-events: auto; }
+.col-body:has(.cal-event-wrap) .block { right: 29%; }
+
+.cal-event-wrap .ct { flex-shrink: 0; }
+.cal-event-wrap .cw { white-space: nowrap; }
