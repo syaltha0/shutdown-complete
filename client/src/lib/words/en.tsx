@@ -711,7 +711,7 @@ export const en = {
   undo: 'Undo', deleted: (what: string) => `Deleted: ${what}`, metricWord: 'metric',
   needsAttention: (n: number) => (n === 1 ? '1 thing waits for you in Server settings' : `${n} things wait for you in Server settings`),
   keys: {
-    title: 'Keyboard shortcuts', newBlock: 'A new block (on a day)', revise: 'Revise from now (on a day)', prevNext: 'The day, week or month before / after',
+    title: 'Keyboard shortcuts', pauseFocus: 'Pause or resume the focus timer (on any screen)', newBlock: 'A new block (on a day)', revise: 'Revise from now (on a day)', prevNext: 'The day, week or month before / after',
     today: 'Today', week: 'This week', month: 'This month', quarter: 'This quarter', planWeek: 'Plan this week', focus: 'Focus',
     habits: 'Habits', inbox: 'Tasks', shutdown: 'Today’s shutdown', undo: 'Undo the last deletion', help: 'This list',
   },

@@ -272,9 +272,46 @@ try {
    await api.put(key,{...base,focus:{sessions:[],active:{phase:'focus',startedAt:new Date(Date.now()-120000).toISOString(),plannedMin:25,pausedLeft:null,blockId:null,label:'Pilot'}}});
    await p.goto(s.url+'/');await root.waitFor();
   }
+  // --- Alt+P pauses or resumes from any screen; typing in a field is left alone; the Focus screen keeps Space and does not double up ---
+  {
+   const off={...settings.focus,fullscreenBreak:false,sound:false,autoFocus:false};
+   await api.put('settings',{...settings,focus:{...off,strict:false}});
+   await api.put(key,{...base,focus:{sessions:[],active:{phase:'focus',startedAt:new Date(Date.now()-120000).toISOString(),plannedMin:25,pausedLeft:null,blockId:null,label:'Pilot'}}});
+   await p.setViewportSize({width:1440,height:900});await p.goto(s.url+'/');await p.locator('.mini-timer').waitFor();
+   const paused=async()=>{await p.waitForTimeout(800);return (await api.get(key)).value.focus.active.pausedLeft!=null;};
+   const idle=()=>p.locator('body').click({position:{x:2,y:2}});
+   await idle();
+   await p.keyboard.press('Alt+KeyP');check('Alt+P pauses the timer from the home screen',await paused());
+   await p.keyboard.press('Alt+KeyP');check('Alt+P resumes it',!(await paused()));
+   await p.evaluate(()=>{const i=document.createElement('input');i.id='probe';i.style.cssText='position:fixed;left:4px;top:4px;z-index:99';document.body.append(i);i.focus();});
+   await p.keyboard.press('Alt+KeyP');check('Alt+P is ignored while typing in a field',!(await paused()));
+   await p.evaluate(()=>{document.getElementById('probe')?.remove();const d=document.createElement('div');d.id='probe2';d.contentEditable='true';d.style.cssText='position:fixed;left:4px;top:40px;z-index:99';d.textContent='x';document.body.append(d);d.focus();});
+   await p.keyboard.press('Alt+KeyP');check('Alt+P is ignored in a contenteditable',!(await paused()));
+   await p.evaluate(()=>{document.getElementById('probe2')?.remove();const d=document.createElement('dialog');d.id='probe3';d.textContent='x';document.body.append(d);d.showModal();});
+   await p.keyboard.press('Alt+KeyP');check('Alt+P is ignored while a dialog is open',!(await paused()));
+   await p.evaluate(()=>document.getElementById('probe3')?.remove());
+   await idle();
+   await p.keyboard.press('Control+Alt+KeyP');check('other modifiers do not trigger it',!(await paused()));
+   await p.goto(s.url+'/week');await p.locator('.mini-timer').waitFor();await idle();
+   await p.keyboard.press('Alt+KeyP');check('Alt+P works on another screen too',await paused());
+   await p.keyboard.press('Alt+KeyP');check('and resumes there',!(await paused()));
+   await p.goto(s.url+'/focus');await p.waitForTimeout(800);await idle();
+   await p.keyboard.press('Alt+KeyP');check('Focus screen: Alt+P pauses once (no double toggle)',await paused());
+   await p.keyboard.press('Space');check('Focus screen: Space still resumes',!(await paused()));
+   await p.keyboard.press('Alt+KeyP');check('Focus screen: Alt+P pauses again',await paused());
+   await p.keyboard.press('Alt+KeyP');check('Focus screen: Alt+P resumes',!(await paused()));
+   await api.put('settings',{...settings,focus:{...off,strict:true}});
+   await p.goto(s.url+'/');await p.locator('.mini-timer').waitFor();await idle();
+   await p.keyboard.press('Alt+KeyP');check('strict mode: Alt+P cannot pause a running focus',!(await paused()));
+   await api.put('settings',{...settings,focus:{...off,strict:false}});
+   await p.goto(s.url+'/');await p.locator('.mini-timer').waitFor();await idle();await p.keyboard.press('Shift+Slash');await p.waitForTimeout(300);
+   const body=await p.locator('body').innerText();
+   check('the shortcut list has the Alt+P row',/Alt/.test(body)&&/(Pause or resume the focus timer|Odak zamanlayıcıyı duraklat)/.test(body));
+   await p.keyboard.press('Escape');
+  }
   //__MORE__
   await c.close();
  }
- console.log(`PASS mini-timer: ${passed} assertions; 48 screenshots`);
+ console.log(`PASS mini-timer: ${passed} assertions; screenshots in reports/shots/mini-timer-v3`);
 } finally {await b.close();s.stop();}
 

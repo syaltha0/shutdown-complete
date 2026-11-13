@@ -82,6 +82,24 @@ export function FocusRunner() {
     window.addEventListener('focus', look);
     return () => { window.clearInterval(t); document.removeEventListener('visibilitychange', look); window.removeEventListener('focus', look); };
   }, [key, running]);
+  // Alt+P pauses or resumes the timer from any screen, except while typing or with a dialog open (the Focus screen keeps Space as well)
+  const hotkey = useRef({ a, key, locked: !!f.strict && a?.phase === 'focus' });
+  hotkey.current = { a, key, locked: !!f.strict && a?.phase === 'focus' };
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.code !== 'KeyP' || !e.altKey || e.ctrlKey || e.metaKey || e.shiftKey || e.repeat || e.defaultPrevented) return;
+      const el = e.target instanceof HTMLElement ? e.target : null;
+      if (el?.isContentEditable || el?.closest('input, textarea, select')) return;
+      if (document.querySelector('dialog[open], [role="dialog"], .more-sheet, .tour')) return;
+      const { a: now, key: docKey, locked } = hotkey.current;
+      if (!now) return;
+      e.preventDefault();
+      if (locked) return;
+      void (now.pausedLeft == null ? pauseFocus(docKey) : resumeFocus(docKey));
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, []);
   const ending = useRef<string | null>(null);
   const left = a ? secondsLeft(a) : 0;
 
