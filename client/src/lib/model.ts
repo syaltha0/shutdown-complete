@@ -194,7 +194,8 @@ export interface DayDoc {
   notes: string;
   metrics: Record<string, number | boolean | null>;
   shutdown: { done: boolean; at: string | null; steps: Record<string, boolean> };
-  focus?: { active: FocusActive | null; sessions: FocusSession[] };
+  /** `cycleFrom`: how many of the day's sessions were logged before the current cycle of rounds began ("Reset cycle"); the dots, "Session n/N" and the long break count from there */
+  focus?: { active: FocusActive | null; sessions: FocusSession[]; cycleFrom?: number };
   /** the weekly schedule entries already placed on this day (or deliberately left off it) */
   repeats?: string[];
 }

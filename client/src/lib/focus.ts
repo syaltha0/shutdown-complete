@@ -11,6 +11,12 @@ import { showNotification } from './pwa';
 export const focusMinutes = (d: DayDoc) => (d.focus?.sessions ?? []).reduce((s, x) => s + x.minutes, 0);
 export const focusCount = (d: DayDoc) => (d.focus?.sessions ?? []).length;
 
+/** The sessions of the cycle now under way: those logged since the cycle last began (the day's start, or "Reset cycle"). A long break follows every `longEvery` of them. */
+export function cycleDone(f?: { sessions: unknown[]; cycleFrom?: number } | null): number {
+  const n = f?.sessions?.length ?? 0;
+  return n - Math.max(0, Math.min(n, Math.floor(f?.cycleFrom ?? 0)));
+}
+
 /** The longest a phase can run, +5 min included (a stuck tab or a stray script cannot make it endless). */
 export const MAX_PLANNED = 240;
 
@@ -109,6 +115,11 @@ export function noteSession(id: string, note: string, key = dayKey()) {
   });
 }
 
+/** Starts the cycle of rounds over: the next focus session is round one again. The logged sessions and totals stay. */
+export function resetCycle(key = dayKey()) {
+  return updateKey<DayDoc>(key, emptyDay, (d) => (d.focus ? { ...d, focus: { ...d.focus, cycleFrom: (d.focus.sessions ?? []).length } } : d));
+}
+
 export function cancelFocus(key = dayKey()) {
   return updateKey<DayDoc>(key, emptyDay, (d) => (d.focus ? { ...d, focus: { ...d.focus, active: null } } : d));
 }
@@ -155,7 +166,7 @@ export async function finishPhase(settings: Settings, early = false, opts: { key
     }
     const end = session ? new Date(session.end) : new Date();
     // a session that was not counted adds nothing to the cycle, so the break after it is a short one
-    const long = !!session && sessions.length % Math.max(1, f.longEvery) === 0;
+    const long = !!session && cycleDone({ sessions, cycleFrom: x.focus.cycleFrom }) % Math.max(1, f.longEvery) === 0;
     result = session ? 'logged' : 'skipped';
     return {
       ...x, metrics, tasks,

@@ -10,8 +10,8 @@ import { BlockChip, BlockSheet } from '../components/BlockPicker';
 import { addDays, clock, duration, nowMinutes, shortDate, today } from '../lib/dates';
 import { Chart, themeColor } from '../components/Chart';
 import {
-  cancelFocus, extendFocus, focusMinutes, MAX_PLANNED, mmss, NOTE_MAX, noteSession, pauseFocus, resumeFocus, secondsLeft,
-  settingsFocus, startFocus, resetFocus, useFocusDay,
+  cancelFocus, cycleDone, extendFocus, focusMinutes, MAX_PLANNED, mmss, NOTE_MAX, noteSession, pauseFocus, resumeFocus, secondsLeft,
+  resetCycle, settingsFocus, startFocus, resetFocus, useFocusDay,
 } from '../lib/focus';
 import { useT } from '../lib/i18n';
 import { activeColumn, type DayDoc, featureOn } from '../lib/model';
@@ -119,7 +119,7 @@ export function Focus() {
   const sessions = day?.focus?.sessions ?? [];
   const total = day ? focusMinutes(day) : 0;
   const deepDef = settings.metrics.find((m) => m.id === f.metricId);
-  const untilLong = f.longEvery - (sessions.length % f.longEvery);
+  const untilLong = f.longEvery - (cycleDone(day?.focus) % f.longEvery);
   const from28 = addDays(today(), -27);
   const { docs: past } = useRange<DayDoc>(`day:${from28}`, `day:${today()}`);
   const days28 = Array.from({ length: 28 }, (_, i) => addDays(from28, i));
@@ -139,9 +139,10 @@ export function Focus() {
   useEffect(() => () => { const n = noteRef.current; if (n) noteSession(n.id, n.text, key); }, [key]);
   useEffect(() => { if (!lastSession && noteRef.current) saveNote(); }, [lastSession?.id]); // eslint-disable-line react-hooks/exhaustive-deps
   // A timer carried past midnight finishes in its original day's document.
-  const cycleSessions = a ? holder?.focus?.sessions ?? [] : sessions;
-  const roundsDone = cycleSessions.length % f.longEvery || (cycleSessions.length && phase !== 'focus' ? f.longEvery : 0);
-  const cycleNo = ((cycleSessions.length % f.longEvery) + (a?.phase === 'focus' ? 1 : 0)) || f.longEvery;
+  // The rounds count from where the cycle last began (the day's start, or "Reset cycle"), not from all of today's sessions
+  const inCycle = cycleDone(a ? holder?.focus : day?.focus);
+  const roundsDone = inCycle % f.longEvery || (inCycle && phase !== 'focus' ? f.longEvery : 0);
+  const cycleNo = ((inCycle % f.longEvery) + (a?.phase === 'focus' ? 1 : 0)) || f.longEvery;
 
   // Today's sessions shows about five rows and scrolls inside, so a long day does not push the cards below
   const listRef = useRef<HTMLDivElement>(null);
@@ -238,6 +239,7 @@ export function Focus() {
             <div className="focus-cycle-summary">
               <div className="focus-rounds" title={T.focusRoundsHint} aria-hidden="true">{Array.from({ length: f.longEvery }, (_, i) => <i key={i} className={i < roundsDone ? 'done' : a?.phase === 'focus' && i === roundsDone ? 'current' : ''} />)}</div>
               <span className="muted num">{T.sessionN(a?.phase === 'focus' ? cycleNo : roundsDone, f.longEvery)}</span>
+              {!a && roundsDone >= 1 && <button type="button" className="btn ghost sm focus-cycle-reset" onClick={() => resetCycle(key)}>{T.cycleReset}</button>}
             </div>
             <BlockChip block={shownBlock} label={a ? a.label || T.freeFocus : chosenBlock ? chosenBlock.label || T.untitledBlock : T.freeFocus} open={picking} locked={!!a} onOpen={() => setPicking(true)} chipRef={chipRef} />
             {!a && <form className="focus-setup" onSubmit={(e) => { e.preventDefault(); if (day) startFocus(begin); }}>

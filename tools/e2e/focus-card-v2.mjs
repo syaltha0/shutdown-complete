@@ -277,6 +277,62 @@ try {
     check(`phone ${pw} (${lang}): still one row while Reset asks`, m.oneRow && m.inside && m.page);
     await phoneCtx.close();
   }
+  // ---------- 4. resetting the cycle ----------
+  await api.put('settings', { ...settings0, focus: { ...settings0.focus, longEvery: 2, autoFocus: false, autoBreak: true } });
+  await planDay([]);
+  await setActive(null, []);
+  await open();
+  const idleHeight0 = await p.locator('.focus-panel').evaluate((e) => e.getBoundingClientRect().height);
+  check('with no session the cycle has no reset button', await p.locator('.focus-cycle-reset').count() === 0);
+  await setActive(null, [session(1)], { cycleFrom: 0 });
+  await open();
+  const cyc = () => p.evaluate(() => ({ done: document.querySelectorAll('.focus-rounds i.done').length, cur: document.querySelectorAll('.focus-rounds i.current').length, dots: document.querySelectorAll('.focus-rounds i').length, text: document.querySelector('.focus-cycle-summary').innerText, sub: document.querySelector('.focus-title .sub').innerText }));
+  let cy = await cyc();
+  check('after one session and its break the card shows 1/2 and offers to reset', cy.done === 1 && cy.dots === 2 && /Session 1\/2/.test(cy.text) && /Reset cycle/.test(cy.text) && /A long break comes after this session/.test(cy.sub));
+  check('the reset button does not change the card height', Math.abs(idleHeight0 - await p.locator('.focus-panel').evaluate((e) => e.getBoundingClientRect().height)) < 1);
+  await btn('Reset cycle').click();
+  const afterReset = await until(async () => { const x = await doc(); return x.focus.cycleFrom === 1 ? x : null; });
+  check('Reset cycle writes where the cycle began and keeps the session', afterReset && afterReset.focus.sessions.length === 1 && afterReset.focus.cycleFrom === 1);
+  cy = await cyc();
+  check('the dots, the count and the long-break hint start over', cy.done === 0 && /Session 0\/2/.test(cy.text) && !/Reset cycle/.test(cy.text) && /A long break after 2 more sessions/.test(cy.sub) && /1 session/.test(cy.sub));
+  await p.reload();
+  await p.locator('.focus-cycle-summary').waitFor();
+  check('and it stays so after a reload', (await cyc()).done === 0 && await p.locator('.focus-cycle-reset').count() === 0);
+  // the next sessions count from the new cycle: the second logged session is round one, so its break is short; the long break comes after round two
+  await setActive(run(25, 8), undefined);
+  await open();
+  cy = await cyc();
+  check('a running focus is round 1 of the new cycle', /Session 1\/2/.test(cy.text) && cy.cur === 1 && cy.done === 0);
+  await btn('Skip').click();
+  await choiceBtn(/^Count the whole session/).click();
+  const b1 = await until(async () => { const x = await doc(); return x.focus.active?.phase === 'short' || x.focus.active?.phase === 'long' ? x : null; });
+  check('the second session of the day is round one: a short break, not a long one', b1 && b1.focus.sessions.length === 2 && b1.focus.active.phase === 'short' && b1.focus.cycleFrom === 1);
+  await setActive(null, undefined);
+  await setActive(run(25, 8), undefined);
+  await open();
+  await btn('Skip').click();
+  await choiceBtn(/^Count the whole session/).click();
+  const b2 = await until(async () => { const x = await doc(); return x.focus.active && x.focus.active.phase !== 'focus' ? x : null; });
+  check('round two of the new cycle brings the long break', b2 && b2.focus.sessions.length === 3 && b2.focus.active.phase === 'long' && b2.focus.active.plannedMin === settings0.focus.longMin);
+  cy = await cyc();
+  check('and the long break shows the full cycle', cy.done === 2 && cy.cur === 0);
+  // the mini timer counts from the new cycle too, and can reset it
+  await api.put('settings', { ...settings0, focus: { ...settings0.focus, longEvery: 4, autoFocus: false } });
+  await setActive(run(25, 8), [session(1), session(2), session(3)], { cycleFrom: 1 });
+  await open('/');
+  await p.locator('.mini-timer').hover();
+  check('the mini timer shows round 3 of 4 (two sessions since the reset)', /Session 3\/4/.test(await p.locator('.mini-timer .mt-meta').innerText()));
+  await p.locator('.mini-timer .mt-cycle').click();
+  await until(async () => (await doc()).focus.cycleFrom === 3);
+  await p.locator('.mini-timer').hover();
+  check('Reset cycle in the mini timer starts over at round 1, and the button goes', /Session 1\/4/.test(await p.locator('.mini-timer .mt-meta').innerText()) && await p.locator('.mini-timer .mt-cycle').count() === 0);
+  // a long break decided by the long-break rule after a cycle with a stale reset point (sessions removed since) never goes below zero
+  await setActive(null, [session(1)], { cycleFrom: 9 });
+  await open();
+  check('a reset point past the sessions counts as an empty cycle', (await cyc()).done === 0);
+  await api.put('settings', settings0);
+  await setActive(null, []);
+
   console.log(`\n${passed} passed, 0 failed`);
 } catch (e) {
   console.error('FAIL ' + e.message);

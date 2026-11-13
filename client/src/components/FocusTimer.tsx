@@ -3,7 +3,7 @@ import { showNotification } from '../lib/pwa';
 import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { useSettings } from '../App';
 import { clock, nowMinutes, today } from '../lib/dates';
-import { chime, extendFocus, MAX_PLANNED, finishPhase, mmss, notify, pauseFocus, refreshFocus, resumeFocus, secondsLeft, settingsFocus, startFocus, useFocusDay } from '../lib/focus';
+import { chime, cycleDone, extendFocus, resetCycle, MAX_PLANNED, finishPhase, mmss, notify, pauseFocus, refreshFocus, resumeFocus, secondsLeft, settingsFocus, startFocus, useFocusDay } from '../lib/focus';
 import { useT } from '../lib/i18n';
 import { type Block, type FocusActive, activeColumn, featureOn } from '../lib/model';
 import { onLinkClick, usePath } from '../lib/router';
@@ -143,7 +143,7 @@ export function FocusRunner() {
 
   if (!a || path.startsWith('/focus')) return null;
   return <>{f.fullscreenBreak && a.phase !== 'focus' && closedBreak !== a.startedAt && <FocusRoom start={{blockId: a.blockId, label: a.label, minutes: a.plannedMin}} onClose={() => setClosedBreak(a.startedAt)} />}
-    <FocusMiniPanel a={a} docKey={key} count={holder?.focus?.sessions.length ?? 0} blocks={day ? activeColumn(day).blocks : []} />
+    <FocusMiniPanel a={a} docKey={key} count={cycleDone(holder?.focus)} blocks={day ? activeColumn(day).blocks : []} />
   </>;
 }
 
@@ -262,6 +262,7 @@ function FocusMiniPanel({ a, docKey, count, blocks }: { a: FocusActive; docKey: 
         {skip.asking && <SkipChoice a={a} skip={skip} className="mt-skip" />}
         {a.phase !== 'focus' && <button type="button" className="btn sm primary mt-start-next" onClick={() => void startNext()}>{T.miniStartNext}</button>}
         <div className="mt-tools">
+          {count % cycle >= 1 && <button type="button" className="btn sm ghost mt-cycle" onClick={() => void resetCycle(docKey)}>{T.cycleReset}</button>}
           <button type="button" className="btn sm ghost mt-corner" onClick={() => place(nextCorner(corner, phone))}>{T.miniCorner}</button>
           <button type="button" className="btn sm ghost mt-compact" onClick={() => shrink(!compact)}>{compact ? T.miniExpand : T.miniShrink}</button>
         </div>
