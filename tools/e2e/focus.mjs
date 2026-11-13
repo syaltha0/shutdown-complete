@@ -134,7 +134,7 @@ try {
           pb: panel.getBoundingClientRect().bottom, sb: stack.lastElementChild.getBoundingClientRect().bottom, side: panel.getBoundingClientRect().right <= stack.getBoundingClientRect().left + 1, hasFr: !!document.querySelector('.friends'), x: document.documentElement.scrollWidth <= document.documentElement.clientWidth };
       });
       const tag = `friends ${friends ? 'on' : 'off'}, ${w}px`;
-      check(`sessions scroll inside the card, newest first, total below (${tag})`, m.over && m.h >= m.five - 1 && (w > 1000 || m.h <= m.five + 1) && m.first === 'Session 9' && m.tot);
+      check(`sessions scroll inside the card (desktop: fills the column, at least two rows; phone: five rows), newest first, total below (${tag})`, m.over && (w > 1000 ? m.h >= 110 : m.h >= m.five - 1 && m.h <= m.five + 1) && m.first === 'Session 9' && m.tot);
       check(`friends card follows the setting, no sideways scroll (${tag})`, m.hasFr === friends && m.x);
       if (w === 1440) check(`the timer card stays within the right column (${tag})`, m.side && m.pb <= m.sb + 1);
     }
