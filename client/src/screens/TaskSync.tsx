@@ -106,6 +106,11 @@ export function Nextcloud() {
             <button type="button" className="btn ghost" disabled={busy} onClick={() => act(() => api.nextcloudUnlink())}>{W.unlink}</button>
           </div>
           <p className="muted">{W.howItSyncs}</p>
+          <p className="muted">{W.duplicateWarning}</p>
+          {link.routes.map(route => <label className="session-row" key={route.id}>
+            <span>{route.name}<small>{W.viaNextcloud}</small></span>
+            <span><input type="checkbox" checked={route.published} disabled={busy} onChange={e => act(() => api.nextcloudPublish(route.id, e.target.checked))} />{W.publishDirect}</span>
+          </label>)}
         </div>
       ) : (
         <form className="inline-form" onSubmit={(e) => { e.preventDefault(); act(() => api.nextcloudLink({ url: url.trim(), username: user.trim(), password: pw.trim() })); }}>

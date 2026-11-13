@@ -530,6 +530,8 @@ export const en = {
     add: (n: number) => (n ? `Add ${n} to the weekly schedule` : 'Add'), added: (n: number) => `Added ${n} to the weekly schedule`,
   },
   dav: {
+    duplicateWarning: 'Nextcloud lists are hidden from direct CalDAV by default. Publishing the same list on both phone accounts shows duplicate tasks; enable it only if the phone syncs that list through one account.',
+    viaNextcloud: 'Via Nextcloud', publishDirect: 'Also publish through direct CalDAV',
     appsTitle: 'Task apps',
     appsAbout: 'Keep your task lists in a task app on your phone or computer: DAVx⁵ with Tasks.org or OpenTasks on Android, Thunderbird, Reminders on Apple devices. Add a CalDAV account with the address and user name below and an app password made here, one per device.',
     serverAddress: 'Server address', userName: 'User name', copy: 'Copy', copied: 'Copied', copyAddress: 'Copy the server address', copyPassword: 'Copy the app password',
@@ -544,7 +546,8 @@ export const en = {
     linkedTo: (u: string) => `Linked to ${u}`, as: (u: string) => `as ${u}`, listsN: (n: number) => `${n} ${s(n, 'list', 'lists')}`, synced: (when: string) => `synced ${when}`,
     howItSyncs: 'Unlinking keeps everything on both sides; they just stop following each other.',
     errors: {
-      url: 'That is not a web address.', missing: 'Fill in all three.', private: 'That address is on a private network; only the owner of this server can link one there.',
+      url: 'That is not a web address.', missing: 'Fill in all three.', private: 'This address resolves to a private network (possibly home DNS). The server owner can link Nextcloud; ask the administrator to allow the exact hostname with CALENDAR_PRIVATE_HOSTS for calendar subscriptions.',
+      conflict: 'The remote task changed during sync. Nothing was overwritten; sync again to retry.',
       unreachable: 'The server did not answer. Check the address.', auth: 'The user name or the app password was refused.',
       'no-caldav': 'No CalDAV was found at that address.', busy: 'Tasks changed during the sync; it runs again in a moment.',
       'too-many': 'Too many tries. Wait a while.', failed: 'The last sync failed; it will be tried again in a few minutes.',
@@ -724,7 +727,7 @@ export const en = {
   calRemove: (n: string) => `Remove ${n}`, calNone: 'No calendars linked.',
   calErrors: {
     url: 'That is not a calendar address (it starts with https:// or webcal://).',
-    private: 'Addresses on this server or its private network are not fetched.',
+    private: 'This address resolves to a private network, possibly because of home DNS. Ask the administrator to add its exact hostname to CALENDAR_PRIVATE_HOSTS and restart the service.',
     unreachable: 'The calendar could not be reached. Check the address.',
     denied: 'The calendar refused the request. Use the secret (private) address.',
     'not-calendar': 'That address does not give a calendar in iCal format.',

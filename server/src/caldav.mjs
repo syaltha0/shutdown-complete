@@ -86,7 +86,11 @@ export function davRoutes(app, { db, sha256, clientIp, onChange = () => {} }) {
   // ---- the task lists, read and written ----
   const inboxName = (u) => (u.lang === 'tr' ? 'Gelen kutusu' : 'Inbox');
   const docOf = (u) => db.docs.get(u.id, 'inbox') ?? { value: null, version: 0 };
-  const listsOf = (u, doc) => [{ id: DEFAULT_LIST, name: inboxName(u) }, ...(doc?.lists ?? [])];
+  const listsOf = (u, doc) => {
+    const state = db.davLinks.get(u.id)?.state;
+    return [{ id: DEFAULT_LIST, name: inboxName(u) }, ...(doc?.lists ?? [])]
+      .filter(l => !state?.cals?.[l.id] || state?.published?.[l.id] === true);
+  };
   /** A change to the tasks, tried again if the planner wrote in between. */
   function write(u, change) {
     for (let i = 0; i < 5; i++) {
@@ -222,12 +226,15 @@ export function davRoutes(app, { db, sha256, clientIp, onChange = () => {} }) {
         let error = null;
         try {
           write(u, (d) => {
+            const current = resources(d, list.id).get(where.name);
+            if ((ifNone === '*' && current) || (ifMatch && (!current || (ifMatch !== '*' && ifMatch !== current.etag)))) { error = 'stale'; return null; }
             const r = upsert(d, list.id, where.name, body, todayIso());
             if (r.error) { error = r.error; return null; }
             // a task moved here from another list in the app: it leaves that list
             return r.doc;
           });
         } catch { return c.body('Busy, try again', 503); }
+        if (error === 'stale') return c.body('Changed since', 412);
         if (error) return c.body('Only VTODOs are kept here', 415);
         const fresh = docOf(u).value;
         const now = [...resources(fresh, list.id)].find(([n]) => n === where.name)?.[1]
@@ -254,6 +261,7 @@ export function davRoutes(app, { db, sha256, clientIp, onChange = () => {} }) {
 
       case 'MKCALENDAR': case 'MKCOL': {
         if (where.kind !== 'list') return c.body('Lists are made in the calendars', 403);
+        if (db.davLinks.get(u.id)?.state?.cals?.[where.list]) return c.body('Managed by Nextcloud', 403);
         if (list) return c.body('Already there', 405);
         if (!LIST_ID.test(where.list)) return c.body('Use letters, digits, - and _ in the address', 403);
         const name = /<(?:\w+:)?displayname>([^<]*)</.exec(body)?.[1]?.trim() || where.list;

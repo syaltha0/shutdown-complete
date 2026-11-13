@@ -582,6 +582,11 @@ app.post('/api/account/app-passwords', async (c) => {
 });
 // the link to a Nextcloud: its state, made (after the address and password are tried), synced now, undone
 app.get('/api/account/nextcloud', (c) => c.json(syncer.status(uid(c))));
+app.put('/api/account/nextcloud/lists/:id', async (c) => {
+  const b = await body(c);
+  if (typeof b.published !== 'boolean' || !syncer.publish(uid(c), c.req.param('id'), b.published)) return fail(c, 'missing', 400);
+  return c.json(syncer.status(uid(c)));
+});
 app.put('/api/account/nextcloud', async (c) => {
   if (limited(`nextcloud:${uid(c)}`, 20, 3600_000)) return fail(c, 'too-many', 429);
   const b = await body(c);

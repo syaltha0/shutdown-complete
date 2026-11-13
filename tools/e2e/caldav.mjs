@@ -111,6 +111,16 @@ try {
   check('each list became a calendar there', there.lists?.some((l) => l.id === 'sc-school' && l.name === 'School' && l.color === 'green') && there.lists.some((l) => l.id === 'sc-inbox'));
   check('with its tasks and subtasks', there.items.some((x) => x.id === 'a1' && x.list === 'sc-school' && x.done) && there.items.some((x) => x.id === 'a2' && x.repeat?.every === 2));
   check('their calendar of tasks became a list here', (await mine()).lists.some((l) => l.name === 'Gelen kutusu'));
+  const directPw = (await api.call('/api/account/app-passwords', { name: 'Dual-route test' })).body.password;
+  const direct = (method, path, body, headers = {}) => dav(method, path, body, { ...headers, authorization: auth(directPw) });
+  const hidden = await (await direct('PROPFIND', home, '', { depth: '1' })).text();
+  check('Nextcloud lists are hidden on direct DAV by default', !hidden.includes(`${home}school/`));
+  check('a hidden synced list cannot be read directly', (await direct('GET', `${school}a1.ics`)).status === 404);
+  const published = await api.call('/api/account/nextcloud/lists/school', { published: true }, 'PUT');
+  check('explicit per-list publication is available', published.body.routes.some(r => r.id === 'school' && r.published));
+  check('explicitly published list is readable', (await direct('GET', `${school}a1.ics`)).status === 200);
+  await api.call('/api/account/nextcloud/lists/school', { published: false }, 'PUT');
+  check('per-list publication can be revoked', (await direct('GET', `${school}a1.ics`)).status === 404);
 
   // changed there -> here
   there = await ncInbox();

@@ -111,7 +111,7 @@ export interface WeekReviewData {
 }
 export interface BackupState { list: { name: string; size: number; at: string; kind: 'auto' | 'manual' | 'before-restore' | 'upload' }[]; keep: number; hour: number }
 export interface DavInfo { url: string; user: string; passwords: { id: string; name: string; created: string; lastUsed: string | null }[] }
-export interface NextcloudLink { url: string; username: string; lastSync: string | null; error: string | null; lists: number }
+export interface NextcloudLink { url: string; username: string; lastSync: string | null; error: string | null; lists: number; routes: { id: string; name: string; published: boolean }[] }
 
 const post = <T>(path: string, data: unknown = {}) => request<T>(path, { method: 'POST', body: JSON.stringify(data) });
 
@@ -200,6 +200,7 @@ export const api = {
   appPasswordAdd: (name: string) => post<DavInfo & { password: string }>('/api/account/app-passwords', { name }),
   appPasswordRemove: (id: string) => request<DavInfo>(`/api/account/app-passwords/${encodeURIComponent(id)}`, { method: 'DELETE' }),
   nextcloud: () => request<NextcloudLink | null>('/api/account/nextcloud'),
+  nextcloudPublish: (id: string, published: boolean) => request<NextcloudLink>(`/api/account/nextcloud/lists/${encodeURIComponent(id)}`, { method: 'PUT', body: JSON.stringify({ published }) }),
   nextcloudLink: (b: { url: string; username: string; password: string }) => request<NextcloudLink>('/api/account/nextcloud', { method: 'PUT', body: JSON.stringify(b) }),
   nextcloudSync: () => post<NextcloudLink>('/api/account/nextcloud/sync'),
   nextcloudUnlink: () => request<null>('/api/account/nextcloud', { method: 'DELETE' }),

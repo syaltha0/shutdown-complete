@@ -30,6 +30,7 @@ export function davSync({ db, feedProblem, log = () => {} }) {
   async function call(link, method, url, body, headers = {}) {
     let at = url;
     for (let hop = 0; hop < 4; hop++) {
+      if (new URL(at).origin !== new URL(link.url).origin) throw Object.assign(new Error('url'), { code: 'url' });
       const problem = await feedProblem(at, link.mayPrivate);
       if (problem) throw Object.assign(new Error(problem), { code: problem });
       const ctl = new AbortController(), timer = setTimeout(() => ctl.abort(), TIMEOUT);
@@ -37,8 +38,9 @@ export function davSync({ db, feedProblem, log = () => {} }) {
       try {
         res = await fetch(at, { method, body, redirect: 'manual', signal: ctl.signal, headers: { authorization: link.auth, 'user-agent': 'ShutdownComplete-sync/1', ...(body ? { 'content-type': 'application/xml; charset=utf-8' } : {}), ...headers } });
       } catch { throw Object.assign(new Error('unreachable'), { code: 'unreachable' }); } finally { clearTimeout(timer); }
-      if (res.status >= 300 && res.status < 400 && res.headers.get('location')) { at = new URL(res.headers.get('location'), at).href; continue; }
+      if (res.status >= 300 && res.status < 400 && res.headers.get('location')) { const next = new URL(res.headers.get('location'), at); if (next.origin !== new URL(link.url).origin) throw Object.assign(new Error('url'), { code: 'url' }); at = next.href; continue; }
       if (res.status === 401 || res.status === 403 && method === 'PROPFIND') throw Object.assign(new Error('auth'), { code: 'auth' });
+      if (['PUT', 'DELETE'].includes(method) && res.status >= 300) throw Object.assign(new Error(res.status === 412 ? 'conflict' : 'failed'), { code: res.status === 412 ? 'conflict' : 'failed' });
       return { status: res.status, etag: res.headers.get('etag'), text: await res.text(), url: at };
     }
     throw Object.assign(new Error('unreachable'), { code: 'unreachable' });
@@ -174,7 +176,14 @@ export function davSync({ db, feedProblem, log = () => {} }) {
         for (const R of pulls) {
           const v = parseTodo(R.ics);
           doc = upsert(doc, listId, `${v.uid}.ics`, R.ics, today).doc;
-          state.items[v.uid] = { list: listId, href: R.href, etag: R.etag, hash: null };
+          let etag = R.etag;
+          const rolled = [...resources(doc, listId).values()].find(r => r.uid === v.uid);
+          const next = rolled && parseTodo(rolled.ics);
+          if (v.done && next && (!next.done || next.due !== v.due)) {
+            const put = await call(link, 'PUT', R.href, rolled.ics, { 'content-type': 'text/calendar; charset=utf-8', ...(R.etag ? { 'if-match': R.etag } : {}) });
+            etag = put.etag;
+          }
+          state.items[v.uid] = { list: listId, href: R.href, etag, hash: null };
         }
         // what each task reads as here now, for the next comparison
         const after = new Map([...resources(doc, listId).values()].map((r) => [r.uid, r.etag]));
@@ -185,10 +194,12 @@ export function davSync({ db, feedProblem, log = () => {} }) {
         const res = db.docs.put(userId, 'inbox', doc, cur.version);
         if (res.conflict) { schedule(userId); return { ok: false, error: 'busy' }; } // changed meanwhile: again soon
       }
+      state.published = db.davLinks.get(userId)?.state.published;
       db.davLinks.saveState(userId, state, null);
       return { ok: true };
     } catch (e) {
       log(`sync ${userId}: ${e.message}`);
+      state.published = db.davLinks.get(userId)?.state.published;
       db.davLinks.saveState(userId, state, e.code || 'failed');
       return { ok: false, error: e.code || 'failed' };
     }
@@ -216,7 +227,15 @@ export function davSync({ db, feedProblem, log = () => {} }) {
     },
     status(userId) {
       const l = db.davLinks.get(userId);
-      return l ? { url: l.url, username: l.username, lastSync: l.last_sync, error: l.last_error, lists: Object.keys(l.state.cals ?? {}).length } : null;
+      const doc = db.docs.get(userId, 'inbox')?.value;
+      return l ? { url: l.url, username: l.username, lastSync: l.last_sync, error: l.last_error, lists: Object.keys(l.state.cals ?? {}).length,
+        routes: Object.keys(l.state.cals ?? {}).map(id => ({ id, name: doc?.lists?.find(x => x.id === id)?.name ?? inboxName(db.users.byId(userId)), published: l.state.published?.[id] === true })) } : null;
+    },
+    publish(userId, id, enabled) {
+      const l = db.davLinks.get(userId);
+      if (!l?.state.cals?.[id]) return false;
+      db.davLinks.saveState(userId, { ...l.state, published: { ...l.state.published, [id]: enabled } }, l.last_error);
+      return true;
     },
     disconnect: (userId) => { clearTimeout(timers.get(userId)); db.davLinks.remove(userId); },
   };
