@@ -1,6 +1,7 @@
 import { useEffect, useId, useRef, useState } from 'react';
 import { useSettings } from '../App';
 import { chime, finishPhase, settingsFocus, skipPlan, type SkipCount } from '../lib/focus';
+import { useWatch } from './FocusTimer';
 import { useT } from '../lib/i18n';
 import type { FocusActive } from '../lib/model';
 
@@ -35,6 +36,8 @@ export function SkipChoice({ a, skip, className = '' }: { a: FocusActive; skip: 
   const T = useT();
   const id = useId();
   const root = useRef<HTMLDivElement>(null);
+  // the minutes run move on while the question is open: this small card follows them, the screen behind it does not
+  useWatch(() => skipPlan(a).elapsedMin);
   const plan = skipPlan(a);
   useEffect(() => {
     const back = document.activeElement as HTMLElement | null;

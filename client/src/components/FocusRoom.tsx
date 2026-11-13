@@ -6,7 +6,7 @@ import { cancelFocus, extendFocus, finishPhase, MAX_PLANNED, mmss, pauseFocus, r
 import { useT } from '../lib/i18n';
 import { emptyDay, uid, type DayDoc } from '../lib/model';
 import { useDoc } from '../lib/useDoc';
-import { Ring, useTick } from './FocusTimer';
+import { RingLive, TimeLeft } from './FocusTimer';
 import { SkipChoice, useSkip } from './SkipChoice';
 import { IconX } from './Icons';
 import { fill } from './FocusConfig';
@@ -23,7 +23,6 @@ export function FocusRoom({ start, onClose }: { start: { blockId: string | null;
   const f = settingsFocus(settings);
   const { value: day, update } = useDoc<DayDoc>(`day:${today()}`, emptyDay);
   const { active: a, key } = useFocusDay();
-  useTick(!!a && a.pausedLeft == null);
   const [sound, setSound] = useState<Ambient | null>(ambientPlaying() ?? ambientPref().sound);
   const [volume, setVolume] = useState(ambientPref().volume);
   const [tasksOpen, setTasksOpen] = useState(false);
@@ -104,10 +103,10 @@ export function FocusRoom({ start, onClose }: { start: { blockId: string | null;
       </section>
       <div className="room-stage">
         <div className="focus-ring room-ring">
-          {a ? <Ring a={a} size={340} stroke={8} /> : <svg width={340} height={340} viewBox="0 0 340 340" aria-hidden="true"><circle cx={170} cy={170} r={166} fill="none" stroke="var(--raised)" strokeWidth={8} /></svg>}
+          {a ? <RingLive a={a} size={340} stroke={8} /> : <svg width={340} height={340} viewBox="0 0 340 340" aria-hidden="true"><circle cx={170} cy={170} r={166} fill="none" stroke="var(--raised)" strokeWidth={8} /></svg>}
           <div className="focus-read">
             <span className="phase-name" role="status">{a ? T.phase[a.phase] : T.phase.focus}{a?.pausedLeft != null && <span className="room-paused"> &middot; {T.focusPaused}</span>}</span>
-            <b className="num" aria-live="off">{a ? mmss(secondsLeft(a)) : mmss(start.minutes * 60)}</b>
+            <b className="num" aria-live="off">{a ? <TimeLeft a={a} /> : mmss(start.minutes * 60)}</b>
             <span className="muted focus-label">{a ? a.label || T.freeFocus : start.label}</span>
           </div>
         </div>
