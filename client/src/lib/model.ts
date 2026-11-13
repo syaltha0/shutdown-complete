@@ -226,13 +226,11 @@ export interface MetricDef {
 }
 
 export interface FocusSettings {
-  mini?: boolean;
   voice?: boolean;
   bell?: string;
   volume?: number;
   scheduled?: boolean;
   breaks?: { id: string; time: string; minutes: number; label: string }[];
-  miniKeepOpen?: boolean;
   strict?: boolean;
   fullscreenBreak?: boolean;
   autoBreak?: boolean;

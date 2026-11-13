@@ -269,7 +269,6 @@
 .focus-special { display: grid; gap: 16px; }
 .focus-special .field { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
 .focus-special input { min-width: 0; width: 100%; }
-.focus-mini-trigger[aria-pressed=true] { color: var(--hue); border-color: var(--hue); }
 
 /* Both views occupy the timer's existing space; only preferences scroll. */
 .focus-card-body { position: relative; display: flex; flex: 1; width: 100%; min-width: 0; }

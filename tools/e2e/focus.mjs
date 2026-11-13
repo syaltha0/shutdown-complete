@@ -81,15 +81,6 @@ try {
   check('duration sliders reference the explanation', await p.locator('.focus-config input').first().getAttribute('aria-describedby') === await p.locator('.focus-config-hint').getAttribute('id'));
   await p.getByRole('button', { name: '\u2190 Timer', exact: true }).click();
 
-  // the mini timer is a video picture-in-picture window (no address bar, unlike document PiP)
-  check('the mini timer button follows video PiP support', await p.evaluate(() => (!!document.pictureInPictureEnabled && !!HTMLCanvasElement.prototype.captureStream) === !!document.querySelector('.focus-mini-trigger')));
-
-  if (await p.evaluate(() => !!document.pictureInPictureEnabled)) {
-    await p.locator('.focus-mini-trigger').click();
-    check('video fallback enters PiP', await until(() => p.evaluate(() => document.pictureInPictureElement?.tagName === 'VIDEO')));
-    await p.locator('.focus-mini-trigger').click();
-    check('video fallback releases its element', await until(() => p.evaluate(() => !document.querySelector('video'))));
-  }
   await p.getByRole('button', { name: 'Pause', exact: true }).click();
   check('pause keeps the time left', !!(await until(async () => (await doc()).focus?.active?.pausedLeft != null)));
   await p.getByRole('button', { name: '+5 min', exact: true }).click();

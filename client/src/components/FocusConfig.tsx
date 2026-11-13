@@ -9,7 +9,7 @@ export function FocusConfig() {
   const f = settingsFocus(settings);
   const id = useId();
   const { active } = useFocusDay();
-  const toggle = (key: 'miniKeepOpen' | 'autoBreak' | 'autoFocus' | 'fullscreenBreak' | 'strict' | 'scheduled' | 'voice' | 'sound') => <label className="focus-switch-row" key={key}>
+  const toggle = (key: 'autoBreak' | 'autoFocus' | 'fullscreenBreak' | 'strict' | 'scheduled' | 'voice' | 'sound') => <label className="focus-switch-row" key={key}>
     <span>{T.focusOptions[key]}{key in T.focusGroups && <small>{T.focusGroups[key as 'autoBreak' | 'autoFocus' | 'fullscreenBreak' | 'strict']}</small>}</span>
     <input type="checkbox" role="switch" checked={key === 'autoBreak' ? f[key] !== false : !!f[key]} onChange={e => update(s => ({...s, focus: {...settingsFocus(s), [key]: e.target.checked}}))} />
   </label>;
@@ -23,7 +23,7 @@ export function FocusConfig() {
     <label htmlFor={`${id}-${key}`}>{label}<output className="num">{f[key]} {key === 'longEvery' ? T.sessionsWord : T.minutesUnit}</output></label>
     <input id={`${id}-${key}`} aria-describedby={active ? `${id}-hint` : undefined} type="range" min={min} max={max} step={1} value={f[key]} onChange={(e) => { const value = Number(e.target.value); update((s) => ({ ...s, focus: { ...settingsFocus(s), [key]: value } })); }} />
   </div>)}
-    </section><section><h3>{T.focusGroups.flow}</h3>{(['autoBreak', 'autoFocus', 'fullscreenBreak', 'strict', 'miniKeepOpen'] as const).map(toggle)}</section>
+    </section><section><h3>{T.focusGroups.flow}</h3>{(['autoBreak', 'autoFocus', 'fullscreenBreak', 'strict'] as const).map(toggle)}</section>
     <section><h3>{T.focusGroups.audio}</h3>{toggle('sound')}
     <label>{T.focusOptions.bell}<select className="input" value={f.bell ?? 'classic'} onChange={e => update(s => ({...s, focus: {...settingsFocus(s), bell: e.target.value}}))}>{(['classic','soft','single'] as const).map(x => <option key={x} value={x}>{T.focusOptions[x]}</option>)}</select><button type="button" className="btn" onClick={() => chime({...f, sound: true})}>{T.focusGroups.preview}</button></label>
     <label>{T.volume}<input type="range" min={0} max={1} step={0.05} value={f.volume ?? 1} onChange={e => update(s => ({...s, focus: {...settingsFocus(s), volume: Number(e.target.value)}}))} /></label>
