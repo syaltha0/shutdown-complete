@@ -483,10 +483,13 @@
 
 /* the last card on the right lines up with the chart card (see useAlignedBottomRow) */
 @media (min-width: 1000px) and (min-height: 601px) {
-  .focus-grid[data-align-rows] > .stack > :last-child { flex: 0 0 var(--history-h); height: var(--history-h); min-height: 0; }
-  .focus-grid[data-align-rows] > .stack > :last-child:not(.focus-sessions) { align-content: start; }
-  .focus-grid[data-align-rows] > .stack > .focus-sessions:not(:last-child) { flex: 1 1 0; }
-  .focus-grid[data-align-rows] > .stack > .focus-sessions:last-child ~ *, .focus-grid[data-align-rows] > .stack > :first-child:has(~ .focus-sessions:last-child) { flex: 1 1 0; }
+  .focus-grid[data-align-rows="one"] > .stack > :last-child { flex: 0 0 var(--history-h); height: var(--history-h); min-height: 0; }
+  /* four cards: the blocks summary takes what Focus together leaves of the chart card's height */
+  .focus-grid[data-align-rows="pair"] > .stack > :nth-last-child(2) { flex: 0 0 var(--pair-h); height: var(--pair-h); min-height: 0; }
+  .focus-grid[data-align-rows="pair"] > .stack > .focus-sessions { flex: 1 1 0; }
+  .focus-grid[data-align-rows="one"] > .stack > :last-child:not(.focus-sessions) { align-content: start; }
+  .focus-grid[data-align-rows="one"] > .stack > .focus-sessions:not(:last-child) { flex: 1 1 0; }
+  .focus-grid[data-align-rows="one"] > .stack > .focus-sessions:last-child ~ *, .focus-grid[data-align-rows="one"] > .stack > :first-child:has(~ .focus-sessions:last-child) { flex: 1 1 0; }
 }
 
 /* on a desktop window each block in "Focus by block" is one line (name, then the minutes), saving the right column the

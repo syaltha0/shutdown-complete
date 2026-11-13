@@ -43,16 +43,32 @@ function useAlignedBottomRow() {
         grid.style.setProperty('--history-h', `${h}px`);
         // what the last card's content needs, measured at its natural height
         const was = grid.dataset.alignRows; delete grid.dataset.alignRows;
-        const need = last.classList.contains('focus-sessions') ? 0 : Math.ceil(last.getBoundingClientRect().height);
-        if (need > h + 1) { if (was != null) delete grid.dataset.alignRows; return; }
-        grid.dataset.alignRows = '';
-        // the sessions card gives up the difference, but never below two full rows: otherwise keep the natural layout
+        const stack0 = last.parentElement!, kids = [...stack0.children] as HTMLElement[];
+        const gap = parseFloat(getComputedStyle(stack0).rowGap) || 0;
+        // four cards (blocks summary and Focus together both shown): the two of them together match the chart card
+        const pairUp = kids.length >= 4 && last.classList.contains('friends') && kids[kids.length - 2].classList.contains('focus-byblock');
+        if (pairUp) {
+          const lastH = Math.ceil(last.getBoundingClientRect().height), prevH = Math.ceil(kids[kids.length - 2].getBoundingClientRect().height);
+          if (lastH + gap + prevH > h + 1) { if (was != null) delete grid.dataset.alignRows; return; }
+          grid.style.setProperty('--pair-h', `${h - gap - lastH}px`);
+          grid.dataset.alignRows = 'pair';
+        } else {
+          // three cards with the blocks summary and no Focus together keep their natural layout
+          if (kids.length >= 3 && last.classList.contains('focus-byblock')) return;
+          const need = last.classList.contains('focus-sessions') ? 0 : Math.ceil(last.getBoundingClientRect().height);
+          if (need > h + 1) { if (was != null) delete grid.dataset.alignRows; return; }
+          grid.dataset.alignRows = 'one';
+        }
+        // the sessions card gives up the difference, but never below two full rows (one with four cards, where the user
+        // asked for the pair to always line up): otherwise keep the natural layout
         const sessions = grid.querySelector<HTMLElement>('.focus-sessions');
         const list = sessions?.querySelector<HTMLElement>('.session-scroll');
         const row = list?.querySelector<HTMLElement>('.session')?.getBoundingClientRect().height ?? 0;
-        const squeezed = !!sessions && sessions !== last && (sessions.scrollHeight > sessions.clientHeight + 1 || (!!list && list.getBoundingClientRect().height < Math.min(2 * row, list.scrollHeight) - 1));
+        const squeezed = !!sessions && sessions !== last && !pairUp && (sessions.scrollHeight > sessions.clientHeight + 1 || (!!list && list.getBoundingClientRect().height < Math.min((pairUp ? 1 : 2) * row, list.scrollHeight) - 1));
         const stack = last.parentElement!;
-        const spills = stack.scrollHeight > stack.clientHeight + 1 || [...stack.children].some((el) => el.scrollHeight > el.clientHeight + 1);
+        // with four cards the session list is about to refit to one row, so judge the sessions card by that
+        const sessionsFit = !pairUp || !sessions || !list || sessions.clientHeight + 1 >= sessions.scrollHeight - list.clientHeight + Math.min(row, list.scrollHeight);
+        const spills = stack.scrollHeight > stack.clientHeight + 1 || !sessionsFit || [...stack.children].some((el) => (pairUp && el === sessions ? false : el.scrollHeight > el.clientHeight + 1));
         if (squeezed || spills) delete grid.dataset.alignRows;
       });
     };
@@ -152,10 +168,12 @@ export function Focus() {
     const fit = () => {
       const rows = [...el.children] as HTMLElement[];
       const available = el.parentElement!.clientHeight - (el.parentElement!.querySelector('.total')?.clientHeight ?? 0);
+      // two rows at least; one when the four right-hand cards line up with the chart (useAlignedBottomRow)
+      const minRows = el.closest('.focus-grid')?.getAttribute('data-align-rows') === 'pair' ? 1 : 2;
       let height = 0;
       for (const [i, row] of rows.slice(0, ROWS).entries()) {
         const rowHeight = row.getBoundingClientRect().height;
-        if (i >= 2 && height + rowHeight > available) break;
+        if (i >= minRows && height + rowHeight > available) break;
         height += rowHeight;
       }
       const h = `${height}px`;

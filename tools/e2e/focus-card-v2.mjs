@@ -128,20 +128,22 @@ try {
 
   // ---------- 2. the block picker ----------
   const nowMin = new Date().getHours() * 60 + new Date().getMinutes();
-  const at = Math.max(200, Math.min(1200, nowMin));
+  // blocks around the real time: "now" must contain the clock and the later ones must fit before midnight, so late in
+  // the evening the spacing tightens (k scales the offsets; at 23:10 the last block still ends before 24:00)
+  const at = Math.max(200, nowMin), k = Math.min(1, (1439 - at) / 180);
   const mk = (id, label, kind, start, end) => ({ id, label, kind, start, end, note: '' });
   const planDay = async (blocks, sessions = []) => {
     const x = (await api.get('day:' + D)).value;
     const cols = structuredClone(x.columns); cols[0].blocks = blocks;
     await api.put('day:' + D, { ...x, columns: cols, focus: { active: null, sessions } });
   };
-  const plan = [mk('pa', 'Alpha now', 'deep', at - 20, at + 40), mk('pb', 'Beta later', 'shallow', at + 60, at + 100), mk('pc', 'Gamma later', 'deep', at + 120, at + 180), mk('pd', 'Delta past', 'deep', at - 200, at - 140)];
+  const plan = [mk('pa', 'Alpha now', 'deep', at - 20, at + Math.round(40 * k)), mk('pb', 'Beta later', 'shallow', at + Math.round(60 * k), at + Math.round(100 * k)), mk('pc', 'Gamma later', 'deep', at + Math.round(120 * k), at + Math.round(180 * k)), mk('pd', 'Delta past', 'deep', at - 200, at - 140)];
   await planDay(plan, [session(1, 40, { blockId: 'pd', label: 'Delta past' })]);
   await open();
   const chip = p.locator('.bp-chip');
   const chipText = await chip.innerText();
   const hh = (m) => `${String(Math.floor(m / 60)).padStart(2, '0')}:${String(m % 60).padStart(2, '0')}`;
-  check('the chip shows the block name, its hours and a deep mark', /Alpha now/.test(chipText) && chipText.includes(`${hh(at - 20)}–${hh(at + 40)}`) && await chip.locator('.bp-kind.deep').count() === 1);
+  check('the chip shows the block name, its hours and a deep mark', /Alpha now/.test(chipText) && chipText.includes(`${hh(at - 20)}–${hh(at + Math.round(40 * k))}`) && await chip.locator('.bp-kind.deep').count() === 1);
   check('the old Now / Change row and the hidden select are gone', await p.locator('.focus-block-row, #fc-block').count() === 0 && await p.locator('#fc-task, #fc-intent').count() === 0);
   const h0 = await p.locator('.focus-panel').evaluate((e) => e.getBoundingClientRect().height);
   await chip.click();
@@ -152,7 +154,7 @@ try {
   const names = () => p.locator('.bp-sheet').getByRole('option').evaluateAll((els) => els.map((e) => e.querySelector('.bp-name').textContent));
   check('the list: the running block, the ones to come, those past, then unplanned focus', JSON.stringify(await names()) === JSON.stringify(['Alpha now', 'Beta later', 'Gamma later', 'Delta past', 'Unplanned focus']));
   check('with headings for now, up next and earlier', JSON.stringify(await p.locator('.bp-heading').allInnerTexts()) === JSON.stringify(['Now', 'Up next', 'Earlier']));
-  check('each shows its hours; the minutes already focused show too', (await p.locator('.bp-sheet').getByRole('option').nth(1).innerText()).includes(`${hh(at + 60)}–${hh(at + 100)}`) && /40 m focused/.test(await p.locator('.bp-sheet').getByRole('option').nth(3).innerText()));
+  check('each shows its hours; the minutes already focused show too', (await p.locator('.bp-sheet').getByRole('option').nth(1).innerText()).includes(`${hh(at + Math.round(60 * k))}–${hh(at + Math.round(100 * k))}`) && /40 m focused/.test(await p.locator('.bp-sheet').getByRole('option').nth(3).innerText()));
   check('past blocks are muted', await p.locator('.bp-option.is-past').count() === 1 && await p.locator('.bp-option.is-past').evaluate((e) => getComputedStyle(e).color) !== await p.locator('.bp-option').first().evaluate((e) => getComputedStyle(e).color));
   check('the chosen block is marked selected and active', await p.locator('.bp-sheet').getByRole('option').first().getAttribute('aria-selected') === 'true' && await combo.getAttribute('aria-activedescendant') === await p.locator('.bp-sheet').getByRole('option').first().getAttribute('id'));
   await p.keyboard.press('ArrowDown');

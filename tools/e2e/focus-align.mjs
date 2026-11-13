@@ -19,12 +19,14 @@ try {
     await api.put('day:' + D, d);
     for (const [w, h] of [[1904, 1015], [1440, 789]]) {
       await p.setViewportSize({ width: w, height: h }); await p.goto(s.url + '/focus'); await p.locator('.focus-history').waitFor(); await p.waitForTimeout(600);
-      const m = await p.evaluate(() => { const H = document.querySelector('.focus-history').getBoundingClientRect(); const L = [...document.querySelectorAll('.focus-grid > .stack > *')].at(-1); const R = L.getBoundingClientRect(); return { last: L.className.replace('panel ', ''), aligned: document.querySelector('.focus-grid').hasAttribute('data-align-rows'), topDiff: Math.round(R.top - H.top), bottomDiff: Math.round(R.bottom - H.bottom), scroll: document.documentElement.scrollHeight - innerHeight }; });
+      const m = await p.evaluate(() => { const H = document.querySelector('.focus-history').getBoundingClientRect(); const L = [...document.querySelectorAll('.focus-grid > .stack > *')].at(-1); const R = L.getBoundingClientRect(); const kids = [...document.querySelectorAll('.focus-grid > .stack > *')]; const P = kids.at(-2).getBoundingClientRect(); return { cards: kids.length, mode: document.querySelector('.focus-grid').dataset.alignRows ?? null, pairTop: Math.round(P.top - H.top), last: L.className.replace('panel ', ''), aligned: document.querySelector('.focus-grid').hasAttribute('data-align-rows'), topDiff: Math.round(R.top - H.top), bottomDiff: Math.round(R.bottom - H.bottom), scroll: document.documentElement.scrollHeight - innerHeight }; });
       const tag = `${name} ${w}x${h}`;
       if (m.scroll !== 0 || m.bottomDiff !== 0) throw Error(`columns end together without scrolling (${tag}): ${JSON.stringify(m)}`);
-      const expect = !name.includes('_block') || name === 'fr-off_6_block_never';
-      if (expect && (!m.aligned || m.topDiff !== 0)) throw Error(`last card lines up with the chart (${tag}): ${JSON.stringify(m)}`);
-      if (!expect && m.aligned && m.topDiff !== 0) throw Error(`alignment is exact when on (${tag})`);
+      // four cards: blocks summary + Focus together fill the chart card's height together; three cards with the blocks
+      // summary keep their natural layout; otherwise the last card matches the chart card
+      if (m.cards >= 4) { if (m.mode !== 'pair' || m.pairTop !== 0 || m.bottomDiff !== 0) throw Error(`the last two cards match the chart together (${tag}): ${JSON.stringify(m)}`); }
+      else if (m.last === 'focus-byblock') { if (m.aligned) throw Error(`three cards with the blocks summary stay natural (${tag}): ${JSON.stringify(m)}`); }
+      else if (!m.aligned || m.topDiff !== 0) throw Error(`last card lines up with the chart (${tag}): ${JSON.stringify(m)}`);
       passed++;
     }
   }
