@@ -84,6 +84,7 @@ serverStatus:{"title":"Sunucu durumu","backup":"Yedekler","storage":"Depolama","
   conflictNotice: 'Bu sayfa başka bir cihazda değiştirildi. Şimdi o sürümü görüyorsun.',
   errorKept: 'Son değişikliklerin bu ekranda duruyor.',
   somethingWrong: 'Bir şeyler ters gitti.',
+  loadFailed: 'Yüklenemedi. Bağlantını kontrol et.',
   retry: 'Tekrar dene',
   untitled: 'Başlıksız',
   untitledBlock: 'Başlıksız blok',

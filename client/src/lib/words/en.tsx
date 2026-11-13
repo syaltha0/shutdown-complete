@@ -87,6 +87,7 @@ export const en = {
   conflictNotice: 'This page was changed on another device. You are now seeing that version.',
   errorKept: 'Your last changes are kept on this screen.',
   somethingWrong: 'Something went wrong.',
+  loadFailed: 'Could not load this. Check your connection.',
   retry: 'Retry',
   untitled: 'Untitled',
   untitledBlock: 'Untitled block',

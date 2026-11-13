@@ -4,6 +4,7 @@ import { api, ApiError, type BackupState, type DavInfo, type NextcloudLink } fro
 import { IconDown } from '../components/Icons';
 import { getLang, useT } from '../lib/i18n';
 import { clock } from '../lib/dates';
+import { LoadFailed } from '../components/Common';
 
 const ago = (iso: string) => {
   const s = Math.round((Date.now() - Date.parse(iso)) / 1000);
@@ -36,10 +37,12 @@ export function TaskApps() {
   const [name, setName] = useState('');
   const [fresh, setFresh] = useState<{ name: string; password: string } | null>(null);
   const [busy, setBusy] = useState(false);
-  useEffect(() => { api.appPasswords().then(setInfo).catch(() => {}); }, []);
+  const [failed, setFailed] = useState(false);
+  const load = () => { setFailed(false); api.appPasswords().then(setInfo).catch(() => setFailed(true)); };
+  useEffect(load, []);
   return (
     <Row id="a-dav" title={W.appsTitle} about={W.appsAbout}>
-      {!info ? <div className="skeleton" style={{ height: 56 }} /> : (
+      {failed ? <LoadFailed retry={load} /> : !info ? <div className="skeleton" style={{ height: 56 }} /> : (
         <>
           <dl className="dav-facts">
             <div><dt>{W.serverAddress}</dt><dd><code>{info.url}</code><Copy text={info.url} label={W.copyAddress} /></dd></div>
@@ -89,7 +92,9 @@ export function Nextcloud() {
   const [pw, setPw] = useState('');
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  useEffect(() => { api.nextcloud().then(setLink).catch(() => setLink(null)); }, []);
+  const [failed, setFailed] = useState(false);
+  const load = () => { setFailed(false); api.nextcloud().then(setLink).catch(() => setFailed(true)); };
+  useEffect(load, []);
   const said = (code: string | null | undefined) => (code ? W.errors[code] ?? W.errors.failed : null);
   const act = (fn: () => Promise<NextcloudLink | null>) => {
     setBusy(true); setError(null);
@@ -97,7 +102,7 @@ export function Nextcloud() {
   };
   return (
     <Row id="a-nc" title={W.ncTitle} about={W.ncAbout}>
-      {link === undefined ? <div className="skeleton" style={{ height: 56 }} /> : link ? (
+      {failed ? <LoadFailed retry={load} /> : link === undefined ? <div className="skeleton" style={{ height: 56 }} /> : link ? (
         <div className="dav-linked">
           <p><b>{W.linkedTo(link.url)}</b><small className="num">{W.as(link.username)} · {W.listsN(link.lists)}{link.lastSync ? ` · ${W.synced(ago(link.lastSync))}` : ''}</small></p>
           {link.error && <p className="err-line" role="alert">{said(link.error)}</p>}
@@ -143,7 +148,9 @@ export function Backups() {
   const [sure, setSure] = useState<string | null>(null);
   const [pw, setPw] = useState('');
   const [restarting, setRestarting] = useState(false);
-  useEffect(() => { api.backups().then(setSt).catch(() => {}); }, []);
+  const [failed, setFailed] = useState(false);
+  const load = () => { setFailed(false); api.backups().then(setSt).catch(() => setFailed(true)); };
+  useEffect(load, []);
   const run = (fn: () => Promise<BackupState | null>) => {
     setBusy(true); setError(null);
     fn().then((r) => { if (r) setSt(r); }).catch((e) => setError(e instanceof ApiError ? e.code : 'failed')).finally(() => setBusy(false));
@@ -157,7 +164,7 @@ export function Backups() {
   }, [restarting]);
   return (
     <Row id="s-backup" title={W.title} about={st ? W.about(st.hour >= 0 ? clock(st.hour * 60) : '', st.keep) : W.title}>
-      {restarting ? <p role="status">{W.restarting}</p> : !st ? <div className="skeleton" style={{ height: 56 }} /> : (
+      {restarting ? <p role="status">{W.restarting}</p> : failed ? <LoadFailed retry={load} /> : !st ? <div className="skeleton" style={{ height: 56 }} /> : (
         <>
           <div className="row-actions">
             <button type="button" className="btn primary" disabled={busy} onClick={() => run(() => api.backupNow())}>{busy ? W.making : W.makeNow}</button>
