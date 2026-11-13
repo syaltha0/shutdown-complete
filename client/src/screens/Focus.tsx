@@ -4,7 +4,7 @@ import { FocusConfig } from '../components/FocusConfig';
 import type { FocusPhase } from '../lib/model';
 import { useSettings } from '../App';
 import { DocNotice, SaveStamp } from '../components/Common';
-import { Ring, useTick } from '../components/FocusTimer';
+import { RingLive, TimeLeft, useTick, useWatch } from '../components/FocusTimer';
 import { SkipChoice, useSkip } from '../components/SkipChoice';
 import { BlockChip, BlockSheet } from '../components/BlockPicker';
 import { addDays, clock, duration, nowMinutes, shortDate, today } from '../lib/dates';
@@ -14,13 +14,23 @@ import {
   resetCycle, settingsFocus, startFocus, resetFocus, useFocusDay,
 } from '../lib/focus';
 import { useT } from '../lib/i18n';
-import { activeColumn, type DayDoc, featureOn } from '../lib/model';
+import { activeColumn, type DayDoc, type FocusActive, featureOn } from '../lib/model';
 import { onLinkClick } from '../lib/router';
 import { useRange } from '../lib/useDoc';
 import { FocusRoom } from '../components/FocusRoom';
 import { FriendsPanel } from '../components/Friends';
 
 const ROWS = 5;
+
+/** The minutes a focus phase has run. */
+const ranMinutes = (a: FocusActive) => a.phase === 'focus' ? Math.floor((a.plannedMin * 60 - secondsLeft(a)) / 60) : 0;
+
+/** The question on Stop and Reset, with the minutes run: only this label follows the clock while it is asked. */
+function StopAsk({ a }: { a: FocusActive }) {
+  const T = useT();
+  useTick(true);
+  return <>{T.stopAsk(ranMinutes(a))}</>;
+}
 
 /**
  * On a desktop window the last card on the right lines up with the four-week chart on the left: the columns already
@@ -93,7 +103,8 @@ export function Focus() {
   const f = settingsFocus(settings);
   // today's document; the timer may still live in yesterday's (a session begun before midnight)
   const { value: day, status, error, retry, active: a, key, holder } = useFocusDay();
-  useTick(!!a && a.pausedLeft == null);
+  // This screen follows the minute (the block to focus on), not the second: the clock and the ring are leaves.
+  useWatch(nowMinutes);
   const blocks = day ? activeColumn(day).blocks : [];
   const now = nowMinutes();
   // the block to focus on: the one running now, unless it is lunch or a walk; then the next deep block
@@ -139,6 +150,8 @@ export function Focus() {
   const from28 = addDays(today(), -27);
   const { docs: past } = useRange<DayDoc>(`day:${from28}`, `day:${today()}`);
   const days28 = Array.from({ length: 28 }, (_, i) => addDays(from28, i));
+  // the minutes focused on each of the 28 days; the chart draws again only when these change (the range hands out a new Map on every render)
+  const vals = past ? days28.map((d) => (d === today() && day ? focusMinutes(day) : (past.get(`day:${d}`) ? focusMinutes(past.get(`day:${d}`)!) : null))) : [];
   const workBlocks = blocks.filter((b) => b.kind !== 'personal');
   // a revision gives a block a new id, so a session also counts for a block of the same name
   const byBlock = (b: { id: string; label: string }) => sessions.filter((x) => x.blockId === b.id || (!!b.label && x.label === b.label)).reduce((n, x) => n + x.minutes, 0);
@@ -192,9 +205,8 @@ export function Focus() {
   const [stopAsk, setStopAsk] = useState<'stop' | 'reset' | null>(null);
   useEffect(() => { if (!stopAsk) return; const t = window.setTimeout(() => setStopAsk(null), 4000); return () => window.clearTimeout(t); }, [stopAsk]);
   useEffect(() => setStopAsk(null), [a?.startedAt]);
-  const ranMin = a && a.phase === 'focus' ? Math.floor((a.plannedMin * 60 - secondsLeft(a)) / 60) : 0;
   function stop(reset = false) {
-    if (ranMin >= 1 && stopAsk !== (reset ? 'reset' : 'stop')) { setStopAsk(reset ? 'reset' : 'stop'); return; }
+    if (a && ranMinutes(a) >= 1 && stopAsk !== (reset ? 'reset' : 'stop')) { setStopAsk(reset ? 'reset' : 'stop'); return; }
     setStopAsk(null);
     saveNote();
     if (reset) resetFocus(key); else cancelFocus(key);
@@ -239,16 +251,16 @@ export function Focus() {
       <div className="grid top focus-grid" ref={gridRef}>
         <div className="span-7 focus-left">
         <section className={`panel focus-panel phase-${phase}`} aria-labelledby="fp-h" data-anim>
-          <header className="focus-card-head"><h2 id="fp-h">{config ? T.focusSettings : T.focusRunning}{config && a && <small className="focus-config-time num">{T.phase[a.phase]} · {mmss(secondsLeft(a))}</small>}</h2><div className="focus-card-actions">
+          <header className="focus-card-head"><h2 id="fp-h">{config ? T.focusSettings : T.focusRunning}{config && a && <small className="focus-config-time num">{T.phase[a.phase]} · <TimeLeft a={a} /></small>}</h2><div className="focus-card-actions">
           <button type="button" className="btn ghost sm focus-room-btn" onClick={openRoom}>{T.roomOpen}</button>
           <div className="focus-config-anchor"><button ref={configButton} type="button" className="btn sm" aria-expanded={config} aria-controls="focus-settings-view" onClick={() => config ? closeConfig() : setConfig(true)}>{config ? T.focusBackTimer : T.nav.settings}</button></div>
           </div></header>
           <div className={`focus-card-body${config ? ' is-config' : ''}`}><div className="focus-stage" inert={config || skip.asking || picking} aria-hidden={config || skip.asking || picking || undefined}>
             <div className="focus-ring">
-              {a ? <Ring a={a} size={248} stroke={5} /> : <svg width={248} height={248} viewBox="0 0 248 248" aria-hidden="true"><circle cx={124} cy={124} r={121.5} fill="none" stroke="var(--phase-color)" strokeWidth={5} /></svg>}
+              {a ? <RingLive a={a} size={248} stroke={5} /> : <svg width={248} height={248} viewBox="0 0 248 248" aria-hidden="true"><circle cx={124} cy={124} r={121.5} fill="none" stroke="var(--phase-color)" strokeWidth={5} /></svg>}
               <div className="focus-read">
                 <span className="phase-name">{T.phase[phase]}</span>
-                <b className="num" role="timer" aria-live="off">{a ? mmss(secondsLeft(a)) : mmss(minutes * 60)}</b>
+                <b className="num" role="timer" aria-live="off">{a ? <TimeLeft a={a} /> : mmss(minutes * 60)}</b>
                 <span className="muted focus-label">{a ? (a.label || T.freeFocus) : chosenBlock ? chosenBlock.label || T.untitledBlock : T.freeFocus}</span>
               </div>
             </div>
@@ -273,11 +285,11 @@ export function Focus() {
                     : <button type="button" className="btn primary focus-act" disabled={!!f.strict && a.phase === 'focus'} onClick={() => resumeFocus(key)}>{T.resume}</button>}
                 </div>
                 <div className="focus-secondary">
-                  <button type="button" className={`btn ghost sm focus-act${stopAsk === 'reset' ? ' danger' : ''}`} aria-live="polite" disabled={!!a.roomId || (!!f.strict && a.phase === 'focus')} aria-describedby={a.roomId ? 'focus-reset-hint' : undefined} onClick={() => stop(true)}>{stopAsk === 'reset' ? T.stopAsk(ranMin) : T.focusReset}</button>
+                  <button type="button" className={`btn ghost sm focus-act${stopAsk === 'reset' ? ' danger' : ''}`} aria-live="polite" disabled={!!a.roomId || (!!f.strict && a.phase === 'focus')} aria-describedby={a.roomId ? 'focus-reset-hint' : undefined} onClick={() => stop(true)}>{stopAsk === 'reset' && a ? <StopAsk a={a} /> : T.focusReset}</button>
                   <button type="button" className="btn ghost sm focus-act num" disabled={a.plannedMin >= MAX_PLANNED} onClick={() => extendFocus(5, key)}>{T.plusFive}</button>
                   <button type="button" className="btn ghost sm focus-act" disabled={skip.locked} onClick={skipPhase}>{T.skip}</button>
                   <span className="focus-sep" aria-hidden="true" />
-                  <button type="button" className={`btn ghost sm focus-act focus-stop${stopAsk === 'stop' ? ' danger' : ''}`} aria-live="polite" disabled={!!f.strict && a.phase === 'focus'} onClick={() => stop()}>{stopAsk === 'stop' ? T.stopAsk(ranMin) : T.stop}</button>
+                  <button type="button" className={`btn ghost sm focus-act focus-stop${stopAsk === 'stop' ? ' danger' : ''}`} aria-live="polite" disabled={!!f.strict && a.phase === 'focus'} onClick={() => stop()}>{stopAsk === 'stop' && a ? <StopAsk a={a} /> : T.stop}</button>
                 </div>
                 {a.roomId && <p id="focus-reset-hint" className="muted focus-note">{T.focusSharedResetHint}</p>}
                 {lastSession && (
@@ -306,7 +318,7 @@ export function Focus() {
           </div>
           {past && (() => {
             // three figures above the chart: a card that stretches with the timer card is not just a tall chart
-            const mins = days28.map((d) => (d === today() && day ? focusMinutes(day) : (past.get(`day:${d}`) ? focusMinutes(past.get(`day:${d}`)!) : 0)));
+            const mins = vals.map((v) => v ?? 0);
             const sinceMon = (new Date(`${today()}T12:00`).getDay() + 6) % 7;
             const week = mins.slice(27 - sinceMon).reduce((n, m) => n + m, 0);
             const logged = mins.filter((m) => m > 0);
@@ -320,9 +332,9 @@ export function Focus() {
             );
           })()}
           {past ? (
-            <Chart label={T.focusFourWeeks} deps={[past, T.locale, total]} draw={(el, C) => C.bars(el, {
+            <Chart label={T.focusFourWeeks} deps={[from28, vals.join(), T.locale]} draw={(el, C) => C.bars(el, {
               labels: days28.map((d) => shortDate(d)),
-              values: days28.map((d) => (d === today() && day ? focusMinutes(day) : (past.get(`day:${d}`) ? focusMinutes(past.get(`day:${d}`)!) : null))),
+              values: vals,
               colour: themeColor('--chart-1'), mutedColour: themeColor('--chart-1'), height: Math.min(240, Math.max(120, el.clientHeight)),
               format: (v: number) => duration(v), tickFormat: (v: number) => T.minShort(v),
               xAt: days28.map((_, i) => (i % (el.clientWidth < 640 ? 14 : 7) === 0 ? i : -1)).filter((i) => i >= 0),

@@ -12,7 +12,10 @@ import { api } from '../lib/api';
 import { SkipChoice, useSkip } from './SkipChoice';
 import { type Corner, nearestCorner, readCompact, readCorner, reducedMotion, saveCompact, saveCorner, usePhone } from './MiniTimerPrefs';
 
-/** Ticks once a second while a timer runs. */
+/**
+ * Ticks once a second while a timer runs. It re-renders the component that calls it every second, so only the small
+ * leaves that show the clock (TimeLeft, RingLive, the skip question) call it; a screen uses useWatch instead.
+ */
 export function useTick(on: boolean) {
   const [, set] = useState(0);
   useEffect(() => {
@@ -21,6 +24,35 @@ export function useTick(on: boolean) {
     return () => window.clearInterval(t);
   }, [on]);
   return Date.now();
+}
+
+/**
+ * Re-renders the caller only when `read()` gives a different value from the one it last rendered with (checked once a
+ * second, without rendering): a screen follows the minute, not the second. `read` is also what the render itself uses.
+ */
+export function useWatch(read: () => string | number, on = true) {
+  const [, bump] = useState(0);
+  const shown = useRef<string | number>('');
+  const latest = useRef(read);
+  latest.current = read;
+  shown.current = read();
+  useEffect(() => {
+    if (!on) return;
+    const t = window.setInterval(() => { if (latest.current() !== shown.current) bump((x) => x + 1); }, 1000);
+    return () => window.clearInterval(t);
+  }, [on]);
+}
+
+/** The time left, as text: the only thing on the Focus screen, the mini timer and the room that changes every second. */
+export function TimeLeft({ a }: { a: FocusActive }) {
+  useTick(a.pausedLeft == null);
+  return <>{mmss(secondsLeft(a))}</>;
+}
+
+/** The ring, drawn again every second while its timer runs, so the screen around it does not have to be. */
+export function RingLive({ a, size, stroke }: { a: FocusActive; size: number; stroke: number }) {
+  useTick(a.pausedLeft == null);
+  return <Ring a={a} size={size} stroke={stroke} />;
 }
 
 /** The time-left ring: full when idle and at the start of a phase, draining to empty as the phase runs. */
@@ -50,7 +82,6 @@ export function FocusRunner() {
   const [closedBreak, setClosedBreak] = useState<string | null>(null);
   const f = settingsFocus(settings);
   const { active: a, key, holder, value: day } = useFocusDay();
-  useTick(!!a && a.pausedLeft == null);
 
   useEffect(() => {
     const check = async () => {
@@ -102,23 +133,30 @@ export function FocusRunner() {
     return () => window.removeEventListener('keydown', onKey);
   }, []);
   const ending = useRef<string | null>(null);
-  const left = a ? secondsLeft(a) : 0;
 
+  // The phase ends when its time is up. A light check once a second, with no render: the shell (and the mini timer
+  // under it) renders when the timer changes, not every second; only the clock leaves tick.
   useEffect(() => {
-    if (!a || a.pausedLeft != null || left > 0 || ending.current === a.startedAt) return;
-    ending.current = a.startedAt;
-    const f = settingsFocus(settings);
-    finishPhase(settings, false, { key, startedAt: a.startedAt }).then((r) => {
-      if (r === 'none') return;
-      if (f.voice && 'speechSynthesis' in window) {
-        const speech = new SpeechSynthesisUtterance(r === 'logged' ? T.focusOptions.breakVoice : T.focusOptions.focusVoice);
-        speech.lang = T.locale; speech.volume = f.volume ?? 1; window.speechSynthesis.speak(speech);
-      }
-      if (f.sound) chime(f);
-      if (r === 'logged') { notify(T.focusDone, T.takeBreak(f.shortMin)); stopAmbient(); }
-      else notify(T.breakOver, T.backToPlan);
-    });
-  }, [a, left, settings, T, key]);
+    if (!a || a.pausedLeft != null) return;
+    const end = () => {
+      if (secondsLeft(a) > 0 || ending.current === a.startedAt) return;
+      ending.current = a.startedAt;
+      const f = settingsFocus(settings);
+      finishPhase(settings, false, { key, startedAt: a.startedAt }).then((r) => {
+        if (r === 'none') return;
+        if (f.voice && 'speechSynthesis' in window) {
+          const speech = new SpeechSynthesisUtterance(r === 'logged' ? T.focusOptions.breakVoice : T.focusOptions.focusVoice);
+          speech.lang = T.locale; speech.volume = f.volume ?? 1; window.speechSynthesis.speak(speech);
+        }
+        if (f.sound) chime(f);
+        if (r === 'logged') { notify(T.focusDone, T.takeBreak(f.shortMin)); stopAmbient(); }
+        else notify(T.breakOver, T.backToPlan);
+      });
+    };
+    end();
+    const t = window.setInterval(end, 1000);
+    return () => window.clearInterval(t);
+  }, [a, settings, T, key]);
 
   // friends see whether this timer runs (the server keeps it to friends, and only if this person shares it)
   const presenceKey = a ? `${a.phase}:${a.startedAt}:${a.pausedLeft == null}:${a.label}:${a.roomId ?? ''}:${a.plannedMin}` : 'none';
@@ -137,9 +175,16 @@ export function FocusRunner() {
   useEffect(() => { if (!a && ambientPlaying()) stopAmbient(); }, [a]);
   useEffect(() => { if (a && a.phase !== 'focus' && ambientPlaying()) stopAmbient(); }, [a?.phase]); // eslint-disable-line react-hooks/exhaustive-deps
 
+  // the tab title keeps the clock: written straight to the document once a second, not through a render
   useEffect(() => {
-    document.title = a ? `${mmss(left)} · ${a.phase === 'focus' ? a.label || T.freeFocus : T.phase[a.phase]}` : 'Shutdown Complete';
-  }, [a, left, T]);
+    if (!a) { document.title = 'Shutdown Complete'; return; }
+    const name = a.phase === 'focus' ? a.label || T.freeFocus : T.phase[a.phase];
+    const write = () => { document.title = `${mmss(secondsLeft(a))} · ${name}`; };
+    write();
+    if (a.pausedLeft != null) return;
+    const t = window.setInterval(write, 1000);
+    return () => window.clearInterval(t);
+  }, [a, T]);
 
   if (!a || path.startsWith('/focus')) return null;
   return <>{f.fullscreenBreak && a.phase !== 'focus' && closedBreak !== a.startedAt && <FocusRoom start={{blockId: a.blockId, label: a.label, minutes: a.plannedMin}} onClose={() => setClosedBreak(a.startedAt)} />}
@@ -186,6 +231,8 @@ function FocusMiniPanel({ a, docKey, count, blocks }: { a: FocusActive; docKey: 
     const to = el.getBoundingClientRect();
     el.animate([{ translate: `${from.x - to.left}px ${from.y - to.top}px` }, { translate: '0 0' }], { duration: 220, easing: 'cubic-bezier(0.2, 0.8, 0.2, 1)' });
   }, [corner]);
+  // the panel renders when the minute of the time left, or of the day, turns; the clock and the ring are leaves
+  useWatch(() => `${Math.ceil(secondsLeft(a) / 60)}:${nowMinutes()}`);
   const left = secondsLeft(a);
   const skip = useSkip(a, docKey);
   const cycle = Math.max(1, f.longEvery);
@@ -286,12 +333,12 @@ function FocusMiniPanel({ a, docKey, count, blocks }: { a: FocusActive; docKey: 
     {!atTop && panel}
     <div className="mt-row" onPointerDown={onRowDown}
       onClickCapture={e => { if (justDragged.current) { e.preventDefault(); e.stopPropagation(); } }}>
-      <Ring a={a} size={36} stroke={4} />
+      <RingLive a={a} size={36} stroke={4} />
       {/* shrunk to a ring, the name carries the time left to the minute, so a screen reader is not read the clock every second */}
       <button ref={trigger} type="button" className="mt-text mt-trigger" aria-expanded={open} aria-controls="mini-focus-details"
         aria-label={compact && !open ? T.miniAria(a.phase === 'focus' ? a.label || T.freeFocus : T.phase[a.phase], Math.ceil(left / 60), a.pausedLeft != null) : undefined}
         onClick={() => { suppressed.current = false; setOpen(true); }}>
-        <b className="num">{mmss(left)}</b><span>{a.label || T.freeFocus}</span>
+        <b className="num"><TimeLeft a={a} /></b><span>{a.label || T.freeFocus}</span>
       </button>
       <button type="button" className="btn ghost mt-pause focus-act" disabled={skip.locked} onClick={togglePause}>{a.pausedLeft == null ? T.pause : T.resume}</button>
     </div>
