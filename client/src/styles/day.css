@@ -109,3 +109,11 @@
 
 .cal-event-wrap .ct { flex-shrink: 0; }
 .cal-event-wrap .cw { white-space: nowrap; }
+
+/* plan and actual: where focus really ran, a thin strip on the edge of the active column (the one data hue, the focus phase) */
+.actual { position: absolute; right: 0; width: 6px; padding-left: 2px; box-sizing: border-box; background: var(--hue); background-clip: content-box; z-index: 2; cursor: default; }
+.actual:focus-visible { outline: 2px solid var(--hue); outline-offset: 1px; }
+.actual .tip { display: none; position: absolute; top: 0; right: 10px; padding: 3px 8px; border: 1px solid var(--border); border-radius: var(--radius-control, 6px); background: var(--surface); color: var(--text); font-size: var(--fs-small); line-height: 16px; white-space: nowrap; pointer-events: none; z-index: 5; }
+.actual:hover .tip, .actual:focus-visible .tip { display: block; }
+.legend i.lg-actual { width: 4px; height: 12px; border-radius: 1px; background: var(--hue); }
+.focus-plan { margin: 6px 0 0; font-size: var(--fs-small); }

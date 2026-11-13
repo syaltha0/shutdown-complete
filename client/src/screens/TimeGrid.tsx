@@ -3,7 +3,7 @@ import { clock, duration } from '../lib/dates';
 import { useT } from '../lib/i18n';
 import { IconRepeat } from '../components/Icons';
 import { lockSwipe } from '../lib/swipe';
-import { MAX_COLUMNS, uid, type Block, type Column, type DayDoc, type Kind } from '../lib/model';
+import { MAX_COLUMNS, uid, type Block, type Column, type DayDoc, type FocusSession, type Kind } from '../lib/model';
 import { eventUid, type CalEvent } from '../lib/calendar';
 import { Pop } from '../components/Pop';
 import { useSettings } from '../App';
@@ -19,8 +19,10 @@ type Drag =
   | { mode: 'resize'; id: string; start: number; end: number; pointerId: number };
 
 export function TimeGrid({
-  day, range, now, onColumns, onOpen, shownCol, preview, events = [], onEvent, focusAt = null, focusKey,
+  day, range, now, onColumns, onOpen, shownCol, preview, events = [], onEvent, focusAt = null, focusKey, sessions = [],
 }: {
+  /** the focus sessions done on this day (a past day or today): a thin strip on the edge of the active column, where they ran */
+  sessions?: FocusSession[];
   /** a minute to bring into view when the day opens (a whole-day grid is taller than the screen) */
   focusAt?: number | null;
   focusKey?: string;
@@ -300,6 +302,7 @@ export function TimeGrid({
                     {ci === 0 ? T.dragHint : T.redrawFrom(clock(col.from ?? r0))}
                   </div>
                 )}
+                {isActive && sessions.map((s) => <ActualStrip key={s.id} session={s} r0={r0} r1={r1} />)}
                 {nowTop != null && isActive && <div className="now-line" style={{ top: nowTop }} />}
               </div>
             </section>
@@ -374,6 +377,25 @@ export function useNow(enabled: boolean) {
     return () => window.clearInterval(t);
   }, [enabled]);
   return now.getHours() * 60 + now.getMinutes();
+}
+
+/** Where a focus session actually ran, from its start and end, as a strip the colour of the focus phase; hover or focus tells when and what. */
+function ActualStrip({ session: s, r0, r1 }: { session: FocusSession; r0: number; r1: number }) {
+  const T = useT();
+  const a = new Date(s.start), z = Date.parse(s.end);
+  const start = a.getHours() * 60 + a.getMinutes() + a.getSeconds() / 60;
+  const end = start + Math.max(0, (z - a.getTime()) / 60000);
+  const from = Math.max(r0, start), to = Math.min(r1, end);
+  if (!(to > from)) return null;
+  const e = new Date(z);
+  const range = `${clock(a.getHours() * 60 + a.getMinutes())}–${clock(e.getHours() * 60 + e.getMinutes())}`;
+  const tip = T.actualTip(range, s.minutes, s.label || s.subject || T.freeFocus);
+  return (
+    <span className="actual" role="img" tabIndex={0} aria-label={tip} style={{ top: (from - r0) * PPM, height: Math.max(3, (to - from) * PPM) }}
+      onPointerDown={(ev) => ev.stopPropagation()}>
+      <span className="tip" aria-hidden="true">{tip}</span>
+    </span>
+  );
 }
 
 function CalendarEvent({ event: ev, top, height, planned, onEvent }: { event: CalEvent; top: number; height: number; planned: boolean; onEvent?: (e: CalEvent, edit?: boolean) => void }) {
