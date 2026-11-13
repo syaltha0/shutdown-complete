@@ -126,6 +126,68 @@ try {
   check('but a break can still be skipped', await btn('Skip').isEnabled());
   await api.put('settings', settings0);
 
+  // ---------- 2. the block picker ----------
+  const nowMin = new Date().getHours() * 60 + new Date().getMinutes();
+  const at = Math.max(200, Math.min(1200, nowMin));
+  const mk = (id, label, kind, start, end) => ({ id, label, kind, start, end, note: '' });
+  const planDay = async (blocks, sessions = []) => {
+    const x = (await api.get('day:' + D)).value;
+    const cols = structuredClone(x.columns); cols[0].blocks = blocks;
+    await api.put('day:' + D, { ...x, columns: cols, focus: { active: null, sessions } });
+  };
+  const plan = [mk('pa', 'Alpha now', 'deep', at - 20, at + 40), mk('pb', 'Beta later', 'shallow', at + 60, at + 100), mk('pc', 'Gamma later', 'deep', at + 120, at + 180), mk('pd', 'Delta past', 'deep', at - 200, at - 140)];
+  await planDay(plan, [session(1, 40, { blockId: 'pd', label: 'Delta past' })]);
+  await open();
+  const chip = p.locator('.bp-chip');
+  const chipText = await chip.innerText();
+  const hh = (m) => `${String(Math.floor(m / 60)).padStart(2, '0')}:${String(m % 60).padStart(2, '0')}`;
+  check('the chip shows the block name, its hours and a deep mark', /Alpha now/.test(chipText) && chipText.includes(`${hh(at - 20)}–${hh(at + 40)}`) && await chip.locator('.bp-kind.deep').count() === 1);
+  check('the old Now / Change row and the hidden select are gone', await p.locator('.focus-block-row, #fc-block').count() === 0 && await p.locator('#fc-task, #fc-intent').count() === 0);
+  const h0 = await p.locator('.focus-panel').evaluate((e) => e.getBoundingClientRect().height);
+  await chip.click();
+  await p.locator('.bp-sheet').waitFor();
+  check('pressing the chip opens a list over the card, and the card does not change height', Math.abs(h0 - await p.locator('.focus-panel').evaluate((e) => e.getBoundingClientRect().height)) < 1);
+  const combo = p.locator('.bp-sheet').getByRole('combobox');
+  check('the search field is a combobox with focus', await combo.count() === 1 && await p.evaluate(() => document.activeElement?.getAttribute('role') === 'combobox'));
+  const names = () => p.locator('.bp-sheet').getByRole('option').evaluateAll((els) => els.map((e) => e.querySelector('.bp-name').textContent));
+  check('the list: the running block, the ones to come, those past, then unplanned focus', JSON.stringify(await names()) === JSON.stringify(['Alpha now', 'Beta later', 'Gamma later', 'Delta past', 'Unplanned focus']));
+  check('with headings for now, up next and earlier', JSON.stringify(await p.locator('.bp-heading').allInnerTexts()) === JSON.stringify(['Now', 'Up next', 'Earlier']));
+  check('each shows its hours; the minutes already focused show too', (await p.locator('.bp-sheet').getByRole('option').nth(1).innerText()).includes(`${hh(at + 60)}–${hh(at + 100)}`) && /40 m focused/.test(await p.locator('.bp-sheet').getByRole('option').nth(3).innerText()));
+  check('past blocks are muted', await p.locator('.bp-option.is-past').count() === 1 && await p.locator('.bp-option.is-past').evaluate((e) => getComputedStyle(e).color) !== await p.locator('.bp-option').first().evaluate((e) => getComputedStyle(e).color));
+  check('the chosen block is marked selected and active', await p.locator('.bp-sheet').getByRole('option').first().getAttribute('aria-selected') === 'true' && await combo.getAttribute('aria-activedescendant') === await p.locator('.bp-sheet').getByRole('option').first().getAttribute('id'));
+  await p.keyboard.press('ArrowDown');
+  await p.keyboard.press('ArrowDown');
+  check('the arrow keys move the active option', await combo.getAttribute('aria-activedescendant') === await p.locator('.bp-sheet').getByRole('option').nth(2).getAttribute('id'));
+  await p.keyboard.press('Enter');
+  await p.locator('.bp-sheet').waitFor({ state: 'detached' });
+  check('Enter chooses it: the chip changes and keyboard focus returns to it', /Gamma later/.test(await chip.innerText()) && await p.evaluate(() => document.activeElement?.classList.contains('bp-chip')));
+  await chip.click();
+  await p.keyboard.type('beta');
+  check('typing filters by name', JSON.stringify(await names()) === JSON.stringify(['Beta later', 'Unplanned focus']));
+  await p.keyboard.press('Escape');
+  check('Esc closes it without changing the choice', await p.locator('.bp-sheet').count() === 0 && /Gamma later/.test(await chip.innerText()) && await p.evaluate(() => document.activeElement?.classList.contains('bp-chip')));
+  await chip.click();
+  await p.keyboard.type('zzz');
+  check('no match says so and keeps the unplanned focus', await p.locator('.bp-none').isVisible() && await p.locator('.bp-sheet').getByRole('option').count() === 1);
+  await p.keyboard.press('Enter');
+  check('unplanned focus chooses no block', /Unplanned focus/.test(await chip.innerText()) && await chip.locator('.bp-time').count() === 0);
+  await chip.press('ArrowDown');
+  await p.locator('.bp-sheet').waitFor();
+  await p.locator('.bp-sheet').getByRole('option', { name: /Beta later/ }).click();
+  check('a click chooses too', /Beta later/.test(await chip.innerText()) && await chip.locator('.bp-kind:not(.deep)').count() === 1);
+  await btn('Start focus').click();
+  const started = await until(async () => { const x = await doc(); return x.focus.active?.phase === 'focus' ? x : null; });
+  check('the timer starts on the chosen block', started && started.focus.active.blockId === 'pb' && started.focus.active.label === 'Beta later');
+  check('while it runs the chip only shows the block (locked)', await p.locator('button.bp-chip').count() === 0 && await p.locator('.bp-chip.is-locked').getAttribute('aria-disabled') === 'true' && /Beta later/.test(await p.locator('.bp-chip').innerText()));
+  await p.setViewportSize({ width: 390, height: 844 });
+  await setActive(null, []);
+  await p.reload();
+  await p.locator('.bp-chip').click();
+  const fits = await p.evaluate(() => { const a = document.querySelector('.bp-sheet').getBoundingClientRect(), b = document.querySelector('.focus-panel').getBoundingClientRect(); return a.left >= b.left - 1 && a.right <= b.right + 1 && a.top >= b.top - 1 && a.bottom <= b.bottom + 1 && document.documentElement.scrollWidth <= document.documentElement.clientWidth; });
+  check('on a phone the list stays inside the card with no sideways scroll', fits);
+  await p.keyboard.press('Escape');
+  await p.setViewportSize({ width: 1440, height: 900 });
+
   console.log(`\n${passed} passed, 0 failed`);
 } catch (e) {
   console.error('FAIL ' + e.message);

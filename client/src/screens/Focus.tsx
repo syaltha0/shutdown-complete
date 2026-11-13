@@ -6,6 +6,7 @@ import { useSettings } from '../App';
 import { DocNotice, SaveStamp } from '../components/Common';
 import { Ring, useTick } from '../components/FocusTimer';
 import { SkipChoice, useSkip } from '../components/SkipChoice';
+import { BlockChip, BlockSheet } from '../components/BlockPicker';
 import { addDays, clock, duration, nowMinutes, shortDate, today } from '../lib/dates';
 import { Chart, themeColor } from '../components/Chart';
 import {
@@ -81,8 +82,6 @@ export function Focus() {
   const now = nowMinutes();
   // the block to focus on: the one running now, unless it is lunch or a walk; then the next deep block
   const running = blocks.find((b) => now >= b.start && now < b.end && b.kind !== 'personal');
-  const blockRank = (b: typeof blocks[number]) => b.id === running?.id ? 0 : b.start > now ? 1 : 2;
-  const pickerBlocks = [...blocks].sort((a, b) => blockRank(a) - blockRank(b) || a.start - b.start);
   const current = running ?? blocks.find((b) => b.start > now && b.kind === 'deep') ?? blocks.find((b) => b.start > now && b.kind !== 'personal') ?? null;
   const [blockId, setBlockId] = useState<string | null | undefined>(undefined);
   const [config, setConfig] = useState(false);
@@ -99,6 +98,11 @@ export function Focus() {
     return () => window.removeEventListener('keydown', escape);
   }, [config]);
   const [picking, setPicking] = useState(false);
+  const chipRef = useRef<HTMLButtonElement>(null);
+  const closePicker = () => setPicking(false);
+  // the chip is inert while the list is open, so focus goes back to it once the list has closed
+  const wasPicking = useRef(false);
+  useEffect(() => { if (wasPicking.current && !picking) chipRef.current?.focus(); wasPicking.current = picking; }, [picking]);
   const [noteDraft, setNoteDraft] = useState<{ id: string; text: string } | null>(null);
   const [room, setRoom] = useState(false);
   const autoRoom = useRef(false);
@@ -109,6 +113,9 @@ export function Focus() {
   const openRoom = () => { try { document.documentElement.requestFullscreen?.().catch(() => {}); } catch { /* not allowed here */ } setRoom(true); };
   const chosen = blockId === undefined ? current?.id ?? null : blockId;
   const chosenBlock = blocks.find((b) => b.id === chosen) ?? null;
+  // the block shown on the chip: the one the running timer belongs to, else the one chosen to focus on
+  const shownBlock = a ? blocks.find((b) => b.id === a.blockId) ?? null : chosenBlock;
+  useEffect(() => { if (a) setPicking(false); }, [a]);
   const sessions = day?.focus?.sessions ?? [];
   const total = day ? focusMinutes(day) : 0;
   const deepDef = settings.metrics.find((m) => m.id === f.metricId);
@@ -217,7 +224,7 @@ export function Focus() {
           <button type="button" className="btn ghost sm focus-room-btn" onClick={openRoom}>{T.roomOpen}</button>
           <div className="focus-config-anchor"><button ref={configButton} type="button" className="btn sm" aria-expanded={config} aria-controls="focus-settings-view" onClick={() => config ? closeConfig() : setConfig(true)}>{config ? T.focusBackTimer : T.nav.settings}</button></div>
           </div></header>
-          <div className={`focus-card-body${config ? ' is-config' : ''}`}><div className="focus-stage" inert={config || skip.asking} aria-hidden={config || skip.asking || undefined}>
+          <div className={`focus-card-body${config ? ' is-config' : ''}`}><div className="focus-stage" inert={config || skip.asking || picking} aria-hidden={config || skip.asking || picking || undefined}>
             <div className="focus-ring">
               {a ? <Ring a={a} size={248} stroke={5} /> : <svg width={248} height={248} viewBox="0 0 248 248" aria-hidden="true"><circle cx={124} cy={124} r={121.5} fill="none" stroke="var(--phase-color)" strokeWidth={5} /></svg>}
               <div className="focus-read">
@@ -232,9 +239,8 @@ export function Focus() {
               <div className="focus-rounds" title={T.focusRoundsHint} aria-hidden="true">{Array.from({ length: f.longEvery }, (_, i) => <i key={i} className={i < roundsDone ? 'done' : a?.phase === 'focus' && i === roundsDone ? 'current' : ''} />)}</div>
               <span className="muted num">{T.sessionN(a?.phase === 'focus' ? cycleNo : roundsDone, f.longEvery)}</span>
             </div>
-            <div className="focus-block-row"><span>{T.focusCurrent}: {a?.label || chosenBlock?.label || T.freeFocus}</span>{!a && <button type="button" className="btn ghost sm" aria-expanded={picking} onClick={() => setPicking(!picking)}>{T.focusChange}</button>}</div>
+            <BlockChip block={shownBlock} label={a ? a.label || T.freeFocus : chosenBlock ? chosenBlock.label || T.untitledBlock : T.freeFocus} open={picking} locked={!!a} onOpen={() => setPicking(true)} chipRef={chipRef} />
             {!a && <form className="focus-setup" onSubmit={(e) => { e.preventDefault(); if (day) startFocus(begin); }}>
-              {picking && <div className="field"><label htmlFor="fc-block">{T.blockPick}</label><select id="fc-block" className="input" value={chosen ?? ''} onChange={(e) => { setBlockId(e.target.value || null); setPicking(false); }}><option value="">{T.freeFocus}</option>{pickerBlocks.map((b) => <option key={b.id} value={b.id}>{clock(b.start)} · {b.label || T.untitledBlock}</option>)}</select></div>}
               <div className="focus-go"><button type="submit" className="btn primary big" disabled={!day}>{phase === 'focus' ? T.startFocus : T.focusStartBreak}</button></div>
             </form>}
 
@@ -267,6 +273,7 @@ export function Focus() {
             )}
             {deepDef && !a && <p className="muted focus-note">{T.addsTo(deepDef.name)}</p>}
           </div>
+          {picking && !a && <BlockSheet blocks={blocks} value={chosen} nowMin={now} focusedMin={byBlock} onChoose={(id) => { setBlockId(id); closePicker(); }} onClose={closePicker} />}
           {skip.asking && a && <SkipChoice a={a} skip={skip} />}
           {config && <div id="focus-settings-view" ref={configView} className="focus-settings-view" tabIndex={-1} role="region" aria-label={T.focusSettings}><FocusConfig /></div>}
           </div>
