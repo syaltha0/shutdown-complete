@@ -239,3 +239,10 @@
   .focus-block-row { text-align: center; }
   .focus-tabs.sm button { padding: 0 10px; }
 }
+
+.focus-config { max-height: min(70dvh, 680px); overflow-y: auto; }
+.focus-config > label { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-block: 10px; }
+.focus-special .input { min-width: 0; max-width: 100%; }
+
+.focus-config > label:has(input[type="checkbox"]) { flex-wrap: nowrap; margin: 0; }
+.focus-config input[type="checkbox"] { width: 16px; height: 16px; min-height: 16px; flex: 0 0 16px; }

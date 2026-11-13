@@ -1,7 +1,9 @@
+import { FocusRoom } from './FocusRoom';
+import { showNotification } from '../lib/pwa';
 import { useEffect, useRef, useState } from 'react';
 import { useSettings } from '../App';
 import { today } from '../lib/dates';
-import { chime, finishPhase, mmss, notify, pauseFocus, refreshFocus, resumeFocus, secondsLeft, settingsFocus, useFocusDay } from '../lib/focus';
+import { chime, finishPhase, mmss, notify, pauseFocus, refreshFocus, resumeFocus, secondsLeft, settingsFocus, startFocus, useFocusDay } from '../lib/focus';
 import { useT } from '../lib/i18n';
 import { type FocusActive, featureOn } from '../lib/model';
 import { onLinkClick, usePath } from '../lib/router';
@@ -42,8 +44,28 @@ export function FocusRunner() {
   const T = useT();
   const { settings } = useSettings();
   const path = usePath();
+  const [closedBreak, setClosedBreak] = useState<string | null>(null);
+  const f = settingsFocus(settings);
   const { active: a, key } = useFocusDay();
   useTick(!!a && a.pausedLeft == null);
+
+  useEffect(() => {
+    const check = async () => {
+      if (!f.scheduled || a?.roomId) return;
+      const now = new Date(), time = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+      for (const b of (f.breaks ?? []).slice(0, 5)) {
+        const stamp = `sc:break:${today()}:${b.id}`;
+        if (b.time !== time || localStorage.getItem(stamp)) continue;
+        localStorage.setItem(stamp, '1');
+        if (a) await finishPhase(settings, true, {key, startedAt: a.startedAt});
+        await startFocus({phase: 'long', minutes: b.minutes, blockId: null, label: b.label || T.phase.long});
+        showNotification(T.focusDone, b.label || T.phase.long);
+        break;
+      }
+    };
+    void check(); const timer = window.setInterval(() => void check(), 1000);
+    return () => window.clearInterval(timer);
+  }, [settings, a, key, T]);
 
   // another device may have paused, extended, ended or started the timer: look again while the tab is in view
   const running = !!a;
@@ -67,7 +89,11 @@ export function FocusRunner() {
     const f = settingsFocus(settings);
     finishPhase(settings, false, { key, startedAt: a.startedAt }).then((r) => {
       if (r === 'none') return;
-      if (f.sound) chime();
+      if (f.voice && 'speechSynthesis' in window) {
+        const speech = new SpeechSynthesisUtterance(r === 'logged' ? T.focusOptions.breakVoice : T.focusOptions.focusVoice);
+        speech.lang = T.locale; speech.volume = f.volume ?? 1; window.speechSynthesis.speak(speech);
+      }
+      if (f.sound) chime(f);
       if (r === 'logged') { notify(T.focusDone, T.takeBreak(f.shortMin)); stopAmbient(); }
       else notify(T.breakOver, T.backToPlan);
     });
@@ -96,15 +122,15 @@ export function FocusRunner() {
 
   if (!a || path.startsWith('/focus')) return null;
   return (
-    <div className={`mini-timer phase-${a.phase}`} role="status" aria-label={T.focusRunning}>
+    <>{f.fullscreenBreak && a.phase !== 'focus' && closedBreak !== a.startedAt && <FocusRoom start={{blockId: a.blockId, label: a.label, minutes: a.plannedMin}} onClose={() => setClosedBreak(a.startedAt)} />}<div className={`mini-timer phase-${a.phase}`} role="status" aria-label={T.focusRunning}>
       <Ring a={a} size={36} stroke={4} />
       <a href="/focus" onClick={onLinkClick} className="mt-text">
         <b className="num">{mmss(left)}</b>
         <span>{a.phase === 'focus' ? a.label || T.freeFocus : T.phase[a.phase]}</span>
       </a>
       {a.pausedLeft == null
-        ? <button type="button" className="btn ghost" onClick={() => pauseFocus(key)}>{T.pause}</button>
-        : <button type="button" className="btn ghost" onClick={() => resumeFocus(key)}>{T.resume}</button>}
-    </div>
+        ? <button type="button" className="btn ghost" disabled={!!f.strict && a.phase === 'focus'} onClick={() => pauseFocus(key)}>{T.pause}</button>
+        : <button type="button" className="btn ghost" disabled={!!f.strict && a.phase === 'focus'} onClick={() => resumeFocus(key)}>{T.resume}</button>}
+    </div></>
   );
 }

@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { useSettings } from '../App';
 import { AMBIENTS, ambientPlaying, ambientPref, onAmbient, playAmbient, setAmbientVolume, type Ambient } from '../lib/ambient';
 import { today } from '../lib/dates';
-import { cancelFocus, chime, extendFocus, finishPhase, MAX_PLANNED, mmss, pauseFocus, resumeFocus, secondsLeft, settingsFocus, startFocus, useFocusDay } from '../lib/focus';
+import { cancelFocus, chime, extendFocus, finishPhase, MAX_PLANNED, mmss, pauseFocus, resumeFocus, resetFocus, secondsLeft, settingsFocus, startFocus, useFocusDay } from '../lib/focus';
 import { useT } from '../lib/i18n';
 import { emptyDay, uid, type DayDoc } from '../lib/model';
 import { useDoc } from '../lib/useDoc';
@@ -51,6 +51,15 @@ export function FocusRoom({ start, onClose }: { start: { blockId: string | null;
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
+      const target = e.target as HTMLElement;
+      if (!e.repeat && !e.ctrlKey && !e.metaKey && !e.altKey && !target?.isContentEditable && !target?.closest('input, textarea, select, button') && a) {
+        const k = e.key.toLowerCase();
+        if (k === '+' || k === '=') { e.preventDefault(); void extendFocus(5, key); }
+        if (!(f.strict && a.phase === 'focus')) {
+          if (k === 's') { e.preventDefault(); void finish(); }
+          if (k === 'r' && !a.roomId) { e.preventDefault(); void resetFocus(key); }
+        }
+      }
       if (e.key === 'Escape') { e.preventDefault(); leave(); }
       if (e.key === 'Tab' && rootRef.current) { // Tab stays inside the room
         const all = [...rootRef.current.querySelectorAll<HTMLElement>('button:not([disabled]), input:not([disabled]), select, a[href]')];
@@ -62,7 +71,7 @@ export function FocusRoom({ start, onClose }: { start: { blockId: string | null;
       }
       if (e.key === ' ' && !(e.target instanceof HTMLTextAreaElement) && !(e.target instanceof HTMLSelectElement) && !(e.target instanceof HTMLInputElement) && !(e.target instanceof HTMLButtonElement) && a) {
         e.preventDefault();
-        if (a.pausedLeft == null) pauseFocus(key); else resumeFocus(key);
+        if (!f.strict || a.phase !== 'focus') { if (a.pausedLeft == null) pauseFocus(key); else resumeFocus(key); }
       }
     };
     window.addEventListener('keydown', onKey);
@@ -82,15 +91,15 @@ export function FocusRoom({ start, onClose }: { start: { blockId: string | null;
     playAmbient(s, volume);
   }
   async function finish() {
-    if (!a) return;
+    if (!a || (f.strict && a.phase === 'focus')) return;
     const r = await finishPhase(settings, true, { key, startedAt: a.startedAt });
-    if (r !== 'none' && f.sound) chime();
+    if (r !== 'none' && f.sound) chime(f);
   }
 
   async function focusTask(task: { id: string; text: string }) {
     const ref = {...task, day: true};
     setPickedTask(ref);
-    if (a && a.task?.id !== task.id) {
+    if (a && !(f.strict && a.phase === 'focus') && a.task?.id !== task.id) {
       await finishPhase(settings, true, { key, startedAt: a.startedAt });
       await startFocus({blockId: a.blockId, label: task.text, minutes: Math.max(1, Math.ceil(secondsLeft(a) / 60)), task: ref});
     }
@@ -120,13 +129,13 @@ export function FocusRoom({ start, onClose }: { start: { blockId: string | null;
           {!a ? <button type="button" className="btn primary big" onClick={begin}>{T.startFocus}</button> : (
             <>
               {a.pausedLeft == null
-                ? <button type="button" className="btn" onClick={() => pauseFocus(key)}>{T.pause}</button>
-                : <button type="button" className="btn primary" onClick={() => resumeFocus(key)}>{T.resume}</button>}
+                ? <button type="button" className="btn" disabled={!!f.strict && a.phase === 'focus'} onClick={() => pauseFocus(key)}>{T.pause}</button>
+                : <button type="button" className="btn primary" disabled={!!f.strict && a.phase === 'focus'} onClick={() => resumeFocus(key)}>{T.resume}</button>}
               <button type="button" className="btn num" disabled={a.plannedMin >= MAX_PLANNED} onClick={() => extendFocus(5, key)}>{T.plusFive}</button>
               {a.phase === 'focus'
-                ? <button type="button" className="btn" onClick={finish}>{T.finishNow}</button>
+                ? <button type="button" className="btn" disabled={!!f.strict && a.phase === 'focus'} onClick={finish}>{T.finishNow}</button>
                 : <button type="button" className="btn primary" onClick={finish}>{T.skipBreak}</button>}
-              <button type="button" className="btn ghost" onClick={() => cancelFocus(key)}>{T.stop}</button>
+              <button type="button" className="btn ghost" disabled={!!f.strict && a.phase === 'focus'} onClick={() => cancelFocus(key)}>{T.stop}</button>
             </>
           )}
         </div>
