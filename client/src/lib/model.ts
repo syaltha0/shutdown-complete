@@ -1,4 +1,5 @@
 import { dict, getLang, type Lang } from './i18n';
+import { unionMinutes } from './intervals';
 
 // The planner's documents. Each is stored whole under one key on the server (see server/src/db.mjs).
 
@@ -384,5 +385,5 @@ export function effectivePlan(d: DayDoc): Block[] {
 }
 
 export function minutesOfKind(d: DayDoc, kind: Kind): number {
-  return effectivePlan(d).filter((b) => b.kind === kind).reduce((s, b) => s + b.end - b.start, 0);
+  return unionMinutes(effectivePlan(d).filter((b) => b.kind === kind)); // overlapping blocks count a minute once
 }

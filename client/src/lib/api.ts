@@ -126,7 +126,7 @@ export const api = {
   // documents
   get: <T>(key: string) => request<Doc<T>>(`/api/doc/${encodeURIComponent(key)}`),
   put: <T>(key: string, value: T, version: number, keepalive = false) =>
-    request<Doc<T>>(`/api/doc/${encodeURIComponent(key)}`, { method: 'PUT', body: JSON.stringify({ value, version }), keepalive }),
+    request<Doc<T>>(`/api/doc/${encodeURIComponent(key)}`, { method: 'PUT', body: JSON.stringify({ value, version }), keepalive, signal: keepalive ? undefined : AbortSignal.timeout(30_000) }), // no answer in 30 s: failed, kept and tried again
   range: <T>(from: string, to: string) =>
     request<Doc<T>[]>(`/api/docs?from=${encodeURIComponent(from)}&to=${encodeURIComponent(to)}`),
   import: (data: unknown) => post<{ ok: true; count: number }>('/api/import', data),

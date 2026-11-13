@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { WeekFocus } from '../components/WeekFocus';
 import { useSettings } from '../App';
+import { LoadFailed } from '../components/Common';
 import { IconLeft, IconRight } from '../components/Icons';
 import { api, type WeekReviewData } from '../lib/api';
 import { addWeeks, duration, rangeLabel, weekdayShort, weekNumber, weekOf, today } from '../lib/dates';
@@ -23,7 +24,14 @@ export function WeekReview({ id }: { id: string }) {
   const T = useT(), W = T.review;
   const { settings, update } = useSettings();
   const [r, setR] = useState<WeekReviewData | null>(null);
-  useEffect(() => { setR(null); api.review(id).then(setR).catch(() => {}); }, [id]);
+  const [failed, setFailed] = useState(false);
+  const [tries, setTries] = useState(0);
+  useEffect(() => {
+    let live = true;
+    setR(null); setFailed(false);
+    api.review(id).then((d) => { if (live) setR(d); }).catch(() => { if (live) setFailed(true); });
+    return () => { live = false; };
+  }, [id, tries]);
   const t = r?.totals;
   const max = r ? Math.max(60, ...r.days.map((d) => Math.max(d.planned, d.focused))) : 60;
   const current = weekOf(today());
@@ -41,7 +49,7 @@ export function WeekReview({ id }: { id: string }) {
           <a className="btn" href={`/week/${id}`} onClick={onLinkClick}>{W.toWeek}</a>
         </div>
       </div>
-      {!r || !t ? <div className="skeleton" style={{ height: 320 }} /> : (
+      {failed ? <LoadFailed retry={() => setTries((n) => n + 1)} /> : !r || !t ? <div className="skeleton" style={{ height: 320 }} /> : (
         <div className="grid wr" data-anim>
           <section className="panel span-12 wr-stats" aria-label={W.title(weekNumber(id))}>
             <div><span className="wr-k">{W.focused}</span><b className="num">{hours(t.focused)}</b><span className="wr-s num">{W.ofDeep(hours(t.deep))} <Delta now={t.focused} before={r.prev.focused} fmt={hours} /></span></div>
