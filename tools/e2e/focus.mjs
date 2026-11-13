@@ -16,6 +16,7 @@ const check = (name, ok) => { if (!ok) throw Error(name); passed++; console.log(
 const doc = async () => (await api.get('day:' + D)).value;
 const until = async (fn, ms = 5000) => { const t = Date.now(); while (Date.now() - t < ms) { const v = await fn(); if (v) return v; await p.waitForTimeout(150); } return false; };
 const ring = () => p.locator('.focus-read b').textContent();
+const ringLeft = () => p.locator('.focus-ring circle').last().evaluate((el) => { const c = 2 * Math.PI * Number(el.getAttribute('r')); const off = Number(el.getAttribute('stroke-dashoffset') || 0); return el.getAttribute('opacity') === '0' ? 0 : 1 - off / c; });
 
 const shots = process.env.FOCUS_SETTINGS_SHOTS;
 if (shots) mkdirSync(shots, {recursive: true});
@@ -53,9 +54,11 @@ try {
   await p.getByRole('button', { name: '\u2190 Timer', exact: true }).click();
   check('back returns to timer and restores focus', await p.locator('.focus-stage').isVisible() && await p.locator('.focus-config-anchor > button').evaluate(el => el === document.activeElement));
 
+  check('idle: the ring is a full circle', Math.abs(await ringLeft() - 1) < 0.001);
   await p.getByRole('button', { name: 'Start focus', exact: true }).click();
   const a1 = await until(async () => (await doc()).focus?.active);
   check('start writes the length and break', a1 && a1.plannedMin === 40 && a1.breakMin === 10);
+  check('a fresh session starts with a full ring', (await ringLeft()) > 0.99);
   check('the setup gives way to the controls', await p.locator('.focus-setup').count() === 0 && await p.getByRole('button', { name: 'Pause', exact: true }).isVisible());
   check('the current round is distinguished from upcoming rounds', await p.locator('.focus-rounds .current').count() === 1 && await p.locator('.focus-rounds .done').count() === 0);
   await p.locator('.focus-config-anchor > button').click();
@@ -96,6 +99,8 @@ try {
   d.focus.active.startedAt = new Date(Date.now() - 10 * 60000).toISOString();
   await api.put('day:' + D, d);
   await p.reload();
+  await p.locator('.focus-ring .ring-fill').waitFor();
+  { const r = await ringLeft(); check('ten minutes into fifty, the ring has drained to about four fifths', r > 0.78 && r < 0.82); }
   await p.getByRole('button', { name: 'Finish now', exact: true }).click();
   const a3 = await until(async () => { const x = await doc(); return x.focus?.active?.phase === 'short' ? x : null; });
   check('finishing logs a session', a3 && a3.focus.sessions.length === 1 && a3.focus.sessions[0].minutes >= 9);

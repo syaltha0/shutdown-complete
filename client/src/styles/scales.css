@@ -64,6 +64,7 @@
    drawn into all the rest. On a wide, tall window the grid reaches the bottom of the window (the user saw the lower
    half of the page empty), and the chart grows with it, so neither the page nor the card is left blank. */
 .ring-fill { stroke: var(--hue); transition: stroke-dashoffset 1s linear, stroke 400ms ease; }
+:root[data-motion="reduce"] .ring-fill { transition: none; }
 .ring.phase-short .ring-fill, .ring.phase-long .ring-fill { stroke: var(--positive); }
 .session-scroll { max-height: var(--rows-h, none); overflow-y: auto; overscroll-behavior: contain; scrollbar-width: thin; scroll-padding: 8px; }
 .focus-sessions :is(a, .session-scroll):focus-visible { outline: 2px solid var(--text); outline-offset: 3px; border-radius: 2px; }
@@ -147,7 +148,7 @@
 /* Compact context and capture above today's sessions; keep the chart last. */
 .fw-goal { display: flex; align-items: center; gap: 16px; padding: 8px 0 20px; }
 .fw-goal svg { flex: 0 0 56px; }
-.fw-goal circle:last-child { stroke: #1d5fbf; stroke-linecap: round; }
+.fw-goal circle:last-child { stroke: var(--hue); stroke-linecap: round; }
 .fw-goal circle.complete { stroke: var(--positive); }
 .fw-goal-copy { display: grid; gap: 4px; min-width: 0; }
 .fw-caption { display: block; color: var(--muted); font-size: 12px; line-height: 1.5; }

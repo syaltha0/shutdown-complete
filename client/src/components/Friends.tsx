@@ -29,12 +29,9 @@ export function FriendsPanel() {
   const running = !!useFocusDay().active;
   const [link, setLink] = useState('');
   const [busy, setBusy] = useState(false);
-  // the team-friends section: open or folded as last left on this device; a waiting request opens it
-  const [teamOpen, setTeamOpenRaw] = useState(() => { try { return localStorage.getItem('sc-team-friends') === 'open'; } catch { return false; } });
-  const setTeamOpen = (v: boolean) => { setTeamOpenRaw(v); try { localStorage.setItem('sc-team-friends', v ? 'open' : 'closed'); } catch { /* private window */ } };
-  const waiting = S?.incoming.length ?? 0;
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  useEffect(() => { if (waiting > 0) setTeamOpen(true); }, [waiting]);
+  // the options (sharing, team friends): folded unless left open on this device; incoming requests stay in view either way
+  const [optOpen, setOptOpenRaw] = useState(() => { try { return localStorage.getItem('sc-friends-options') === 'open'; } catch { return false; } });
+  const setOptOpen = (v: boolean) => { setOptOpenRaw(v); try { localStorage.setItem('sc-friends-options', v ? 'open' : 'closed'); } catch { /* private window */ } };
 
   const [email, setEmail] = useState('');
   const [note, setNote] = useState<string | null>(null);
@@ -78,7 +75,13 @@ export function FriendsPanel() {
 
   return (
     <section className="panel friends" aria-labelledby="fr-h" data-anim>
-      <header><h2 id="fr-h">{T.together}</h2></header>
+      <header>
+        <h2 id="fr-h">{T.together}</h2>
+        <button type="button" className="friends-opt" aria-expanded={optOpen} aria-controls="fr-options" onClick={() => setOptOpen(!optOpen)}>
+          {T.friendsOptions}
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" aria-hidden="true"><path d="m9 5 7 7-7 7" /></svg>
+        </button>
+      </header>
       <div className="together-form">
         <label className="sr-only" htmlFor="together-length">{T.lengthLabel}</label>
         <select id="together-length" className="input num" value={len} disabled={running} onChange={(e) => setLen(Number(e.target.value))}>
@@ -87,9 +90,10 @@ export function FriendsPanel() {
         <button type="button" className="btn" disabled={busy || (running && !S.room?.isHost)} onClick={() => together()}>{T.togetherLink}</button>
       </div>
       {link && <label className="together-link">{T.togetherLinkHint}<input className="input" readOnly value={link} onFocus={(e) => e.target.select()} /></label>}
-      <label className="switch-row"><input type="checkbox" className="switch" checked={S.share.online} onChange={(e) => api.shareFocus({ online: e.target.checked }).then(refreshSocial)} />{T.showOnline}</label>
-      <h3>{T.onlinePeople}</h3>
-      {S.online.length ? <ul className="friend-list">{S.online.map((u) => <li key={u.id}><i className="dot" aria-hidden="true" /><b>{u.name}</b><button className="btn" disabled={busy || (running && !S.room?.isHost)} onClick={() => together(u.id)}>{T.inviteFriend(u.name)}</button></li>)}</ul> : <p className="muted friends-empty">{T.onlineNone}</p>}
+      <div className={`friends-online${S.online.length ? '' : ' is-empty'}`}>
+        <h3>{T.onlinePeople}</h3>
+        {S.online.length ? <ul className="friend-list">{S.online.map((u) => <li key={u.id}><i className="dot" aria-hidden="true" /><b>{u.name}</b><button className="btn" disabled={busy || (running && !S.room?.isHost)} onClick={() => together(u.id)}>{T.inviteFriend(u.name)}</button></li>)}</ul> : <p className="muted friends-empty">{T.onlineNone}</p>}
+      </div>
       {S.invites.map((r) => (
         <div className="invite-row" key={r.id}>
           <span><b>{T.roomInvite(r.host, r.minutes)}</b><small className="muted">{T.roomLeft(duration(minutesLeft(r)))}{r.people.length > 1 ? ` · ${T.roomWith(r.people.join(', '))}` : ''}</small></span>
@@ -99,35 +103,7 @@ export function FriendsPanel() {
           </span>
         </div>
       ))}
-
-      <details open={teamOpen} onToggle={(e) => setTeamOpen((e.currentTarget as HTMLDetailsElement).open)}><summary>{T.teamFriends}</summary>
-      {S.friends.length === 0 ? <p className="muted friends-empty">{T.friendsNone}</p> : (
-        <ul className="friend-list">
-          {S.friends.map((f) => (
-            <li key={f.id} className={f.status && f.status.state === 'focus' ? 'on' : undefined}>
-              <i className="dot" aria-hidden="true" />
-              <span className="who"><b>{f.name}</b><small className="muted">{status(f)}</small></span>
-              {picking && (
-                <label className="pick"><input type="checkbox" className="check" checked={chosen.includes(f.id)}
-                  onChange={(e) => setChosen((c) => (e.target.checked ? [...c, f.id] : c.filter((x) => x !== f.id)))} /><span className="sr-only">{T.inviteFriend(f.name)}</span></label>
-              )}
-            </li>
-          ))}
-        </ul>
-      )}
-
-      {S.friends.length > 0 && !running && (picking ? (
-        <div className="together-form">
-          <label htmlFor="tg-len" className="sr-only">{T.lengthLabel}</label>
-          <select id="tg-len" className="input num" value={len} onChange={(e) => setLen(Number(e.target.value))}>
-            {[15, 25, 30, 45, 50, 60, 90].map((m) => <option key={m} value={m}>{T.minShort(m)}</option>)}
-          </select>
-          <button type="button" className="btn primary" disabled={!chosen.length} onClick={() => together()}>{T.startTogether}</button>
-          <button type="button" className="btn ghost" onClick={() => { setPicking(false); setChosen([]); }}>{T.cancel}</button>
-        </div>
-      ) : <button type="button" className="btn" onClick={() => setPicking(true)}>{T.focusTogether}</button>)}
-
-      {(S.incoming.length > 0 || S.outgoing.length > 0) && (
+      {S.incoming.length > 0 && (
         <div className="requests">
           {S.incoming.map((r) => (
             <div className="invite-row" key={r.id}>
@@ -138,27 +114,62 @@ export function FriendsPanel() {
               </span>
             </div>
           ))}
-          {S.outgoing.map((r) => (
-            <div className="invite-row" key={r.id}>
-              <span><b>{r.email}</b><small className="muted">{T.friendWaiting}</small></span>
-              <button type="button" className="btn ghost icon" aria-label={T.cancelRequest(r.email)} onClick={() => api.removeFriend(r.id).then(refreshSocial)}><IconX /></button>
-            </div>
-          ))}
         </div>
       )}
 
-      <form className="friend-add" onSubmit={add}>
-        <label htmlFor="fr-email" className="sr-only">{T.addFriend}</label>
-        <input id="fr-email" className="input" type="email" placeholder={T.friendEmailPh} value={email} onChange={(e) => { setEmail(e.target.value); setNote(null); }} />
-        <button type="submit" className="btn" disabled={!email.includes('@')}>{T.addFriend}</button>
-      </form>
-      {note && <p className="muted friend-note-line" role="status">{note}</p>}
+      {optOpen && <div className="friends-options" id="fr-options">
+        <div className="share-opts">
+          <label className="switch-row"><input type="checkbox" className="switch" checked={S.share.online} onChange={(e) => api.shareFocus({ online: e.target.checked }).then(refreshSocial)} />{T.showOnline}</label>
+          <label className="switch-row"><input type="checkbox" className="switch" checked={S.share.focus} onChange={(e) => api.shareFocus({ focus: e.target.checked }).then(refreshSocial)} />{T.shareFocus}</label>
+          <label className="switch-row"><input type="checkbox" className="switch" checked={S.share.label} disabled={!S.share.focus} aria-describedby={S.share.focus ? undefined : 'fr-label-off'} onChange={(e) => api.shareFocus({ label: e.target.checked }).then(refreshSocial)} />{T.shareLabel}</label>
+          {!S.share.focus && <small className="muted share-why" id="fr-label-off">{T.shareLabelOff}</small>}
+        </div>
 
-      </details>
-      <div className="share-opts">
-        <label className="switch-row"><input type="checkbox" className="switch" checked={S.share.focus} onChange={(e) => api.shareFocus({ focus: e.target.checked }).then(refreshSocial)} />{T.shareFocus}</label>
-        <label className="switch-row"><input type="checkbox" className="switch" checked={S.share.label} disabled={!S.share.focus} onChange={(e) => api.shareFocus({ label: e.target.checked }).then(refreshSocial)} />{T.shareLabel}</label>
-      </div>
+        <h3>{T.teamFriends}</h3>
+        {S.friends.length === 0 ? <p className="muted friends-empty">{T.friendsNone}</p> : (
+          <ul className="friend-list">
+            {S.friends.map((f) => (
+              <li key={f.id} className={f.status && f.status.state === 'focus' ? 'on' : undefined}>
+                <i className="dot" aria-hidden="true" />
+                <span className="who"><b>{f.name}</b><small className="muted">{status(f)}</small></span>
+                {picking && (
+                  <label className="pick"><input type="checkbox" className="check" checked={chosen.includes(f.id)}
+                    onChange={(e) => setChosen((c) => (e.target.checked ? [...c, f.id] : c.filter((x) => x !== f.id)))} /><span className="sr-only">{T.inviteFriend(f.name)}</span></label>
+                )}
+              </li>
+            ))}
+          </ul>
+        )}
+
+        {S.friends.length > 0 && !running && (picking ? (
+          <div className="together-form">
+            <label htmlFor="tg-len" className="sr-only">{T.lengthLabel}</label>
+            <select id="tg-len" className="input num" value={len} onChange={(e) => setLen(Number(e.target.value))}>
+              {[15, 25, 30, 45, 50, 60, 90].map((m) => <option key={m} value={m}>{T.minShort(m)}</option>)}
+            </select>
+            <button type="button" className="btn primary" disabled={!chosen.length} onClick={() => together()}>{T.startTogether}</button>
+            <button type="button" className="btn ghost" onClick={() => { setPicking(false); setChosen([]); }}>{T.cancel}</button>
+          </div>
+        ) : <button type="button" className="btn" onClick={() => setPicking(true)}>{T.focusTogether}</button>)}
+
+        {S.outgoing.length > 0 && (
+          <div className="requests">
+            {S.outgoing.map((r) => (
+              <div className="invite-row" key={r.id}>
+                <span><b>{r.email}</b><small className="muted">{T.friendWaiting}</small></span>
+                <button type="button" className="btn ghost icon" aria-label={T.cancelRequest(r.email)} onClick={() => api.removeFriend(r.id).then(refreshSocial)}><IconX /></button>
+              </div>
+            ))}
+          </div>
+        )}
+
+        <form className="friend-add" onSubmit={add}>
+          <label htmlFor="fr-email" className="sr-only">{T.addFriend}</label>
+          <input id="fr-email" className="input" type="email" placeholder={T.friendEmailPh} value={email} onChange={(e) => { setEmail(e.target.value); setNote(null); }} />
+          <button type="submit" className="btn" disabled={!email.includes('@')}>{T.addFriend}</button>
+        </form>
+        {note && <p className="muted friend-note-line" role="status">{note}</p>}
+      </div>}
     </section>
   );
 }

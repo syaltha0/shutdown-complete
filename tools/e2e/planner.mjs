@@ -303,12 +303,16 @@ try {
     await ece.call('/api/friends/share', { focus: true }, 'PUT'); // Ece turns it on (Focus -> friends)
     await ece.call('/api/friends', { email: 'robin@hale.test' });
     await page.goto(`${srv.url}/focus`);
+    const openFriendOptions = async () => { const t = page.locator('.friends-opt'); await t.waitFor(); if ((await t.getAttribute('aria-expanded')) !== 'true') await t.click(); await page.locator('#fr-options').waitFor(); };
     const acceptBtn = page.locator('.friends .invite-row', { hasText: 'ece@hale.test' }).getByRole('button', { name: 'Accept' });
     check('a friend request shows on the Focus screen', await acceptBtn.waitFor({ timeout: 6000 }).then(() => true, () => false));
+    check('the options are folded by default, the request stays in view', (await page.locator('.friends-opt').getAttribute('aria-expanded')) === 'false' && !(await page.locator('#fr-options').count()));
     await acceptBtn.click();
+    await openFriendOptions();
     await page.locator('.friend-list li', { hasText: 'ece' }).waitFor({ timeout: 6000 });
     await ece.call('/api/presence', { state: 'focus', label: 'Physics', endsAt: new Date(Date.now() + 20 * 60000).toISOString() }, 'PUT');
     await page.reload();
+    await openFriendOptions();
     check('a friend\'s focus shows (without the block\'s name, unless shared)', await page.locator('.friend-list li.on', { hasText: 'focusing' }).waitFor({ timeout: 6000 }).then(() => true, () => false)
       && !(await page.locator('.friend-list li', { hasText: 'Physics' }).count()));
     await ece.call('/api/presence', {}, 'PUT');
@@ -316,6 +320,7 @@ try {
     const td = (await api.get(`day:${D}`)).value;
     await api.put(`day:${D}`, { ...td, focus: { active: null, sessions: td.focus?.sessions ?? [] } });
     await page.reload();
+    await openFriendOptions();
     await page.getByRole('button', { name: 'Start a session together' }).click();
     await page.locator('.friend-list .pick input').first().check();
     await page.getByRole('button', { name: 'Start together' }).click();
@@ -328,6 +333,7 @@ try {
     check('and joining gives the same start, so both end together', joined.startsAt === mine?.startedAt);
     await ece.call('/api/presence', { state: 'focus', label: '', endsAt: new Date(Date.parse(joined.startsAt) + joined.minutes * 60000).toISOString(), roomId: joined.id }, 'PUT');
     await page.reload();
+    await openFriendOptions();
     check('the Focus screen shows who is in the session with you', await page.locator('.friend-list li', { hasText: 'with you' }).waitFor({ timeout: 6000 }).then(() => true, () => false));
     // an invitation reaches you on any screen
     await api.put(`day:${D}`, { ...(await api.get(`day:${D}`)).value, focus: { active: null, sessions: [] } });
