@@ -122,7 +122,7 @@ export function parseFeed(text) {
   const events = [];
   let ev = null;
   for (const { name, params, value } of lines(text)) {
-    if (name === 'BEGIN' && value.toUpperCase() === 'VEVENT') { ev = { exdates: [] }; continue; }
+    if (name === 'BEGIN' && value.toUpperCase() === 'VEVENT') { if (events.length >= MAX_EVENTS) break; ev = { exdates: [] }; continue; }
     if (name === 'END' && value.toUpperCase() === 'VEVENT') { if (ev && ev.start) events.push(ev); ev = null; continue; }
     if (!ev) continue;
     if (name === 'UID') ev.uid = value.trim();
@@ -141,6 +141,7 @@ export function parseFeed(text) {
 
 // ---------------- unrolling repeats ----------------
 const DAY = 86_400_000;
+const MAX_EVENTS = 20_000, BUDGET_MS = 1_000;
 const DOW = ['SU', 'MO', 'TU', 'WE', 'TH', 'FR', 'SA'];
 const wallMs = (w) => Date.UTC(w.y, w.mo - 1, w.d, w.h, w.mi, w.s || 0); // a wall time read as if it were UTC, for stepping
 const fromWallMs = (ms) => { const d = new Date(ms); return { y: d.getUTCFullYear(), mo: d.getUTCMonth() + 1, d: d.getUTCDate(), h: d.getUTCHours(), mi: d.getUTCMinutes(), s: d.getUTCSeconds() }; };
@@ -165,7 +166,10 @@ function occurrences(ev, fromWall, toWall) {
   const take = (t) => { if (t < first || t > until || n >= count) return false; n++; if (t <= toWall) out.push(t); return true; };
   const start = new Date(first);
   const hms = first % DAY;
-  for (let step = 0, guard = 0; guard < 5000; step += interval, guard++) {
+  // without COUNT nothing depends on the occurrences before the window, so start near it (steps are days, weeks, months, years)
+  const unit = { DAILY: DAY, WEEKLY: 7 * DAY, MONTHLY: 31 * DAY, YEARLY: 366 * DAY }[freq] ?? DAY;
+  const skip = r.COUNT ? 0 : Math.max(0, Math.floor((fromWall - first) / (unit * interval)) - 2) * interval;
+  for (let step = skip, guard = 0; guard < 5000; step += interval, guard++) {
     let cands = [];
     if (freq === 'DAILY') cands = [first + step * DAY];
     else if (freq === 'WEEKLY') {
@@ -208,10 +212,12 @@ export function eventsBetween(feed, from, to, viewerTz) {
   const put = (date, e) => { (out[date] ||= []).push(e); };
   const iso = (p) => `${p.y}-${String(p.mo).padStart(2, '0')}-${String(p.d).padStart(2, '0')}`;
   const fromMs = Date.parse(`${from}T00:00:00Z`) - DAY, toMs = Date.parse(`${to}T23:59:59Z`) + DAY;
+  const deadline = Date.now() + BUDGET_MS; // a feed made to be slow to unroll gets what fits in this time
   const overrides = new Map(); // uid -> Set of recurrence-id wall ms
   for (const ev of feed) if (ev.recurrenceId && ev.uid) { if (!overrides.has(ev.uid)) overrides.set(ev.uid, new Set()); overrides.get(ev.uid).add(wallMs(ev.recurrenceId.wall)); }
 
   for (const ev of feed) {
+    if (Date.now() > deadline) break;
     if (ev.cancelled || ev.free) continue;
     const tz = ev.start.allDay ? null : ev.start.tz || viewerTz;
     const lengthMs = ev.end ? Math.max(0, wallMs(ev.end.wall) - wallMs(ev.start.wall)) : parseDuration(ev.duration) ?? (ev.start.allDay ? DAY : 0);
@@ -220,7 +226,9 @@ export function eventsBetween(feed, from, to, viewerTz) {
     for (const t of occurrences(ev, fromMs, toMs)) {
       if (skip.has(t) || (moved && moved.has(t))) continue;
       if (ev.start.allDay) {
-        for (let d = t; d < t + Math.max(DAY, lengthMs); d += DAY) {
+        // only the days that can be asked for: an event "lasting" thousands of years must not be walked day by day
+        const first = t < fromMs ? t + Math.floor((fromMs - t) / DAY) * DAY : t;
+        for (let d = first; d < Math.min(t + Math.max(DAY, lengthMs), toMs + DAY); d += DAY) {
           const date = new Date(d).toISOString().slice(0, 10);
           if (date >= from && date <= to) put(date, { title: ev.title || '', start: 0, end: 1440, allDay: true });
         }
@@ -228,7 +236,7 @@ export function eventsBetween(feed, from, to, viewerTz) {
       }
       // timed: the instant, then the viewer's wall clock, cut at midnights
       const s = zonedToUtc(fromWallMs(t), tz), e = s + lengthMs;
-      for (let cur = s; cur < Math.max(e, s + 1);) {
+      for (let cur = Math.max(s, fromMs); cur < Math.max(e, s + 1) && cur <= toMs;) {
         const p = partsIn(cur, viewerTz), date = iso(p);
         const startMin = p.h * 60 + p.mi;
         const dayEnd = cur + (1440 - startMin) * 60_000 - p.s * 1000;
