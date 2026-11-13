@@ -12,7 +12,7 @@ import { useSocial } from '../lib/social';
 
 /**
  * The focus room: the whole screen for one session, nothing else on it. The ring, the time and the block; a
- * background sound if wanted. The controls fade after a few still seconds and come back with the pointer or a key.
+ * background sound if wanted. The controls remain visible for pointer, touch and keyboard use.
  * Space pauses or resumes, Esc leaves (the session goes on outside the room).
  */
 export function FocusRoom({ start, onClose }: { start: { blockId: string | null; label: string; minutes: number; task?: { id: string; text: string; day?: boolean }; intent?: string; breakMin?: number }; onClose: () => void }) {
@@ -27,10 +27,8 @@ export function FocusRoom({ start, onClose }: { start: { blockId: string | null;
   const [tasksOpen, setTasksOpen] = useState(false);
   const [draft, setDraft] = useState('');
   const [pickedTask, setPickedTask] = useState(start.task);
-  const [idle, setIdle] = useState(false);
   const social = useSocial(true);
   const together = a?.roomId && social?.room?.id === a.roomId ? social.room.people : [];
-  const idleTimer = useRef(0);
   // a modal: keyboard focus moves into the room and goes back to where it was on leaving
   const rootRef = useRef<HTMLDivElement>(null);
   useEffect(() => {
@@ -39,15 +37,6 @@ export function FocusRoom({ start, onClose }: { start: { blockId: string | null;
     return () => { if (back?.isConnected) back.focus(); };
   }, []);
   useEffect(() => onAmbient(() => setSound(ambientPlaying() ?? ambientPref().sound)), []);
-
-  // the controls rest after three still seconds
-  useEffect(() => {
-    const wake = () => { setIdle(false); window.clearTimeout(idleTimer.current); idleTimer.current = window.setTimeout(() => setIdle(true), 3000); };
-    wake();
-    window.addEventListener('pointermove', wake);
-    window.addEventListener('keydown', wake);
-    return () => { window.removeEventListener('pointermove', wake); window.removeEventListener('keydown', wake); window.clearTimeout(idleTimer.current); };
-  }, []);
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -79,7 +68,7 @@ export function FocusRoom({ start, onClose }: { start: { blockId: string | null;
   });
 
   function leave() {
-    try { if (document.fullscreenElement) document.exitFullscreen(); } catch { /* not in full screen */ }
+    try { if (document.fullscreenElement) void document.exitFullscreen().catch(() => {}); } catch { /* not in full screen */ }
     onClose();
   }
   function begin() {
@@ -107,7 +96,7 @@ export function FocusRoom({ start, onClose }: { start: { blockId: string | null;
   const linked = day?.columns.flatMap(c => c.blocks).find(b => b.id === (a?.blockId ?? start.blockId));
   const tasks = (day?.tasks ?? []).filter(t => !t.done).sort((x,y) => Number(y.id === a?.task?.id || y.text === linked?.label) - Number(x.id === a?.task?.id || x.text === linked?.label));
   return (
-    <div ref={rootRef} tabIndex={-1} className={`focus-room${idle ? ' idle' : ''}${a ? ` phase-${a.phase}` : ''}`} role="dialog" aria-modal="true" aria-label={T.roomTitle}>
+    <div ref={rootRef} tabIndex={-1} className={`focus-room${a ? ` phase-${a.phase}` : ' phase-focus'}`} role="dialog" aria-modal="true" aria-label={T.roomTitle}>
       <button type="button" className="btn ghost room-leave" onClick={leave}><IconX />{T.roomLeave}</button>
       <section className={`room-tasks${tasksOpen ? ' open' : ''}`} onPointerEnter={e => {if (e.pointerType === 'mouse') setTasksOpen(true);}} onPointerLeave={e => {if (e.pointerType === 'mouse' && !e.currentTarget.contains(document.activeElement)) setTasksOpen(false);}} onBlur={e => {if (!e.currentTarget.contains(e.relatedTarget)) setTasksOpen(false);}}>
         <button className="room-task-tab btn ghost" aria-expanded={tasksOpen} onClick={() => setTasksOpen(!tasksOpen)}>{T.tasks} ({tasks.length})</button>
@@ -120,7 +109,7 @@ export function FocusRoom({ start, onClose }: { start: { blockId: string | null;
         <div className="focus-ring room-ring">
           {a ? <Ring a={a} size={340} stroke={8} /> : <svg width={340} height={340} viewBox="0 0 340 340" aria-hidden="true"><circle cx={170} cy={170} r={166} fill="none" stroke="var(--raised)" strokeWidth={8} /></svg>}
           <div className="focus-read">
-            <span className="phase-name">{a ? T.phase[a.phase] : T.phase.focus}</span>
+            <span className="phase-name" role="status">{a ? T.phase[a.phase] : T.phase.focus}{a?.pausedLeft != null && <span className="room-paused"> &middot; {T.focusPaused}</span>}</span>
             <b className="num" aria-live="off">{a ? mmss(secondsLeft(a)) : mmss(start.minutes * 60)}</b>
             <span className="muted focus-label">{a ? a.label || T.freeFocus : start.label}</span>
           </div>
@@ -129,7 +118,7 @@ export function FocusRoom({ start, onClose }: { start: { blockId: string | null;
           {!a ? <button type="button" className="btn primary big" onClick={begin}>{T.startFocus}</button> : (
             <>
               {a.pausedLeft == null
-                ? <button type="button" className="btn" disabled={!!f.strict && a.phase === 'focus'} onClick={() => pauseFocus(key)}>{T.pause}</button>
+                ? <button type="button" className="btn primary" disabled={!!f.strict && a.phase === 'focus'} onClick={() => pauseFocus(key)}>{T.pause}</button>
                 : <button type="button" className="btn primary" disabled={!!f.strict && a.phase === 'focus'} onClick={() => resumeFocus(key)}>{T.resume}</button>}
               <button type="button" className="btn num" disabled={a.plannedMin >= MAX_PLANNED} onClick={() => extendFocus(5, key)}>{T.plusFive}</button>
               {a.phase === 'focus'

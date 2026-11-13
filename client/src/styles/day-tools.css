@@ -43,11 +43,6 @@
 .room-volume input { width: 200px; accent-color: var(--text); }
 .room-leave { position: absolute; top: 16px; right: 16px; }
 .room-hint { margin: 0; font-size: 13px; }
-/* still for a while: only the ring and the time stay */
-.focus-room .room-leave, .focus-room .room-controls, .focus-room .room-sound, .focus-room .room-hint { transition: opacity 600ms ease; }
-.focus-room.idle .room-leave, .focus-room.idle .room-controls, .focus-room.idle .room-sound, .focus-room.idle .room-hint { opacity: 0; }
-.focus-room.idle { cursor: none; }
-
 /* ======================= the day's card ======================= */
 .day-card .card-body { display: grid; grid-template-columns: minmax(0, 360px) 1fr; gap: 24px; align-items: end; margin-top: 12px; }
 .day-card img, .day-card .card-skel { width: 100%; height: auto; aspect-ratio: 4 / 5; border-radius: 12px; background: var(--ground); animation: rise-in 520ms var(--ease-out) both; }
@@ -119,3 +114,30 @@
 .together-link { display: grid; gap: 6px; min-width: 0; font-size: var(--fs-small); }
 .together-link input { width: 100%; min-width: 0; }
 .friends details > summary { cursor: pointer; }
+/* Room layout keeps navigation and sound controls available at every size. */
+.focus-room { padding: 80px 24px 72px; overflow-y: auto; overscroll-behavior: contain; }
+.room-stage { width: min(640px, 100%); gap: 24px; min-width: 0; }
+.room-ring { width: 380px; max-width: min(80vw, 42vh); }
+.room-ring .focus-read b { font-size: clamp(64px, 10vw, 96px); }
+.room-ring .focus-read .focus-label { display: block; max-width: 24ch; padding-inline: 16px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.room-paused { color: var(--muted); }
+.room-controls { gap: 10px; }
+.room-controls .btn { min-height: 44px; }
+.focus-room .room-controls .btn.primary { background: var(--phase-color); border-color: var(--phase-color); color: var(--ground); }
+.room-sound { width: 100%; gap: 12px; padding-top: 20px; border-top: 1px solid var(--rule); }
+.focus-room .sound-pick { gap: 8px; }
+.focus-room .sound-pick button { min-height: 44px; height: auto; padding: 8px 16px; color: var(--text); }
+.focus-room .sound-pick button[aria-pressed="true"] { color: var(--primary-ink); }
+.room-volume input { width: min(240px, 65vw); min-height: 32px; }
+.room-hint { text-align: center; max-width: 48ch; line-height: 1.6; }
+.focus-room :is(button, input):focus-visible { outline: 2px solid var(--text); outline-offset: 4px; }
+.focus-room .room-tasks { position: fixed; }
+:root[data-motion="reduce"] .focus-room, :root[data-motion="reduce"] .focus-room * { animation: none; transition: none; }
+@media (max-width: 480px), (max-height: 740px) {
+  .focus-room { padding: 72px 16px 64px; }
+  .room-stage { gap: 18px; margin-block: auto; }
+  .room-ring { width: 280px; max-width: min(78vw, 40vh); }
+  .room-ring .focus-read b { font-size: clamp(48px, 16vw, 72px); }
+  .room-controls { gap: 8px; }
+  .room-sound { padding-top: 16px; }
+}
