@@ -42,6 +42,11 @@ export function Focus() {
   const [picking, setPicking] = useState(false);
   const [noteDraft, setNoteDraft] = useState<{ id: string; text: string } | null>(null);
   const [room, setRoom] = useState(false);
+  const autoRoom = useRef(false);
+  useEffect(() => {
+    if (f.fullscreenBreak && a && a.phase !== 'focus') { autoRoom.current = true; setRoom(true); }
+    else if (autoRoom.current) { autoRoom.current = false; setRoom(false); if (document.fullscreenElement) void document.exitFullscreen().catch(() => {}); }
+  }, [a?.phase, f.fullscreenBreak]);
   const openRoom = () => { try { document.documentElement.requestFullscreen?.().catch(() => {}); } catch { /* not allowed here */ } setRoom(true); };
   const chosen = blockId === undefined ? current?.id ?? null : blockId;
   const chosenBlock = blocks.find((b) => b.id === chosen) ?? null;
