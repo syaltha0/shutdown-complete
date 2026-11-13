@@ -55,6 +55,7 @@ serverStatus:{"title":"Sunucu durumu","backup":"Yedekler","storage":"Depolama","
   },
   pushUnavailable: 'Bu tarayıcıda push bildirimleri kullanılamıyor. iPhone’da önce uygulamayı ana ekrana ekle.',
   pushError: 'Bildirim ayarı değiştirilemedi. İzni ve bağlantını kontrol edip yeniden dene.',
+  serverDown: (n) => `Sunucuya ulaşılamıyor · ${n} değişiklik bekliyor`,
   offlinePending: (n) => `Çevrimdışı · ${n} değişiklik bekliyor`,
   locale: 'tr-TR',
   featuresTitle: 'Özellikler',

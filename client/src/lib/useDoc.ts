@@ -20,6 +20,7 @@ interface Entry {
   error: string | null;
   pending: unknown | null; // the value waiting to be saved
   inflight: boolean;
+  sentAt?: number; // when the save in flight left
   timer?: number;
   loading?: Promise<void>;
   listeners: Set<() => void>;
@@ -36,6 +37,36 @@ export async function restorePending(user: string) {
   if (navigator.onLine) retryPending();
 }
 function retryPending() { entries.forEach((e, k) => { if (e.pending != null) { e.status = 'unsaved'; void flush(k); } }); }
+
+/**
+ * A server that cannot be reached while the browser itself is online (5xx, a dropped connection, no answer). A short
+ * wait is normal and stays silent; once saves have failed for OUTAGE_AFTER (or three times in a row for OUTAGE_REPEAT),
+ * `useOutage` turns true, and false again with the next save the server accepts.
+ */
+export const OUTAGE_AFTER = 20_000;
+export const OUTAGE_REPEAT = 10_000;
+const outageListeners = new Set<() => void>();
+let outage: { since: number; fails: number } | null = null;
+let stuck = false;
+let outageTimer: number | undefined;
+const unreachable = (err: unknown) => err instanceof ApiError && (err.status === 0 || err.status >= 500);
+function judgeOutage() {
+  window.clearTimeout(outageTimer);
+  const now = Date.now();
+  const hungSince = [...entries.values()].reduce((t, e) => (e.inflight && e.sentAt != null ? Math.min(t, e.sentAt) : t), Infinity); // a save that never answers
+  const since = Math.min(outage?.since ?? Infinity, hungSince);
+  const next = since !== Infinity && (now - since >= OUTAGE_AFTER || (!!outage && outage.fails >= 3 && now - since >= OUTAGE_REPEAT));
+  if (!next && since !== Infinity) outageTimer = window.setTimeout(judgeOutage, Math.max(200, Math.min(since + OUTAGE_AFTER, outage && outage.fails >= 3 ? since + OUTAGE_REPEAT : Infinity) - now));
+  if (next !== stuck) { stuck = next; outageListeners.forEach((l) => l()); }
+}
+function saveFailed() { outage = outage ?? { since: Date.now(), fails: 0 }; outage.fails++; judgeOutage(); }
+function saveWorked() { if (outage) { outage = null; judgeOutage(); } }
+/** Whether saves have been failing long enough to say so. */
+export function useOutage() {
+  return useSyncExternalStore((l) => { outageListeners.add(l); return () => { outageListeners.delete(l); }; }, () => stuck);
+}
+/** Send everything waiting again now (the "Retry" of the notice). */
+export const retryNow = () => { if (outage) outage.fails = 0; retryPending(); };
 export function usePendingCount() {
   return useSyncExternalStore((l) => { queueListeners.add(l); return () => { queueListeners.delete(l); }; }, () => [...entries.values()].filter((e) => e.pending != null || e.inflight).length);
 }
@@ -80,15 +111,19 @@ async function flush(key: string, keepalive = false) {
   const v = e.pending;
   e.pending = null;
   e.inflight = true;
+  e.sentAt = Date.now();
   e.status = 'saving';
   emit(e);
+  judgeOutage(); // a save that never answers counts too
   try {
     const doc: Doc<unknown> = await api.put(key, v, e.version, keepalive);
+    saveWorked();
     e.version = doc.version;
     e.status = e.pending != null ? 'unsaved' : 'saved';
     e.error = null;
   } catch (err) {
     if (err instanceof ApiError && err.status === 409 && err.body?.current) {
+      saveWorked(); // the server answered
       const cur = err.body.current as Doc<unknown>;
       e.version = cur.version;
       e.value = cur.value;
@@ -99,9 +134,16 @@ async function flush(key: string, keepalive = false) {
       const offline = err instanceof ApiError && err.status === 0;
       e.status = offline ? 'offline' : 'error';
       e.error = offline ? null : err instanceof Error ? err.message : 'Could not save';
+      if (unreachable(err)) {
+        saveFailed();
+        // try again by itself, a little later each time (the browser's own "online" and a click on Retry go straight away)
+        if (navigator.onLine) e.timer = window.setTimeout(() => flush(key), Math.min(30_000, 2_000 * 2 ** Math.min(4, (outage?.fails ?? 1) - 1)));
+      }
     }
   } finally {
     e.inflight = false;
+    e.sentAt = undefined;
+    judgeOutage();
     keepPending(e.pending == null ? null : { key, value: e.pending, version: e.version }, key);
     emit(e);
     if (e.pending != null && e.status !== 'error' && e.status !== 'offline') e.timer = window.setTimeout(() => flush(key), DEBOUNCE);

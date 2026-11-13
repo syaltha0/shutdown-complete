@@ -58,6 +58,7 @@ export const en = {
   },
   pushUnavailable: 'Push is unavailable here. On iPhone, add the app to your Home Screen first.',
   pushError: 'Could not change notifications. Check permission and your connection, then try again.',
+  serverDown: (n: number) => `Can’t reach the server · ${n} ${s(n, 'change', 'changes')} waiting`,
   offlinePending: (n: number) => `Offline · ${n} ${s(n, 'change', 'changes')} waiting`,
   locale: 'en-GB',
   featuresTitle: 'Features',
