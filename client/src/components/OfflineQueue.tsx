@@ -5,5 +5,6 @@ export function OfflineQueue() {
   const T = useT(), count = usePendingCount();
   const [offline, setOffline] = useState(!navigator.onLine);
   useEffect(() => { const on = () => setOffline(!navigator.onLine); window.addEventListener('online', on); window.addEventListener('offline', on); return () => { window.removeEventListener('online', on); window.removeEventListener('offline', on); }; }, []);
-  return offline || count > 0 ? <p className="offline-queue muted" role="status">{offline ? T.offlinePending(count) : T.queuePending(count)}</p> : null;
+  // only while offline: a change waiting a moment to sync online is normal and needs no word
+  return offline ? <p className="offline-queue muted" role="status">{T.offlinePending(count)}</p> : null;
 }

@@ -32,7 +32,6 @@ export const tr: Words = {
   pushUnavailable: 'Bu tarayıcıda push bildirimleri kullanılamıyor. iPhone’da önce uygulamayı ana ekrana ekle.',
   pushError: 'Bildirim ayarı değiştirilemedi. İzni ve bağlantını kontrol edip yeniden dene.',
   offlinePending: (n) => `Çevrimdışı · ${n} değişiklik bekliyor`,
-  queuePending: (n) => `${n} değişiklik eşitlenmeyi bekliyor`,
   locale: 'tr-TR',
   featuresTitle: 'Özellikler',
   stepsChip: (d, n) => `${n} adımın ${d} tanesi bitti`, stepsOf: (t) => `${t} adımları`,

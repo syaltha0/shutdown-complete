@@ -1,9 +1,10 @@
 import { useT } from '../lib/i18n';
 import type { SaveStatus } from '../lib/useDoc';
 
-/** The quiet freshness stamp in the title row. */
+/** The stamp in the title row speaks only when something is wrong; a normal save stays silent. */
 export function SaveStamp({ status }: { status: SaveStatus }) {
-  const text = useT().save[status];
+  const save = useT().save;
+  const text = status === 'error' || status === 'conflict' || status === 'offline' ? save[status] : '';
   return <span className="stamp" role="status" aria-live="polite">{text}</span>;
 }
 
