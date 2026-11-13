@@ -9,7 +9,7 @@ const unfold = s => s.replace(/\r\n /g, '').replace(/\r/g, '');
 test('Tasks.org export preserves extensions, COUNT=0 and VALARM after title edit', () => {
   const t = upsert({ items: [] }, 'inbox', 'task.ics', fixture, '2026-11-13').doc.items[0];
   const out = unfold(taskIcs({ ...t, text: 'Changed' }));
-  for (const l of fixture.split('\n').filter(l => l && !l.startsWith('SUMMARY:'))) assert.ok(out.includes(l), l);
+  for (const l of fixture.split(/\r?\n/).filter(l => l && !l.startsWith('SUMMARY:'))) assert.ok(out.includes(l), l);
   assert.ok(out.includes('SUMMARY:Changed'));
   assert.ok(!out.includes('SUMMARY:Weekly'));
 });
