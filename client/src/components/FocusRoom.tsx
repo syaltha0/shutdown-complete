@@ -90,7 +90,7 @@ export function FocusRoom({ start, onClose }: { start: { blockId: string | null;
     }
   }
   const linked = day?.columns.flatMap(c => c.blocks).find(b => b.id === (a?.blockId ?? start.blockId));
-  const tasks = (day?.tasks ?? []).filter(t => !t.done).sort((x,y) => Number(y.id === a?.task?.id || y.text === linked?.label) - Number(x.id === a?.task?.id || x.text === linked?.label));
+  const tasks = (day?.tasks ?? []).filter(t => !t.done).sort((x,y) => Number(y.id === a?.task?.id || (linked?.task ? y.id === linked.task.id : y.text === linked?.label)) - Number(x.id === a?.task?.id || (linked?.task ? x.id === linked.task.id : x.text === linked?.label)));
   return (
     <div ref={rootRef} tabIndex={-1} className={`focus-room${a ? ` phase-${a.phase}` : ' phase-focus'}`} role="dialog" aria-modal="true" aria-label={T.roomTitle}>
       <button type="button" className="btn ghost room-leave" onClick={leave}><IconX />{T.roomLeave}</button>

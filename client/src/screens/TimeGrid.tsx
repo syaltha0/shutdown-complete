@@ -290,7 +290,7 @@ export function TimeGrid({
                       }}
                       onKeyDown={isActive ? (e) => onBlockKey(e, b) : undefined}
                     >
-                      <span className="bl">{b.repeatId && <span className="rep" title={T.repeatsWeekly}><IconRepeat /></span>}{b.label || T.untitled}</span>
+                      <span className="bl">{b.repeatId && <span className="rep" title={T.repeatsWeekly}><IconRepeat /></span>}{b.label || T.untitled}{day.tasks.find(t => b.task ? t.id === b.task.id : t.text === b.label)?.done && <span aria-label={T.taskBlock.done}> {T.taskBlock.done}</span>}{b.task?.list === 'day' && b.task.day && !day.tasks.some(t => t.id === b.task!.id) && <span>{T.taskBlock.deleted}</span>}</span>
                       <span className="bt">{b.subject && <span className="subj">{b.subject} · </span>}{clock(start)}–{clock(end)}{short ? '' : ` · ${duration(end - start)}`}</span>
                       {!short && b.note && h >= 64 && <span className="bn">{b.note}</span>}
                       {isActive && <span className="grip" aria-hidden="true" />}

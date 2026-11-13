@@ -16,7 +16,7 @@ export function WeekFocus({ id }: { id: string }) {
   const groups: { sessions: FocusSession[]; minutes: number; label: string }[] = [];
   for (const session of sessions) {
     // Same block id OR same nonempty label, as in the focus page. Merge connected groups once.
-    const matches = groups.filter((g) => g.sessions.some((s) => (!!s.blockId && s.blockId === session.blockId) || (!!session.label && s.label === session.label)));
+    const matches = groups.filter((g) => g.sessions.some((s) => (!!session.taskId && s.taskId === session.taskId) || (!!s.blockId && s.blockId === session.blockId) || (!!session.label && s.label === session.label)));
     const group = { sessions: [session, ...matches.flatMap((g) => g.sessions)], minutes: session.minutes + matches.reduce((n, g) => n + g.minutes, 0), label: session.label || session.subject || T.freeFocus };
     for (const match of matches) groups.splice(groups.indexOf(match), 1);
     groups.push(group);
