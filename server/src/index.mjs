@@ -100,7 +100,7 @@ const challenges = new Map(); // challenge -> { userId, until }
 function rememberChallenge(userId = null) {
   const ch = newChallenge();
   challenges.set(ch, { userId, until: Date.now() + 5 * 60_000 });
-  for (const [k, v] of challenges) if (v.until < Date.now()) challenges.delete(k);
+  for (const [k, v] of challenges) if (v.until < Date.now() || challenges.size > 5000) challenges.delete(k);
   return ch;
 }
 function takeChallenge(clientDataB64) {
@@ -507,6 +507,7 @@ app.post('/api/account/totp/enable', async (c) => {
 app.post('/api/account/totp/disable', async (c) => {
   const { user } = me(c);
   const b = await body(c);
+  if (limited(`pw:${user.id}`, 10, 15 * 60_000)) return fail(c, 'too-many', 429);
   if (!verifyPassword(b.password || '', user.password)) return fail(c, 'wrong', 401);
   db.users.set(user.id, { totp_enabled: 0, totp_secret: null, recovery: '[]', totp_last_step: 0 });
   return c.json({ ok: true });
@@ -516,6 +517,7 @@ app.post('/api/account/totp/recovery', async (c) => {
   const { user } = me(c);
   const b = await body(c);
   if (!user.totp_enabled) return fail(c, 'not-enabled', 409);
+  if (limited(`pw:${user.id}`, 10, 15 * 60_000)) return fail(c, 'too-many', 429);
   if (!verifyPassword(b.password || '', user.password)) return fail(c, 'wrong', 401);
   const { codes, hashes } = newRecoveryCodes();
   db.users.set(user.id, { recovery: JSON.stringify(hashes) });
@@ -559,6 +561,7 @@ app.delete('/api/account/passkeys/:id', (c) => { db.passkeys.remove(c.req.param(
 app.post('/api/account/delete', async (c) => {
   const { user } = me(c);
   const b = await body(c);
+  if (limited(`pw:${user.id}`, 10, 15 * 60_000)) return fail(c, 'too-many', 429);
   if (!verifyPassword(b.password || '', user.password)) return fail(c, 'wrong', 401);
   const admins = db.users.list().filter((u) => u.is_admin);
   if (user.is_admin && admins.length === 1 && db.users.count() > 1) return fail(c, 'last-admin', 409);
@@ -718,10 +721,11 @@ app.post('/api/admin/backups/upload', async (c) => {
 // a restore replaces everything, so it asks for the owner's password; the server stops and starts again on the copy
 app.post('/api/admin/backups/:name/restore', async (c) => {
   const b = await body(c);
+  if (limited(`pw:${uid(c)}`, 10, 15 * 60_000)) return fail(c, 'too-many', 429);
   if (!verifyPassword(b.password || '', me(c).user.password)) return fail(c, 'wrong', 401);
   const r = await bk.restore(c.req.param('name'));
   if (r.error) return fail(c, r.error, r.error === 'not-found' ? 404 : 400);
-  console.log(`Restore of ${c.req.param('name')} asked for by ${me(c).user.email}: stopping so it is put in place at the next start.`);
+  console.log(`Restore of ${c.req.param('name')} asked for by account ${uid(c)}: stopping so it is put in place at the next start.`);
   setTimeout(() => process.exit(0), 800);
   return c.json({ ok: true, restarting: true });
 });
