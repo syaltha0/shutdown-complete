@@ -97,7 +97,11 @@ export function Tasks({ view: asked }: { view?: string }) {
 
   /** Ticked: a repeating task comes back on its next date, any other is done (both can be undone). */
   const tick = (t: Item) => {
-    if (t.done) { set(t.id, { done: false, doneAt: undefined }); return; }
+    if (t.done) {
+      set(t.id, { done: false, doneAt: undefined });
+      offerUndo(T.tkReopenedN(1), () => set(t.id, { done: t.done, doneAt: t.doneAt }));
+      return;
+    }
     if (t.repeat) {
       const p = rollOn(t);
       set(t.id, p);
@@ -127,6 +131,13 @@ export function Tasks({ view: asked }: { view?: string }) {
     const task: Item = { ...t, ...parsed, tags: tags.length ? tags : undefined };
     if (task.list === DEFAULT_LIST) task.list = undefined;
     update((b) => ({ ...b, items: [...b.items, task] }));
+  };
+  /** The completed tasks on screen come back open (one undo puts them all back as they were). */
+  const reopenDone = () => {
+    const back = (view === 'completed' ? shown : doneHere).filter((t) => t.done);
+    const ids = new Set(back.map((t) => t.id));
+    update((b) => ({ ...b, items: b.items.map((x) => (ids.has(x.id) ? { ...x, done: false, doneAt: undefined } : x)) }));
+    offerUndo(T.tkReopenedN(back.length), () => update((b) => ({ ...b, items: b.items.map((x) => { const was = back.find((y) => y.id === x.id); return was ? { ...x, done: was.done, doneAt: was.doneAt } : x; }) })));
   };
   const clearDone = () => {
     const gone = items.filter((t) => t.done && (view === 'completed' || listOf(t) === view));
@@ -327,6 +338,7 @@ export function Tasks({ view: asked }: { view?: string }) {
           {(doneHere.length > 0 || (view === 'completed' && shown.length > 0)) && (
             <div className="tk-done-bar">
               {view !== 'completed' && <button type="button" className="card-link quiet" aria-expanded={showDone} onClick={() => setShowDone(!showDone)}>{T.tkCompletedN(doneHere.length, showDone)}</button>}
+              <button type="button" className="card-link quiet" onClick={reopenDone}>{T.tkReopenDone}</button>
               <button type="button" className="card-link quiet" onClick={clearDone}>{T.tkDeleteDone}</button>
             </div>
           )}
@@ -357,7 +369,9 @@ export function Tasks({ view: asked }: { view?: string }) {
                   <input className="input" list="tk-bulk-tags" placeholder={T.tkTagPh} value={bulkTag} disabled={!picked.length} aria-label={T.tkTagPh} onChange={(e) => setBulkTag(e.target.value)} />
                   <datalist id="tk-bulk-tags">{allTags.map((g) => <option key={g} value={g} />)}</datalist>
                 </form>
-                <button type="button" className="btn" disabled={!picked.length} onClick={() => bulk(bulkDone, T.tkDoneN(picked.length))}>{T.tkMarkDone}</button>
+                {view === 'completed'
+                  ? <button type="button" className="btn" disabled={!picked.length} onClick={() => bulk(() => ({ done: false, doneAt: undefined }), T.tkReopenedN(picked.length))}>{T.tkReopen}</button>
+                  : <button type="button" className="btn" disabled={!picked.length} onClick={() => bulk(bulkDone, T.tkDoneN(picked.length))}>{T.tkMarkDone}</button>}
                 <button type="button" className="btn ghost danger" disabled={!picked.length} onClick={() => bulk(() => null, T.tkDeletedN(picked.length))}>{T.tkDeleteAll}</button>
               </span>
             </div>
