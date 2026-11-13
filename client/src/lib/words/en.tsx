@@ -609,7 +609,8 @@ export const en = {
   tkPlanToday: 'Plan today', tkPlanTomorrow: 'Plan tomorrow', tkPlanDate: 'Plan on date', tkPlanError: 'Could not finish planning. Check the day before trying again.',
   tkTrash: 'Trash', tkRestore: 'Restore', tkPurge: 'Delete permanently', tkEmptyTrash: 'Empty trash', tkPurgeConfirm: 'Permanently delete these tasks?', tkTrashHelp: 'Deleted tasks are kept for 30 days.',
   tkFilters: 'Saved filters', tkFilterNew: 'New filter', tkFilterEdit: 'Edit filter', tkFilterSave: 'Save filter', tkFilterAny: 'Any', tkFilterRange: 'Date range', tkFilterLate: 'Overdue', tkFilterUp: 'Move up', tkFilterDown: 'Move down', tkFilterOpen: 'Open',
-  tkViews: { all: 'All', today: 'Today', week: 'Next 7 days', important: 'Important', current: 'In progress', completed: 'Completed' },
+  tkWaiting: 'Waiting', tkWaitingNote: 'Waiting for', tkReview: 'Review on',
+  tkViews: { waiting: 'Waiting', all: 'All', today: 'Today', week: 'Next 7 days', important: 'Important', current: 'In progress', completed: 'Completed' },
   tkEmpty: {
     all: 'No open tasks. Write one above: homework, an errand, something for later.',
     today: 'Nothing due or started today.', week: 'Nothing due in the next 7 days.',

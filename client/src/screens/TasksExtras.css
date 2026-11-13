@@ -3,3 +3,5 @@
 .tk-filter-form .input { width: 100%; min-width: 0; }
 .tk-filter-form > button { align-self: end; }
 @media (max-width: 600px) { .tk-filter-form { grid-template-columns: 1fr; } }
+
+.tk-row.waiting .tk-open { opacity: .6; }

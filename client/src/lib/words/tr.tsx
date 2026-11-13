@@ -594,7 +594,8 @@ serverStatus:{"title":"Sunucu durumu","backup":"Yedekler","storage":"Depolama","
   tkPlanToday: 'Bugüne planla', tkPlanTomorrow: 'Yarına planla', tkPlanDate: 'Tarihe planla', tkPlanError: 'Planlama tamamlanamadı. Yeniden denemeden önce günü kontrol edin.',
   tkTrash: 'Çöp kutusu', tkRestore: 'Geri al', tkPurge: 'Kalıcı sil', tkEmptyTrash: 'Çöpü boşalt', tkPurgeConfirm: 'Bu görevler kalıcı olarak silinsin mi?', tkTrashHelp: 'Silinen görevler 30 gün saklanır.',
   tkFilters: 'Kayıtlı filtreler', tkFilterNew: 'Yeni filtre', tkFilterEdit: 'Filtreyi düzenle', tkFilterSave: 'Filtreyi kaydet', tkFilterAny: 'Tümü', tkFilterRange: 'Tarih aralığı', tkFilterLate: 'Gecikmiş', tkFilterUp: 'Yukarı taşı', tkFilterDown: 'Aşağı taşı', tkFilterOpen: 'Açık',
-  tkViews: { all: 'Tümü', today: 'Bugün', week: 'Önümüzdeki 7 gün', important: 'Önemli', current: 'Devam eden', completed: 'Tamamlanan' },
+  tkWaiting: 'Beklemede', tkWaitingNote: 'Bekleme a??klamas?', tkReview: 'Tekrar bakma tarihi',
+  tkViews: { waiting: 'Beklemede', all: 'Tümü', today: 'Bugün', week: 'Önümüzdeki 7 gün', important: 'Önemli', current: 'Devam eden', completed: 'Tamamlanan' },
   tkEmpty: {
     all: 'Açık görev yok. Yukarıya bir tane yaz: ödev, ayak işi, sonraya kalan bir şey.',
     today: 'Bugün teslim ya da başlayan bir şey yok.', week: 'Önümüzdeki 7 günde teslim edilecek bir şey yok.',

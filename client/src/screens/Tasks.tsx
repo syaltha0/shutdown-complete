@@ -250,7 +250,7 @@ function InboxTasks({ view: asked }: { view?: string }) {
     const steps = t.steps?.length ? `${t.steps.filter((s) => s.done).length}/${t.steps.length}` : '';
     const late = t.due && !t.done && daysTo(t.due) < 0;
     return (
-      <li key={t.id} data-id={t.id} className={`tk-row${t.id === openId ? ' on' : ''}${sel?.has(t.id) ? ' picked' : ''}${t.done ? ' done' : ''}${t.priority ? ` p${t.priority}` : ''}${drag?.t.id === t.id ? ' lifted' : ''}${drag?.over?.kind === 'row' && drag.over.id === t.id ? (drag.over.after ? ' drop-after' : ' drop-before') : ''}`}>
+      <li key={t.id} data-id={t.id} className={`tk-row${t.id === openId ? ' on' : ''}${sel?.has(t.id) ? ' picked' : ''}${t.waiting ? ' waiting' : ''}${t.done ? ' done' : ''}${t.priority ? ` p${t.priority}` : ''}${drag?.t.id === t.id ? ' lifted' : ''}${drag?.over?.kind === 'row' && drag.over.id === t.id ? (drag.over.after ? ' drop-after' : ' drop-before') : ''}`}>
         {t.done ? <span className="tk-grip" aria-hidden="true" />
           : <span className="tk-grip" role="button" tabIndex={-1} aria-label={T.tkDrag(t.text)} title={T.tkDrag(t.text)} onPointerDown={(e) => grab(t, e)}><IconGrip /></span>}
         <input type="checkbox" className="check" checked={!!t.done} aria-label={T.doneLabel(t.text)} onChange={() => tick(t)} />
@@ -269,6 +269,7 @@ function InboxTasks({ view: asked }: { view?: string }) {
             {steps && <span>{T.tkStepsN(steps)}</span>}
             {(t.percent ?? 0) > 0 && !t.done && <span className="tk-pc"><i><b style={{ width: `${t.percent}%` }} /></i>{t.percent}%</span>}
             {(t.spent || t.estimate) && <span className={t.spent && t.estimate && t.spent > t.estimate ? 'over' : ''}>{t.spent ? T.tkSpent(duration(t.spent), t.estimate ? duration(t.estimate) : '') : duration(t.estimate!)}</span>}
+            {t.waiting && <span>{T.tkWaiting}{t.review ? ` ? ${shortDate(t.review)}` : ''}</span>}
             {t.notes && <span className="tk-has" aria-label={T.tkNotes}><IconNotes /></span>}
             {t.tags?.map((g) => <span key={g} className="lbl lb-grey">{g}</span>)}
           </span>
@@ -647,6 +648,8 @@ function Detail({ t, lists, tags, set, tick, remove, close }: {
           </div>
         </div>
 
+        <label className="field"><span><input type="checkbox" checked={!!t.waiting} onChange={e => set({ waiting: e.target.checked })} />{T.tkWaiting}</span></label>
+        {t.waiting && <><label className="field"><span>{T.tkWaitingNote}</span><input className="input" value={t.waitingNote ?? ''} onChange={e => set({ waitingNote: e.target.value })} /></label><label className="field"><span>{T.tkReview}</span><input className="input" type="date" value={t.review ?? ''} onChange={e => set({ review: e.target.value || undefined })} /></label></>}
         <label className="field"><span>{T.tkNotes}</span>
           <textarea className="input tk-notes" rows={4} placeholder={T.tkNotesPh} value={t.notes ?? ''} onChange={(e) => set({ notes: e.target.value || undefined })} />
         </label>

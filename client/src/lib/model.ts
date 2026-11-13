@@ -49,6 +49,10 @@ export interface Column {
 }
 
 export interface Item {
+  waiting?: boolean;
+  waitingNote?: string;
+  review?: string;
+  deferCount?: number;
   id: string;
   text: string;
   done: boolean;
