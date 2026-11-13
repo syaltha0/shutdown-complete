@@ -1,4 +1,4 @@
-﻿import { duration, weekDays, weekdayShort } from '../lib/dates';
+﻿import { duration, shortDate, weekDays, weekdayShort } from '../lib/dates';
 import { focusMinutes } from '../lib/focus';
 import { useT } from '../lib/i18n';
 import type { DayDoc, FocusSession } from '../lib/model';
@@ -28,7 +28,7 @@ export function WeekFocus({ id }: { id: string }) {
     {!sessions.length ? <p className="empty">{W.noFocus}</p> : <>
       <div className="week-focus-days">{days.map(({ date, doc }) => <div key={date}><span>{weekdayShort(date)}</span><b className="num">{duration(doc ? focusMinutes(doc) : 0)}</b></div>)}</div>
       <ul className="week-focus-blocks">{groups.map((g, i) => <li key={i}><div><span>{g.label}</span><b className="num">{duration(g.minutes)}</b></div><i style={{ width: `${g.minutes / total * 100}%` }} /></li>)}</ul>
-      <details className="week-focus-notes"><summary>{W.focusNotes}</summary>{days.filter(({ doc }) => doc?.focus?.sessions.length).map(({ date, doc }) => <div key={date}><h3>{weekdayShort(date)} <span className="num">{date}</span></h3><FocusLog sessions={doc!.focus!.sessions} /></div>)}</details>
+      <details className="week-focus-notes"><summary>{W.focusNotes}</summary>{days.filter(({ doc }) => doc?.focus?.sessions.length).map(({ date, doc }) => <div key={date}><h3>{weekdayShort(date)} <span className="num">{shortDate(date)}</span> <span className="muted num">· {duration(focusMinutes(doc!))}</span></h3><FocusLog sessions={doc!.focus!.sessions} bare /></div>)}</details>
     </>}
   </section>;
 }
