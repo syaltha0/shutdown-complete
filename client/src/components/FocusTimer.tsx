@@ -255,8 +255,8 @@ function FocusMiniPanel({ a, docKey, count, blocks }: { a: FocusActive; docKey: 
         <p className="mt-next">{T.miniNext(T.phase[next], nextMin)}</p>
         {upNext && <p className="mt-next mt-block">{running ? T.miniBlockNow(upNext.label || T.freeFocus, clock(upNext.end)) : T.miniBlockNext(upNext.label || T.freeFocus, clock(upNext.start))}</p>}
         <div className="mt-actions">
-          <button type="button" className="btn sm" disabled={a.plannedMin >= MAX_PLANNED} onClick={() => extendFocus(5, docKey)}>{T.plusFive}</button>
-          <button type="button" className="btn sm ghost" disabled={skip.locked} onClick={skip.request}>{T.skip}</button>
+          <button type="button" className="btn sm ghost focus-act num" disabled={a.plannedMin >= MAX_PLANNED} onClick={() => extendFocus(5, docKey)}>{T.plusFive}</button>
+          <button type="button" className="btn sm ghost focus-act" disabled={skip.locked} onClick={skip.request}>{T.skip}</button>
           <a className="card-link mt-link" href="/focus" onClick={onLinkClick}>{T.miniGoFocus}</a>
         </div>
         {skip.asking && <SkipChoice a={a} skip={skip} className="mt-skip" />}
@@ -286,7 +286,7 @@ function FocusMiniPanel({ a, docKey, count, blocks }: { a: FocusActive; docKey: 
         onClick={() => { suppressed.current = false; setOpen(true); }}>
         <b className="num">{mmss(left)}</b><span>{a.label || T.freeFocus}</span>
       </button>
-      <button type="button" className="btn ghost mt-pause" disabled={skip.locked} onClick={togglePause}>{a.pausedLeft == null ? T.pause : T.resume}</button>
+      <button type="button" className="btn ghost mt-pause focus-act" disabled={skip.locked} onClick={togglePause}>{a.pausedLeft == null ? T.pause : T.resume}</button>
     </div>
     {atTop && panel}
   </div>;

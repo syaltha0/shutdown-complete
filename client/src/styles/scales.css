@@ -280,7 +280,7 @@
 .focus-read b { font-weight: 500; letter-spacing: -0.02em; font-size: 48px; line-height: 56px; }
 .focus-read .focus-label { display: none; }
 .focus-controls .btn.primary { min-width: 180px; height: 44px; }
-.focus-secondary { display: flex; flex-wrap: wrap; justify-content: center; align-items: center; gap: 4px; width: 100%; padding-top: 12px; border-top: 1px solid var(--rule); }
+.focus-secondary { display: flex; flex-wrap: nowrap; justify-content: center; align-items: center; gap: 4px; width: 100%; padding-top: 12px; border-top: 1px solid var(--rule); }
 .focus-secondary .btn { font-size: 13px; }
 .focus-run { display: grid; justify-items: center; width: min(420px, 100%); text-align: center; gap: 16px; }
 .focus-cycle-summary { display: flex; align-items: center; justify-content: center; gap: 12px; font-size: 12px; margin: 2px 0; }
@@ -290,7 +290,6 @@
 .focus-rounds i { width: 10px; height: 10px; border: 1px solid var(--control); background: var(--raised); border-radius: 50%; }
 .focus-rounds i.done { background: var(--phase-color); border-color: var(--phase-color); }
 .focus-rounds i.current { background: var(--surface); border: 2px solid var(--phase-color); outline: 1px solid var(--phase-color); outline-offset: 2px; }
-.focus-secondary .focus-stop { margin-left: 12px; padding-left: 16px; border-left: 1px solid var(--border); border-radius: 0; }
 .focus-config-hint { font-size: 13px; line-height: 1.5; margin: 0; }
 .focus-setup { display: grid; gap: 16px; width: min(220px, 100%); }
 @media (max-width: 860px) {
@@ -358,8 +357,6 @@
 .focus-panel .focus-intent { max-width: 100%; overflow-wrap: anywhere; }
 @media (max-width: 420px) {
   .focus-panel > .focus-card-head { flex-wrap: wrap; gap: 10px; }
-  .focus-panel .focus-secondary { column-gap: 2px; }
-  .focus-panel .focus-secondary .focus-stop { margin-left: 0; padding-left: 12px; }
 }
 .focus-grid > .focus-left { display: flex; flex-direction: column; gap: var(--gap); min-width: 0; }
 .focus-left > .focus-panel { width: 100%; }
@@ -534,3 +531,20 @@ button.bp-chip:hover { background: var(--raised); }
 :root[data-motion="reduce"] button.bp-chip { transition: none; }
 @media (min-width: 1000px) and (max-height: 820px) { .bp-chip { min-height: 32px; font-size: 13px; } .bp-option { padding: 4px 12px; } .bp-heading { padding-top: 6px; } }
 @media (min-width: 1000px) and (min-height: 601px) and (max-height: 700px) { .bp-chip { min-height: 0; height: 20px; padding: 0 8px; font-size: 12px; line-height: 18px; gap: 6px; } .bp-time { font-size: 11px; } .bp-option { padding: 2px 12px; } }
+
+/* The running controls share one look (card, mini timer, room): the same pill shape, hover, focus ring and disabled state.
+   Reset, +5 and Skip are the quiet row; a thin rule sets Stop apart, and asking for its second press turns it to the danger tone. */
+.focus-act { border-radius: 999px; }
+.focus-act:focus-visible { border-radius: 999px; outline: 2px solid var(--hue); outline-offset: 2px; }
+.focus-act:disabled { cursor: not-allowed; color: var(--muted); opacity: 0.55; }
+.focus-act.ghost:disabled:hover { background: transparent; }
+.focus-act.danger { color: var(--negative); border-color: var(--error-border); }
+.focus-act.danger:hover { background: color-mix(in srgb, var(--negative) 8%, transparent); }
+.focus-sep { flex: none; width: 1px; height: 16px; margin: 0 8px; background: var(--border); }
+.focus-secondary .btn { flex: 0 1 auto; }
+@media (max-width: 480px) {
+  .focus-secondary { gap: 2px; min-width: 0; } .focus-secondary .btn { padding: 0 8px; } .focus-sep { margin: 0 4px; }
+  /* while one asks for its second press (a longer label), the others give up their padding so the row stays one line */
+  .focus-secondary:has(.danger) .btn:not(.danger) { padding: 0 4px; } .focus-secondary:has(.danger) .focus-sep { margin: 0 2px; }
+}
+@media (pointer: coarse) { .mt-panel .btn, .mt-panel .mt-link { min-height: 44px; } }

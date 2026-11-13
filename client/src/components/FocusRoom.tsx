@@ -115,11 +115,11 @@ export function FocusRoom({ start, onClose }: { start: { blockId: string | null;
           {!a ? <button type="button" className="btn primary big" onClick={begin}>{T.startFocus}</button> : (
             <>
               {a.pausedLeft == null
-                ? <button type="button" className="btn primary" disabled={!!f.strict && a.phase === 'focus'} onClick={() => pauseFocus(key)}>{T.pause}</button>
-                : <button type="button" className="btn primary" disabled={!!f.strict && a.phase === 'focus'} onClick={() => resumeFocus(key)}>{T.resume}</button>}
-              <button type="button" className="btn num" disabled={a.plannedMin >= MAX_PLANNED} onClick={() => extendFocus(5, key)}>{T.plusFive}</button>
-              <button type="button" className={`btn${a.phase === 'focus' ? '' : ' primary'}`} disabled={skip.locked} onClick={skip.request}>{T.skip}</button>
-              <button type="button" className="btn ghost" disabled={!!f.strict && a.phase === 'focus'} onClick={() => cancelFocus(key)}>{T.stop}</button>
+                ? <button type="button" className="btn primary focus-act" disabled={!!f.strict && a.phase === 'focus'} onClick={() => pauseFocus(key)}>{T.pause}</button>
+                : <button type="button" className="btn primary focus-act" disabled={!!f.strict && a.phase === 'focus'} onClick={() => resumeFocus(key)}>{T.resume}</button>}
+              <button type="button" className="btn focus-act num" disabled={a.plannedMin >= MAX_PLANNED} onClick={() => extendFocus(5, key)}>{T.plusFive}</button>
+              <button type="button" className={`btn focus-act${a.phase === 'focus' ? '' : ' primary'}`} disabled={skip.locked} onClick={skip.request}>{T.skip}</button>
+              <button type="button" className="btn focus-act" disabled={!!f.strict && a.phase === 'focus'} onClick={() => cancelFocus(key)}>{T.stop}</button>
             </>
           )}
         </div>

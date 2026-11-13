@@ -188,6 +188,95 @@ try {
   await p.keyboard.press('Escape');
   await p.setViewportSize({ width: 1440, height: 900 });
 
+  // ---------- 3. the running controls ----------
+  await planDay([]);
+  await setActive(run(25, 8), []);
+  await open();
+  const names3 = await p.locator('.focus-controls .btn, .focus-secondary .btn').allInnerTexts();
+  check('the tab order is Pause, Reset, +5, Skip, Stop', JSON.stringify(names3) === JSON.stringify(['Pause', 'Reset', '+5 min', 'Skip', 'Stop']));
+  const styleOf = (loc) => loc.evaluate((e) => { const c = getComputedStyle(e); return { r: c.borderTopLeftRadius + '/' + c.borderTopRightRadius + '/' + c.borderBottomRightRadius + '/' + c.borderBottomLeftRadius, h: Math.round(e.getBoundingClientRect().height), fs: c.fontSize, fw: c.fontWeight }; });
+  const all = p.locator('.focus-controls .btn, .focus-secondary .btn');
+  const shapes = [];
+  for (let i = 0; i < 5; i++) shapes.push(await styleOf(all.nth(i)));
+  check('every control has the same corner radius (Stop is no longer square)', new Set(shapes.map((x) => x.r)).size === 1 && !/^0px/.test(shapes[4].r) && shapes[4].r.startsWith('999px') || shapes[4].r.startsWith('3.35544e+07px'));
+  check('the quiet row has one size and weight', new Set(shapes.slice(1).map((x) => `${x.h}/${x.fs}/${x.fw}`)).size === 1);
+  // the same focus ring and shape when reached by the keyboard
+  const rings = [];
+  await p.locator('h1').click();
+  for (let i = 0; i < 24 && rings.length < 5; i++) {
+    await p.keyboard.press('Tab');
+    const r = await p.evaluate(() => { const e = document.activeElement; if (!e?.closest('.focus-controls, .focus-secondary')) return null; const c = getComputedStyle(e); return { t: e.textContent, ring: `${c.outlineStyle}/${c.outlineWidth}/${c.outlineColor}/${c.outlineOffset}`, r: `${c.borderTopLeftRadius}/${c.borderBottomRightRadius}` }; });
+    if (r) rings.push(r);
+  }
+  check('the keyboard reaches them in that order', JSON.stringify(rings.map((x) => x.t)) === JSON.stringify(names3));
+  check('and each shows the same focus ring and shape', new Set(rings.map((x) => x.ring)).size === 1 && !/^none/.test(rings[0].ring) && new Set(rings.map((x) => x.r)).size === 1 && rings[0].r === `${shapes[0].r.split('/')[0]}/${shapes[0].r.split('/')[0]}`);
+  // the same hover
+  const hovers = [];
+  for (const name of ['Reset', '+5 min', 'Skip', 'Stop']) { await btn(name).hover(); await p.waitForTimeout(300); hovers.push(await btn(name).evaluate((e) => getComputedStyle(e).backgroundColor)); }
+  check('the quiet buttons share one hover', new Set(hovers).size === 1 && hovers[0] !== 'rgba(0, 0, 0, 0)');
+  // the second press for Reset and Stop turns danger
+  const calm = await btn('Stop').evaluate((e) => getComputedStyle(e).color);
+  await btn('Stop').click();
+  const asked = await p.locator('.focus-stop.danger').count() === 1 && /Discard 8 min/.test(await p.locator('.focus-stop').innerText());
+  check('asking to discard turns Stop to the danger tone (a second press is needed)', asked && await btn('Discard 8 min?').evaluate((e) => getComputedStyle(e).color) !== calm && (await doc()).focus.active?.phase === 'focus');
+  check('Stop keeps the same shape while it asks', (await styleOf(p.locator('.focus-stop'))).r === shapes[0].r);
+  await btn('Reset').click();
+  check('Reset asks the same way', await p.locator('.focus-secondary .danger').count() === 1 && await p.locator('.focus-stop.danger').count() === 0);
+  await p.waitForTimeout(4300);
+  check('and the question times out', await p.locator('.focus-secondary .danger').count() === 0);
+  // mini timer and room use the same shape
+  const cardRadius = shapes[0].r;
+  await open('/');
+  await p.locator('.mini-timer').hover();
+  const mini = [];
+  for (const n of ['+5 min', 'Skip']) mini.push((await styleOf(p.locator('.mini-timer').getByRole('button', { name: n, exact: true }))).r);
+  mini.push((await styleOf(p.locator('.mini-timer .mt-pause'))).r);
+  check('the mini timer buttons match the card', mini.every((r) => r === cardRadius));
+  await open('/focus');
+  await btn('Focus room').click();
+  await p.locator('.focus-room').waitFor();
+  const room = [];
+  for (const n of ['Pause', '+5 min', 'Skip', 'Stop']) room.push((await styleOf(p.locator('.focus-room').getByRole('button', { name: n, exact: true }))).r);
+  check('and so do the focus room buttons', room.every((r) => r === cardRadius));
+  await p.keyboard.press('Escape');
+  // disabled looks the same in strict mode and in a shared room
+  await api.put('settings', { ...settings0, focus: { ...settings0.focus, strict: true } });
+  await open();
+  const dis = [];
+  for (const n of ['Pause', 'Reset', 'Skip', 'Stop']) dis.push(await btn(n).evaluate((e) => ({ d: e.disabled, o: getComputedStyle(e).opacity, c: getComputedStyle(e).cursor })));
+  check('strict mode disables Pause, Reset, Skip and Stop in one look; +5 stays', dis.every((x) => x.d && x.o === dis[0].o && x.c === 'not-allowed') && await btn('+5 min').isEnabled());
+  await btn('Reset').hover(); await p.waitForTimeout(300);
+  check('a disabled control shows no hover', await btn('Reset').evaluate((e) => getComputedStyle(e).backgroundColor) === 'rgba(0, 0, 0, 0)');
+  await api.put('settings', settings0);
+  await setActive(run(25, 8, { roomId: 'room-x' }), []);
+  await open();
+  check('a shared room disables only Reset, in the same look', await btn('Reset').isDisabled() && await btn('Skip').isEnabled() && await btn('Stop').isEnabled() && (await btn('Reset').evaluate((e) => getComputedStyle(e).opacity)) === dis[0].o);
+  await setActive(null, []);
+  let trApi;
+  // a phone: one row, 44 px targets, also while a button asks
+  for (const [lang, pw] of [['en', 390], ['tr', 390], ['en', 360], ['tr', 360]]) {
+    const phoneApi = lang === 'en' ? api : (trApi ??= await demoAccount(client(s.url), { lang: 'tr', email: 'deniz@kuzey.test' }));
+    const phoneCtx = await b.newContext({ viewport: { width: pw, height: 844 }, hasTouch: true, isMobile: true, reducedMotion: 'reduce' });
+    await phoneCtx.addCookies([{ name: 'sc_session', value: phoneApi.cookie.split('=')[1], url: s.url }]);
+    const q = await phoneCtx.newPage();
+    const pk = 'day:' + D, pd = (await phoneApi.get(pk)).value;
+    await phoneApi.put(pk, { ...pd, focus: { sessions: [], active: run(25, 8) } });
+    await q.goto(s.url + '/focus');
+    await q.locator('.focus-secondary').waitFor();
+    const row = () => q.evaluate(() => { const bs = [...document.querySelectorAll('.focus-secondary .btn')].map((e) => e.getBoundingClientRect()); const box = document.querySelector('.focus-secondary').getBoundingClientRect(); return { oneRow: new Set(bs.map((r) => Math.round(r.top))).size === 1, min: Math.min(...bs.map((r) => r.height)), inside: bs.every((r) => r.left >= box.left - 1 && r.right <= box.right + 1), page: document.documentElement.scrollWidth <= document.documentElement.clientWidth }; });
+    let m = await row();
+    check(`phone ${pw} (${lang}): the controls sit on one row, 44 px tall, inside the card`, m.oneRow && m.min >= 44 && m.inside && m.page);
+    await q.locator('.focus-stop').tap();
+    await q.waitForTimeout(200);
+    m = await row();
+    check(`phone ${pw} (${lang}): still one row while Stop asks`, m.oneRow && m.inside && m.page && await q.locator('.focus-stop.danger').count() === 1);
+    await q.locator('.focus-secondary .btn').first().tap();
+    await q.waitForTimeout(200);
+    m = await row();
+    if (!(m.oneRow && m.inside && m.page)) console.log(JSON.stringify(m));
+    check(`phone ${pw} (${lang}): still one row while Reset asks`, m.oneRow && m.inside && m.page);
+    await phoneCtx.close();
+  }
   console.log(`\n${passed} passed, 0 failed`);
 } catch (e) {
   console.error('FAIL ' + e.message);
