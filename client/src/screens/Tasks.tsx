@@ -17,6 +17,8 @@ import {
 import { insertAt, offerUndo } from '../lib/undo';
 import { DayChips } from './Templates';
 import { refreshKey, updateKey, useDoc } from '../lib/useDoc';
+import { parseTaskDraft } from '../lib/taskQuickAdd';
+import { taskMatches } from '../lib/taskSearch';
 
 const TINTS: LabelColor[] = ['blue', 'green', 'amber', 'red', 'grey'];
 /** reminders, in minutes before the due time */
@@ -72,9 +74,25 @@ export function Tasks({ view: asked }: { view?: string }) {
   const [openId, setOpenId] = useState<string | null>(null);
   const [showDone, setShowDone] = useState(false);
   const [draft, setDraft] = useState('');
+  const [smartAdd, setSmartAdd] = useState(true);
+  const parsedDraft = smartAdd ? parseTaskDraft(draft, lists, today()) : { text: draft.trim() };
   const addInput = useRef<HTMLInputElement>(null);
+  const searchInput = useRef<HTMLInputElement>(null);
   useEffect(() => { if (new URLSearchParams(location.search).has('add')) addInput.current?.focus(); }, [!!doc]);
   useEffect(() => { setOpenId(null); setShowDone(false); }, [view]);
+  // single keys on this screen: N writes a task, / searches, X starts or ends picking several (not while typing)
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      const el = e.target;
+      if (e.ctrlKey || e.metaKey || e.altKey || e.shiftKey || (el instanceof HTMLElement && (el.isContentEditable || ['INPUT', 'TEXTAREA', 'SELECT'].includes(el.tagName)))) return;
+      if (document.querySelector('dialog[open], .more-sheet, .tour, .kb-pop')) return;
+      if (e.key === 'n' && addInput.current) { e.preventDefault(); addInput.current.focus(); }
+      else if (e.key === '/') { e.preventDefault(); searchInput.current?.focus(); }
+      else if (e.key === 'x') { e.preventDefault(); setOpenId(null); setSel((s) => (s ? null : new Set())); }
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, []);
   // changes from a phone's task app or a Nextcloud arrive on the server: looked for now and then, and on coming back
   useEffect(() => {
     const look = () => { if (document.visibilityState === 'visible') refreshKey('inbox'); };
@@ -84,10 +102,7 @@ export function Tasks({ view: asked }: { view?: string }) {
   }, []);
 
   const set = (id: string, p: Partial<Item>) => update((b) => ({ ...b, items: b.items.map((x) => (x.id === id ? { ...x, ...p } : x)) }));
-  const matches = (t: Item) => {
-    const s = q.trim().toLocaleLowerCase();
-    return !s || t.text.toLocaleLowerCase().includes(s) || !!t.notes?.toLocaleLowerCase().includes(s) || !!t.tags?.some((g) => g.toLocaleLowerCase().includes(s));
-  };
+  const matches = (t: Item) => taskMatches(t, q);
   const shown = sortTasks(items.filter((t) => inView(t, view) && matches(t)), sort);
   // in a list, its done tasks fold away under the open ones
   const doneHere = isList ? sortTasks(items.filter((t) => t.done && listOf(t) === view && matches(t)), sort) : [];
@@ -96,7 +111,11 @@ export function Tasks({ view: asked }: { view?: string }) {
 
   /** Ticked: a repeating task comes back on its next date, any other is done (both can be undone). */
   const tick = (t: Item) => {
-    if (t.done) { set(t.id, { done: false, doneAt: undefined }); return; }
+    if (t.done) {
+      set(t.id, { done: false, doneAt: undefined });
+      offerUndo(T.tkReopenedN(1), () => set(t.id, { done: t.done, doneAt: t.doneAt }));
+      return;
+    }
     if (t.repeat) {
       const p = rollOn(t);
       set(t.id, p);
@@ -121,7 +140,18 @@ export function Tasks({ view: asked }: { view?: string }) {
     if (view === 'important') t.priority = 1;
     if (view === 'current') t.start = today();
     if (view.startsWith(TAG)) t.tags = [view.slice(TAG.length)];
-    update((b) => ({ ...b, items: [...b.items, t] }));
+    const parsed = smartAdd ? parseTaskDraft(text, lists, today()) : { text };
+    const tags = [...new Set([...(t.tags ?? []), ...(parsed.tags ?? [])])];
+    const task: Item = { ...t, ...parsed, tags: tags.length ? tags : undefined };
+    if (task.list === DEFAULT_LIST) task.list = undefined;
+    update((b) => ({ ...b, items: [...b.items, task] }));
+  };
+  /** The completed tasks on screen come back open (one undo puts them all back as they were). */
+  const reopenDone = () => {
+    const back = (view === 'completed' ? shown : doneHere).filter((t) => t.done);
+    const ids = new Set(back.map((t) => t.id));
+    update((b) => ({ ...b, items: b.items.map((x) => (ids.has(x.id) ? { ...x, done: false, doneAt: undefined } : x)) }));
+    offerUndo(T.tkReopenedN(back.length), () => update((b) => ({ ...b, items: b.items.map((x) => { const was = back.find((y) => y.id === x.id); return was ? { ...x, done: was.done, doneAt: was.doneAt } : x; }) })));
   };
   const clearDone = () => {
     const gone = items.filter((t) => t.done && (view === 'completed' || listOf(t) === view));
@@ -294,7 +324,7 @@ export function Tasks({ view: asked }: { view?: string }) {
             <label className="tk-search">
               <IconSearch />
               <span className="sr-only">{T.tkSearch}</span>
-              <input type="search" className="input" placeholder={T.tkSearch} value={q} onChange={(e) => setQ(e.target.value)} />
+              <input ref={searchInput} type="search" className="input" placeholder={T.tkSearch} value={q} onChange={(e) => setQ(e.target.value)} onKeyDown={(e) => { if (e.key === 'Escape') { if (q) setQ(''); else e.currentTarget.blur(); } }} />
             </label>
             <button type="button" className={`btn${sel ? ' primary' : ' ghost'}`} aria-pressed={!!sel} onClick={() => { setSel(sel ? null : new Set()); setOpenId(null); }}>{sel ? T.tkSelectDone : T.tkSelect}</button>
             <label className="tk-sort">
@@ -305,17 +335,24 @@ export function Tasks({ view: asked }: { view?: string }) {
             </label>
           </header>
           {view !== 'completed' && (
-            <form className="tk-add" onSubmit={(e) => { e.preventDefault(); const t = draft.trim(); if (t) { add(t); setDraft(''); } }}>
+            <form className="tk-add" onSubmit={(e) => { e.preventDefault(); const t = draft.trim(); if (t) { add(t); setDraft(''); setSmartAdd(true); } }}>
               <label htmlFor="tk-new" className="sr-only">{isList ? T.tkAddPh(viewName) : T.tkAddPhAny}</label>
-              <input id="tk-new" ref={addInput} className="input" autoComplete="off" placeholder={isList ? T.tkAddPh(viewName) : T.tkAddPhAny} value={draft} onChange={(e) => setDraft(e.target.value)} />
+              <input id="tk-new" ref={addInput} className="input" autoComplete="off" aria-describedby="tk-add-help" placeholder={isList ? T.tkAddPh(viewName) : T.tkAddPhAny} value={draft} onChange={(e) => setDraft(e.target.value)} onKeyDown={(e) => { if (e.key === 'Escape') { setDraft(''); setSmartAdd(true); e.currentTarget.blur(); } }} />
               <button type="submit" className="btn primary" disabled={!draft.trim()}>{T.tkAdd}</button>
             </form>
           )}
+          {view !== 'completed' && <div id="tk-add-help" className="muted tk-quick-help">
+            {draft.trim() && parsedDraft.text !== draft.trim() ? <>
+              <span role="status">{T.tkDetected}: {parsedDraft.text} · {[parsedDraft.due, parsedDraft.dueTime, parsedDraft.list && lists.find((l) => l.id === parsedDraft.list)?.name, parsedDraft.priority && `${T.tkPriority} ${parsedDraft.priority}`, parsedDraft.tags?.map((g) => `@${g}`).join(' '), parsedDraft.repeat && recurWords(T, parsedDraft.repeat)].filter(Boolean).join(' · ')}</span>{' '}
+              <button type="button" className="card-link quiet" onClick={() => setSmartAdd(false)}>{T.tkLiteral}</button>
+            </> : <span>{T.tkQuickHelp}</span>}
+          </div>}
           {shown.length > 0 && <ul className="tk-list">{shown.map(row)}</ul>}
           {doc && shown.length === 0 && <p className="muted tk-empty">{q.trim() ? T.tkNoMatch : T.tkEmpty[view as keyof typeof T.tkEmpty] ?? T.tkEmpty.list}</p>}
           {(doneHere.length > 0 || (view === 'completed' && shown.length > 0)) && (
             <div className="tk-done-bar">
               {view !== 'completed' && <button type="button" className="card-link quiet" aria-expanded={showDone} onClick={() => setShowDone(!showDone)}>{T.tkCompletedN(doneHere.length, showDone)}</button>}
+              <button type="button" className="card-link quiet" onClick={reopenDone}>{T.tkReopenDone}</button>
               <button type="button" className="card-link quiet" onClick={clearDone}>{T.tkDeleteDone}</button>
             </div>
           )}
@@ -346,7 +383,9 @@ export function Tasks({ view: asked }: { view?: string }) {
                   <input className="input" list="tk-bulk-tags" placeholder={T.tkTagPh} value={bulkTag} disabled={!picked.length} aria-label={T.tkTagPh} onChange={(e) => setBulkTag(e.target.value)} />
                   <datalist id="tk-bulk-tags">{allTags.map((g) => <option key={g} value={g} />)}</datalist>
                 </form>
-                <button type="button" className="btn" disabled={!picked.length} onClick={() => bulk(bulkDone, T.tkDoneN(picked.length))}>{T.tkMarkDone}</button>
+                {view === 'completed'
+                  ? <button type="button" className="btn" disabled={!picked.length} onClick={() => bulk(() => ({ done: false, doneAt: undefined }), T.tkReopenedN(picked.length))}>{T.tkReopen}</button>
+                  : <button type="button" className="btn" disabled={!picked.length} onClick={() => bulk(bulkDone, T.tkDoneN(picked.length))}>{T.tkMarkDone}</button>}
                 <button type="button" className="btn ghost danger" disabled={!picked.length} onClick={() => bulk(() => null, T.tkDeletedN(picked.length))}>{T.tkDeleteAll}</button>
               </span>
             </div>

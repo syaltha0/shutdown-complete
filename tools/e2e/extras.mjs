@@ -86,7 +86,7 @@ try {
   check('within the reminder’s minutes, a notification', notes.some(([title, body]) => title === 'Read chapter 5' && /Due in/.test(body)), JSON.stringify(notes));
   const pw = (await api.call('/api/account/app-passwords', { name: 'Test' })).body.password;
   const ics = await (await fetch(`${srv.url}/dav/calendars/${me.id}/school/t1.ics`, { headers: { authorization: `Basic ${Buffer.from(`${me.email}:${pw}`).toString('base64')}` } })).text();
-  check('over CalDAV: a DUE with its time and an alarm 5 minutes before', ics.includes(`DUE:${soon.getFullYear()}${pad(soon.getMonth() + 1)}${pad(soon.getDate())}T${hhmm.replace(':', '')}00`) && ics.includes('TRIGGER;RELATED=END:-PT5M'));
+  check('over CalDAV: a DUE with its time and an alarm 5 minutes before', ics.includes(`DUE:${new Date(soon.getFullYear(), soon.getMonth(), soon.getDate(), soon.getHours(), soon.getMinutes()).toISOString().replace(/[-:.]/g, '').replace('000Z', 'Z')}`) && ics.includes('TRIGGER;RELATED=END:-PT5M'));
   await page.keyboard.press('Escape');
 
   // ---------- 4: several at once ----------

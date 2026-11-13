@@ -155,6 +155,23 @@ try {
   check('and shows them struck through', await page.locator('.tk-row.done', { hasText: 'Physics lab report' }).isVisible());
   await page.locator('.tk-views button', { hasText: 'Completed' }).click();
   check('the Completed collection lists it', await row('Physics lab report').isVisible());
+  await page.getByRole('button', { name: 'Reopen completed' }).click();
+  await wait(900);
+  const reopened = await task('Physics lab report');
+  check('completed tasks can be reopened together', reopened?.done === false && reopened.doneAt === undefined);
+  await page.locator('.undo-note').getByRole('button', { name: 'Undo' }).click();
+  await wait(900);
+  check('and the reopening is undone', (await task('Physics lab report'))?.done === true && (await task('Physics lab report')).doneAt === D);
+  await page.getByRole('button', { name: 'Select', exact: true }).click();
+  check('Completed offers Reopen, not Mark done, in the selection bar', await page.locator('.tk-bulk').getByRole('button', { name: 'Reopen', exact: true }).isVisible() && !(await page.locator('.tk-bulk').getByRole('button', { name: 'Mark done' }).count()));
+  await row('Physics lab report').locator('.tk-open').click();
+  await page.locator('.tk-bulk').getByRole('button', { name: 'Reopen', exact: true }).click();
+  await wait(900);
+  check('selected completed tasks reopen', (await task('Physics lab report'))?.done === false);
+  await page.locator('.undo-note').getByRole('button', { name: 'Undo' }).click();
+  await wait(900);
+  check('and come back done with Undo', (await task('Physics lab report'))?.done === true);
+  await page.getByRole('button', { name: 'Done selecting' }).click();
   await page.getByRole('button', { name: 'Delete completed' }).click();
   await wait(900);
   check('completed tasks can be deleted together', !(await task('Physics lab report')));
@@ -175,6 +192,12 @@ try {
   check('search finds by words', (await page.locator('.tk-main .tk-row').count()) === 1);
   await page.locator('.tk-search input').fill('odd ones');
   check('search finds by notes', await row('Maths homework').isVisible());
+  await page.locator('.tk-search input').fill('question');
+  check('search finds a task by the title of its subtask', await row('Maths homework').isVisible() && (await page.locator('.tk-main .tk-row').count()) === 1);
+  await page.locator('.tk-search input').fill('odd  maths exam');
+  check('search needs every word, in any order and field', await row('Maths homework').isVisible() && (await page.locator('.tk-main .tk-row').count()) === 1);
+  await page.locator('.tk-search input').fill('maths passport');
+  check('a word that matches nothing leaves no task', (await page.locator('.tk-main .tk-row').count()) === 0);
   await page.locator('.tk-search input').fill('');
   await page.locator('.tk-sort select').selectOption('title');
   const titles = await page.locator('.tk-main .tk-row .tk-title').allTextContents();
@@ -240,6 +263,54 @@ try {
   await page.locator('.undo-note').getByRole('button', { name: 'Undo' }).click();
   await wait(900);
   check('and comes back with them', (await tasks()).lists?.length === 1 && !!(await task('Gym')));
+
+  // ---------- quick add: dates, list, priority, tags, rules in either language ----------
+  await page.locator('.tk-lists li', { hasText: 'School' }).locator('button[data-drop]').click();
+  await page.locator('#tk-h').filter({ hasText: 'School' }).waitFor();
+  await page.locator('#tk-new').fill('Essay tomorrow at 9 #School !1 @study');
+  const preview = await page.locator('#tk-add-help').textContent();
+  check('quick add previews what it understood', /Detected: Essay/.test(preview) && /09:00/.test(preview) && /School/.test(preview), preview);
+  await page.locator('#tk-new').press('Enter');
+  await add('Okuma her pazartesi');
+  await add('Review every friday');
+  await page.locator('#tk-new').fill('Call tomorrow !1');
+  await page.getByRole('button', { name: 'Keep as plain text' }).click();
+  await page.locator('#tk-new').press('Enter');
+  await wait(1100);
+  const qa = await task('Essay'), tomorrow = addD(D, 1);
+  check('quick add sets due, time, list, priority and tag', qa?.due === tomorrow && qa.dueTime === '09:00' && qa.priority === 1 && qa.tags?.join() === 'study' && qa.list === school.id, JSON.stringify(qa));
+  const trWeekly = await task('Okuma'), enWeekly = await task('Review');
+  check('quick add reads Turkish and English weekly rules', trWeekly?.repeat?.unit === 'week' && trWeekly.repeat.days?.join() === '0' && enWeekly?.repeat?.days?.join() === '4' && wd(trWeekly.due) === 0 && wd(enWeekly.due) === 4, JSON.stringify([trWeekly?.repeat, enWeekly?.repeat]));
+  const literal = await task('Call tomorrow !1');
+  check('plain text opt-out keeps the whole title', literal && !literal.due && !literal.priority);
+  await page.locator('#tk-new').fill('Read 9 pages');
+  check('numbers alone are not a time', (await page.locator('#tk-add-help').textContent()).startsWith('Try:'));
+  await page.locator('#tk-new').fill('');
+  await shot(page, 'quick-add');
+
+  // ---------- single-key shortcuts: N writes, / searches, X picks several ----------
+  const focused = () => page.evaluate(() => document.activeElement?.id || document.activeElement?.tagName);
+  await page.evaluate(() => document.activeElement?.blur());
+  await page.keyboard.press('n');
+  check('N moves to the new-task field', (await focused()) === 'tk-new');
+  await page.keyboard.type('xn/');
+  check('keys typed into a field stay text', (await page.locator('#tk-new').inputValue()) === 'xn/');
+  await page.keyboard.press('Escape');
+  check('Escape clears and leaves the new-task field', (await page.locator('#tk-new').inputValue()) === '' && (await focused()) === 'BODY');
+  await page.keyboard.press('/');
+  check('/ moves to the search field', (await page.locator('.tk-search input').evaluate((el) => el === document.activeElement)));
+  await page.keyboard.type('zzz');
+  await page.keyboard.press('Escape');
+  check('Escape clears the search first', (await page.locator('.tk-search input').inputValue()) === '' && await page.locator('.tk-search input').evaluate((el) => el === document.activeElement));
+  await page.keyboard.press('Escape');
+  check('and leaves it the second time', !(await page.locator('.tk-search input').evaluate((el) => el === document.activeElement)));
+  await page.keyboard.press('x');
+  check('X starts picking several tasks', (await page.getByRole('button', { name: 'Done selecting' }).count()) === 1);
+  await page.keyboard.press('x');
+  check('and X ends it', (await page.getByRole('button', { name: 'Select', exact: true }).count()) === 1);
+  await page.keyboard.press('?');
+  check('the shortcut list names them', await page.locator('.keys-sheet', { hasText: 'Search tasks' }).isVisible());
+  await page.keyboard.press('Escape');
 
   // ---------- Turkish words for a rule ----------
   // ---------- phones ----------
