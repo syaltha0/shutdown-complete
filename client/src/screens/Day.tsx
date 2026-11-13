@@ -16,7 +16,7 @@ import {
 import { onLinkClick } from '../lib/router';
 import { useSwipeNav } from '../lib/swipe';
 import { updateKey, useDoc, useRange } from '../lib/useDoc';
-import { placeRepeats, repeatFromBlock } from '../lib/repeat';
+import { isExcepted, placeRepeats, repeatFromBlock } from '../lib/repeat';
 import { estimateFor, insights } from '../lib/insights';
 import { focusCount, focusMinutes, settingsFocus, startFocus } from '../lib/focus';
 import { CapacityNote } from '../components/CapacityNote';
@@ -62,8 +62,8 @@ export function Day({ date }: { date: string }) {
   const weekNudge = isToday && weekDoc && !weekDoc.plannedAt && !weekNudgeOff && weekdayIndex(date) <= 1;
   // the weekly schedule: its blocks are placed on a day (today or later) the first time it opens
   useEffect(() => {
-    if (day && placeRepeats(day, date, settings.schedule)) update((d) => placeRepeats(d, date, settings.schedule) ?? d);
-  }, [day != null, date, settings.schedule]); // eslint-disable-line react-hooks/exhaustive-deps
+    if (day && placeRepeats(day, date, settings.schedule, settings.exceptions)) update((d) => placeRepeats(d, date, settings.schedule, settings.exceptions) ?? d);
+  }, [day != null, date, settings.schedule, settings.exceptions]); // eslint-disable-line react-hooks/exhaustive-deps
   const carry = useCarry(isToday ? date : null, settings.carryTasks ?? 'ask');
   const { docs: history } = useRange<DayDoc>(`day:${addDays(date, -56)}`, `day:${addDays(date, -1)}`);
   const calDay = cal?.days[date] ?? [];
@@ -93,6 +93,7 @@ export function Day({ date }: { date: string }) {
     return (
       <div className="swipe-area" ref={swipe}>
         {head}
+
         {status === 'error' ? <DocNotice status={status} error={error} retry={retry} /> : <DaySkeleton />}
       </div>
     );
@@ -172,7 +173,7 @@ export function Day({ date }: { date: string }) {
   const actual = date <= t ? day.focus?.sessions ?? [] : [];
   const templates = settings.templates ?? [];
   const weekday = weekdayIndex(date);
-  const suggested = col.blocks.length === 0 ? templates.find((t) => t.days.includes(weekday)) : undefined;
+  const suggested = col.blocks.length === 0 ? templates.find((t) => t.days.includes(weekday) && !isExcepted(settings.exceptions, date, t.id)) : undefined;
 
   // a calendar event becomes a meeting block, kept inside the column's hours
   const asBlock = (e: CalEvent): Block | null => {
@@ -197,6 +198,7 @@ export function Day({ date }: { date: string }) {
   }
 
   function applyTpl(t: DayTemplate) {
+    if (isExcepted(settings.exceptions, date, t.id)) return;
     const res = applyTemplate(col, t, floor);
     setCols((cols) => cols.map((c, i) => (i === cols.length - 1 ? { ...c, blocks: res.blocks } : c)));
     setTplOpen(false);
@@ -242,6 +244,7 @@ export function Day({ date }: { date: string }) {
     <div className="swipe-area" ref={swipe}>
       <PrintHeader date={date} />
       {head}
+      {(settings.exceptions ?? []).filter(e => e.from <= date && date <= e.to).map(e => <p className="muted" role="note" key={e.id}>{T.scheduleExceptions.noClasses}: {e.label}</p>)}
       <DocNotice status={status} error={error} retry={retry} />
       {weekNudge && (
         <div className="week-nudge" role="note">

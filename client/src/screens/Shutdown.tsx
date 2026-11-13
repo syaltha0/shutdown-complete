@@ -22,8 +22,8 @@ export function Shutdown({ date }: { date: string }) {
   const { value: week } = useDoc<WeekDoc>(`week:${weekOf(date)}`, emptyWeek);
   // tomorrow shows its weekly schedule here already, so the first blocks are planned around it
   useEffect(() => {
-    if (next && placeRepeats(next, tomorrow, settings.schedule)) updateNext((n) => placeRepeats(n, tomorrow, settings.schedule) ?? n);
-  }, [next != null, tomorrow, settings.schedule]); // eslint-disable-line react-hooks/exhaustive-deps
+    if (next && placeRepeats(next, tomorrow, settings.schedule, settings.exceptions)) updateNext((n) => placeRepeats(n, tomorrow, settings.schedule, settings.exceptions) ?? n);
+  }, [next != null, tomorrow, settings.schedule, settings.exceptions]); // eslint-disable-line react-hooks/exhaustive-deps
   const steps = settings.ritual;
   const doneSteps = day ? steps.filter((s) => day.shutdown.steps[s.id]).length : 0;
   const isToday = date === today();
