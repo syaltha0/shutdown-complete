@@ -587,7 +587,7 @@ app.post('/api/account/app-passwords', async (c) => {
   return c.json({ ...davInfo(c), password });
 });
 // the link to a Nextcloud: its state, made (after the address and password are tried), synced now, undone
-app.get('/api/account/nextcloud', (c) => c.json(syncer.status(uid(c))));
+app.get('/api/account/nextcloud', (c) => { if (limited(`nextcloud-read:${uid(c)}`, 120, 60_000)) return fail(c, 'too-many', 429); return c.json(syncer.status(uid(c))); });
 app.put('/api/account/nextcloud/lists/:id', async (c) => {
   const b = await body(c);
   if (typeof b.published !== 'boolean' || !syncer.publish(uid(c), c.req.param('id'), b.published)) return fail(c, 'missing', 400);
@@ -601,7 +601,7 @@ app.put('/api/account/nextcloud', async (c) => {
   if (r.error) return fail(c, r.error, 400);
   return c.json(syncer.status(uid(c)));
 });
-app.post('/api/account/nextcloud/sync', async (c) => { const result = await syncer.sync(uid(c)); return c.json({ ...syncer.status(uid(c)), result }); });
+app.post('/api/account/nextcloud/sync', async (c) => { if (limited(`nextcloud-sync:${uid(c)}`, 30, 60_000)) return fail(c, 'too-many', 429); const result = await syncer.sync(uid(c)); return c.json({ ...syncer.status(uid(c)), result }); });
 app.delete('/api/account/nextcloud', (c) => { syncer.disconnect(uid(c)); return c.json(null); });
 app.delete('/api/account/app-passwords/:id', (c) => { dav.remove(uid(c), c.req.param('id')); return c.json(davInfo(c)); });
 teamRoutes(app, { db, uid, fail, body, limited });

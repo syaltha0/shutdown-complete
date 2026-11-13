@@ -238,3 +238,9 @@ label.btn { cursor: pointer; }
 .week-focus-notes summary { cursor: pointer; }
 .week-focus-notes h3 { font-size: 13px; margin-top: 18px; }
 @media (max-width: 480px) { .week-focus-days { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
+.dav-linked { min-width: 0; }
+.dav-linked > section { min-width: 0; }
+.dav-linked details { overflow-wrap: anywhere; }
+.dav-linked summary { cursor: pointer; padding: 4px 0; }
+.dav-linked table { font-variant-numeric: tabular-nums; }
+.dav-linked details th, .dav-linked details td { padding: 6px; font-size: 12px; }

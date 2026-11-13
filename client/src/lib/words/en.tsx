@@ -578,6 +578,7 @@ export const en = {
     ncAbout: 'Keep the task lists in step with your Nextcloud: each list becomes a task calendar there and changes go both ways every few minutes. When both sides changed the same task, this planner’s version wins.',
     ncAddress: 'Nextcloud address', ncUser: 'User name', ncPassword: 'App password',
     ncPasswordHint: 'Make one in Nextcloud: Personal settings → Security → Create new app password.',
+    syncLog: {"last":"Last synchronization","success":"Successful","failed":"Failed","list":"List","received":"↓ Received","sent":"↑ Sent","deleted":"Deleted","skipped":"Skipped","retry":"Retry all lists","previous":"Previous runs","duration":"Duration (ms)","unknown":"Task unavailable","counts":"Completed operations; unchanged tasks are skipped. A failure stops the run. Received changes may remain unsaved if the run fails."},
     link: 'Link', linking: 'Linking…', syncNow: 'Sync now', syncing: 'Syncing…', unlink: 'Unlink',
     linkedTo: (u: string) => `Linked to ${u}`, as: (u: string) => `as ${u}`, listsN: (n: number) => `${n} ${s(n, 'list', 'lists')}`, synced: (when: string) => `synced ${when}`,
     howItSyncs: 'Unlinking keeps everything on both sides; they just stop following each other.',

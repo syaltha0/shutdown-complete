@@ -111,7 +111,8 @@ export interface WeekReviewData {
 }
 export interface BackupState { list: { name: string; size: number; at: string; kind: 'auto' | 'manual' | 'before-restore' | 'upload' }[]; keep: number; hour: number }
 export interface DavInfo { url: string; user: string; passwords: { id: string; name: string; created: string; lastUsed: string | null }[] }
-export interface NextcloudLink { url: string; username: string; lastSync: string | null; error: string | null; lists: number; routes: { id: string; name: string; published: boolean }[] }
+export interface SyncRun { at: string; durationMs: number; ok: boolean; error: string | null; lists: { id: string; name: string; received: number; sent: number; deleted: number; skipped: number }[]; errors: { listId: string | null; title: string; status: number | null; reason: string }[] }
+export interface NextcloudLink { history: SyncRun[]; url: string; username: string; lastSync: string | null; error: string | null; lists: number; routes: { id: string; name: string; published: boolean }[] }
 
 const post = <T>(path: string, data: unknown = {}) => request<T>(path, { method: 'POST', body: JSON.stringify(data) });
 

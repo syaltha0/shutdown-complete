@@ -2,6 +2,8 @@
 // account, list the calendars, read, write, delete, make a list) and the link to a Nextcloud (davsync.mjs), here a
 // second account of a throwaway server playing the Nextcloud.
 //   npm run build && node tools/e2e/caldav.mjs
+import { createServer, request as httpRequest } from 'node:http';
+import { mkdirSync } from 'node:fs';
 import { launch } from '../lib/browser.mjs';
 import { client, startServer } from '../lib/server.mjs';
 import { demoAccount, iso } from '../lib/demo.mjs';
@@ -12,6 +14,14 @@ const D = iso(new Date());
 const addD = (d, n) => { const x = new Date(`${d}T12:00:00`); x.setDate(x.getDate() + n); return iso(x); };
 
 const srv = await startServer({ env: { CALENDAR_ALLOW_PRIVATE: 'on' } });
+let rejectPut = false;
+const proxy = createServer((req, res) => {
+  if (rejectPut && req.method === 'PUT') { res.writeHead(412); res.end(); return; }
+  const upstream = httpRequest(new URL(req.url, srv.url), { method: req.method, headers: { ...req.headers, host: new URL(srv.url).host } }, reply => { res.writeHead(reply.statusCode, reply.headers); reply.pipe(res); });
+  upstream.on('error', () => { res.writeHead(502); res.end(); }); req.pipe(upstream);
+});
+await new Promise(resolve => proxy.listen(0, '127.0.0.1', resolve));
+const proxyUrl = 'http://localhost:' + proxy.address().port;
 const api = await demoAccount(client(srv.url), { lang: 'en' });
 const email = (await api.call('/api/account')).body.email;
 await api.put('inbox', { lists: [{ id: 'school', name: 'School', color: 'green' }], items: [
@@ -108,10 +118,11 @@ try {
   const nc = (await api2.call('/api/account/app-passwords', { name: 'Planner sync' })).body.password;
   const ncInbox = async () => (await api2.get('inbox')).value ?? { items: [] };
   const mine = async () => (await api.get('inbox')).value;
-  const syncA = async () => (await api.call('/api/account/nextcloud/sync', {})).body;
-  const bad = await api.call('/api/account/nextcloud', { url: `${srv.url}/`, username: other.email, password: 'wrong-password' }, 'PUT');
+  const observedOperations = new Set();
+  const syncA = async () => { const body = (await api.call('/api/account/nextcloud/sync', {})).body; for (const run of body.history ?? []) for (const l of run.lists) for (const op of ['received', 'sent', 'deleted', 'skipped']) if (l[op] > 0) observedOperations.add(op); return body; };
+  const bad = await api.call('/api/account/nextcloud', { url: `${proxyUrl}/`, username: other.email, password: 'wrong-password' }, 'PUT');
   check('a wrong Nextcloud password is said so', bad.status === 400 && bad.body.error === 'auth', JSON.stringify(bad.body));
-  const linked = await api.call('/api/account/nextcloud', { url: `${srv.url}/`, username: other.email, password: nc }, 'PUT');
+  const linked = await api.call('/api/account/nextcloud', { url: `${proxyUrl}/`, username: other.email, password: nc }, 'PUT');
   check('linked: found through /.well-known/caldav, first sync done', linked.status === 200 && !linked.body.error && linked.body.lists >= 2, JSON.stringify(linked.body));
   let there = await ncInbox();
   check('each list became a calendar there', there.lists?.some((l) => l.id === 'sc-school' && l.name === 'School' && l.color === 'green') && there.lists.some((l) => l.id === 'sc-inbox'));
@@ -209,11 +220,52 @@ try {
     await browser.close();
   }
 
+  const beforeFailure = await mine();
+  await api.put('inbox', { ...beforeFailure, items: beforeFailure.items.map(t => t.id === 'a1' ? { ...t, text: 'Retry this task' } : t) });
+  rejectPut = true;
+  const failedRun = await syncA();
+  check('412 is logged with task title and safe reason', failedRun.history[0].errors.some(e => e.title === 'Retry this task' && e.status === 412 && e.reason === 'conflict'));
+  check('diagnostics exclude credentials and full URLs', !JSON.stringify(failedRun.history).includes(nc) && !JSON.stringify(failedRun.history).includes(proxyUrl));
+  {
+    mkdirSync('reports/shots/sync-log', { recursive: true });
+    const browser = await launch();
+    const ctx = await browser.newContext({ reducedMotion: 'reduce' });
+    await ctx.addCookies([{ name: 'sc_session', value: api.cookie.split('=')[1], url: srv.url }]);
+    const page = await ctx.newPage();
+    const settings = (await api.get('settings')).value ?? {};
+    for (const lang of ['en', 'tr']) {
+      await api.put('settings', { ...settings, lang });
+      await page.goto(srv.url + '/settings/account');
+      const panel = page.locator('section[aria-labelledby="a-nc"]');
+      await panel.locator('details').first().waitFor();
+      await panel.locator('details').first().evaluate(el => el.open = true);
+      check('failed task is visible in diagnostics ' + lang, (await panel.textContent()).includes('Retry this task'));
+      for (const width of [1440, 390]) for (const theme of ['light', 'dark']) {
+        await page.setViewportSize({ width, height: 1100 });
+        await page.evaluate(theme => document.documentElement.dataset.theme = theme, theme);
+        await panel.scrollIntoViewIfNeeded();
+        if (process.env.SYNC_SHOTS) await panel.screenshot({ path: 'reports/shots/sync-log/' + lang + '-' + width + '-' + theme + '.png' });
+      }
+    }
+    rejectPut = false;
+    await Promise.all([page.waitForResponse(r => r.url().endsWith('/api/account/nextcloud/sync') && r.request().method() === 'POST'), page.locator('section[aria-labelledby="a-nc"] details').first().getByRole('button').click()]);
+    check('retry button completes a successful run', (await syncA()).history[0].ok);
+    await api.put('settings', settings);
+    await browser.close();
+  }
+  rejectPut = false;
+  const retried = await syncA();
+  check('retry succeeds and keeps failed run', retried.history[0].ok && retried.history.some(r => !r.ok));
+  check('summaries include received, sent, deleted and skipped operations', ['received', 'sent', 'deleted', 'skipped'].every(op => observedOperations.has(op)));
+  check('history retains at most ten runs', retried.history.length === 10);
+  const othersStatus = (await api2.call('/api/account/nextcloud')).body;
+  check('another account cannot read this history', othersStatus === null);
   const st = (await api.call('/api/account/nextcloud')).body;
   check('the link tells when it last synced, no error', !!st.lastSync && !st.error, JSON.stringify(st));
   await api.call('/api/account/nextcloud', undefined, 'DELETE');
   check('unlinked', (await api.call('/api/account/nextcloud')).body === null);
 } finally {
+  proxy.close();
   srv.stop();
 }
 const failed = results.filter((r) => !r).length;
