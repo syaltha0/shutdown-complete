@@ -10,16 +10,26 @@
 //   node server/src/cli.mjs backup                     makes a backup now (DATA_DIR/backups)
 //   node server/src/cli.mjs backups                    lists the backups
 //   node server/src/cli.mjs restore <backup name>      puts a backup in place at the next start (then restart the server)
+//   node server/src/cli.mjs restore-new <file> <dir>   validates and restores into a new empty data directory
 // In Docker: docker compose exec planner node server/src/cli.mjs <command>
 import { resolve } from 'node:path';
 import { randomBytes } from 'node:crypto';
 import { randomToken, sha256 } from './auth.mjs';
 import { openDb } from './db.mjs';
 import { hashPassword } from './password.mjs';
-import { backups } from './backup.mjs';
+import { backups, restoreInto } from './backup.mjs';
 
-const db = openDb(resolve(process.env.DATA_DIR || 'data', 'planner.db'));
 const [cmd, arg, arg2] = process.argv.slice(2);
+// Dispatch before openDb: recovery must not create or migrate a database in the destination.
+if (cmd === 'restore-new') {
+  try {
+    if (!arg || !arg2) throw new Error('Use: restore-new <backup path> <empty data directory>');
+    await restoreInto(resolve(arg), resolve(arg2));
+    console.log('Restored and validated. Start the server with DATA_DIR pointing to the target directory.');
+  } catch (e) { console.error(e.message); process.exit(1); }
+  process.exit(0);
+}
+const db = openDb(resolve(process.env.DATA_DIR || 'data', 'planner.db'));
 
 function need(email) {
   const u = email && db.users.byEmail(email);
@@ -100,5 +110,5 @@ switch (cmd) {
     break;
   }
   default:
-    console.log('Commands: users | reset-password <email> | disable-2fa <email> | make-admin <email> | signups open|approve|invite|closed | approve <email> | domains <list>|none | invite [uses] [days]');
+    console.log('Commands: users | reset-password <email> | disable-2fa <email> | make-admin <email> | signups open|approve|invite|closed | approve <email> | domains <list>|none | invite [uses] [days] | backup | backups | restore <name> | restore-new <file> <empty directory>');
 }
