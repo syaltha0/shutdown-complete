@@ -4,6 +4,7 @@ import type { ReactNode } from 'react';
 const s = (n: number, one: string, many: string) => (n === 1 ? one : many);
 
 export const en = {
+  palette: {"title":"Command palette","placeholder":"Search commands, dates, Task: ... or Capture: ...","none":"No commands found","task":"Add task","capture":"Capture","date":"Go to date","start":"Start focus","pause":"Pause focus","resume":"Resume focus","skip":"Skip phase","reset":"Reset cycle","theme":"Toggle theme","motion":"Toggle reduced motion","error":"Could not save. Try again.","preview":"Preview","taskAliases":["task","add task","g\u00f6rev ekle"],"captureAliases":["capture","yakala"]},
   focusJournal: 'Focus journal',
   publication: {
     title: 'Calendar subscription',
