@@ -50,6 +50,12 @@ try {
   const got = await dav('GET', `${school}a1.ics`);
   const ics = await got.text();
   check('a task reads as a VTODO', got.status === 200 && ics.includes('SUMMARY:Maths homework') && ics.includes(`DUE;VALUE=DATE:${D.replace(/-/g, '')}`) && ics.includes('PRIORITY:1') && ics.includes('CATEGORIES:exam,maths') && ics.includes('DESCRIPTION:Pages 40-44\\,\\nall odd ones'));
+  const beforeTrash = (await api.get('inbox')).value;
+  const deletedTask = beforeTrash.items.find((t) => t.id === 'a1');
+  await api.put('inbox', { ...beforeTrash, items: beforeTrash.items.filter((t) => t.id !== 'a1'), trash: [{ item: deletedTask, deletedAt: new Date().toISOString() }] });
+  check('trashing removes parent and subtask VTODO immediately', (await dav('GET', school + 'a1.ics')).status === 404 && (await dav('GET', school + 's1.ics')).status === 404);
+  await api.put('inbox', { ...beforeTrash, trash: [] });
+  check('restoring republishes the same UID and subtasks', (await (await dav('GET', school + 'a1.ics')).text()).includes('UID:a1') && (await dav('GET', school + 's1.ics')).status === 200);
   const sub = await (await dav('GET', `${school}s1.ics`)).text();
   check('a subtask points at its task', sub.includes('RELATED-TO;RELTYPE=PARENT:a1') && sub.includes('STATUS:COMPLETED'));
   const etag = got.headers.get('etag');

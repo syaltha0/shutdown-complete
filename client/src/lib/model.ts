@@ -49,6 +49,7 @@ export interface Item {
   done: boolean;
   /** for a task carried over from an earlier day: the day it was first written down */
   since?: string;
+  plannedRepeat?: { id: string; due?: string; start?: string; doneCount: number };
   /** how long it will take, in minutes (the day warns when the tasks do not fit in its free time) */
   estimate?: number;
   /** the day it is due (homework, a form to send), and the hour on it (HH:MM) */

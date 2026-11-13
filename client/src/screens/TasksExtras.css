@@ -1,0 +1,5 @@
+.tk-filter-form { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 16px; margin: 0 20px 20px; }
+.tk-filter-form label { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+.tk-filter-form .input { width: 100%; min-width: 0; }
+.tk-filter-form > button { align-self: end; }
+@media (max-width: 600px) { .tk-filter-form { grid-template-columns: 1fr; } }

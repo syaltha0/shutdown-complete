@@ -545,8 +545,10 @@ export const tr: Words = {
   // görev listeleri (screens/Tasks.tsx)
   tkTitle: 'Görevler', tkInbox: 'Gelen kutusu', tkLists: 'Listeler',
   tkSummary: (open, now) => (open ? `${open} açık görev${now ? `, ${now} tanesi bugüne kadar teslim ya da başlıyor` : ''}` : 'Açık görev yok'),
-  tkTrash: '??p kutusu', tkRestore: 'Geri al', tkPurge: 'Kal?c? sil', tkEmptyTrash: '??p? bo?alt', tkPurgeConfirm: 'Bu g?revler kal?c? olarak silinsin mi?', tkTrashHelp: 'Silinen g?revler 30 g?n saklan?r.',
-  tkFilters: 'Kay?tl? filtreler', tkFilterNew: 'Yeni filtre', tkFilterEdit: 'Filtreyi d?zenle', tkFilterSave: 'Filtreyi kaydet', tkFilterAny: 'T?m?', tkFilterRange: 'Tarih aral???', tkFilterLate: 'Gecikmi?', tkFilterUp: 'Yukar? ta??', tkFilterDown: 'A?a?? ta??', tkFilterOpen: 'A??k',
+  tkFilterStatus: 'Durum', tkFilterWeek: 'Bu hafta',
+  tkPlanToday: 'Bugüne planla', tkPlanTomorrow: 'Yarına planla', tkPlanDate: 'Tarihe planla', tkPlanError: 'Planlama tamamlanamadı. Yeniden denemeden önce günü kontrol edin.',
+  tkTrash: 'Çöp kutusu', tkRestore: 'Geri al', tkPurge: 'Kalıcı sil', tkEmptyTrash: 'Çöpü boşalt', tkPurgeConfirm: 'Bu görevler kalıcı olarak silinsin mi?', tkTrashHelp: 'Silinen görevler 30 gün saklanır.',
+  tkFilters: 'Kayıtlı filtreler', tkFilterNew: 'Yeni filtre', tkFilterEdit: 'Filtreyi düzenle', tkFilterSave: 'Filtreyi kaydet', tkFilterAny: 'Tümü', tkFilterRange: 'Tarih aralığı', tkFilterLate: 'Gecikmiş', tkFilterUp: 'Yukarı taşı', tkFilterDown: 'Aşağı taşı', tkFilterOpen: 'Açık',
   tkViews: { all: 'Tümü', today: 'Bugün', week: 'Önümüzdeki 7 gün', important: 'Önemli', current: 'Devam eden', completed: 'Tamamlanan' },
   tkEmpty: {
     all: 'Açık görev yok. Yukarıya bir tane yaz: ödev, ayak işi, sonraya kalan bir şey.',
