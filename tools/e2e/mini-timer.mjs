@@ -190,6 +190,45 @@ try {
    check('"keep expanded" returns the full card',(await size()).w===300&&await flag()===null);
    await p.evaluate(()=>{localStorage.removeItem('sc-mini-corner');localStorage.removeItem('sc-mini-compact');});await p.reload();await root.waitFor();
   }
+  // --- a phase change draws the card's edge in the new phase colour once (border-color only; none when motion is reduced) ---
+  {
+   const live={...base,focus:{sessions:[],active:{phase:'focus',startedAt:new Date(Date.now()-120000).toISOString(),plannedMin:25,pausedLeft:null,blockId:null,label:'Pilot'}}};
+   const c2=await b.newContext({viewport:{width:1440,height:900},reducedMotion:'no-preference'});
+   await c2.addCookies([{name:'sc_session',value:api.cookie.split('=')[1],url:s.url}]);
+   const q=await c2.newPage();
+   const flashOf=(page)=>page.locator('.mini-timer').evaluate(e=>({cls:e.className,name:getComputedStyle(e,'::after').animationName,edge:getComputedStyle(e,'::after').borderTopColor,shadow:getComputedStyle(e).boxShadow}));
+   await api.put(key,live);await q.goto(s.url+'/');await q.locator('.mini-timer').waitFor();
+   await q.waitForTimeout(600);
+   const calm=await flashOf(q);
+   check('no cue while nothing changes',!/mt-flash/.test(calm.cls)&&calm.name==='none');
+   await q.locator('.mt-trigger').hover();
+   await q.locator('.mt-panel button').nth(1).click();
+   await q.locator('.mini-timer.mt-flash').waitFor({timeout:3000});
+   await q.mouse.move(700,450);await q.waitForTimeout(450);
+   const mid=await flashOf(q);
+   check('focus to break: the edge animates (mt-flash)',mid.name==='mt-flash');
+   check('focus to break: the edge reaches the break colour, not transparent',mid.edge!=='rgba(0, 0, 0, 0)'&&mid.edge!=='transparent');
+   check('the cue adds no glow or shadow',mid.shadow===calm.shadow);
+   await q.screenshot({path:`${dir}/${lang}-phase-flash.png`});
+   await q.waitForTimeout(1300);
+   check('the cue is gone after about a second',!/mt-flash/.test((await flashOf(q)).cls));
+   // a session that is already in its break when the page loads is not a change
+   await api.put(key,{...base,focus:{sessions:[],active:{...live.focus.active,phase:'short',plannedMin:5}}});
+   await q.reload();await q.locator('.mini-timer').waitFor();await q.waitForTimeout(400);
+   check('a reload mid-break shows no cue',!/mt-flash/.test((await flashOf(q)).cls));
+   // reduced motion (the system setting, via the context; and the app's own setting, via data-motion)
+   await api.put(key,live);await p.goto(s.url+'/');await p.locator('.mini-timer').waitFor();
+   await p.locator('.mt-trigger').hover();await p.locator('.mt-panel button').nth(1).click();await p.waitForTimeout(500);
+   const red=await flashOf(p);
+   check('reduced motion (system): no cue',!/mt-flash/.test(red.cls)&&red.name==='none');
+   await api.put(key,live);await q.reload();await q.locator('.mini-timer').waitFor();
+   await q.evaluate(()=>{document.documentElement.dataset.motion='reduce';});
+   await q.locator('.mt-trigger').hover();await q.locator('.mt-panel button').nth(1).click();await q.waitForTimeout(500);
+   const red2=await flashOf(q);
+   check('reduced motion (app setting): no cue',!/mt-flash/.test(red2.cls)&&red2.name==='none');
+   await c2.close();
+   await api.put(key,live);await p.goto(s.url+'/');await p.locator('.mini-timer').waitFor();
+  }
   //__MORE__
   await c.close();
  }

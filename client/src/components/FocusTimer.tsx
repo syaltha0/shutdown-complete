@@ -143,6 +143,17 @@ function FocusMiniPanel({ a, docKey, count }: { a: FocusActive; docKey: string; 
   const press = useRef<{ id: number; x: number; y: number; moved: boolean } | null>(null);
   const settleFrom = useRef<{ x: number; y: number } | null>(null);
   const justDragged = useRef(false);
+  // a phase change (focus to break, break to focus) draws the card's edge in the new phase's colour once
+  const lastPhase = useRef(a.phase);
+  const [flash, setFlash] = useState(false);
+  useEffect(() => {
+    if (lastPhase.current === a.phase) return;
+    lastPhase.current = a.phase;
+    if (reducedMotion()) return;
+    setFlash(true);
+    const t = window.setTimeout(() => setFlash(false), 1300);
+    return () => window.clearTimeout(t);
+  }, [a.phase]);
   useEffect(() => {
     const outside = (e: PointerEvent) => { if (!root.current?.contains(e.target as Node)) { suppressed.current = true; setOpen(false); } };
     document.addEventListener('pointerdown', outside);
@@ -227,7 +238,7 @@ function FocusMiniPanel({ a, docKey, count }: { a: FocusActive; docKey: string; 
     </section>
   );
   const atTop = corner[0] === 't';
-  return <div ref={root} className={`mini-timer phase-${a.phase}`} data-open={open} data-v={atTop ? 'top' : 'bottom'} data-h={corner[1] === 'l' ? 'left' : 'right'} data-dragging={dragging} data-compact={compact}
+  return <div ref={root} className={`mini-timer phase-${a.phase}${flash ? ' mt-flash' : ''}`} data-open={open} data-v={atTop ? 'top' : 'bottom'} data-h={corner[1] === 'l' ? 'left' : 'right'} data-dragging={dragging} data-compact={compact}
     onPointerEnter={e => { if (e.pointerType === 'mouse' && !press.current?.moved) { suppressed.current = false; setOpen(true); } }}
     onPointerLeave={e => { if (e.pointerType === 'mouse' && !root.current?.contains(document.activeElement)) setOpen(false); }}
     onFocus={() => { if (!suppressed.current) setOpen(true); }}

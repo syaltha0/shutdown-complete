@@ -105,6 +105,12 @@
 .mt-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin-top: 14px; }
 .mini-timer .mt-link { margin-left: auto; font-size: 13px; font-weight: 400; color: var(--muted); }
 .mini-timer .mt-link:hover { color: var(--text); text-decoration: none; }
+/* the phase change cue: the edge turns the phase colour and back (border-color only, no glow) */
+.mini-timer::after { content: ""; position: absolute; inset: 0; border: 2px solid transparent; border-radius: inherit; pointer-events: none; }
+.mini-timer.mt-flash::after { animation: mt-flash 1200ms ease-in-out 1; }
+@keyframes mt-flash { 0%, 100% { border-color: transparent; } 50% { border-color: var(--phase-color); } }
+:root[data-motion="reduce"] .mini-timer.mt-flash::after { animation: none; }
+@media (prefers-reduced-motion: reduce) { .mini-timer.mt-flash::after { animation: none; } }
 :root[data-motion="reduce"] :is(.mini-timer, .mt-row, .mt-panel, .mt-body) { animation: none; transition: none; }
 @media (prefers-reduced-motion: reduce) { :is(.mini-timer, .mt-row, .mt-panel, .mt-body) { animation: none; transition: none; } }
 
