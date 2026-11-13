@@ -860,6 +860,7 @@ app.all('/api/*', (c) => fail(c, 'Not found', 404));
 // The built client, with the SPA fallback to index.html.
 if (existsSync(STATIC_DIR)) {
   const index = readFileSync(resolve(STATIC_DIR, 'index.html'), 'utf8');
+  headers.setIndex(index);
   app.use('/assets/*', async (c, next) => { await next(); c.header('Cache-Control', 'public, max-age=31536000, immutable'); });
   app.use('*', serveStatic({ root: STATIC_DIR }));
   app.get('*', (c) => c.html(index));
@@ -867,7 +868,6 @@ if (existsSync(STATIC_DIR)) {
 
 serve({ fetch: app.fetch, port: PORT, hostname: process.env.HOST || '0.0.0.0' }, (info) => {
   console.log(`Shutdown Complete listening on :${info.port}${db.users.count() === 0 ? ' — open it in a browser to create the first account' : ''}`);
-  if (!mailEnabled) console.log('E-mail is off (no SMTP_URL): sign-ups are not verified, and passwords are reset with: node server/src/cli.mjs reset-password <email>');
   if (mailEnabled && !APP_URL) console.warn('WARNING: SMTP_URL is set but APP_URL is not. Links in e-mails (password reset, address confirmation, invites) are then built from the request\'s Host header, which a visitor can choose. Set APP_URL to your public address.');
-  headers.setIndex(index);
+  if (!mailEnabled) console.log('E-mail is off (no SMTP_URL): sign-ups are not verified, and passwords are reset with: node server/src/cli.mjs reset-password <email>');
 });
