@@ -1,3 +1,4 @@
+import { rollOn } from './recur.mjs';
 import { DatabaseSync } from 'node:sqlite';
 import { mkdirSync } from 'node:fs';
 import { dirname } from 'node:path';
@@ -467,13 +468,26 @@ export function openDb(file) {
       all: (u) => q.docAll.all(u).map(row),
       // write only if the caller saw the latest version (0 = "I believe it does not exist yet")
       put(u, key, value, version) {
+        return tx(() => {
+        const previous = key.startsWith('day:') ? row(q.docGet.get(u, key))?.value : null;
         const json = JSON.stringify(value);
         if (version === 0) {
           try { q.docInsert.run(u, key, json, now()); } catch { return { conflict: row(q.docGet.get(u, key)) }; }
         } else if (q.docUpdate.run(json, now(), u, key, version).changes === 0) {
           return { conflict: row(q.docGet.get(u, key)) };
         }
+        if (key.startsWith('day:')) {
+          const completed = (value.tasks ?? []).filter((t) => t.done && t.plannedRepeat && !(previous?.tasks ?? []).find((x) => x.id === t.id)?.done);
+          if (completed.length) {
+            const inbox = row(q.docGet.get(u, 'inbox'));
+            if (inbox?.value) {
+              const next = { ...inbox.value, items: inbox.value.items.map((t) => completed.some((c) => { const p = c.plannedRepeat; return t.repeat && p.id === t.id && p.due === t.due && p.start === t.start && p.doneCount === (t.doneCount ?? 0); }) ? { ...t, ...rollOn(t) } : t) };
+              q.docUpdate.run(JSON.stringify(next), now(), u, 'inbox', inbox.version);
+            }
+          }
+        }
         return { doc: row(q.docGet.get(u, key)) };
+        });
       },
       importAll: (u, docs) => tx(() => { for (const d of docs) q.docUpsert.run(u, d.key, JSON.stringify(d.value), now()); }),
     },

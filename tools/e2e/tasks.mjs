@@ -185,7 +185,7 @@ try {
   await open('Water the plants');
   await detail.locator('.tk-plan').getByRole('button', { name: 'Today' }).click();
   await wait(1100);
-  check('a repeating task is copied onto the day and comes back', (await api.get(`day:${D}`)).value.tasks.some((x) => x.text === 'Water the plants' && !x.repeat) && (await task('Water the plants'))?.due === addD(D, 2));
+  check('a repeating task is copied without advancing its list occurrence', (await api.get(`day:${D}`)).value.tasks.some((x) => x.text === 'Water the plants' && !x.repeat) && (await task('Water the plants'))?.due === D);
 
   // ---------- search and order ----------
   await page.locator('.tk-search input').fill('passport');

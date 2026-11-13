@@ -81,3 +81,9 @@ export function recurWords(W: Words, r: Recur): string {
 /** When it is due, short: a date (late ones flagged by the caller). */
 export const dueShort = (d: string) => shortDate(d);
 export { daysTo };
+
+export function matchesFilter(t: Item, f: import('./model').SavedTaskFilter): boolean {
+  const now = today();
+  return (!f.list || listOf(t) === f.list) && (!f.tag || !!t.tags?.includes(f.tag)) && (!f.priority || String(t.priority ?? '') === f.priority)
+    && (!!t.done === (f.status === 'completed')) && (!f.date || (f.date === 'none' ? !t.due : !!t.due && (f.date === 'today' ? t.due === now : f.date === 'week' ? weekOf(t.due) === weekOf(now) : f.date === 'late' ? t.due < now : (!f.from || t.due >= f.from) && (!f.to || t.due <= f.to))));
+}

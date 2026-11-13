@@ -1,3 +1,4 @@
+import './TasksExtras.css';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { Checklist } from '../components/Checklist';
 import { DocNotice, SaveStamp } from '../components/Common';
@@ -12,12 +13,13 @@ import { navigate, onLinkClick } from '../lib/router';
 import { useSettings } from '../App';
 import { settingsFocus, startFocus } from '../lib/focus';
 import {
-  COLLECTIONS, DEFAULT_LIST, PRESETS, SORTS, TAG, daysTo, inView, listOf, listsOf, onRuleDay, presetOf, recurWords, rollOn, sortTasks, type Sort,
+  matchesFilter, COLLECTIONS, DEFAULT_LIST, PRESETS, SORTS, TAG, daysTo, inView, listOf, listsOf, onRuleDay, presetOf, recurWords, rollOn, sortTasks, type Sort,
 } from '../lib/tasks';
 import { insertAt, offerUndo } from '../lib/undo';
 import { DayChips } from './Templates';
 import { refreshKey, updateKey, useDoc } from '../lib/useDoc';
 import { parseTaskDraft } from '../lib/taskQuickAdd';
+import { cleanTrash, trashTasks, restoreTasks } from '../lib/taskTrash';
 import { taskMatches } from '../lib/taskSearch';
 
 const TINTS: LabelColor[] = ['blue', 'green', 'amber', 'red', 'grey'];
@@ -26,7 +28,7 @@ const REMINDS = [0, 5, 15, 30, 60, 120, 1440];
 const store = { get: (k: string) => { try { return localStorage.getItem(k); } catch { return null; } }, set: (k: string, v: string) => { try { localStorage.setItem(k, v); } catch { /* private window */ } } };
 
 /** What a day's task list gets of a task: the task without what only the lists need. */
-const forDay = (t: Item): Item => ({ id: uid(), text: t.text, done: false, due: t.due, dueTime: t.dueTime, remind: t.remind, estimate: t.estimate, steps: t.steps?.map((s) => ({ ...s, done: false })), card: t.card });
+const forDay = (t: Item): Item => ({ id: uid(), text: t.text, done: false, due: t.due, dueTime: t.dueTime, remind: t.remind, estimate: t.estimate, steps: t.steps?.map((s) => ({ ...s, done: false })), card: t.card, plannedRepeat: t.repeat ? { id: t.id, due: t.due, start: t.start, doneCount: t.doneCount ?? 0 } : undefined });
 
 /**
  * Tasks put on a day: a one-off task moves there (it leaves the lists); a repeating one is copied and comes back on
@@ -48,7 +50,7 @@ async function planOn(t: Item, date: string, message: string) {
 }
 const takeOut = (b: InboxDoc, ids: string[]): InboxDoc => ({
   ...b,
-  items: b.items.flatMap((x) => (!ids.includes(x.id) ? [x] : x.repeat ? [{ ...x, ...rollOn(x) }] : [])),
+  items: b.items.flatMap((x) => (!ids.includes(x.id) ? [x] : x.repeat ? [x] : [])),
 });
 
 /**
@@ -60,15 +62,18 @@ const takeOut = (b: InboxDoc, ids: string[]): InboxDoc => ({
 export function Tasks({ view: asked }: { view?: string }) {
   const T = useT();
   const { value: doc, update, status, error, retry } = useDoc<InboxDoc>('inbox', emptyInbox);
+  useEffect(() => { if (doc?.trash?.some((x) => Date.parse(x.deletedAt) <= Date.now() - 30 * 86400000)) update((b) => cleanTrash(b)); }, [doc, update]);
   const items = doc?.items ?? [];
   const lists = listsOf(doc ?? emptyInbox(), T);
   const allTags = useMemo(() => [...new Set(items.flatMap((t) => t.tags ?? []))].sort((a, b) => a.localeCompare(b)), [items]);
   // the address names a collection, a list, or a tag (tag:<name>)
   const wanted = asked ? decodeURIComponent(asked) : '';
   const tagView = wanted.startsWith(TAG) ? wanted.slice(TAG.length) : null;
-  const view = (COLLECTIONS as readonly string[]).includes(wanted) || lists.some((l) => l.id === wanted) || (tagView && allTags.includes(tagView)) ? wanted : 'all';
-  const isList = !(COLLECTIONS as readonly string[]).includes(view) && !view.startsWith(TAG);
-  const viewName = isList ? lists.find((l) => l.id === view)!.name : view.startsWith(TAG) ? `#${view.slice(TAG.length)}` : T.tkViews[view as keyof typeof T.tkViews];
+  const filter = doc?.filters?.find((f) => f.id === wanted);
+  const [editingFilter, setEditingFilter] = useState<import('../lib/model').SavedTaskFilter | null>(null);
+  const view = wanted === 'trash' ? 'trash' : filter ? wanted : (COLLECTIONS as readonly string[]).includes(wanted) || lists.some((l) => l.id === wanted) || (tagView && allTags.includes(tagView)) ? wanted : 'all';
+  const isList = view !== 'trash' && !filter && !(COLLECTIONS as readonly string[]).includes(view) && !view.startsWith(TAG);
+  const viewName = view === 'trash' ? T.tkTrash : filter ? filter.name : isList ? lists.find((l) => l.id === view)!.name : view.startsWith(TAG) ? `#${view.slice(TAG.length)}` : T.tkViews[view as keyof typeof T.tkViews];
   const [sort, setSort] = useState<Sort>(() => (SORTS as string[]).includes(store.get('sc-tasks-sort') ?? '') ? store.get('sc-tasks-sort') as Sort : 'due');
   const [q, setQ] = useState('');
   const [openId, setOpenId] = useState<string | null>(null);
@@ -103,7 +108,7 @@ export function Tasks({ view: asked }: { view?: string }) {
 
   const set = (id: string, p: Partial<Item>) => update((b) => ({ ...b, items: b.items.map((x) => (x.id === id ? { ...x, ...p } : x)) }));
   const matches = (t: Item) => taskMatches(t, q);
-  const shown = sortTasks(items.filter((t) => inView(t, view) && matches(t)), sort);
+  const shown = sortTasks(items.filter((t) => (filter ? matchesFilter(t, filter) : inView(t, view)) && matches(t)), sort);
   // in a list, its done tasks fold away under the open ones
   const doneHere = isList ? sortTasks(items.filter((t) => t.done && listOf(t) === view && matches(t)), sort) : [];
   const count = (v: string) => items.filter((t) => inView(t, v)).length;
@@ -129,9 +134,9 @@ export function Tasks({ view: asked }: { view?: string }) {
   };
   const remove = (t: Item) => {
     const at = items.findIndex((x) => x.id === t.id);
-    update((b) => ({ ...b, items: b.items.filter((x) => x.id !== t.id) }));
+    update((b) => trashTasks(b, [t.id]));
     if (openId === t.id) setOpenId(null);
-    offerUndo(T.deleted(t.text), () => update((b) => ({ ...b, items: insertAt(b.items, at, t) })));
+    offerUndo(T.deleted(t.text), () => update((b) => ({ ...b, ...restoreTasks(b, [t.id]), items: insertAt(b.items.filter((x) => x.id !== t.id), at, t) })));
   };
   // a task written in a collection gets what the collection is about
   const add = (text: string) => {
@@ -156,8 +161,8 @@ export function Tasks({ view: asked }: { view?: string }) {
   const clearDone = () => {
     // only what is on screen: with a search, the completed tasks it hides stay (same set as "reopen")
     const gone = (view === 'completed' ? shown : doneHere).filter((t) => t.done);
-    update((b) => ({ ...b, items: b.items.filter((x) => !gone.includes(x)) }));
-    offerUndo(T.tkDoneDeleted(gone.length), () => update((b) => ({ ...b, items: [...b.items, ...gone] })));
+    update((b) => trashTasks(b, gone.map((t) => t.id)));
+    offerUndo(T.tkDoneDeleted(gone.length), () => update((b) => ({ ...b, ...restoreTasks(b, gone.map((t) => t.id)) })));
   };
 
   // ---- dragging a task: by its grip, onto another row (one's own order) or onto a list, a tag or a collection ----
@@ -228,11 +233,15 @@ export function Tasks({ view: asked }: { view?: string }) {
   const bulk = (change: (t: Item) => Partial<Item> | null, message: string) => {
     const before = picked;
     const ids = new Set(before.map((t) => t.id));
-    update((b) => ({ ...b, items: b.items.flatMap((x) => { if (!ids.has(x.id)) return [x]; const p = change(x); return p ? [{ ...x, ...p }] : []; }) }));
-    offerUndo(message, () => update((b) => ({ ...b, items: [...b.items.filter((x) => !ids.has(x.id)), ...before] })));
+    update((b) => ({ ...trashTasks(b, before.filter((t) => change(t) === null).map((t) => t.id)), items: b.items.flatMap((x) => { if (!ids.has(x.id)) return [x]; const p = change(x); return p ? [{ ...x, ...p }] : []; }) }));
+    offerUndo(message, () => update((b) => ({ ...b, ...restoreTasks(b, [...ids]), items: [...b.items.filter((x) => !ids.has(x.id)), ...before] })));
     setSel(new Set());
   };
   const bulkDone = (t: Item): Partial<Item> => (t.done ? {} : t.repeat ? rollOn(t) : { done: true, doneAt: today() });
+  const [planDate, setPlanDate] = useState(today());
+  const [planning, setPlanning] = useState(false);
+  const [planError, setPlanError] = useState(false);
+  const planPicked = async (date: string) => { setPlanning(true); setPlanError(false); try { await toDay(picked.filter((t) => !t.done), date); setSel(new Set()); } catch { setPlanError(true); } finally { setPlanning(false); } };
   const [bulkTag, setBulkTag] = useState('');
 
   const row = (t: Item) => {
@@ -294,6 +303,9 @@ export function Tasks({ view: asked }: { view?: string }) {
               </button></li>
             ))}
           </ul>
+          <button className="btn ghost" onClick={() => go('trash')}>{T.tkTrash}</button><h3 className="tk-side-h">{T.tkFilters}</h3>
+          <ul className="tk-views">{doc?.filters?.map((f) => <li key={f.id}><button type="button" aria-current={view === f.id ? 'page' : undefined} onClick={() => go(f.id)}>{f.name}</button></li>)}</ul>
+
           <ListsPart lists={lists} view={view} count={count} go={go} doc={doc} update={update} target={target} />
           {/* tags: every tag in use, a view of its own */}
           {allTags.length > 0 && (
@@ -313,15 +325,15 @@ export function Tasks({ view: asked }: { view?: string }) {
         <label className="tk-pick">
           <span className="sr-only">{T.tkTitle}</span>
           <select className="input" value={view} onChange={(e) => go(e.target.value)}>
-            <optgroup label={T.tkTitle}>{COLLECTIONS.map((v) => <option key={v} value={v}>{T.tkViews[v]} ({count(v)})</option>)}</optgroup>
-            <optgroup label={T.tkLists}>{lists.map((l) => <option key={l.id} value={l.id}>{l.name} ({count(l.id)})</option>)}</optgroup>
+            <option value="trash">{T.tkTrash}</option><optgroup label={T.tkTitle}>{COLLECTIONS.map((v) => <option key={v} value={v}>{T.tkViews[v]} ({count(v)})</option>)}</optgroup>
+            <optgroup label={T.tkFilters}>{doc?.filters?.map((f) => <option key={f.id} value={f.id}>{f.name}</option>)}</optgroup><optgroup label={T.tkLists}>{lists.map((l) => <option key={l.id} value={l.id}>{l.name} ({count(l.id)})</option>)}</optgroup>
             {allTags.length > 0 && <optgroup label={T.tkTags}>{allTags.map((g) => <option key={g} value={TAG + g}>#{g} ({count(TAG + g)})</option>)}</optgroup>}
           </select>
         </label>
 
         <section className="panel tk-main" aria-labelledby="tk-h">
           <header className="tk-head">
-            <h2 id="tk-h">{viewName}</h2>
+            <h2 id="tk-h">{viewName}</h2><button className="btn ghost" onClick={() => setEditingFilter({ id: uid(), name: '' })}>{T.tkFilterNew}</button>
             <label className="tk-search">
               <IconSearch />
               <span className="sr-only">{T.tkSearch}</span>
@@ -335,21 +347,31 @@ export function Tasks({ view: asked }: { view?: string }) {
               </select>
             </label>
           </header>
-          {view !== 'completed' && (
+          {filter && <div className="tk-done-bar"><button className="btn ghost" onClick={() => setEditingFilter(filter)}>{T.tkFilterEdit}</button><button className="btn ghost" onClick={() => { update((b) => ({ ...b, filters: b.filters?.filter((f) => f.id !== filter.id) })); go('all'); }}>{T.tkDeleteAll}</button>{[-1, 1].map((delta) => <button key={delta} className="btn ghost" onClick={() => update((b) => { const filters = [...(b.filters ?? [])]; const i = filters.findIndex((f) => f.id === filter.id), j = i + delta; if (j >= 0 && j < filters.length) [filters[i], filters[j]] = [filters[j], filters[i]]; return { ...b, filters }; })}>{delta < 0 ? T.tkFilterUp : T.tkFilterDown}</button>)}</div>}
+          {editingFilter && <form className="panel tk-filter-form" onSubmit={(e) => { e.preventDefault(); const f = { ...editingFilter, name: editingFilter.name.trim() }; if (!f.name) return; update((b) => ({ ...b, filters: b.filters?.some((x) => x.id === f.id) ? b.filters.map((x) => x.id === f.id ? f : x) : [...(b.filters ?? []), f] })); setEditingFilter(null); go(f.id); }}>
+            <label>{T.tkRename}<input className="input" required value={editingFilter.name} onChange={(e) => setEditingFilter({ ...editingFilter, name: e.target.value })} /></label>
+            {(['list', 'tag', 'priority', 'date', 'status'] as const).map((key) => <label key={key}>{({ list: T.tkList, tag: T.tkTags, priority: T.tkPriority, date: T.tkDue, status: T.tkFilterStatus })[key]}<select aria-label={({ list: T.tkList, tag: T.tkTags, priority: T.tkPriority, date: T.tkDue, status: T.tkFilterStatus })[key]} className="input" value={editingFilter[key] ?? ''} onChange={(e) => setEditingFilter({ ...editingFilter, [key]: e.target.value })}>
+              {key === 'status' ? <><option value="">{T.tkFilterOpen}</option><option value="completed">{T.tkViews.completed}</option></> : <><option value="">{T.tkFilterAny}</option>{(key === 'list' ? lists.map((l) => [l.id, l.name]) : key === 'tag' ? allTags.map((g) => [g, g]) : key === 'priority' ? ['1','5','9'].map((v) => [v,v]) : [['today',T.todayBtn],['week',T.tkFilterWeek],['late',T.tkFilterLate],['none',T.tkNoDue],['range',T.tkFilterRange]]).map(([v,n]) => <option key={v} value={v}>{n}</option>)}</>}
+            </select></label>)}
+            {editingFilter.date === 'range' && <>{(['from','to'] as const).map((key) => <label key={key}>{T.tkFilterRange}<input type="date" className="input" value={editingFilter[key] ?? ''} onChange={(e) => setEditingFilter({ ...editingFilter, [key]: e.target.value })} /></label>)}</>}
+            <button className="btn" type="submit">{T.tkFilterSave}</button><button className="btn ghost" type="button" onClick={() => setEditingFilter(null)}>{T.tkClose}</button>
+          </form>}
+          {view !== 'trash' && view !== 'completed' && (
             <form className="tk-add" onSubmit={(e) => { e.preventDefault(); const t = draft.trim(); if (t) { add(t); setDraft(''); setSmartAdd(true); } }}>
               <label htmlFor="tk-new" className="sr-only">{isList ? T.tkAddPh(viewName) : T.tkAddPhAny}</label>
               <input id="tk-new" ref={addInput} className="input" autoComplete="off" aria-describedby="tk-add-help" placeholder={isList ? T.tkAddPh(viewName) : T.tkAddPhAny} value={draft} onChange={(e) => setDraft(e.target.value)} onKeyDown={(e) => { if (e.key === 'Escape') { setDraft(''); setSmartAdd(true); e.currentTarget.blur(); } }} />
               <button type="submit" className="btn primary" disabled={!draft.trim()}>{T.tkAdd}</button>
             </form>
           )}
-          {view !== 'completed' && <div id="tk-add-help" className="muted tk-quick-help">
+          {view !== 'trash' && view !== 'completed' && <div id="tk-add-help" className="muted tk-quick-help">
             {draft.trim() && parsedDraft.text !== draft.trim() ? <>
               <span role="status">{T.tkDetected}: {parsedDraft.text} · {[parsedDraft.due, parsedDraft.dueTime, parsedDraft.list && lists.find((l) => l.id === parsedDraft.list)?.name, parsedDraft.priority && `${T.tkPriority} ${parsedDraft.priority}`, parsedDraft.tags?.map((g) => `@${g}`).join(' '), parsedDraft.repeat && recurWords(T, parsedDraft.repeat)].filter(Boolean).join(' · ')}</span>{' '}
               <button type="button" className="card-link quiet" onClick={() => setSmartAdd(false)}>{T.tkLiteral}</button>
             </> : <span>{T.tkQuickHelp}</span>}
           </div>}
+          {view === 'trash' && <><p className="muted">{T.tkTrashHelp}</p><button className="btn ghost" onClick={() => { if (window.confirm(T.tkPurgeConfirm)) update((b) => ({ ...b, trash: [] })); }}>{T.tkEmptyTrash}</button><ul className="tk-list">{doc?.trash?.map(({ item: t }) => <li key={t.id} className="tk-row"><span className="tk-title">{t.text}</span><button className="btn ghost" onClick={() => update((b) => restoreTasks(b, [t.id]))}>{T.tkRestore}</button><button className="btn ghost" onClick={() => { if (window.confirm(T.tkPurgeConfirm)) update((b) => ({ ...b, trash: b.trash?.filter((x) => x.item.id !== t.id) })); }}>{T.tkPurge}</button></li>)}</ul></>}
           {shown.length > 0 && <ul className="tk-list">{shown.map(row)}</ul>}
-          {doc && shown.length === 0 && <p className="muted tk-empty">{q.trim() ? T.tkNoMatch : T.tkEmpty[view as keyof typeof T.tkEmpty] ?? T.tkEmpty.list}</p>}
+          {view !== 'trash' && doc && shown.length === 0 && <p className="muted tk-empty">{q.trim() ? T.tkNoMatch : T.tkEmpty[view as keyof typeof T.tkEmpty] ?? T.tkEmpty.list}</p>}
           {(doneHere.length > 0 || (view === 'completed' && shown.length > 0)) && (
             <div className="tk-done-bar">
               {view !== 'completed' && <button type="button" className="card-link quiet" aria-expanded={showDone} onClick={() => setShowDone(!showDone)}>{T.tkCompletedN(doneHere.length, showDone)}</button>}
@@ -363,6 +385,11 @@ export function Tasks({ view: asked }: { view?: string }) {
               <span className="num tk-bulk-n">{T.tkPickedN(picked.length)}</span>
               <button type="button" className="card-link quiet" onClick={() => setSel(picked.length === shown.length ? new Set() : new Set(shown.map((t) => t.id)))}>{picked.length === shown.length && shown.length ? T.tkPickNone : T.tkPickAll}</button>
               <span className="tk-bulk-acts" aria-disabled={!picked.length}>
+                <button className="btn" disabled={!picked.length || planning} onClick={() => planPicked(today())}>{T.tkPlanToday}</button>
+                <button className="btn" disabled={!picked.length || planning} onClick={() => planPicked(addDays(today(), 1))}>{T.tkPlanTomorrow}</button>
+                <input type="date" className="input" aria-label={T.tkPlanDate} value={planDate} onChange={(e) => setPlanDate(e.target.value)} />
+                <button className="btn" disabled={!picked.length || planning || !planDate} onClick={() => planPicked(planDate)}>{T.tkPlanDate}</button>
+                {planError && <span role="alert">{T.tkPlanError}</span>}
                 <select className="input" value="" disabled={!picked.length} aria-label={T.tkMoveTo} onChange={(e) => { const v = e.target.value; if (v) bulk(() => ({ list: v === DEFAULT_LIST ? undefined : v }), T.tkMovedN(picked.length, lists.find((l) => l.id === v)!.name)); }}>
                   <option value="">{T.tkMoveTo}</option>
                   {lists.map((l) => <option key={l.id} value={l.id}>{l.name}</option>)}
@@ -412,10 +439,10 @@ function ListsPart({ lists, view, count, go, doc, update, target }: {
   const setList = (id: string, p: Partial<TaskList>) => update((d) => ({ ...d, lists: (d.lists ?? []).map((l) => (l.id === id ? { ...l, ...p } : l)) }));
   const drop = (l: TaskList) => {
     const before = doc!;
-    update((d) => ({ ...d, lists: (d.lists ?? []).filter((x) => x.id !== l.id), items: d.items.filter((t) => listOf(t) !== l.id) }));
+    update((d) => ({ ...trashTasks(d, d.items.filter((t) => listOf(t) === l.id).map((t) => t.id)), lists: (d.lists ?? []).filter((x) => x.id !== l.id) }));
     setMenu(null);
     if (view === l.id) go('all');
-    offerUndo(T.tkListDeleted(l.name), () => update((d) => ({ ...d, lists: before.lists, items: [...d.items, ...before.items.filter((t) => listOf(t) === l.id)] })));
+    offerUndo(T.tkListDeleted(l.name), () => update((d) => ({ ...d, ...restoreTasks(d, before.items.filter((t) => listOf(t) === l.id).map((t) => t.id)), lists: before.lists, items: [...d.items, ...before.items.filter((t) => listOf(t) === l.id)] })));
   };
   return (
     <>
