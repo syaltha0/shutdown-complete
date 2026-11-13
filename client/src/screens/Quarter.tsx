@@ -34,7 +34,7 @@ export function Quarter({ id }: { id: string }) {
     <>
       <div className="title-row">
         <div>
-          <h1>{T.quarterTitle(qq, yy)}</h1>
+          <h1>{T.quarterTitle(qq, yy)}</h1><a className="card-link" href={`/year/${yy}`} onClick={onLinkClick}>{T.year.title} {yy}</a>
           <p className="sub num">
             {rangeLabel(from, to)}
             {idx >= 0 && <> · <strong>{T.weekOfN(idx + 1, weeks.length)}</strong></>}

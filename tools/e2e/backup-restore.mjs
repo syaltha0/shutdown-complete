@@ -42,6 +42,7 @@ try {
   const feed = ok(await a.call('/api/account/calendar-feed', { timezone: 'Europe/Istanbul', tasks: true }));
   const settings = (await a.get('settings')).value;
   await a.put('settings', { ...settings, calendars: [{ id: 'subscription', name: 'Calendar', url: remote.url + '/calendar.ics' }] });
+  await a.put('year:2026', {good:'Steady work',change:'More rest'});
   await a.put('inbox', { lists: [{ id: 'inbox', name: 'Inbox' }], items: [{ id: 'keep', text: 'Keep me', done: false }], trash: [{ item: { id: 'trash', text: 'Recover me' }, deletedAt: new Date().toISOString() }], filters: [{ id: 'filter', name: 'Saved', query: 'Keep' }] });
   await a.put('boards', { boards: [{ id: 'board', name: 'Project', columns: [{ id: 'todo', name: 'To do', items: [{ id: 'card', text: 'Card' }] }] }] });
   const secret = ok(await b.call('/api/account/totp/start', {})).secret;

@@ -49,7 +49,7 @@ db.sessions.prune();
 setInterval(() => db.sessions.prune(), 3600_000).unref();
 
 // Keys an account may store.
-const KEY = /^(day:\d{4}-\d{2}-\d{2}|week:\d{4}-W\d{2}|month:\d{4}-\d{2}|quarter:\d{4}-Q[1-4]|settings|inbox|boards)$/;
+const KEY = /^(day:\d{4}-\d{2}-\d{2}|week:\d{4}-W\d{2}|month:\d{4}-\d{2}|quarter:\d{4}-Q[1-4]|year:\d{4}|settings|inbox|boards)$/;
 
 // Who may create an account: anyone ('open'), anyone but the owner approves each new account ('approve'), only
 // people with an invite link ('invite'), or nobody ('closed'). An invite link works in every mode but 'closed', and
