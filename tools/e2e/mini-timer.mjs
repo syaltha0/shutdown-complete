@@ -74,7 +74,7 @@ try {
    };
    const at=async(c)=>{
     const r=await root.boundingBox(),W=await p.evaluate(()=>innerWidth),H=await p.evaluate(()=>innerHeight);
-    const v=c[0]==='t'?Math.abs(r.y-24)<=3:Math.abs(r.y+r.height-(H-24))<=3, h=c[1]==='l'?Math.abs(r.x-24)<=3:Math.abs(r.x+r.width-(W-24))<=3;
+    const v=c[0]==='t'?Math.abs(r.y-24)<=3:Math.abs(r.y+r.height-(H-24))<=3, h=c[1]==='l'?Math.abs(r.x-80)<=3:Math.abs(r.x+r.width-(W-24))<=3;
     return v&&h;
    };
    const lc=lang==='en'?'EN':'TR';
@@ -131,6 +131,64 @@ try {
    check('phone: dragged back to the bottom, above the tab bar',(await stored()).startsWith('b')&&pr.y+pr.height<=800-64);
    await p.setViewportSize({width:1440,height:900});
    await p.evaluate(()=>localStorage.removeItem('sc-mini-corner'));await p.reload();await root.waitFor();
+  }
+  // --- minimize: only the phase ring stays; hover, focus or a tap brings the whole card back ---
+  {
+   await p.setViewportSize({width:1440,height:900});
+   await seed('focus');
+   await p.evaluate(()=>{localStorage.removeItem('sc-mini-corner');localStorage.removeItem('sc-mini-compact');});
+   const root=p.locator('.mini-timer'), trigger=root.locator('.mt-trigger');
+   const flag=()=>p.evaluate(()=>localStorage.getItem('sc-mini-compact'));
+   const size=async()=>{const r=await root.boundingBox();return {w:Math.round(r.width),h:Math.round(r.height),right:Math.round(r.x+r.width),bottom:Math.round(r.y+r.height)};};
+   await trigger.hover();
+   await p.locator('.mt-compact').click();
+   await p.mouse.move(700,450);
+   check('minimize: 44 px circle in the corner it was in',JSON.stringify(await size())==='{"w":44,"h":44,"right":1416,"bottom":876}');
+   check('minimize: remembered on this device',await flag()==='1');
+   check('minimize: no number or pause button, ring stays',!(await p.locator('.mt-pause').isVisible())&&!(await root.locator('.mt-trigger b').isVisible())&&await root.locator('svg.ring').isVisible());
+   const name=await trigger.getAttribute('aria-label');
+   check('minimize: the name says the time left to the minute',/\d+ (min left|dk kald)/.test(name||''));
+   const phase=await root.evaluate(e=>e.className);
+   check('minimize: ring keeps the phase colour class',/phase-focus/.test(phase));
+   await p.screenshot({path:`${dir}/${lang}-compact-closed.png`});
+   await p.reload();await root.waitFor();
+   check('minimize: survives a reload',(await size()).w===44);
+   await trigger.hover();
+   check('hover brings the full card back (300 px)',(await size()).w===300&&await trigger.getAttribute('aria-expanded')==='true');
+   await p.screenshot({path:`${dir}/${lang}-compact-open.png`});
+   await p.mouse.move(700,450);
+   check('leaving shrinks it again',(await size()).w===44);
+   await trigger.focus();
+   check('keyboard focus opens it',(await size()).w===300&&await trigger.getAttribute('aria-expanded')==='true');
+   await p.keyboard.press('Escape');
+   check('Escape shrinks it back',(await size()).w===44);
+   await p.locator('body').click({position:{x:2,y:2}});
+   await trigger.tap();
+   check('a tap opens it',(await size()).w===300);
+   await p.locator('body').tap({position:{x:2,y:2}});
+   check('a tap outside shrinks it',(await size()).w===44);
+   // the circle drags like the card does
+   const c0=await trigger.boundingBox();await p.mouse.move(c0.x+22,c0.y+22);
+   const r=await trigger.boundingBox();const sx=r.x+r.width/2,sy=r.y+r.height/2;
+   await p.mouse.move(sx,sy);await p.mouse.down();for(let i=1;i<=6;i++) await p.mouse.move(sx-1200*i/6,sy-700*i/6);await p.mouse.up();
+   await p.mouse.move(700,450);
+   const moved=await size();
+   check('the circle drags to another corner',(await p.evaluate(()=>localStorage.getItem('sc-mini-corner')))==='tl'&&moved.w===44&&moved.right===124);
+   // a phone: the circle sits at the right edge; open it is full width
+   await p.setViewportSize({width:390,height:800});await p.evaluate(()=>localStorage.setItem('sc-mini-corner','br'));await p.reload();await root.waitFor();
+   const pc=await root.boundingBox();
+   check('phone: circle at the right edge, above the tab bar',Math.round(pc.width)===44&&Math.round(pc.x+pc.width)===378&&pc.y+pc.height<=800-64);
+   await p.screenshot({path:`${dir}/${lang}-phone-compact.png`});
+   await trigger.tap();
+   const po=await root.boundingBox();
+   check('phone: tapping it opens the full card',Math.round(po.width)===366&&po.x>=11);
+   await p.screenshot({path:`${dir}/${lang}-phone-compact-open.png`});
+   await p.locator('body').tap({position:{x:2,y:200}});
+   // and back to the full card for good
+   await p.setViewportSize({width:1440,height:900});await p.reload();await root.waitFor();
+   await trigger.hover();await p.locator('.mt-compact').click();await p.mouse.move(700,450);
+   check('"keep expanded" returns the full card',(await size()).w===300&&await flag()===null);
+   await p.evaluate(()=>{localStorage.removeItem('sc-mini-corner');localStorage.removeItem('sc-mini-compact');});await p.reload();await root.waitFor();
   }
   //__MORE__
   await c.close();

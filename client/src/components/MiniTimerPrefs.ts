@@ -14,6 +14,12 @@ export function readCorner(): Corner {
 }
 export function saveCorner(c: Corner) { try { localStorage.setItem(CORNER_KEY, c); } catch { /* storage unavailable */ } }
 
+const COMPACT_KEY = 'sc-mini-compact';
+export function readCompact(): boolean {
+  try { return localStorage.getItem(COMPACT_KEY) === '1'; } catch { return false; }
+}
+export function saveCompact(on: boolean) { try { if (on) localStorage.setItem(COMPACT_KEY, '1'); else localStorage.removeItem(COMPACT_KEY); } catch { /* storage unavailable */ } }
+
 /** The corner a dropped timer settles in: the one nearest its centre. Phones only choose top or bottom. */
 export function nearestCorner(cx: number, cy: number, w: number, h: number, phone: boolean, side: 'l' | 'r'): Corner {
   const v = cy < h / 2 ? 't' : 'b';

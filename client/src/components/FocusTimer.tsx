@@ -9,7 +9,7 @@ import { type FocusActive, featureOn } from '../lib/model';
 import { onLinkClick, usePath } from '../lib/router';
 import { ambientPlaying, stopAmbient } from '../lib/ambient';
 import { api } from '../lib/api';
-import { type Corner, nearestCorner, nextCorner, readCorner, reducedMotion, saveCorner, usePhone } from './MiniTimerPrefs';
+import { type Corner, nearestCorner, nextCorner, readCompact, readCorner, reducedMotion, saveCompact, saveCorner, usePhone } from './MiniTimerPrefs';
 
 /** Ticks once a second while a timer runs. */
 export function useTick(on: boolean) {
@@ -135,6 +135,7 @@ function FocusMiniPanel({ a, docKey, count }: { a: FocusActive; docKey: string; 
   const [open, setOpen] = useState(false);
   const [corner, setCorner] = useState<Corner>(readCorner);
   const [dragging, setDragging] = useState(false);
+  const [compact, setCompact] = useState(readCompact);
   const phone = usePhone();
   const root = useRef<HTMLDivElement>(null);
   const trigger = useRef<HTMLButtonElement>(null);
@@ -163,6 +164,10 @@ function FocusMiniPanel({ a, docKey, count }: { a: FocusActive; docKey: string; 
   const nextMin = next === 'focus' ? f.focusMin : next === 'long' ? f.longMin : a.breakMin ?? f.shortMin;
   const end = new Date(Date.now() + left * 1000).toLocaleTimeString(T.locale, { hour: '2-digit', minute: '2-digit' });
   const togglePause = () => a.pausedLeft == null ? pauseFocus(docKey) : resumeFocus(docKey);
+  const shrink = (on: boolean) => {
+    setCompact(on); saveCompact(on);
+    if (on) { suppressed.current = true; trigger.current?.focus(); setOpen(false); }
+  };
   const place = (c: Corner) => { setCorner(c); saveCorner(c); };
 
   // drag the pill row to another corner: a press that moves 6 px is a drag, anything less stays a click
@@ -216,12 +221,13 @@ function FocusMiniPanel({ a, docKey, count }: { a: FocusActive; docKey: string; 
         </div>
         <div className="mt-tools">
           <button type="button" className="btn sm ghost mt-corner" onClick={() => place(nextCorner(corner, phone))}>{T.miniCorner}</button>
+          <button type="button" className="btn sm ghost mt-compact" onClick={() => shrink(!compact)}>{compact ? T.miniExpand : T.miniShrink}</button>
         </div>
       </div></div>
     </section>
   );
   const atTop = corner[0] === 't';
-  return <div ref={root} className={`mini-timer phase-${a.phase}`} data-open={open} data-v={atTop ? 'top' : 'bottom'} data-h={corner[1] === 'l' ? 'left' : 'right'} data-dragging={dragging}
+  return <div ref={root} className={`mini-timer phase-${a.phase}`} data-open={open} data-v={atTop ? 'top' : 'bottom'} data-h={corner[1] === 'l' ? 'left' : 'right'} data-dragging={dragging} data-compact={compact}
     onPointerEnter={e => { if (e.pointerType === 'mouse' && !press.current?.moved) { suppressed.current = false; setOpen(true); } }}
     onPointerLeave={e => { if (e.pointerType === 'mouse' && !root.current?.contains(document.activeElement)) setOpen(false); }}
     onFocus={() => { if (!suppressed.current) setOpen(true); }}
@@ -232,7 +238,9 @@ function FocusMiniPanel({ a, docKey, count }: { a: FocusActive; docKey: string; 
     <div className="mt-row" onPointerDown={onRowDown}
       onClickCapture={e => { if (justDragged.current) { e.preventDefault(); e.stopPropagation(); } }}>
       <Ring a={a} size={36} stroke={4} />
+      {/* shrunk to a ring, the name carries the time left to the minute, so a screen reader is not read the clock every second */}
       <button ref={trigger} type="button" className="mt-text mt-trigger" aria-expanded={open} aria-controls="mini-focus-details"
+        aria-label={compact && !open ? T.miniAria(a.phase === 'focus' ? a.label || T.freeFocus : T.phase[a.phase], Math.ceil(left / 60), a.pausedLeft != null) : undefined}
         onClick={() => { suppressed.current = false; setOpen(true); }}>
         <b className="num">{mmss(left)}</b><span>{a.label || T.freeFocus}</span>
       </button>

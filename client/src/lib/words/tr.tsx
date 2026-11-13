@@ -354,7 +354,7 @@ export const tr: Words = {
   intentLabel: 'Niyet', intentPh: 'Ne üzerinde çalışacaksın? (isteğe bağlı)',
   breakLabel: 'Mola', lengthCustom: 'Özel', customMin: 'Özel süre (dakika)', plusFive: '+5 dk',
   noteLabel: 'Oturum notu', sessionNotePh: 'Nasıl geçti? (isteğe bağlı)',
-  miniCorner: 'Başka köşeye taşı', miniGoFocus: 'Oda\u011fa git', miniPaused: 'Duraklat\u0131ld\u0131', miniEnds: (time) => `${time}\u2019te biter`, miniNext: (phase, min) => `S\u0131radaki: ${phase} \u00b7 ${min} dk`,
+  miniShrink: 'Küçült', miniExpand: 'Açık tut', miniAria: (what, min, paused) => `${what}, ${min} dk kaldı${paused ? ', duraklatıldı' : ''}`, miniCorner: 'Başka köşeye taşı', miniGoFocus: 'Oda\u011fa git', miniPaused: 'Duraklat\u0131ld\u0131', miniEnds: (time) => `${time}\u2019te biter`, miniNext: (phase, min) => `S\u0131radaki: ${phase} \u00b7 ${min} dk`,
   sessionN: (n, of) => `Oturum ${n}/${of}`,
   minShort: (n) => `${n} dk`,
   focusRow: (n, d) => `${n} oturum · ${d}`,
