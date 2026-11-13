@@ -50,7 +50,7 @@ try {
   check('extend persisted',(await api.get(key)).value.focus.active.plannedMin===30);
   await pause.click();await p.waitForTimeout(800);
   check('resume persisted',(await api.get(key)).value.focus.active.pausedLeft===null);
-  await panel.locator('button').nth(1).click();await p.waitForTimeout(800);
+  await panel.locator('button').nth(1).click();await p.locator('.mini-timer .skip-choice button').first().click();await p.waitForTimeout(800);
   check('finish enters break',(await api.get(key)).value.focus.active.phase==='short');
   await panel.locator('button').nth(1).click();await p.waitForTimeout(800);
   check('skip ends break',(await api.get(key)).value.focus.active===null);
@@ -203,6 +203,7 @@ try {
    check('no cue while nothing changes',!/mt-flash/.test(calm.cls)&&calm.name==='none');
    await q.locator('.mt-trigger').hover();
    await q.locator('.mt-panel button').nth(1).click();
+   await q.locator('.mini-timer .skip-choice button').first().click();
    await q.locator('.mini-timer.mt-flash').waitFor({timeout:3000});
    await q.mouse.move(700,450);await q.waitForTimeout(450);
    const mid=await flashOf(q);
@@ -218,12 +219,12 @@ try {
    check('a reload mid-break shows no cue',!/mt-flash/.test((await flashOf(q)).cls));
    // reduced motion (the system setting, via the context; and the app's own setting, via data-motion)
    await api.put(key,live);await p.goto(s.url+'/');await p.locator('.mini-timer').waitFor();
-   await p.locator('.mt-trigger').hover();await p.locator('.mt-panel button').nth(1).click();await p.waitForTimeout(500);
+   await p.locator('.mt-trigger').hover();await p.locator('.mt-panel button').nth(1).click();await p.locator('.mini-timer .skip-choice button').first().click();await p.waitForTimeout(500);
    const red=await flashOf(p);
    check('reduced motion (system): no cue',!/mt-flash/.test(red.cls)&&red.name==='none');
    await api.put(key,live);await q.reload();await q.locator('.mini-timer').waitFor();
    await q.evaluate(()=>{document.documentElement.dataset.motion='reduce';});
-   await q.locator('.mt-trigger').hover();await q.locator('.mt-panel button').nth(1).click();await q.waitForTimeout(500);
+   await q.locator('.mt-trigger').hover();await q.locator('.mt-panel button').nth(1).click();await q.locator('.mini-timer .skip-choice button').first().click();await q.waitForTimeout(500);
    const red2=await flashOf(q);
    check('reduced motion (app setting): no cue',!/mt-flash/.test(red2.cls)&&red2.name==='none');
    await c2.close();

@@ -3,7 +3,7 @@
 // focus metric (Deep work, in hours) so the daily metrics fill themselves in.
 import { addDays, today } from './dates';
 import {
-  defaultFocus, emptyDay, emptyInbox, uid, type DayDoc, type InboxDoc, type FocusActive, type FocusPhase, type FocusSettings, type Kind, type Settings,
+  defaultFocus, emptyDay, emptyInbox, uid, type DayDoc, type InboxDoc, type FocusActive, type FocusSession, type FocusPhase, type FocusSettings, type Kind, type Settings,
 } from './model';
 import { refreshKey, updateKey, useDoc } from './useDoc';
 import { showNotification } from './pwa';
@@ -83,6 +83,17 @@ export function extendFocus(min = 5, key = dayKey()) {
   });
 }
 
+/** A skipped focus phase that ran no longer than this is dropped without asking and without counting. */
+export const SKIP_FREE_SEC = 30;
+/** What a skipped focus phase counts for: the time run so far, the whole planned session, or nothing. */
+export type SkipCount = 'elapsed' | 'full' | 'none';
+
+/** What skipping the running phase needs: a break (or a focus phase within its first seconds) goes at once, a longer focus phase asks. */
+export function skipPlan(a: FocusActive, now = Date.now()) {
+  const ran = a.plannedMin * 60 - secondsLeft(a, now);
+  return { ask: a.phase === 'focus' && ran > SKIP_FREE_SEC, elapsedMin: Math.max(1, Math.round(ran / 60)), fullMin: a.plannedMin, count: (a.phase === 'focus' && ran <= SKIP_FREE_SEC ? 'none' : 'elapsed') as SkipCount };
+}
+
 /** Writes (or clears) the short note on a logged session. */
 export const NOTE_MAX = 280, INTENT_MAX = 140;
 
@@ -108,9 +119,9 @@ export function cancelFocus(key = dayKey()) {
  * `startedAt` names the phase the caller saw: if it has changed since (a second click, another device), nothing
  * happens, so a double click on "Finish now" cannot also skip the break it started.
  */
-export async function finishPhase(settings: Settings, early = false, opts: { key?: string; startedAt?: string } = {}): Promise<'logged' | 'break-over' | 'none'> {
+export async function finishPhase(settings: Settings, early = false, opts: { key?: string; startedAt?: string; count?: SkipCount } = {}): Promise<'logged' | 'skipped' | 'break-over' | 'none'> {
   const f = settingsFocus(settings);
-  let result: 'logged' | 'break-over' | 'none' = 'none';
+  let result: 'logged' | 'skipped' | 'break-over' | 'none' = 'none';
   let toList: { id: string; minutes: number } | null = null;
   await updateKey<DayDoc>(opts.key ?? dayKey(), emptyDay, (d) => {
     const x = withFocus(d);
@@ -120,31 +131,37 @@ export async function finishPhase(settings: Settings, early = false, opts: { key
     const left = secondsLeft(a);
     if (!early && left > 0) return d; // not finished yet (another device may have resumed or extended it)
     if (a.phase !== 'focus') { result = 'break-over'; return { ...x, focus: { ...x.focus, active: !early && f.autoFocus ? { phase: 'focus', startedAt: new Date().toISOString(), plannedMin: f.focusMin, pausedLeft: null, blockId: a.blockId, label: a.label, ...(a.task ? { task: a.task } : {}) } : null } }; }
-    const minutes = Math.round((a.plannedMin * 60 - left) / 60);
-    if (minutes < 1) return { ...x, focus: { ...x.focus, active: null } };
+    // what counts: the time run so far (default), the whole planned session, or nothing (a skip within the first seconds)
+    const count = opts.count ?? 'elapsed';
+    const minutes = count === 'none' ? 0 : count === 'full' ? a.plannedMin : Math.round((a.plannedMin * 60 - left) / 60);
+    if (minutes < 1 && count !== 'none') return { ...x, focus: { ...x.focus, active: null } };
     const block = x.columns.flatMap((c) => c.blocks).find((b) => b.id === a.blockId);
     const kind: Kind | null = block?.kind ?? null;
-    // a phase that ran out while the tab slept (or the laptop was shut) ended at its planned time, not now
-    const plannedEnd = Date.parse(a.startedAt) + a.plannedMin * 60_000;
-    const end = new Date(a.pausedLeft == null && left === 0 && plannedEnd < Date.now() ? plannedEnd : Date.now());
-    const session = { id: uid(), blockId: a.blockId, label: a.label, kind, subject: block?.subject, start: new Date(end.getTime() - minutes * 60000).toISOString(), end: end.toISOString(), minutes, ...(a.task ? { taskId: a.task.id, taskText: a.task.text } : {}), ...(a.intent ? { intent: a.intent } : {}) };
-    // the minutes add up on the task worked on: a day's task here, a listed one in the lists below
-    const tasks = a.task?.day ? x.tasks.map((t) => (t.id === a.task!.id ? { ...t, spent: (t.spent ?? 0) + minutes } : t)) : x.tasks;
-    if (a.task && !a.task.day) toList = { id: a.task.id, minutes };
-    const sessions = [...x.focus.sessions, session];
-    let metrics = x.metrics;
-    const def = settings.metrics.find((m) => m.id === f.metricId && m.kind === 'number');
-    if (def && kind === 'deep') {
-      const prev = typeof metrics[def.id] === 'number' ? (metrics[def.id] as number) : 0;
-      metrics = { ...metrics, [def.id]: Math.round((prev + minutes / 60) * 100) / 100 };
+    let sessions = x.focus.sessions, tasks = x.tasks, metrics = x.metrics, session: FocusSession | null = null;
+    if (minutes >= 1) {
+      // a phase that ran out while the tab slept (or the laptop was shut) ended at its planned time, not now
+      const plannedEnd = Date.parse(a.startedAt) + a.plannedMin * 60_000;
+      const stop = new Date(a.pausedLeft == null && left === 0 && plannedEnd < Date.now() ? plannedEnd : Date.now());
+      session = { id: uid(), blockId: a.blockId, label: a.label, kind, subject: block?.subject, start: new Date(stop.getTime() - minutes * 60000).toISOString(), end: stop.toISOString(), minutes, ...(a.task ? { taskId: a.task.id, taskText: a.task.text } : {}), ...(a.intent ? { intent: a.intent } : {}) };
+      // the minutes add up on the task worked on: a day's task here, a listed one in the lists below
+      tasks = a.task?.day ? x.tasks.map((t) => (t.id === a.task!.id ? { ...t, spent: (t.spent ?? 0) + minutes } : t)) : x.tasks;
+      if (a.task && !a.task.day) toList = { id: a.task.id, minutes };
+      sessions = [...sessions, session];
+      const def = settings.metrics.find((m) => m.id === f.metricId && m.kind === 'number');
+      if (def && kind === 'deep') {
+        const prev = typeof metrics[def.id] === 'number' ? (metrics[def.id] as number) : 0;
+        metrics = { ...metrics, [def.id]: Math.round((prev + minutes / 60) * 100) / 100 };
+      }
     }
-    const long = sessions.length % Math.max(1, f.longEvery) === 0;
-    result = 'logged';
+    const end = session ? new Date(session.end) : new Date();
+    // a session that was not counted adds nothing to the cycle, so the break after it is a short one
+    const long = !!session && sessions.length % Math.max(1, f.longEvery) === 0;
+    result = session ? 'logged' : 'skipped';
     return {
       ...x, metrics, tasks,
-      focus: { sessions, active: {
+      focus: { ...x.focus, sessions, active: {
         phase: long ? 'long' : 'short', startedAt: end.toISOString(), plannedMin: long ? f.longMin : (a.breakMin ?? f.shortMin),
-        pausedLeft: f.autoBreak === false ? (long ? f.longMin : (a.breakMin ?? f.shortMin)) * 60 : null, blockId: a.blockId, label: a.label, sessionId: session.id, ...(a.task ? { task: a.task } : {}),
+        pausedLeft: f.autoBreak === false ? (long ? f.longMin : (a.breakMin ?? f.shortMin)) * 60 : null, blockId: a.blockId, label: a.label, ...(session ? { sessionId: session.id } : {}), ...(a.task ? { task: a.task } : {}),
       } },
     };
   });

@@ -2,11 +2,12 @@ import { useEffect, useRef, useState } from 'react';
 import { useSettings } from '../App';
 import { AMBIENTS, ambientPlaying, ambientPref, onAmbient, playAmbient, setAmbientVolume, type Ambient } from '../lib/ambient';
 import { today } from '../lib/dates';
-import { cancelFocus, chime, extendFocus, finishPhase, MAX_PLANNED, mmss, pauseFocus, resumeFocus, resetFocus, secondsLeft, settingsFocus, startFocus, useFocusDay } from '../lib/focus';
+import { cancelFocus, extendFocus, finishPhase, MAX_PLANNED, mmss, pauseFocus, resumeFocus, resetFocus, secondsLeft, settingsFocus, startFocus, useFocusDay } from '../lib/focus';
 import { useT } from '../lib/i18n';
 import { emptyDay, uid, type DayDoc } from '../lib/model';
 import { useDoc } from '../lib/useDoc';
 import { Ring, useTick } from './FocusTimer';
+import { SkipChoice, useSkip } from './SkipChoice';
 import { IconX } from './Icons';
 import { fill } from './FocusConfig';
 import { useSocial } from '../lib/social';
@@ -28,6 +29,7 @@ export function FocusRoom({ start, onClose }: { start: { blockId: string | null;
   const [tasksOpen, setTasksOpen] = useState(false);
   const [draft, setDraft] = useState('');
   const [pickedTask, setPickedTask] = useState(start.task);
+  const skip = useSkip(a, key);
   const social = useSocial(true);
   const together = a?.roomId && social?.room?.id === a.roomId ? social.room.people : [];
   // a modal: keyboard focus moves into the room and goes back to where it was on leaving
@@ -46,7 +48,7 @@ export function FocusRoom({ start, onClose }: { start: { blockId: string | null;
         const k = e.key.toLowerCase();
         if (k === '+' || k === '=') { e.preventDefault(); void extendFocus(5, key); }
         if (!(f.strict && a.phase === 'focus')) {
-          if (k === 's') { e.preventDefault(); void finish(); }
+          if (k === 's') { e.preventDefault(); skip.request(); }
           if (k === 'r' && !a.roomId) { e.preventDefault(); void resetFocus(key); }
         }
       }
@@ -80,12 +82,6 @@ export function FocusRoom({ start, onClose }: { start: { blockId: string | null;
     setSound(s);
     playAmbient(s, volume);
   }
-  async function finish() {
-    if (!a || (f.strict && a.phase === 'focus')) return;
-    const r = await finishPhase(settings, true, { key, startedAt: a.startedAt });
-    if (r !== 'none' && f.sound) chime(f);
-  }
-
   async function focusTask(task: { id: string; text: string }) {
     const ref = {...task, day: true};
     setPickedTask(ref);
@@ -122,13 +118,12 @@ export function FocusRoom({ start, onClose }: { start: { blockId: string | null;
                 ? <button type="button" className="btn primary" disabled={!!f.strict && a.phase === 'focus'} onClick={() => pauseFocus(key)}>{T.pause}</button>
                 : <button type="button" className="btn primary" disabled={!!f.strict && a.phase === 'focus'} onClick={() => resumeFocus(key)}>{T.resume}</button>}
               <button type="button" className="btn num" disabled={a.plannedMin >= MAX_PLANNED} onClick={() => extendFocus(5, key)}>{T.plusFive}</button>
-              {a.phase === 'focus'
-                ? <button type="button" className="btn" disabled={!!f.strict && a.phase === 'focus'} onClick={finish}>{T.finishNow}</button>
-                : <button type="button" className="btn primary" onClick={finish}>{T.skipBreak}</button>}
+              <button type="button" className={`btn${a.phase === 'focus' ? '' : ' primary'}`} disabled={skip.locked} onClick={skip.request}>{T.skip}</button>
               <button type="button" className="btn ghost" disabled={!!f.strict && a.phase === 'focus'} onClick={() => cancelFocus(key)}>{T.stop}</button>
             </>
           )}
         </div>
+        {skip.asking && a && <SkipChoice a={a} skip={skip} />}
         <div className="room-sound">
           <span className="label" id="room-sound">{T.ambientLabel}</span>
           <div className="sound-pick" role="group" aria-labelledby="room-sound">

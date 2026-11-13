@@ -5,10 +5,11 @@ import type { FocusPhase } from '../lib/model';
 import { useSettings } from '../App';
 import { DocNotice, SaveStamp } from '../components/Common';
 import { Ring, useTick } from '../components/FocusTimer';
+import { SkipChoice, useSkip } from '../components/SkipChoice';
 import { addDays, clock, duration, nowMinutes, shortDate, today } from '../lib/dates';
 import { Chart, themeColor } from '../components/Chart';
 import {
-  cancelFocus, chime, extendFocus, finishPhase, focusMinutes, MAX_PLANNED, mmss, NOTE_MAX, noteSession, pauseFocus, resumeFocus, secondsLeft,
+  cancelFocus, extendFocus, focusMinutes, MAX_PLANNED, mmss, NOTE_MAX, noteSession, pauseFocus, resumeFocus, secondsLeft,
   settingsFocus, startFocus, resetFocus, useFocusDay,
 } from '../lib/focus';
 import { useT } from '../lib/i18n';
@@ -173,11 +174,11 @@ export function Focus() {
     if (reset) resetFocus(key); else cancelFocus(key);
   }
 
-  async function finish() {
-    if (!a || (f.strict && a.phase === 'focus')) return;
-    if (a.phase !== 'focus') saveNote();
-    const r = await finishPhase(settings, true, { key, startedAt: a.startedAt });
-    if (r !== 'none' && f.sound) chime(f);
+  // Skip: a break goes at once, a focus phase asks what to count unless it has only just begun (see useSkip)
+  const skip = useSkip(a, key);
+  function skipPhase() {
+    if (a && a.phase !== 'focus') saveNote();
+    skip.request();
   }
 
   useEffect(() => {
@@ -191,7 +192,7 @@ export function Focus() {
       if (k === '+' || k === '=') { void extendFocus(5, key); return; }
       if (f.strict && a.phase === 'focus') return;
       if (k === ' ') { if (a.pausedLeft == null) void pauseFocus(key); else void resumeFocus(key); }
-      if (k === 's') void finish();
+      if (k === 's') skipPhase();
       if (k === 'r' && !a.roomId) stop(true);
     };
     window.addEventListener('keydown', onKey);
@@ -216,7 +217,7 @@ export function Focus() {
           <button type="button" className="btn ghost sm focus-room-btn" onClick={openRoom}>{T.roomOpen}</button>
           <div className="focus-config-anchor"><button ref={configButton} type="button" className="btn sm" aria-expanded={config} aria-controls="focus-settings-view" onClick={() => config ? closeConfig() : setConfig(true)}>{config ? T.focusBackTimer : T.nav.settings}</button></div>
           </div></header>
-          <div className={`focus-card-body${config ? ' is-config' : ''}`}><div className="focus-stage" inert={config} aria-hidden={config || undefined}>
+          <div className={`focus-card-body${config ? ' is-config' : ''}`}><div className="focus-stage" inert={config || skip.asking} aria-hidden={config || skip.asking || undefined}>
             <div className="focus-ring">
               {a ? <Ring a={a} size={248} stroke={5} /> : <svg width={248} height={248} viewBox="0 0 248 248" aria-hidden="true"><circle cx={124} cy={124} r={121.5} fill="none" stroke="var(--phase-color)" strokeWidth={5} /></svg>}
               <div className="focus-read">
@@ -247,9 +248,8 @@ export function Focus() {
                 </div>
                 <div className="focus-secondary">
                   <button type="button" className="btn ghost sm" disabled={!!a.roomId || (!!f.strict && a.phase === 'focus')} aria-describedby={a.roomId ? 'focus-reset-hint' : undefined} onClick={() => stop(true)}>{stopAsk === 'reset' ? T.stopAsk(ranMin) : T.focusReset}</button>
-                  {a.phase !== 'focus' && <button type="button" className="btn ghost sm" onClick={finish}>{T.skipBreak}</button>}
                   <button type="button" className="btn ghost sm num" disabled={a.plannedMin >= MAX_PLANNED} onClick={() => extendFocus(5, key)}>{T.plusFive}</button>
-                  {a.phase === 'focus' && <button type="button" className="btn ghost" disabled={!!f.strict && a.phase === 'focus'} onClick={finish}>{T.finishNow}</button>}
+                  <button type="button" className="btn ghost sm" disabled={skip.locked} onClick={skipPhase}>{T.skip}</button>
                   <button type="button" className={`btn ghost focus-stop${stopAsk === 'stop' ? ' danger' : ''}`} aria-live="polite" disabled={!!f.strict && a.phase === 'focus'} onClick={() => stop()}>{stopAsk === 'stop' ? T.stopAsk(ranMin) : T.stop}</button>
                 </div>
                 {a.roomId && <p id="focus-reset-hint" className="muted focus-note">{T.focusSharedResetHint}</p>}
@@ -267,6 +267,7 @@ export function Focus() {
             )}
             {deepDef && !a && <p className="muted focus-note">{T.addsTo(deepDef.name)}</p>}
           </div>
+          {skip.asking && a && <SkipChoice a={a} skip={skip} />}
           {config && <div id="focus-settings-view" ref={configView} className="focus-settings-view" tabIndex={-1} role="region" aria-label={T.focusSettings}><FocusConfig /></div>}
           </div>
         </section>
