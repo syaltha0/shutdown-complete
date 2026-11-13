@@ -38,7 +38,7 @@ body:has(.drag-chip) { cursor: grabbing; user-select: none; }
   html, body { background: #fff !important; }
   .rail, .tabbar, .mini-timer, .tour, .phone-brand, .title-row, .notice, dialog, .drag-chip, .more-sheet,
   .plan-head .btn, .plan-head .card-link, .plan-head .segmented, .stamp, .check-row .grip, .check-row.adder, .check-row .remove,
-  .now-line, .now-tag, .actual, .focus-plan, .col-empty, .shutdown-line .card-link, .metrics-box .card-link { display: none !important; }
+  .now-line, .now-tag, .actual, .capacity-note, .focus-plan, .col-empty, .shutdown-line .card-link, .metrics-box .card-link { display: none !important; }
   .app { display: block; padding: 0 !important; }
   .canvas { padding: 0 !important; }
   .print-only.print-head { display: flex; justify-content: space-between; align-items: baseline; margin: 0 0 3mm; font-size: 13pt; line-height: 1.2; }

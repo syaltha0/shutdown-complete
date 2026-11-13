@@ -383,6 +383,11 @@ export const en = {
   actualLegend: 'Focus done',
   actualTip: (range: string, min: number, label: string) => `${range} · ${min} min · ${label}`,
   planVsActual: (planned: string, done: string) => `Deep work: ${planned} planned · ${done} focused`,
+  capacity: {
+    day: (planned: string, avg: string, today: boolean) => `You planned ${planned} of deep work ${today ? 'today' : 'for that day'}; on the days you focused over the last 4 weeks you averaged ${avg}.`,
+    week: (planned: string, avg: string, thisWeek: boolean) => `You planned ${planned} of deep work ${thisWeek ? 'this week' : 'for that week'}; over the last 4 weeks you averaged ${avg}.`,
+    dismiss: 'Dismiss',
+  },
   sessionCount: (n: number, total: string) => `${n} sessions · ${total}`,
   sessionsToday: 'Today’s sessions',
   noSessions: 'No focus sessions yet today',

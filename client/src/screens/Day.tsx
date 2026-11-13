@@ -18,6 +18,7 @@ import { updateKey, useDoc, useRange } from '../lib/useDoc';
 import { placeRepeats, repeatFromBlock } from '../lib/repeat';
 import { estimateFor, insights } from '../lib/insights';
 import { focusCount, focusMinutes, settingsFocus, startFocus } from '../lib/focus';
+import { CapacityNote } from '../components/CapacityNote';
 import { BlockEditor, ReviseDialog } from './BlockDialogs';
 import { kindSwatch, PPM, revise, TimeGrid, undoRevision, useNow } from './TimeGrid';
 import { applyTemplate, templateFromBlocks, TemplatesDialog, weekdayIndex } from './Templates';
@@ -332,6 +333,7 @@ export function Day({ date }: { date: string }) {
             )}
             {flash && <span className="stamp flash" role="status" key={flash}>{flash}</span>}
           </div>
+          {date >= t && <CapacityNote scope="day" id={date} from={date} planned={minutesOfKind(day, 'deep')} thisOne={isToday} />}
           {allDayEvents.length > 0 && (
             <div className="all-day" aria-label={T.allDay}>
               <span className="lbl">{T.allDay}</span>

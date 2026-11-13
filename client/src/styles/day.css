@@ -117,3 +117,7 @@
 .actual:hover .tip, .actual:focus-visible .tip { display: block; }
 .legend i.lg-actual { width: 4px; height: 12px; border-radius: 1px; background: var(--hue); }
 .focus-plan { margin: 6px 0 0; font-size: var(--fs-small); }
+.capacity-note { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 12px; margin: 0 0 var(--gap); padding: 0; font-size: var(--fs-small); color: var(--muted); }
+.capacity-note span { flex: 1 1 260px; min-width: 0; }
+.capacity-note .card-link.quiet { min-height: 32px; }
+.plan .capacity-note { margin: 0; padding: 8px 16px; border-bottom: 1px solid var(--rule); }

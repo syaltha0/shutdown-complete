@@ -368,6 +368,11 @@ export const tr: Words = {
   actualLegend: 'Yapılan odak',
   actualTip: (range: string, min: number, label: string) => `${range} · ${min} dk · ${label}`,
   planVsActual: (planned: string, done: string) => `Derin iş: ${planned} planlandı · ${done} odaklanıldı`,
+  capacity: {
+    day: (planned: string, avg: string, today: boolean) => `${today ? 'Bugün' : 'O gün'} için ${planned} derin iş planladın; son 4 haftada odaklandığın günlerde ortalaman ${avg}.`,
+    week: (planned: string, avg: string, thisWeek: boolean) => `${thisWeek ? 'Bu hafta' : 'O hafta'} için ${planned} derin iş planladın; son 4 haftada ortalaman ${avg}.`,
+    dismiss: 'Kapat',
+  },
   sessionCount: (n: number, total: string) => `${n} oturum · ${total}`,
   sessionsToday: 'Bugünkü oturumlar',
   noSessions: 'Bugün henüz odak oturumu yok',
