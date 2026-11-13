@@ -59,71 +59,14 @@
 .hweek-name { display: flex; justify-content: space-between; margin-bottom: 8px; font-size: 15px; }
 
 /* focus */
-.grid.top.focus-grid { align-items: stretch; }
-.focus-grid > .stack { display: flex; flex-direction: column; }
 /* the right column matches the timer card. The sessions card keeps its own height (a stretched list left an empty
    band above Total); the four-week card, last in the column, takes the spare height: three figures, then the chart
    drawn into all the rest. On a wide, tall window the grid reaches the bottom of the window (the user saw the lower
    half of the page empty), and the chart grows with it, so neither the page nor the card is left blank. */
-.focus-grid > .stack > .focus-sessions { flex: 0 0 auto; display: flex; flex-direction: column; }
-@media (min-width: 1040px) and (min-height: 700px) {
-  .grid.top.focus-grid { min-height: calc(100dvh - 128px); }
-}
-.focus-stats { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; margin: 4px 0 20px; }
-.focus-stats dt { color: var(--muted); font-size: 13px; }
-.focus-stats dd { margin: 2px 0 0; font-size: 20px; line-height: 28px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.focus-stats dd small { font-size: 13px; color: var(--muted); }
-.focus-panel { position: relative; display: flex; align-items: center; justify-content: center; min-height: 460px; }
-.focus-room-btn { position: absolute; top: 16px; right: 16px; }
-.focus-stage { display: grid; justify-items: center; gap: 24px; width: 100%; }
-.focus-ring { position: relative; width: 248px; height: 248px; }
-.focus-ring svg { display: block; width: 100%; height: auto; }
-.focus-read { position: absolute; inset: 0; display: grid; place-content: center; justify-items: center; gap: 4px; text-align: center; padding: 0 28px; }
-.focus-read b { font-size: 40px; line-height: 44px; font-weight: 500; letter-spacing: -0.02em; }
-.focus-read .phase-name { color: var(--muted); font-size: 13px; }
-.focus-label { max-width: 180px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .ring-fill { stroke: var(--hue); transition: stroke-dashoffset 1s linear, stroke 400ms ease; }
 .ring.phase-short .ring-fill, .ring.phase-long .ring-fill { stroke: var(--positive); }
-.focus-setup { display: grid; gap: 16px; width: min(520px, 100%); }
-.focus-setup .field { gap: 6px; }
-.focus-setup .field > label, .focus-setup .field > .label { font-size: 13px; font-weight: 500; }
-.focus-setup .segmented { display: flex; width: 100%; }
-.focus-setup .segmented button { flex: 1; padding: 0 6px; }
-.focus-setup .focus-custom { width: 100%; }
-.focus-pair { display: grid; grid-template-columns: minmax(0, 5fr) minmax(0, 3fr); gap: 16px; }
-.focus-pair .segmented button { padding: 0 2px; font-size: 13px; }
-.focus-setup .btn.big { height: 44px; font-size: 15px; }
-.focus-go { display: grid; }
-.focus-run { display: grid; justify-items: center; gap: 16px; width: min(420px, 100%); text-align: center; }
-.focus-intent { font-size: 16px; line-height: 24px; overflow-wrap: anywhere; }
-.focus-cycle { font-size: 13px; }
-.focus-controls { display: flex; gap: 4px 8px; flex-wrap: wrap; justify-content: center; }
-.focus-note-field { width: 100%; text-align: left; gap: 6px; }
-.focus-note-field label { font-size: 13px; font-weight: 500; }
-.focus-note { font-size: 13px; text-align: center; }
-.focus-sessions > header { gap: 16px; align-items: baseline; }
-.focus-sessions .card-link { font-size: 13px; font-weight: 400; color: var(--muted); min-height: 32px; }
-.focus-sessions .card-link:hover { color: var(--text); }
-.focus-sessions > .empty { min-height: 112px; display: grid; place-content: center; padding: 24px 0; text-align: center; font-size: 14px; }
-.sessions { display: flex; flex-direction: column; min-height: 0; }
 .session-scroll { max-height: var(--rows-h, none); overflow-y: auto; overscroll-behavior: contain; scrollbar-width: thin; scroll-padding: 8px; }
 .focus-sessions :is(a, .session-scroll):focus-visible { outline: 2px solid var(--text); outline-offset: 3px; border-radius: 2px; }
-.session { display: grid; grid-template-columns: 96px minmax(0, 1fr) auto; column-gap: 16px; row-gap: 4px; align-items: baseline; min-height: 56px; padding: 16px 0; border-bottom: 1px solid var(--rule); }
-.session-scroll .session:last-child { border-bottom: 0; }
-.session .t { color: var(--muted); font-size: 12px; }
-.session .l { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 14px; }
-.session .n { text-align: right; white-space: nowrap; font-size: 14px; }
-.session .more { grid-column: 2 / -1; color: var(--muted); font-size: 13px; line-height: 1.5; overflow-wrap: anywhere; display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; line-clamp: 2; overflow: hidden; }
-.session.total { grid-template-columns: minmax(0, 1fr) auto; border-top: 1px solid var(--rule); border-bottom: 0; padding-bottom: 0; min-height: 44px; font-weight: 500; }
-.session.total .l { color: var(--muted); font-weight: 400; }
-.focus-byblock .byblock { gap: 20px; }
-.focus-byblock .bb-top { display: grid; grid-template-columns: minmax(0, 1fr); gap: 4px; margin-bottom: 10px; }
-.focus-byblock .bb-top .l { white-space: normal; overflow-wrap: anywhere; font-size: 14px; line-height: 1.5; }
-.focus-byblock .bb-top .num { font-size: 12px; }
-.focus-byblock .bb-track { height: 3px; border-radius: 0; background: var(--rule); }
-.focus-byblock .bb-track i { border-radius: 0; animation: none; }
-
-.btn.focus-start .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--hue); }
 
 /* the floating timer (it floats, so it may carry a shadow) */
 .mini-timer { position: fixed; right: 24px; bottom: 24px; z-index: 30; display: flex; flex-direction: column; align-items: stretch; width: 300px; max-width: calc(100vw - 24px); border: 1px solid var(--border); border-radius: 26px; background: var(--surface); box-shadow: 0 10px 30px rgba(0, 0, 0, 0.12); overflow: hidden; animation: rise-in 420ms var(--ease-out) both; transition: border-radius 200ms var(--ease-out); } /* taste-skill-ignore: a floating timer */
@@ -134,7 +77,6 @@
 .mini-timer .mt-text b { font-size: 16px; line-height: 20px; font-weight: 500; }
 .mini-timer .mt-text span { font-size: 12px; color: var(--muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .mini-timer .btn { height: 32px; border-radius: 999px; }
-.mini-timer.phase-focus { --phase-color: #1d5fbf; }
 .mt-trigger { border: 0; background: none; color: inherit; padding: 0; text-align: left; cursor: pointer; font: inherit; }
 /* the details grow out of the pill itself: the row stays at the bottom, the card gets taller and wider */
 .mt-panel { display: grid; grid-template-rows: 0fr; transition: grid-template-rows 200ms var(--ease-out); }
@@ -178,10 +120,6 @@
 .tour-dots { display: flex; gap: 6px; justify-content: center; margin-top: 14px; }
 .tour-dots i { width: 6px; height: 6px; border-radius: 3px; background: var(--control); transition: width 300ms var(--ease-out), background-color 300ms ease; }
 .tour-dots i.on { width: 18px; background: var(--text); }
-
-@media (max-width: 1180px) {
-  .focus-panel { min-height: 0; padding-top: 28px; padding-bottom: 28px; }
-}
 @media (max-width: 860px) {
   .app { padding-bottom: 72px; }
   .rail { display: none !important; }
@@ -202,72 +140,11 @@
   .cal-day .dv, .cal-day .rem { display: none; }
   .cal-row { grid-template-columns: 28px repeat(7, minmax(0, 1fr)); }
   .cal-day .shut { top: 6px; right: 4px; width: 7px; height: 7px; }
-  .focus-room-btn { top: 12px; right: 12px; }
-  .focus-title { position: relative; }
-  .focus-title .title-actions { position: absolute; top: 5px; right: 0; }
-  .focus-title > div:first-child { padding-right: 64px; }
-  .focus-pair { grid-template-columns: minmax(0, 1fr); }
-  .session { grid-template-columns: minmax(0, 1fr) auto; column-gap: 12px; row-gap: 3px; }
-  .session .l { grid-column: 1; grid-row: 1; }
-  .session .n { grid-column: 2; grid-row: 1; }
-  .session .t { grid-column: 1 / -1; grid-row: 2; }
-  .session .more { grid-column: 1 / -1; }
   /* the phone: a smaller ring, and Start stays in reach above the tab bar while the options scroll */
-  .focus-ring { width: 208px; height: 208px; }
-  .focus-read b { font-size: 36px; line-height: 40px; }
-  .focus-stage { gap: 20px; }
-  .focus-setup { gap: 14px; }
-  .focus-go { position: sticky; bottom: calc(64px + env(safe-area-inset-bottom)); z-index: 2; margin: -12px 0; padding: 12px 0; background: var(--surface); }
 }
 /* Phase accents are confined to the timer and its controls. */
-.phase-focus { --phase-color: var(--hue); }
-.phase-short { --phase-color: var(--positive); }
-.phase-long { --phase-color: var(--focus-long); }
 .ring.phase-short .ring-fill, .ring.phase-long .ring-fill, .ring-fill { stroke: var(--phase-color, var(--hue)); }
-.focus-panel { align-self: start; min-width: 0; flex-direction: column; justify-content: flex-start; padding: var(--card-pad); }
-.focus-panel > .focus-card-head { width: 100%; align-items: center; padding-bottom: 16px; border-bottom: 1px solid var(--rule); margin: 0; }
-.focus-card-head h2 { font-size: var(--fs-section); font-weight: 500; }
-.focus-card-actions { display: flex; align-items: center; gap: 4px; }
-.focus-card-head .focus-room-btn { position: static; }
-.focus-stage { flex: 1; align-content: start; gap: 16px; padding: 24px 0 8px; }
-.focus-ring { width: 264px; height: 264px; margin: 4px 0; }
-.focus-read b { font-size: 48px; line-height: 56px; }
-.focus-read .focus-label { display: none; }
-.focus-controls .btn.primary { min-width: 180px; height: 44px; }
-.focus-secondary { display: flex; flex-wrap: wrap; justify-content: center; align-items: center; gap: 4px; width: 100%; padding-top: 12px; border-top: 1px solid var(--rule); }
-.focus-secondary .btn { font-size: 13px; }
-.focus-run { gap: 16px; }
-.focus-cycle-summary { display: flex; align-items: center; justify-content: center; gap: 12px; font-size: 12px; margin: 2px 0; }
-.focus-read .phase-name { color: var(--phase-color); }
-.focus-panel .btn.primary { background: var(--phase-color); border-color: var(--phase-color); color: var(--surface); }
-.focus-rounds { display: flex; gap: 10px; }
-.focus-rounds i { width: 10px; height: 10px; border: 1px solid var(--control); background: var(--raised); border-radius: 50%; }
-.focus-rounds i.done { background: var(--phase-color); border-color: var(--phase-color); }
-.focus-rounds i.current { background: var(--surface); border: 2px solid var(--phase-color); outline: 1px solid var(--phase-color); outline-offset: 2px; }
-.focus-secondary .focus-stop { margin-left: 12px; padding-left: 16px; border-left: 1px solid var(--border); border-radius: 0; }
-.focus-config-hint { font-size: 13px; line-height: 1.5; margin: 0; }
-.focus-block-row { display: flex; align-items: center; justify-content: center; max-width: 100%; gap: 6px; font-size: 13px; color: var(--muted); }
-.focus-block-row span { overflow-wrap: anywhere; min-width: 0; }
-.focus-setup { width: min(220px, 100%); }
-
-@media (max-width: 860px) {
-  .focus-card-head h2 { font-size: 14px; }
-  .focus-card-actions .btn { padding: 0 8px; font-size: 12px; }
-  .focus-stage { padding: 24px 0 12px; }
-  .focus-ring { width: 224px; height: 224px; }
-  .focus-read b { font-size: 42px; line-height: 48px; }
-  .focus-go { position: static; margin: 0; padding: 0; }
-  .focus-block-row { text-align: center; }
-}
-
-.focus-config { max-height: min(70dvh, 680px); overflow-y: auto; }
-.focus-config > label { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-block: 10px; }
-.focus-special .input { min-width: 0; max-width: 100%; }
-
-.focus-config > label:has(input[type="checkbox"]) { flex-wrap: nowrap; margin: 0; }
-.focus-config input[type="checkbox"] { width: 16px; height: 16px; min-height: 16px; flex: 0 0 16px; }
 /* Compact context and capture above today's sessions; keep the chart last. */
-.focus-widgets { min-width: 0; }
 .fw-goal { display: flex; align-items: center; gap: 16px; padding: 8px 0 20px; }
 .fw-goal svg { flex: 0 0 56px; }
 .fw-goal circle:last-child { stroke: #1d5fbf; stroke-linecap: round; }
@@ -290,14 +167,130 @@
 .fw-next:focus-visible, .fw-submit:focus-visible, .fw-capture .input:focus-visible { outline: 2px solid var(--text); outline-offset: 3px; }
 
 /* Focus preferences share one layout in Settings and the timer card. */
-.focus-config { display: grid; gap: 28px; width: 100%; max-height: none; overflow: visible; margin: 0; }
+.focus-config input[type=time]:focus-within,
+.focus-config :is(input, select, button):focus-visible { outline: 2px solid var(--text); outline-offset: 3px; }
+
+/* Both views occupy the timer's existing space; only preferences scroll. */
+/* The scrollbar runs in the card's own right padding, clear of the switches and values. */
+@keyframes focus-config-in { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
+
+/* Keep the timer self-sized while preferences overlay its measured content. */
+/* Keep the history below the timer without stretching the timer itself. */
+
+/* At 100% zoom on a desktop window every card fits the screen with no gap below either column (user, 2026-11-13):
+   the grid is at least the window's remaining height and both columns end together; the chart card takes what the
+   timer leaves on the left and the sessions card what the widgets leave on the right (a long list scrolls inside its
+   card and never stretches the grid). A window too short for the cards falls back to page scrolling. */
+/* shorter desktop windows: a smaller ring and tighter timer spacing so everything still fits */
+/* Focus: base styles, preferences and responsive layout (cascade order preserved). */
+.grid.top.focus-grid { align-items: stretch; }
+.focus-grid > .stack { display: flex; flex-direction: column; }
+.focus-grid > .stack > .focus-sessions { flex: 0 0 auto; display: flex; flex-direction: column; }
+@media (min-width: 1040px) and (min-height: 700px) {
+  .grid.top.focus-grid { min-height: calc(100dvh - 128px); }
+}
+.focus-stats { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; margin: 4px 0 20px; }
+.focus-stats dt { color: var(--muted); font-size: 13px; }
+.focus-stats dd { margin: 2px 0 0; font-size: 20px; line-height: 28px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.focus-stats dd small { font-size: 13px; color: var(--muted); }
+.focus-room-btn { position: absolute; top: 16px; right: 16px; }
+.focus-ring svg { display: block; width: 100%; height: auto; }
+.focus-read { position: absolute; inset: 0; display: grid; place-content: center; justify-items: center; gap: 4px; text-align: center; padding: 0 28px; }
+.focus-label { max-width: 180px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.focus-setup .field { gap: 6px; }
+.focus-setup .field > label, .focus-setup .field > .label { font-size: 13px; font-weight: 500; }
+.focus-setup .segmented { display: flex; width: 100%; }
+.focus-setup .segmented button { flex: 1; padding: 0 6px; }
+.focus-setup .btn.big { height: 44px; font-size: 15px; }
+.focus-go { display: grid; }
+.focus-intent { font-size: 16px; line-height: 24px; overflow-wrap: anywhere; }
+.focus-controls { display: flex; gap: 4px 8px; flex-wrap: wrap; justify-content: center; }
+.focus-note-field { width: 100%; text-align: left; gap: 6px; }
+.focus-note-field label { font-size: 13px; font-weight: 500; }
+.focus-note { font-size: 13px; text-align: center; }
+.focus-sessions > header { gap: 16px; align-items: baseline; }
+.focus-sessions .card-link { font-size: 13px; font-weight: 400; color: var(--muted); min-height: 32px; }
+.focus-sessions .card-link:hover { color: var(--text); }
+.focus-sessions > .empty { min-height: 112px; display: grid; place-content: center; padding: 24px 0; text-align: center; font-size: 14px; }
+.sessions { display: flex; flex-direction: column; min-height: 0; }
+.session { display: grid; grid-template-columns: 96px minmax(0, 1fr) auto; column-gap: 16px; row-gap: 4px; align-items: baseline; min-height: 56px; padding: 16px 0; border-bottom: 1px solid var(--rule); }
+.session-scroll .session:last-child { border-bottom: 0; }
+.session .t { color: var(--muted); font-size: 12px; }
+.session .l { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 14px; }
+.session .n { text-align: right; white-space: nowrap; font-size: 14px; }
+.session .more { grid-column: 2 / -1; color: var(--muted); font-size: 13px; line-height: 1.5; overflow-wrap: anywhere; display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; line-clamp: 2; overflow: hidden; }
+.session.total { grid-template-columns: minmax(0, 1fr) auto; border-top: 1px solid var(--rule); border-bottom: 0; padding-bottom: 0; min-height: 44px; font-weight: 500; }
+.session.total .l { color: var(--muted); font-weight: 400; }
+.focus-byblock .byblock { gap: 20px; }
+.focus-byblock .bb-top { display: grid; grid-template-columns: minmax(0, 1fr); gap: 4px; margin-bottom: 10px; }
+.focus-byblock .bb-top .l { white-space: normal; overflow-wrap: anywhere; font-size: 14px; line-height: 1.5; }
+.focus-byblock .bb-top .num { font-size: 12px; }
+.focus-byblock .bb-track { height: 3px; border-radius: 0; background: var(--rule); }
+.focus-byblock .bb-track i { border-radius: 0; animation: none; }
+.btn.focus-start .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--hue); }
+.mini-timer.phase-focus { --phase-color: #1d5fbf; }
+@media (max-width: 1180px) {
+  .focus-panel { min-height: 0; padding-top: 28px; padding-bottom: 28px; }
+}
+@media (max-width: 860px) {
+  .focus-room-btn { top: 12px; right: 12px; }
+  .focus-title { position: relative; }
+  .focus-title .title-actions { position: absolute; top: 5px; right: 0; }
+  .focus-title > div:first-child { padding-right: 64px; }
+  .session { grid-template-columns: minmax(0, 1fr) auto; column-gap: 12px; row-gap: 3px; }
+  .session .l { grid-column: 1; grid-row: 1; }
+  .session .n { grid-column: 2; grid-row: 1; }
+  .session .t { grid-column: 1 / -1; grid-row: 2; }
+  .session .more { grid-column: 1 / -1; }
+  .focus-setup { gap: 14px; }
+  .focus-go { position: sticky; bottom: calc(64px + env(safe-area-inset-bottom)); z-index: 2; margin: -12px 0; padding: 12px 0; background: var(--surface); }
+}
+.phase-focus { --phase-color: var(--hue); }
+.phase-short { --phase-color: var(--positive); }
+.phase-long { --phase-color: var(--focus-long); }
+.focus-panel { position: relative; display: flex; align-items: center; min-height: 460px; align-self: start; min-width: 0; flex-direction: column; justify-content: flex-start; padding: var(--card-pad); }
+.focus-card-actions { display: flex; align-items: center; gap: 4px; }
+.focus-card-head .focus-room-btn { position: static; }
+.focus-stage { display: grid; justify-items: center; width: 100%; flex: 1; align-content: start; gap: 16px; padding: 24px 0 8px; }
+.focus-ring { position: relative; width: 264px; height: 264px; margin: 4px 0; }
+.focus-read b { font-weight: 500; letter-spacing: -0.02em; font-size: 48px; line-height: 56px; }
+.focus-read .focus-label { display: none; }
+.focus-controls .btn.primary { min-width: 180px; height: 44px; }
+.focus-secondary { display: flex; flex-wrap: wrap; justify-content: center; align-items: center; gap: 4px; width: 100%; padding-top: 12px; border-top: 1px solid var(--rule); }
+.focus-secondary .btn { font-size: 13px; }
+.focus-run { display: grid; justify-items: center; width: min(420px, 100%); text-align: center; gap: 16px; }
+.focus-cycle-summary { display: flex; align-items: center; justify-content: center; gap: 12px; font-size: 12px; margin: 2px 0; }
+.focus-read .phase-name { font-size: 13px; color: var(--phase-color); }
+.focus-panel .btn.primary { background: var(--phase-color); border-color: var(--phase-color); color: var(--surface); }
+.focus-rounds { display: flex; gap: 10px; }
+.focus-rounds i { width: 10px; height: 10px; border: 1px solid var(--control); background: var(--raised); border-radius: 50%; }
+.focus-rounds i.done { background: var(--phase-color); border-color: var(--phase-color); }
+.focus-rounds i.current { background: var(--surface); border: 2px solid var(--phase-color); outline: 1px solid var(--phase-color); outline-offset: 2px; }
+.focus-secondary .focus-stop { margin-left: 12px; padding-left: 16px; border-left: 1px solid var(--border); border-radius: 0; }
+.focus-config-hint { font-size: 13px; line-height: 1.5; margin: 0; }
+.focus-block-row { display: flex; align-items: center; justify-content: center; max-width: 100%; gap: 6px; font-size: 13px; color: var(--muted); }
+.focus-block-row span { overflow-wrap: anywhere; min-width: 0; }
+.focus-setup { display: grid; gap: 16px; width: min(220px, 100%); }
+@media (max-width: 860px) {
+  .focus-card-actions .btn { padding: 0 8px; font-size: 12px; }
+  .focus-stage { padding: 24px 0 12px; }
+  .focus-ring { width: 224px; height: 224px; }
+  .focus-read b { font-size: 42px; line-height: 48px; }
+  .focus-go { position: static; margin: 0; padding: 0; }
+  .focus-block-row { text-align: center; }
+}
+.focus-config > label { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-block: 10px; }
+.focus-special .input { min-width: 0; max-width: 100%; }
+.focus-config > label:has(input[type="checkbox"]) { flex-wrap: nowrap; margin: 0; }
+.focus-config input[type="checkbox"] { width: 16px; height: 16px; min-height: 16px; flex: 0 0 16px; }
+.focus-widgets { min-width: 0; }
+.focus-config { overflow-y: auto; display: grid; gap: 28px; width: 100%; max-height: none; overflow: visible; margin: 0; }
 .focus-config section { display: grid; gap: 12px; min-width: 0; }
 .focus-config section + section { border-top: 1px solid var(--border); padding-top: 24px; }
 .focus-config h3 { font-size: 16px; font-weight: 500; margin: 0; }
 .focus-config label { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px; font-size: 14px; }
-.focus-config output { color: var(--muted); font-variant-numeric: tabular-nums; white-space: nowrap; }
 .focus-config .field { display: grid; gap: 2px; min-width: 0; }
-.focus-config output { color: var(--text); font-weight: 500; }
+.focus-config output { font-variant-numeric: tabular-nums; white-space: nowrap; color: var(--text); font-weight: 500; }
 .focus-bell-row { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px; }
 .focus-bell-pick select { min-width: 0; flex: 1; }
 .focus-range { position: relative; min-width: 0; }
@@ -313,15 +306,12 @@
 .focus-range input[type=range]::-moz-range-track { height: 4px; border-radius: 2px; background: var(--border); }
 .focus-range input[type=range]::-moz-range-progress { height: 4px; border-radius: 2px; background: var(--text); }
 .focus-range input[type=range]::-moz-range-thumb { box-sizing: border-box; width: 18px; height: 18px; border-radius: 50%; background: var(--surface); border: 2px solid var(--text); }
-.focus-config input[type=time]:focus-within,
-.focus-config :is(input, select, button):focus-visible { outline: 2px solid var(--text); outline-offset: 3px; }
 .focus-range input[type=range]:focus-visible { border-radius: 4px; }
 .focus-range input[type=range]:focus-visible::-webkit-slider-thumb { outline: 2px solid var(--text); outline-offset: 2px; }
 .focus-range input[type=range]:focus-visible::-moz-range-thumb { outline: 2px solid var(--text); outline-offset: 2px; }
 :root[data-motion="reduce"] .focus-range input[type=range]::-webkit-slider-thumb { transition: none; }
-.focus-config .focus-switch-row { flex-wrap: nowrap; min-height: 44px; }
 .focus-switch-row span { flex: 1; min-width: 0; }
-.focus-config .focus-switch-row { cursor: pointer; gap: 16px; }
+.focus-config .focus-switch-row { flex-wrap: nowrap; min-height: 44px; cursor: pointer; gap: 16px; }
 .focus-switch-row small { display: block; color: var(--muted); font-size: 12px; line-height: 1.5; margin-top: 4px; }
 .focus-config input[role=switch] { appearance: none; flex: 0 0 36px; width: 36px; height: 22px; min-height: 22px; border-radius: 12px; background: var(--border); border: 1px solid var(--muted); position: relative; cursor: pointer; }
 .focus-config input[role=switch]::after { content: ''; position: absolute; width: 16px; height: 16px; top: 2px; left: 2px; border-radius: 50%; background: var(--muted); }
@@ -330,23 +320,16 @@
 .focus-special { display: grid; gap: 16px; }
 .focus-special .field { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
 .focus-special input { min-width: 0; width: 100%; }
-
-/* Both views occupy the timer's existing space; only preferences scroll. */
 .focus-card-body { position: relative; display: flex; flex: 1; width: 100%; min-width: 0; }
 .focus-card-body .focus-stage { transition: opacity 140ms ease, transform 140ms ease; }
 .focus-card-body.is-config .focus-stage { visibility: hidden; opacity: 0; transform: translateY(4px); pointer-events: none; }
-/* The scrollbar runs in the card's own right padding, clear of the switches and values. */
 .focus-settings-view { position: absolute; inset: 0 calc(-1 * var(--card-pad)) 0 0; overflow-y: auto; overscroll-behavior: contain; scrollbar-gutter: stable; scrollbar-width: thin; padding: 24px var(--card-pad) 24px 0; animation: focus-config-in 160ms ease both; }
 .focus-config-time { display: block; margin-top: 4px; color: var(--phase-color); font-size: 12px; font-weight: 400; }
 :root[data-motion="reduce"] .focus-card-body .focus-stage { transition: none; }
 :root[data-motion="reduce"] .focus-settings-view { animation: none; }
 @media (max-width: 420px) { .focus-bell-pick { width: 100%; } }
-@keyframes focus-config-in { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
 @media (prefers-reduced-motion: reduce) { .focus-card-body .focus-stage { transition: none; } .focus-settings-view { animation: none; } }
-
-.focus-panel > .focus-card-head { min-height: 68px; }
-
-/* Keep the timer self-sized while preferences overlay its measured content. */
+.focus-panel > .focus-card-head { width: 100%; align-items: center; padding-bottom: 16px; border-bottom: 1px solid var(--rule); margin: 0; min-height: 68px; }
 .focus-panel .focus-card-body { flex: 0 0 auto; }
 .focus-panel .focus-block-row { width: min(420px, 100%); line-height: 1.5; }
 .focus-panel .focus-block-row > .btn { flex-shrink: 0; min-height: 36px; }
@@ -359,10 +342,9 @@
   .focus-panel .focus-secondary { column-gap: 2px; }
   .focus-panel .focus-secondary .focus-stop { margin-left: 0; padding-left: 12px; }
 }
-/* Keep the history below the timer without stretching the timer itself. */
 .focus-grid > .focus-left { display: flex; flex-direction: column; gap: var(--gap); min-width: 0; }
 .focus-left > .focus-panel { width: 100%; }
-.focus-left > [aria-labelledby="f4-h"] { min-width: 0; }
+.focus-left > .focus-history { min-width: 0; }
 @media (min-width: 1000px) and (max-width: 1180px) {
   .focus-grid > .span-7 { grid-column: span 7; }
   .focus-grid > .span-5 { grid-column: span 5; }
@@ -371,37 +353,25 @@
   .focus-grid > .focus-left { display: contents; }
   .focus-left > .focus-panel { grid-column: 1 / -1; order: 0; }
   .focus-grid > .span-5 { order: 1; }
-  .focus-left > [aria-labelledby="f4-h"] { grid-column: 1 / -1; order: 2; }
-}
-@media (pointer: coarse) {
-  .focus-grid .focus-panel .btn,
-  .focus-grid :is(button, .btn, select, input:not([type="checkbox"])),
-  .focus-room :is(button, .btn, select, input:not([type="checkbox"])) { min-height: 44px; }
-  .focus-grid button, .focus-room button { min-width: 44px; }
+  .focus-left > .focus-history { grid-column: 1 / -1; order: 2; }
 }
 @media (max-width: 480px) {
   .focus-left .focus-stats { grid-template-columns: minmax(0, 1fr); }
   .focus-left .focus-stats dd { white-space: normal; overflow: visible; overflow-wrap: anywhere; }
 }
-
-/* At 100% zoom on a desktop window every card fits the screen with no gap below either column (user, 2026-11-13):
-   the grid is at least the window's remaining height and both columns end together; the chart card takes what the
-   timer leaves on the left and the sessions card what the widgets leave on the right (a long list scrolls inside its
-   card and never stretches the grid). A window too short for the cards falls back to page scrolling. */
 @media (min-width: 1000px) {
   .grid.top.focus-grid { min-height: calc(100dvh - 128px); align-items: stretch; }
   .focus-left > .focus-panel { flex: 0 0 auto; }
-  .focus-left > [aria-labelledby="f4-h"] { flex: 1 1 auto; min-height: 0; display: flex; flex-direction: column; }
-  .focus-left > [aria-labelledby="f4-h"] .focus-stats { margin-bottom: 12px; }
-  .focus-left > [aria-labelledby="f4-h"] .chart { flex: 1 1 0; min-height: 96px; }
-  .focus-left > [aria-labelledby="f4-h"] .chart > svg { position: absolute; inset: 0; }
+  .focus-left > .focus-history { flex: 1 1 auto; min-height: 0; display: flex; flex-direction: column; }
+  .focus-left > .focus-history .focus-stats { margin-bottom: 12px; }
+  .focus-left > .focus-history .chart { flex: 1 1 0; min-height: 96px; }
+  .focus-left > .focus-history .chart > svg { position: absolute; inset: 0; }
   .focus-grid > .stack > * { flex: 0 0 auto; }
   .focus-grid > .stack > .focus-sessions { flex: 1 1 auto; min-height: 160px; }
   .focus-sessions > .empty { flex: 1; }
   .focus-sessions > .sessions { flex: 1 1 auto; }
   .focus-sessions .session-scroll { flex: 1 1 0; min-height: 168px; max-height: none; contain: size; }
 }
-/* shorter desktop windows: a smaller ring and tighter timer spacing so everything still fits */
 @media (min-width: 1000px) and (max-height: 960px) {
   .focus-ring { width: 200px; height: 200px; }
   .focus-read b { font-size: 44px; line-height: 52px; }
@@ -411,3 +381,14 @@
   .focus-sessions .session-scroll { min-height: 112px; }
   .focus-grid .panel > header, .focus-grid .chart-head { margin-bottom: 12px; }
 }
+
+@media (max-width: 860px) { .focus-setup { gap: 14px; } }
+
+/* One title rhythm across focus cards; nested section labels remain secondary. */
+.focus-grid .panel h2 { font-size: 16px; font-weight: 500; margin-block: 0; }
+.focus-grid .panel > h3 { font-size: 14px; font-weight: 500; }
+@media (pointer: coarse) {
+  .focus-grid .focus-panel .btn,
+  .focus-grid :is(button, .btn, select, input:not([type="checkbox"])),
+  .focus-room :is(button, .btn, select, input:not([type="checkbox"])) { min-height: 44px; }
+  .focus-grid button, .focus-room button { min-width: 44px; } }

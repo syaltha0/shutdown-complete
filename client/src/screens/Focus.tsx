@@ -212,9 +212,9 @@ export function Focus() {
           </div>
         </section>
 
-        <section className="panel" aria-labelledby="f4-h" data-anim>
+        <section className="panel focus-history" aria-labelledby="f4-h" data-anim>
           <div className="chart-head">
-            <h2 id="f4-h" style={{ fontSize: 16, fontWeight: 500 }}>{T.focusFourWeeks}</h2>
+            <h2 id="f4-h">{T.focusFourWeeks}</h2>
           </div>
           {past && (() => {
             // three figures above the chart: a card that stretches with the timer card is not just a tall chart
