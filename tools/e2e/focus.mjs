@@ -54,23 +54,8 @@ try {
   check('duration sliders reference the explanation', await p.locator('.focus-config input').first().getAttribute('aria-describedby') === await p.locator('.focus-config-hint').getAttribute('id'));
   await p.getByRole('dialog').getByRole('button', { name: 'Close', exact: true }).click();
 
-  if (await p.evaluate(() => !!window.documentPictureInPicture)) {
-    check('mini timer button is visible', await p.getByRole('button', { name: 'Mini timer', exact: true }).isVisible());
-    await p.getByRole('button', { name: 'Mini timer', exact: true }).click();
-    check('PiP renders synchronized time and phase', await until(async () => p.evaluate(() => {
-      const d = window.documentPictureInPicture.window?.document;
-      return d?.querySelector('.focus-mini-time')?.textContent === document.querySelector('.focus-read b')?.textContent && d?.querySelector('.focus-mini-phase')?.textContent === document.querySelector('.focus-tabs [aria-pressed=true]')?.textContent;
-    })));
-    await p.evaluate(() => window.documentPictureInPicture.window.document.querySelector('button').click());
-    check('PiP pause writes pausedLeft', await until(async () => (await doc()).focus?.active?.pausedLeft != null));
-    await p.evaluate(() => window.documentPictureInPicture.window.document.querySelector('button').click());
-    await until(async () => (await doc()).focus?.active?.pausedLeft === null);
-    await p.getByRole('button', { name: 'Mini timer', exact: true }).click();
-  }
-  await p.addInitScript(() => { Object.defineProperty(window, 'documentPictureInPicture', { value: undefined, configurable: true }); });
-  await p.reload();
-  await p.locator('.focus-read').waitFor();
-  check('without document PiP the video fallback is available or the trigger is hidden', await p.evaluate(() => !!document.pictureInPictureEnabled === !!document.querySelector('.focus-mini-trigger')));
+  // the mini timer is a video picture-in-picture window (no address bar, unlike document PiP)
+  check('the mini timer button follows video PiP support', await p.evaluate(() => (!!document.pictureInPictureEnabled && !!HTMLCanvasElement.prototype.captureStream) === !!document.querySelector('.focus-mini-trigger')));
 
   if (await p.evaluate(() => !!document.pictureInPictureEnabled)) {
     await p.locator('.focus-mini-trigger').click();
