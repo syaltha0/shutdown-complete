@@ -319,6 +319,10 @@ app.post('/api/auth/login/2fa', async (c) => {
   const t = db.tokens.peek(hash, 'login2fa');
   if (!t) return fail(c, 'expired', 410);
   const u = db.users.byId(t.user_id);
+  if (!u) return fail(c, 'expired', 410);
+  // a code is six digits: a ticket allows a few tries, and an account a few more however many tickets it is given
+  if (limited(`2fa-ticket:${hash}`, 5, 5 * 60_000)) { db.tokens.take(hash, 'login2fa'); return fail(c, 'too-many', 429); }
+  if (limited(`2fa-user:${u.id}`, 15, 15 * 60_000)) return fail(c, 'too-many', 429);
   const code = String(b.code || '').trim();
   const step = verifyTotp(u.totp_secret, code, u.totp_last_step);
   if (step != null) {
