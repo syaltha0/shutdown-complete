@@ -7,6 +7,7 @@ import { DocNotice, SaveStamp } from '../components/Common';
 import { IconCalendar, IconLeft, IconPrint, IconRevise, IconRight, IconTemplate } from '../components/Icons';
 import { addDays, clock, duration, longDate, nowMinutes, parseISODate, shortDate, today, weekNumber, weekOf } from '../lib/dates';
 import { useT } from '../lib/i18n';
+import { unionMinutes } from '../lib/intervals';
 import {
   activeColumn, emptyDay, emptyWeek, KIND_IDS, MAX_COLUMNS, minutesOfKind, plannedByKind, uid,
   type Block, type DayDoc, type DayTemplate, type Item, type MetricDef, type WeekDoc,
@@ -567,8 +568,7 @@ function Overload({ day, r0, r1, floor, now, past }: { day: DayDoc; r0: number; 
   const need = open.reduce((n, x) => n + (x.estimate ?? 0), 0);
   if (!need) return null;
   const from = Math.max(r0, floor, now ?? 0);
-  let busy = 0;
-  for (const b of col.blocks) busy += Math.max(0, Math.min(b.end, r1) - Math.max(b.start, from));
+  const busy = unionMinutes(col.blocks, from, r1); // blocks that overlap take the same minutes once
   const free = Math.max(0, r1 - from - busy);
   const over = need - free;
   return (
