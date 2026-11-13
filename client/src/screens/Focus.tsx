@@ -106,7 +106,7 @@ export function Focus() {
   }
 
   async function finish() {
-    if (!a) return;
+    if (!a || (f.strict && a.phase === 'focus')) return;
     if (a.phase !== 'focus') saveNote();
     const r = await finishPhase(settings, true, { key, startedAt: a.startedAt });
     if (r !== 'none' && f.sound) chime();
@@ -156,15 +156,15 @@ export function Focus() {
                 {a.phase === 'focus' && a.intent && <p className="focus-intent">{a.intent}</p>}
                 <div className="focus-controls">
                   {a.pausedLeft == null
-                    ? <button type="button" className={`btn primary`} onClick={() => pauseFocus(key)}>{T.pause}</button>
-                    : <button type="button" className={`btn primary`} onClick={() => resumeFocus(key)}>{T.resume}</button>}
+                    ? <button type="button" className={`btn primary`} disabled={!!f.strict && a.phase === 'focus'} onClick={() => pauseFocus(key)}>{T.pause}</button>
+                    : <button type="button" className={`btn primary`} disabled={!!f.strict && a.phase === 'focus'} onClick={() => resumeFocus(key)}>{T.resume}</button>}
                 </div>
                 <div className="focus-secondary">
-                  <button type="button" className="btn ghost sm" disabled={!!a.roomId} aria-describedby={a.roomId ? 'focus-reset-hint' : undefined} onClick={() => stop(true)}>{stopAsk === 'reset' ? T.stopAsk(ranMin) : T.focusReset}</button>
-                  {a.phase !== 'focus' && <button type="button" className="btn ghost sm" onClick={finish}>{T.skipBreak}</button>}
+                  <button type="button" className="btn ghost sm" disabled={!!a.roomId || (!!f.strict && a.phase === 'focus')} aria-describedby={a.roomId ? 'focus-reset-hint' : undefined} onClick={() => stop(true)}>{stopAsk === 'reset' ? T.stopAsk(ranMin) : T.focusReset}</button>
+                  {a.phase !== 'focus' && <button type="button" className="btn ghost sm" disabled={!!f.strict && a.phase === 'focus'} onClick={finish}>{T.skipBreak}</button>}
                   <button type="button" className="btn ghost sm num" disabled={a.plannedMin >= MAX_PLANNED} onClick={() => extendFocus(5, key)}>{T.plusFive}</button>
-                  {a.phase === 'focus' && <button type="button" className="btn ghost" onClick={finish}>{T.finishNow}</button>}
-                  <button type="button" className={`btn ghost focus-stop${stopAsk === 'stop' ? ' danger' : ''}`} aria-live="polite" onClick={() => stop()}>{stopAsk === 'stop' ? T.stopAsk(ranMin) : T.stop}</button>
+                  {a.phase === 'focus' && <button type="button" className="btn ghost" disabled={!!f.strict && a.phase === 'focus'} onClick={finish}>{T.finishNow}</button>}
+                  <button type="button" className={`btn ghost focus-stop${stopAsk === 'stop' ? ' danger' : ''}`} aria-live="polite" disabled={!!f.strict && a.phase === 'focus'} onClick={() => stop()}>{stopAsk === 'stop' ? T.stopAsk(ranMin) : T.stop}</button>
                 </div>
                 {a.roomId && <p id="focus-reset-hint" className="muted focus-note">{T.focusSharedResetHint}</p>}
                 {lastSession && (

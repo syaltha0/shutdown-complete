@@ -62,7 +62,7 @@ export function FocusRoom({ start, onClose }: { start: { blockId: string | null;
       }
       if (e.key === ' ' && !(e.target instanceof HTMLTextAreaElement) && !(e.target instanceof HTMLSelectElement) && !(e.target instanceof HTMLInputElement) && !(e.target instanceof HTMLButtonElement) && a) {
         e.preventDefault();
-        if (a.pausedLeft == null) pauseFocus(key); else resumeFocus(key);
+        if (!f.strict || a.phase !== 'focus') { if (a.pausedLeft == null) pauseFocus(key); else resumeFocus(key); }
       }
     };
     window.addEventListener('keydown', onKey);
@@ -82,7 +82,7 @@ export function FocusRoom({ start, onClose }: { start: { blockId: string | null;
     playAmbient(s, volume);
   }
   async function finish() {
-    if (!a) return;
+    if (!a || (f.strict && a.phase === 'focus')) return;
     const r = await finishPhase(settings, true, { key, startedAt: a.startedAt });
     if (r !== 'none' && f.sound) chime();
   }
@@ -90,7 +90,7 @@ export function FocusRoom({ start, onClose }: { start: { blockId: string | null;
   async function focusTask(task: { id: string; text: string }) {
     const ref = {...task, day: true};
     setPickedTask(ref);
-    if (a && a.task?.id !== task.id) {
+    if (a && !(f.strict && a.phase === 'focus') && a.task?.id !== task.id) {
       await finishPhase(settings, true, { key, startedAt: a.startedAt });
       await startFocus({blockId: a.blockId, label: task.text, minutes: Math.max(1, Math.ceil(secondsLeft(a) / 60)), task: ref});
     }
@@ -120,13 +120,13 @@ export function FocusRoom({ start, onClose }: { start: { blockId: string | null;
           {!a ? <button type="button" className="btn primary big" onClick={begin}>{T.startFocus}</button> : (
             <>
               {a.pausedLeft == null
-                ? <button type="button" className="btn" onClick={() => pauseFocus(key)}>{T.pause}</button>
-                : <button type="button" className="btn primary" onClick={() => resumeFocus(key)}>{T.resume}</button>}
+                ? <button type="button" className="btn" disabled={!!f.strict && a.phase === 'focus'} onClick={() => pauseFocus(key)}>{T.pause}</button>
+                : <button type="button" className="btn primary" disabled={!!f.strict && a.phase === 'focus'} onClick={() => resumeFocus(key)}>{T.resume}</button>}
               <button type="button" className="btn num" disabled={a.plannedMin >= MAX_PLANNED} onClick={() => extendFocus(5, key)}>{T.plusFive}</button>
               {a.phase === 'focus'
-                ? <button type="button" className="btn" onClick={finish}>{T.finishNow}</button>
-                : <button type="button" className="btn primary" onClick={finish}>{T.skipBreak}</button>}
-              <button type="button" className="btn ghost" onClick={() => cancelFocus(key)}>{T.stop}</button>
+                ? <button type="button" className="btn" disabled={!!f.strict && a.phase === 'focus'} onClick={finish}>{T.finishNow}</button>
+                : <button type="button" className="btn primary" disabled={!!f.strict && a.phase === 'focus'} onClick={finish}>{T.skipBreak}</button>}
+              <button type="button" className="btn ghost" disabled={!!f.strict && a.phase === 'focus'} onClick={() => cancelFocus(key)}>{T.stop}</button>
             </>
           )}
         </div>

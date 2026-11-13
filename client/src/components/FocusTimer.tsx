@@ -42,6 +42,7 @@ export function FocusRunner() {
   const T = useT();
   const { settings } = useSettings();
   const path = usePath();
+  const f = settingsFocus(settings);
   const { active: a, key } = useFocusDay();
   useTick(!!a && a.pausedLeft == null);
 
@@ -103,8 +104,8 @@ export function FocusRunner() {
         <span>{a.phase === 'focus' ? a.label || T.freeFocus : T.phase[a.phase]}</span>
       </a>
       {a.pausedLeft == null
-        ? <button type="button" className="btn ghost" onClick={() => pauseFocus(key)}>{T.pause}</button>
-        : <button type="button" className="btn ghost" onClick={() => resumeFocus(key)}>{T.resume}</button>}
+        ? <button type="button" className="btn ghost" disabled={!!f.strict && a.phase === 'focus'} onClick={() => pauseFocus(key)}>{T.pause}</button>
+        : <button type="button" className="btn ghost" disabled={!!f.strict && a.phase === 'focus'} onClick={() => resumeFocus(key)}>{T.resume}</button>}
     </div>
   );
 }
