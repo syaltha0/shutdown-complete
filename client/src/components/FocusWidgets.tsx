@@ -29,13 +29,16 @@ export function FocusWidgets({ day }: { day: DayDoc | null }) {
   return <section className="panel focus-widgets" aria-labelledby="fw-heading">
     <header><h2 id="fw-heading">{T.nav.today}</h2></header>
     <div className="fw-goal">
-      {target && <svg width="36" height="36" viewBox="0 0 36 36" role="progressbar" aria-label={T.fwGoal} aria-valuemin={0} aria-valuemax={target} aria-valuenow={Math.min(minutes, target)} aria-valuetext={`${duration(minutes)} / ${duration(target)}`}>
+      {target && <svg width="56" height="56" viewBox="0 0 36 36" role="progressbar" aria-label={T.fwGoal} aria-valuemin={0} aria-valuemax={target} aria-valuenow={Math.min(minutes, target)} aria-valuetext={`${duration(minutes)} / ${duration(target)}`}>
         <circle cx="18" cy="18" r="15" fill="none" stroke="var(--border)" strokeWidth="3" />
         <circle className={ratio >= 1 ? 'complete' : ''} cx="18" cy="18" r="15" fill="none" strokeWidth="3" pathLength="1" strokeDasharray={`${ratio} 1`} transform="rotate(-90 18 18)" />
       </svg>}
-      <span className="num">{target ? `${duration(minutes)} / ${duration(target)}` : T.fwToday(duration(minutes))}</span>
+      <div className="fw-goal-copy"><span className="fw-caption">{T.fwGoal}</span><span className="fw-value num">{duration(minutes)}{target && <span className="fw-target"> / {duration(target)}</span>}</span></div>
     </div>
-    <a className="fw-next" href={`/day/${today()}`} onClick={onLinkClick}>{current ? `${T.fwEnds(clock(current.end))} · ${nextText}` : nextText}</a>
+    <a className="fw-next" href={`/day/${today()}`} onClick={onLinkClick}>
+      <span className="fw-next-copy">{current && <span className="fw-caption">{T.fwEnds(clock(current.end))}</span>}<span>{nextText}</span></span>
+      <svg className="fw-arrow" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" aria-hidden="true"><path d="m9 5 7 7-7 7" /></svg>
+    </a>
     {featureOn(settings, 'inbox') && <form className="fw-capture" onSubmit={async (e) => {
       e.preventDefault(); const value = text.trim(); if (!value || saving) return;
       const item = { id: uid(), text: value, done: false, created: new Date().toISOString() };
@@ -47,7 +50,7 @@ export function FocusWidgets({ day }: { day: DayDoc | null }) {
       } finally { setSaving(false); input.current?.focus(); }
     }}>
       <label htmlFor="fw-capture">{T.fwCapture}</label>
-      <input ref={input} id="fw-capture" className="input" placeholder={T.fwPlaceholder} value={text} onChange={(e) => setText(e.target.value)} onKeyDown={(e) => e.stopPropagation()} />
+      <div className="fw-capture-field"><input ref={input} id="fw-capture" className="input" placeholder={T.fwPlaceholder} value={text} onChange={(e) => setText(e.target.value)} onKeyDown={(e) => e.stopPropagation()} /><button className="fw-submit" type="submit" disabled={!text.trim() || saving} aria-label={T.fwSubmit}><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" aria-hidden="true"><path d="M12 19V5m-6 6 6-6 6 6" /></svg></button></div>
     </form>}
   </section>;
 }

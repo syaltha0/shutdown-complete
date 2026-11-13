@@ -322,7 +322,8 @@ export const tr: Words = {
   signOut: 'Çıkış yap',
 
   focusMetric: 'Odak',
-  fwCapture: 'Akla geleni yakala',
+  fwSubmit: 'Gelen kutusuna ekle',
+  fwCapture: 'Bir düşünce yakala',
   fwPlaceholder: 'Aklına gelen bir iş ya da fikir…',
   fwAdded: 'Gelen kutusuna eklendi',
   fwGoal: 'Günlük odak hedefi',

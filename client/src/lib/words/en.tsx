@@ -336,6 +336,7 @@ export const en = {
 
   // focus (pomodoro)
   focusMetric: 'Focus',
+  fwSubmit: 'Add to inbox',
   fwCapture: 'Capture a thought',
   fwPlaceholder: 'A task or idea on your mind…',
   fwAdded: 'Added to inbox',
