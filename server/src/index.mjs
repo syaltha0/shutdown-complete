@@ -1,3 +1,5 @@
+import { releaseChecker, storage, warnings } from './server-status.mjs';
+import { feedStatus } from './calendar.mjs';
 import { plannerIcs } from './publication.mjs';
 import { Hono } from 'hono';
 import { serve } from '@hono/node-server';
@@ -697,6 +699,27 @@ app.post('/api/admin/invites', async (c) => {
   // with e-mail set up, an invite for an address goes out by itself
   const sent = !!(email && mailEnabled && await sendInvite(email, lang(b.lang), me(c).user.name, link, days > 0 ? Math.min(days, 365) : 0));
   return c.json({ id, link, sent, invites: db.invites.list().map(inviteRow) });
+});
+const runningVersion = JSON.parse(readFileSync(new URL('../../package.json', import.meta.url), 'utf8')).version;
+const fetchRelease = releaseChecker(SOURCE_URL, runningVersion);
+let releasePending;
+const checkRelease = async () => {
+ let saved; try { saved = JSON.parse(db.meta.get('status_release', 'null')); } catch {}
+ if(saved && saved.source === SOURCE_URL && Date.now()-saved.at < 86400000) return saved.value;
+ if(releasePending) return releasePending;
+ releasePending = (async () => { const value = await fetchRelease(); db.meta.set('status_release', JSON.stringify({source:SOURCE_URL,at:Date.now(),value})); return value; })();
+ try { return await releasePending; } finally { releasePending = null; }
+};
+app.get('/api/admin/server-status', async (c) => {
+ if (limited(`status:${uid(c)}`, 30, 60000)) return fail(c, 'too-many', 429);
+ const list = bk.list(), users = db.users.list(), links = users.map(u => syncer.status(u.id)).filter(x => x?.url);
+ const next = new Date(); next.setHours(bk.hour,0,0,0); if(next <= new Date()) next.setDate(next.getDate()+1);
+ const result = { version: runningVersion, release: await checkRelease(), uptime: Math.floor(process.uptime()),
+ backup: { last: list[0] ? {at:list[0].at,size:list[0].size} : null, attempt: bk.status(), count:list.length, keep:bk.keep, next:bk.hour>=0?next.toISOString():null },
+ storage:await storage(DATA_DIR), accounts:users.length, pending:db.requests.count()+users.filter(u=>!u.approved).length,
+ push:db.push.all().length, config:{vapid:!!push.publicKey,smtp:mailEnabled,appUrl:!!process.env.APP_URL},
+ nextcloud:{count:links.length, last:links.map(x=>x.lastSync).filter(Boolean).sort().at(-1)??null,errors:links.filter(x=>x.error).length}, calendars:feedStatus() };
+ return c.json({...result,warnings:warnings(result)});
 });
 // ---- backups of the whole server (backup.mjs) ----
 app.get('/api/admin/backups', (c) => c.json({ list: bk.list(), keep: bk.keep, hour: bk.hour }));

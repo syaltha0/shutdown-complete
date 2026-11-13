@@ -1,0 +1,6 @@
+import {test} from 'node:test';
+import assert from 'node:assert/strict';
+import {newer,releaseChecker,warnings} from '../src/server-status.mjs';
+test('stable semantic versions',()=>{assert.equal(newer('0.8.1','v0.10.0'),true);assert.equal(newer('1.0.0','v1.0.0'),false);assert.equal(newer('1.0.0','v2.0.0-beta'),null);});
+test('release response cached including failures',async()=>{let calls=0;const check=releaseChecker('https://github.com/syaltha0/shutdown-complete','0.8.1',async()=>{calls++;return {status:200,body:Buffer.from(JSON.stringify({tag_name:'v0.9.0'}))}});assert.equal((await check()).update,true);await check();assert.equal(calls,1);const offline=releaseChecker('https://github.com/a/b','1.0.0',async()=>{throw Error('secret')});assert.equal(await offline(),null);});
+test('warning thresholds and summary',()=>{const s={backup:{last:{at:new Date(0).toISOString()},attempt:{ok:false}},storage:{used:.9},config:{appUrl:false},nextcloud:{errors:1},calendars:{errors:0}};assert.deepEqual(warnings(s,3*86400000),['backupOld','backupFailed','appUrlMissing','diskFull','syncFailed']);s.backup={last:{at:new Date().toISOString()}};s.storage.used=.89;s.config.appUrl=true;s.nextcloud.errors=0;assert.deepEqual(warnings(s),[]);});

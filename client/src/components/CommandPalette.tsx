@@ -1,5 +1,5 @@
 ﻿import { useEffect, useRef, useState } from 'react';
-import { useSettings } from '../App';
+import { useAccount, useSettings } from '../App';
 import { useT, dict } from '../lib/i18n';
 import { navigate } from '../lib/router';
 import { addDays, today, weekOf, monthOf, quarterOf } from '../lib/dates';
@@ -48,7 +48,9 @@ export default function CommandPalette({ onClose }: { onClose: () => void }) {
   const destinations: [keyof typeof T.nav, string, string?, Feature?][] = [
     ['home','/'],['today',`/day/${t}`,'T'],['week',`/week/${weekOf(t)}`,'W'],['month',`/month/${monthOf(t)}`,'M'],['quarter',`/quarter/${quarterOf(t)}`,'Q'],['focus','/focus','F'],['inbox','/tasks','I','inbox'],['habits',`/habits/${monthOf(t)}`,'H','habits'],['metrics','/metrics',undefined,'metrics'],['boards','/boards',undefined,'boards'],['countdown','/countdown',undefined,'countdown'],['shutdown',`/shutdown/${t}`,'S'],['settings','/settings'],
   ];
+  const { user } = useAccount();
   const commands: Command[] = destinations.filter(([, , , f]) => !f || featureOn(settings,f)).map(([id,path,shortcut]) => ({id, label:T.nav[id], keywords:`${dict('en').nav[id]} ${dict('tr').nav[id]}`,shortcut,run:()=>navigate(path)}));
+  if(user.isAdmin) commands.push({id:'server-status',label:T.serverStatus.title,run:()=>navigate('/settings/status')});
   commands.push({id:'agenda',label:T.calendarViews.agenda,keywords:'agenda ajanda',shortcut:'A',run:()=>navigate('/agenda')});
   commands.push({id:'plan',label:T.keys.planWeek,keywords:`${dict('en').keys.planWeek} ${dict('tr').keys.planWeek}`,shortcut:'P',run:()=>navigate(`/plan/${weekOf(t)}`)}, {id:'review',label:T.review.open,keywords:`${dict('en').review.open} ${dict('tr').review.open}`,run:()=>navigate(`/review/${weekOf(t)}`)});
   const add = (id: keyof typeof P, run: () => unknown, available = true) => { if (available) commands.push({id, label: String(P[id]), keywords:`${dict('en').palette[id]} ${dict('tr').palette[id]}`,run}); };
