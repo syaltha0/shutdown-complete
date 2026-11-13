@@ -3,6 +3,9 @@ import { useSettings } from '../App';
 import { chime, settingsFocus, useFocusDay } from '../lib/focus';
 import { useT } from '../lib/i18n';
 
+// Ranges paint their filled part from --fill (the thumb hides the seam).
+const fill = (v: number, min: number, max: number) => ({ '--fill': `${((v - min) / (max - min)) * 100}%` }) as React.CSSProperties;
+
 export function FocusConfig() {
   const T = useT();
   const { settings, update } = useSettings();
@@ -21,12 +24,13 @@ export function FocusConfig() {
     ['longMin', T.longLen, 5, 60], ['longEvery', T.longEveryLabel, 2, 8],
   ] as const).map(([key, label, min, max]) => <div className="field" key={key}>
     <label htmlFor={`${id}-${key}`}>{label}<output className="num">{f[key]} {key === 'longEvery' ? T.sessionsWord : T.minutesUnit}</output></label>
-    <input id={`${id}-${key}`} aria-describedby={active ? `${id}-hint` : undefined} type="range" min={min} max={max} step={1} value={f[key]} onChange={(e) => { const value = Number(e.target.value); update((s) => ({ ...s, focus: { ...settingsFocus(s), [key]: value } })); }} />
+    <input id={`${id}-${key}`} aria-describedby={active ? `${id}-hint` : undefined} type="range" min={min} max={max} step={1} value={f[key]} style={fill(f[key], min, max)} onChange={(e) => { const value = Number(e.target.value); update((s) => ({ ...s, focus: { ...settingsFocus(s), [key]: value } })); }} />
   </div>)}
     </section><section><h3>{T.focusGroups.flow}</h3>{(['autoBreak', 'autoFocus', 'fullscreenBreak', 'strict'] as const).map(toggle)}</section>
     <section><h3>{T.focusGroups.audio}</h3>{toggle('sound')}
-    <label>{T.focusOptions.bell}<select className="input" value={f.bell ?? 'classic'} onChange={e => update(s => ({...s, focus: {...settingsFocus(s), bell: e.target.value}}))}>{(['classic','soft','single'] as const).map(x => <option key={x} value={x}>{T.focusOptions[x]}</option>)}</select><button type="button" className="btn" onClick={() => chime({...f, sound: true})}>{T.focusGroups.preview}</button></label>
-    <label>{T.volume}<input type="range" min={0} max={1} step={0.05} value={f.volume ?? 1} onChange={e => update(s => ({...s, focus: {...settingsFocus(s), volume: Number(e.target.value)}}))} /></label>
+    <label>{T.focusOptions.bell}<span className="focus-bell-pick"><select className="input" value={f.bell ?? 'classic'} onChange={e => update(s => ({...s, focus: {...settingsFocus(s), bell: e.target.value}}))}>{(['classic','soft','single'] as const).map(x => <option key={x} value={x}>{T.focusOptions[x]}</option>)}</select><button type="button" className="btn" onClick={() => chime({...f, sound: true})}>{T.focusGroups.preview}</button></span></label>
+    <div className="field"><label htmlFor={`${id}-volume`}>{T.volume}<output className="num">{Math.round((f.volume ?? 1) * 100)}%</output></label>
+    <input id={`${id}-volume`} aria-label={T.volume} type="range" min={0} max={1} step={0.05} value={f.volume ?? 1} style={fill(f.volume ?? 1, 0, 1)} onChange={e => update(s => ({...s, focus: {...settingsFocus(s), volume: Number(e.target.value)}}))} /></div>
     {toggle('voice')}</section><section><h3>{T.focusGroups.breaks}</h3>{toggle('scheduled')}
     {f.scheduled && <div className="focus-special">{!f.breaks?.length && <p className="muted">{T.focusGroups.empty}</p>}{(f.breaks ?? []).map(b => <div className="field" key={b.id}>
       <input className="input" aria-label={T.focusOptions.breakName} maxLength={60} value={b.label} onChange={e => update(s => ({...s, focus: {...settingsFocus(s), breaks: (s.focus?.breaks ?? []).map(x => x.id === b.id ? {...x, label: e.target.value} : x)}}))} />
