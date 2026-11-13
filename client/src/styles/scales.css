@@ -195,12 +195,12 @@
 .phase-short { --phase-color: var(--positive); }
 .phase-long { --phase-color: var(--focus-long); }
 .ring.phase-short .ring-fill, .ring.phase-long .ring-fill, .ring-fill { stroke: var(--phase-color, var(--hue)); }
-.focus-panel { flex-direction: column; justify-content: flex-start; padding: var(--card-pad); }
+.focus-panel { align-self: start; min-width: 0; flex-direction: column; justify-content: flex-start; padding: var(--card-pad); }
 .focus-panel > .focus-card-head { width: 100%; align-items: center; padding-bottom: 16px; border-bottom: 1px solid var(--rule); margin: 0; }
 .focus-card-head h2 { font-size: var(--fs-section); font-weight: 500; }
 .focus-card-actions { display: flex; align-items: center; gap: 4px; }
 .focus-card-head .focus-room-btn { position: static; }
-.focus-stage { flex: 1; align-content: center; gap: 14px; padding: 28px 0; }
+.focus-stage { flex: 1; align-content: start; gap: 16px; padding: 24px 0 8px; }
 .focus-ring { width: 264px; height: 264px; margin: 4px 0; }
 .focus-read b { font-size: 48px; line-height: 56px; }
 .focus-read .focus-label { display: none; }
@@ -265,19 +265,19 @@
 .focus-range::before { right: 9px; background: var(--border); }
 .focus-range::after { width: clamp(0px, calc(var(--fill) - 9px), calc(100% - 18px)); background: var(--text); }
 .focus-bell-pick { display: flex; align-items: center; gap: 8px; }
-.focus-config input[type=range] { -webkit-appearance: none; appearance: none; display: block; width: 100%; position: relative; height: 36px; min-height: 36px; margin: 0; padding: 0; background: transparent; cursor: pointer; }
-.focus-config input[type=range]::-webkit-slider-runnable-track { height: 4px; border-radius: 2px; background: transparent; }
-.focus-config input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; width: 18px; height: 18px; margin-top: -7px; border-radius: 50%; background: var(--surface); border: 2px solid var(--text); transition: transform 120ms ease; }
-.focus-config input[type=range]:active::-webkit-slider-thumb { transform: scale(1.15); }
-.focus-config input[type=range]::-moz-range-track { height: 4px; border-radius: 2px; background: var(--border); }
-.focus-config input[type=range]::-moz-range-progress { height: 4px; border-radius: 2px; background: var(--text); }
-.focus-config input[type=range]::-moz-range-thumb { box-sizing: border-box; width: 18px; height: 18px; border-radius: 50%; background: var(--surface); border: 2px solid var(--text); }
+.focus-range input[type=range] { -webkit-appearance: none; appearance: none; display: block; width: 100%; position: relative; height: 36px; min-height: 36px; margin: 0; padding: 0; background: transparent; cursor: pointer; }
+.focus-range input[type=range]::-webkit-slider-runnable-track { height: 4px; border-radius: 2px; background: transparent; }
+.focus-range input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; width: 18px; height: 18px; margin-top: -7px; border-radius: 50%; background: var(--surface); border: 2px solid var(--text); transition: transform 120ms ease; }
+.focus-range input[type=range]:active::-webkit-slider-thumb { transform: scale(1.15); }
+.focus-range input[type=range]::-moz-range-track { height: 4px; border-radius: 2px; background: var(--border); }
+.focus-range input[type=range]::-moz-range-progress { height: 4px; border-radius: 2px; background: var(--text); }
+.focus-range input[type=range]::-moz-range-thumb { box-sizing: border-box; width: 18px; height: 18px; border-radius: 50%; background: var(--surface); border: 2px solid var(--text); }
 .focus-config input[type=time]:focus-within,
 .focus-config :is(input, select, button):focus-visible { outline: 2px solid var(--text); outline-offset: 3px; }
-.focus-config input[type=range]:focus-visible { border-radius: 4px; }
-.focus-config input[type=range]:focus-visible::-webkit-slider-thumb { outline: 2px solid var(--text); outline-offset: 2px; }
-.focus-config input[type=range]:focus-visible::-moz-range-thumb { outline: 2px solid var(--text); outline-offset: 2px; }
-:root[data-motion="reduce"] .focus-config input[type=range]::-webkit-slider-thumb { transition: none; }
+.focus-range input[type=range]:focus-visible { border-radius: 4px; }
+.focus-range input[type=range]:focus-visible::-webkit-slider-thumb { outline: 2px solid var(--text); outline-offset: 2px; }
+.focus-range input[type=range]:focus-visible::-moz-range-thumb { outline: 2px solid var(--text); outline-offset: 2px; }
+:root[data-motion="reduce"] .focus-range input[type=range]::-webkit-slider-thumb { transition: none; }
 .focus-config .focus-switch-row { flex-wrap: nowrap; min-height: 44px; }
 .focus-switch-row span { flex: 1; min-width: 0; }
 .focus-config .focus-switch-row { cursor: pointer; gap: 16px; }
@@ -304,3 +304,17 @@
 @media (prefers-reduced-motion: reduce) { .focus-card-body .focus-stage { transition: none; } .focus-settings-view { animation: none; } }
 
 .focus-panel > .focus-card-head { min-height: 68px; }
+
+/* Keep the timer self-sized while preferences overlay its measured content. */
+.focus-panel .focus-card-body { flex: 0 0 auto; }
+.focus-panel .focus-block-row { width: min(420px, 100%); line-height: 1.5; }
+.focus-panel .focus-block-row > .btn { flex-shrink: 0; min-height: 36px; }
+.focus-panel .focus-secondary .btn { min-height: 40px; }
+.focus-panel .focus-note-field { padding-top: 16px; border-top: 1px solid var(--rule); }
+.focus-panel .focus-note-field .input { width: 100%; min-width: 0; }
+.focus-panel .focus-intent { max-width: 100%; overflow-wrap: anywhere; }
+@media (max-width: 420px) {
+  .focus-panel > .focus-card-head { flex-wrap: wrap; gap: 10px; }
+  .focus-panel .focus-secondary { column-gap: 2px; }
+  .focus-panel .focus-secondary .focus-stop { margin-left: 0; padding-left: 12px; }
+}

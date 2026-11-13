@@ -4,7 +4,7 @@ import { chime, settingsFocus, useFocusDay } from '../lib/focus';
 import { useT } from '../lib/i18n';
 
 // Ranges paint their filled part from --fill (the thumb hides the seam).
-const fill = (v: number, min: number, max: number) => ({ '--fill': `${((v - min) / (max - min)) * 100}%` }) as React.CSSProperties;
+export const fill = (v: number, min: number, max: number) => ({ '--fill': `${((v - min) / (max - min)) * 100}%` }) as React.CSSProperties;
 
 export function FocusConfig() {
   const T = useT();
