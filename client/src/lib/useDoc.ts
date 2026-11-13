@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState, useSyncExternalStore } from 'react';
 import { api, ApiError, type Doc } from './api';
 import { keepPending, openOutbox } from './outbox';
+import { clearDrafts, readDrafts, same, saveDraft, setDraftOwner } from './drafts';
 
 export type SaveStatus = 'loading' | 'saved' | 'saving' | 'unsaved' | 'error' | 'conflict' | 'offline';
 
@@ -10,7 +11,8 @@ const DEBOUNCE = 600;
  * One shared store of documents. Every screen, the focus timer and the habit grid read and write the same entry
  * for a key, so the day open on Today and the timer ticking in the corner never overwrite each other.
  * A save carries the version it was based on; if another device wrote in between, the server refuses (409) and the
- * latest version replaces the local one, with status "conflict" so the screen can say so.
+ * latest version replaces the local one, with status "conflict" so the screen can say so. What was refused is not
+ * thrown away: it is kept as a draft (lib/drafts.ts) that the person can look at and put back.
  */
 interface Entry {
   value: unknown;
@@ -30,6 +32,7 @@ interface Entry {
 const entries = new Map<string, Entry>();
 const queueListeners = new Set<() => void>();
 export async function restorePending(user: string) {
+  setDraftOwner(user);
   for (const doc of await openOutbox(user)) {
     const e = entry(doc.key);
     e.value = e.pending = doc.value; e.version = doc.version; e.loaded = true; e.status = 'offline'; emit(e);
@@ -118,6 +121,7 @@ async function flush(key: string, keepalive = false) {
   try {
     const doc: Doc<unknown> = await api.put(key, v, e.version, keepalive);
     saveWorked();
+    if (readDrafts(key).some((d) => same(d.value, v))) clearDrafts(key);
     e.version = doc.version;
     e.status = e.pending != null ? 'unsaved' : 'saved';
     e.error = null;
@@ -125,6 +129,9 @@ async function flush(key: string, keepalive = false) {
     if (err instanceof ApiError && err.status === 409 && err.body?.current) {
       saveWorked(); // the server answered
       const cur = err.body.current as Doc<unknown>;
+      const mine = e.pending ?? v; // the newest local text (edits made while the save was out sit on top of it)
+      if (!same(v, mine) && !same(v, cur.value)) saveDraft(key, v, cur.version);
+      if (!same(mine, cur.value)) saveDraft(key, mine, cur.version);
       e.version = cur.version;
       e.value = cur.value;
       e.pending = null;
@@ -178,6 +185,12 @@ export function refreshKey(key: string) {
     if (e.status === 'conflict' || e.status === 'error') e.status = 'saved';
     emit(e);
   }).catch(() => { /* the next round tries again */ });
+}
+
+/** Put a kept draft back as the document's next version (written over the server's, which the person confirmed). */
+export async function restoreDraft(key: string, value: unknown) {
+  await updateKey(key, () => value, () => value);
+  await flush(key);
 }
 
 /** Forget a document (a team project one has left): the next use loads it anew. */

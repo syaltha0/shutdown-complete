@@ -4,7 +4,7 @@ import type { SaveStatus } from '../lib/useDoc';
 /** The stamp in the title row speaks only when something is wrong; a normal save stays silent. */
 export function SaveStamp({ status }: { status: SaveStatus }) {
   const save = useT().save;
-  const text = status === 'error' || status === 'conflict' || status === 'offline' ? save[status] : '';
+  const text = status === 'error' || status === 'offline' ? save[status] : '';
   return <span className="stamp" role="status" aria-live="polite">{text}</span>;
 }
 
@@ -22,9 +22,8 @@ export function LoadFailed({ retry }: { retry: () => void }) {
 /** Shown inside the screen, above its content, when a save failed or another device won. */
 export function DocNotice({ status, error, retry }: { status: SaveStatus; error: string | null; retry: () => void }) {
   const T = useT();
-  if (status === 'conflict') {
-    return <div className="notice">{T.conflictNotice}</div>;
-  }
+  // a refused local version is kept and shown by ConflictDraft; a conflict with nothing to keep only refreshes the page
+  if (status === 'conflict') return null;
   if (status === 'offline') {
     return <div className="notice" role="status">{T.offlineNotice}</div>;
   }

@@ -3,6 +3,7 @@ import { api, signedOut, type AuthState, type User } from './lib/api';
 import { navigate, onLinkClick, usePath } from './lib/router';
 import { useDoc, restorePending } from './lib/useDoc';
 import { OfflineQueue } from './components/OfflineQueue';
+import { ConflictDraft } from './components/ConflictDraft';
 import { defaultSettings, type Settings } from './lib/model';
 import { dict, getLang, setLang, useT } from './lib/i18n';
 import { monthOf, quarterOf, today, weekOf } from './lib/dates';
@@ -285,6 +286,7 @@ function Shell() {
 
       <main className="canvas" key={r?.nav}>
         <OfflineQueue />
+        <ConflictDraft path={path} />
         <div className="phone-only phone-brand"><Mark />Shutdown Complete</div>
         <Suspense fallback={<Wait />}>{r?.el}<Stagger key={path} /></Suspense>
       </main>
