@@ -7,29 +7,25 @@
 // network (the planner must not become a way to reach them), a short timeout, a size cap, a few redirects at most.
 import { lookup } from 'node:dns/promises';
 import { isIP } from 'node:net';
+import { guardedFetch, privateAddress } from './safefetch.mjs';
 
 const TIMEOUT = 10_000, MAX_BYTES = 5 * 1024 * 1024, CACHE_MS = 10 * 60_000, MAX_DAYS = 62;
 
 // ---------------- fetching, safely ----------------
-function privateAddress(ip) {
-  if (isIP(ip) === 4) {
-    const [a, b] = ip.split('.').map(Number);
-    return a === 10 || a === 127 || a === 0 || (a === 169 && b === 254) || (a === 172 && b >= 16 && b <= 31) || (a === 192 && b === 168)
-      || (a === 100 && b >= 64 && b <= 127) || a >= 224;
-  }
-  const v = ip.toLowerCase();
-  if (v.startsWith('::ffff:')) return privateAddress(v.slice(7));
-  return v === '::1' || v === '::' || v.startsWith('fc') || v.startsWith('fd') || v.startsWith('fe80');
+const hostOf = (u) => u.hostname.replace(/^\[|\]$/g, '');
+/** Whether the owner allowed this host on a private network (CALENDAR_PRIVATE_HOSTS, or everything with CALENDAR_ALLOW_PRIVATE=on). */
+export function privateAllowed(host) {
+  if (process.env.CALENDAR_ALLOW_PRIVATE === 'on') return true; // Explicit server-wide opt-in; prefer the host allowlist.
+  return (process.env.CALENDAR_PRIVATE_HOSTS ?? '').split(',').map((x) => x.trim().toLowerCase()).filter(Boolean).includes(String(host).toLowerCase());
 }
 
-/** Why a feed address cannot be used ('url', 'private'), or null. */
+/** Why a feed address cannot be used ('url', 'private'), or null. Connections are checked again where they are made (safefetch.mjs). */
 export async function feedProblem(raw) {
   let u;
   try { u = new URL(String(raw).trim().replace(/^webcals?:\/\//i, 'https://')); } catch { return 'url'; }
   if (!['http:', 'https:'].includes(u.protocol) || u.username || u.password) return 'url';
-  if (process.env.CALENDAR_ALLOW_PRIVATE === 'on') return null; // Explicit server-wide opt-in; prefer the host allowlist.
-  const host = u.hostname.replace(/^\[|\]$/g, '');
-  if ((process.env.CALENDAR_PRIVATE_HOSTS ?? '').split(',').map(x => x.trim().toLowerCase()).filter(Boolean).includes(host.toLowerCase())) return null;
+  const host = hostOf(u);
+  if (privateAllowed(host)) return null;
   if (host === 'localhost' || host.endsWith('.localhost') || host.endsWith('.local') || host.endsWith('.internal')) return 'private';
   try {
     const addrs = isIP(host) ? [{ address: host }] : await lookup(host, { all: true });
@@ -43,32 +39,13 @@ async function fetchFeed(raw) {
   for (let hop = 0; hop < 4; hop++) {
     const problem = await feedProblem(url);
     if (problem) throw Object.assign(new Error(problem), { code: problem });
-    const ctl = new AbortController();
-    const timer = setTimeout(() => ctl.abort(), TIMEOUT);
     let res;
     try {
-      res = await fetch(url, { redirect: 'manual', signal: ctl.signal, headers: { accept: 'text/calendar, text/plain;q=0.8, */*;q=0.1', 'user-agent': 'ShutdownComplete-calendar/1' } });
-    } catch { clearTimeout(timer); throw Object.assign(new Error('unreachable'), { code: 'unreachable' }); }
-    if (res.status >= 300 && res.status < 400 && res.headers.get('location')) {
-      clearTimeout(timer);
-      url = new URL(res.headers.get('location'), url).href;
-      continue;
-    }
-    if (!res.ok) { clearTimeout(timer); throw Object.assign(new Error('unreachable'), { code: res.status === 401 || res.status === 403 || res.status === 404 ? 'denied' : 'unreachable' }); }
-    // read at most MAX_BYTES
-    const reader = res.body.getReader();
-    const chunks = [];
-    let size = 0;
-    try {
-      for (;;) {
-        const { done, value } = await reader.read();
-        if (done) break;
-        size += value.length;
-        if (size > MAX_BYTES) { ctl.abort(); throw Object.assign(new Error('too-big'), { code: 'too-big' }); }
-        chunks.push(value);
-      }
-    } finally { clearTimeout(timer); }
-    const text = Buffer.concat(chunks).toString('utf8');
+      res = await guardedFetch(url, { timeoutMs: TIMEOUT, maxBytes: MAX_BYTES, allowPrivate: privateAllowed(hostOf(new URL(url))), headers: { accept: 'text/calendar, text/plain;q=0.8, */*;q=0.1', 'user-agent': 'ShutdownComplete-calendar/1' } });
+    } catch (e) { throw Object.assign(new Error(e.code || 'unreachable'), { code: ['private', 'too-big'].includes(e.code) ? e.code : 'unreachable' }); }
+    if (res.status >= 300 && res.status < 400 && res.headers.location) { url = new URL(res.headers.location, url).href; continue; }
+    if (res.status < 200 || res.status >= 300) throw Object.assign(new Error('unreachable'), { code: res.status === 401 || res.status === 403 || res.status === 404 ? 'denied' : 'unreachable' });
+    const text = res.body.toString('utf8');
     if (!/BEGIN:VCALENDAR/i.test(text)) throw Object.assign(new Error('not-calendar'), { code: 'not-calendar' });
     return text;
   }

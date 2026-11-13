@@ -7,7 +7,10 @@ import { createCipheriv, createDecipheriv, randomBytes } from 'node:crypto';
 import { DEFAULT_LIST, listOf, parseTodo, removeUid, resources, upsert } from './vtodo.mjs';
 import { todayIso } from './recur.mjs';
 import { TINT_HEX, nearestTint } from './caldav.mjs';
+import { guardedFetch } from './safefetch.mjs';
+import { privateAllowed } from './calendar.mjs';
 
+const MAX_REPLY = 32 * 1024 * 1024; // what another server may answer with, at most
 const TIMEOUT = 15_000, EVERY = 5 * 60_000, SOON = 15_000;
 const unxml = (s) => String(s).replace(/<!\[CDATA\[([\s\S]*?)\]\]>/g, '$1').replace(/&#x([0-9a-f]+);/gi, (_, h) => String.fromCodePoint(parseInt(h, 16)))
   .replace(/&#(\d+);/g, (_, d) => String.fromCodePoint(Number(d))).replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&quot;/g, '"').replace(/&apos;/g, "'").replace(/&amp;/g, '&');
@@ -33,15 +36,16 @@ export function davSync({ db, feedProblem, log = () => {} }) {
       if (new URL(at).origin !== new URL(link.url).origin) throw Object.assign(new Error('url'), { code: 'url' });
       const problem = await feedProblem(at, link.mayPrivate);
       if (problem) throw Object.assign(new Error(problem), { code: problem });
-      const ctl = new AbortController(), timer = setTimeout(() => ctl.abort(), TIMEOUT);
       let res;
       try {
-        res = await fetch(at, { method, body, redirect: 'manual', signal: ctl.signal, headers: { authorization: link.auth, 'user-agent': 'ShutdownComplete-sync/1', ...(body ? { 'content-type': 'application/xml; charset=utf-8' } : {}), ...headers } });
-      } catch { throw Object.assign(new Error('unreachable'), { code: 'unreachable' }); } finally { clearTimeout(timer); }
-      if (res.status >= 300 && res.status < 400 && res.headers.get('location')) { const next = new URL(res.headers.get('location'), at); if (next.origin !== new URL(link.url).origin) throw Object.assign(new Error('url'), { code: 'url' }); at = next.href; continue; }
+        const host = new URL(at).hostname.replace(/^\[|\]$/g, '');
+        res = await guardedFetch(at, { method, body, timeoutMs: TIMEOUT, maxBytes: MAX_REPLY, allowPrivate: !!link.mayPrivate || privateAllowed(host),
+          headers: { authorization: link.auth, 'user-agent': 'ShutdownComplete-sync/1', ...(body ? { 'content-type': 'application/xml; charset=utf-8' } : {}), ...headers } });
+      } catch (e) { throw Object.assign(new Error(e.code === 'private' ? 'private' : 'unreachable'), { code: e.code === 'private' ? 'private' : 'unreachable' }); }
+      if (res.status >= 300 && res.status < 400 && res.headers.location) { const next = new URL(res.headers.location, at); if (next.origin !== new URL(link.url).origin) throw Object.assign(new Error('url'), { code: 'url' }); at = next.href; continue; }
       if (res.status === 401 || res.status === 403 && method === 'PROPFIND') throw Object.assign(new Error('auth'), { code: 'auth' });
       if (['PUT', 'DELETE'].includes(method) && res.status >= 300) throw Object.assign(new Error(res.status === 412 ? 'conflict' : 'failed'), { code: res.status === 412 ? 'conflict' : 'failed' });
-      return { status: res.status, etag: res.headers.get('etag'), text: await res.text(), url: at };
+      return { status: res.status, etag: res.headers.etag ?? null, text: res.body.toString('utf8'), url: at };
     }
     throw Object.assign(new Error('unreachable'), { code: 'unreachable' });
   }
