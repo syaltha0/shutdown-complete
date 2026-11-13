@@ -175,6 +175,47 @@ Default SSRF checks remain in force for other hosts. A private-address error can
 ask the administrator to grant the exact calendar hostname. Public ICS publication is read-only;
 keep its bearer URL secret, and use CalDAV for task edits.
 
+### Backups and recovery
+
+Daily and manual `.db.gz` backups contain the entire SQLite database: accounts, documents,
+authentication records, calendar tokens, push subscriptions, social data, and `meta.dav_key`.
+The latter decrypts Nextcloud credentials; no separate DAV key file is needed. Treat backups
+as secrets. User JSON exports contain documents only and cannot recover a server.
+
+Keep an off-host copy of `data/backups`. Use the same application release for recovery.
+Restore validates SQLite integrity, foreign keys, required core columns and schema version
+(`PRAGMA user_version`, currently 0); newer versions are rejected. Deploy configuration
+(`.env`, SMTP, proxy/TLS and any external push keys) is separate and must be retained separately.
+
+For bare Node, obtain a backup with `node server/src/cli.mjs backup`, then recover into
+a **new, empty directory** (never the running server's DATA_DIR):
+
+```sh
+node server/src/cli.mjs restore-new /safe/planner-manual-DATE.db.gz /srv/planner-recovered
+DATA_DIR=/srv/planner-recovered node server/src/index.mjs
+```
+
+In PowerShell set `$env:DATA_DIR='C:\planner-recovered'` before starting Node.
+Stop the original server before exposing the recovered one: both can send notifications
+and synchronize remote calendars. Keep the original data directory until login, documents,
+CalDAV and Nextcloud have been checked. `restore-new` refuses every nonempty destination.
+
+For Docker Compose (the service mounts `./data` at `/data`):
+
+```sh
+docker compose exec planner node server/src/cli.mjs backup
+docker compose stop planner
+mkdir data-recovered
+docker compose run --rm --no-deps -v ./data-recovered:/recovered planner node server/src/cli.mjs restore-new /data/backups/planner-manual-DATE.db.gz /recovered
+```
+
+Change the Compose data volume to `./data-recovered:/data`, then run `docker compose up -d`.
+Keep `./data` unchanged for rollback. The account UI and legacy `restore <backup name>` CLI
+stage recovery for the next restart instead; they preserve a before-restore backup, and startup
+also saves the current database before replacing it. Do not manually delete SQLite WAL files.
+
+Run `node tools/e2e/backup-restore.mjs` after `npm run build` for an isolated recovery rehearsal.
+
 ### Settings
 
 | Variable | Default | What it does |

@@ -17,7 +17,13 @@ const stampOf = (d = new Date()) => `${d.getFullYear()}-${pad(d.getMonth() + 1)}
 export function applyPendingRestore(dataDir, log = console.log) {
   const pending = join(dataDir, 'restore-pending.db');
   if (!existsSync(pending)) return false;
+  if (!isPlannerDb(pending)) throw new Error('Pending restore is damaged or has an unsupported schema.');
   const file = join(dataDir, 'planner.db');
+  if (existsSync(file)) {
+    const current = new DatabaseSync(file);
+    try { current.exec(`VACUUM INTO '${join(dataDir, `before-restore-${Date.now()}.db`).replace(/'/g, "''")}'`); }
+    finally { current.close(); }
+  }
   for (const x of ['', '-wal', '-shm']) rmSync(file + x, { force: true });
   renameSync(pending, file);
   log('Restored the planner from a backup.');
@@ -29,10 +35,33 @@ function isPlannerDb(file) {
   let d = null;
   try {
     d = new DatabaseSync(file, { readOnly: true });
-    return !!d.prepare("SELECT name FROM sqlite_master WHERE type = 'table' AND name = 'users'").get();
+    if (d.prepare('PRAGMA integrity_check').get().integrity_check !== 'ok') return false;
+    // Existing releases use SQLite schema version zero; reject future formats rather than downgrade them.
+    if (d.prepare('PRAGMA user_version').get().user_version !== 0) return false;
+    d.prepare('SELECT id, email, password FROM users LIMIT 0').all();
+    d.prepare('SELECT user_id, key, value, version FROM user_docs LIMIT 0').all();
+    d.prepare('SELECT key, value FROM meta LIMIT 0').all();
+    const hasLinks = d.prepare("SELECT 1 FROM sqlite_master WHERE type='table' AND name='dav_links'").get();
+    if (hasLinks && d.prepare('SELECT 1 FROM dav_links LIMIT 1').get()) {
+      if (!/^[a-f0-9]{64}$/i.test(d.prepare("SELECT value FROM meta WHERE key='dav_key'").get()?.value || '')) return false;
+    }
+    return d.prepare('PRAGMA foreign_key_check').all().length === 0;
   } catch { return false; } finally { try { d?.close(); } catch { /* not open */ } }
 }
 const remove = (f) => { try { rmSync(f, { force: true }); } catch { /* held open a moment longer: left for the next tidy-up */ } };
+
+/** Offline recovery into an empty directory only. Never opens or replaces an existing server database. */
+export async function restoreInto(source, target) {
+  mkdirSync(target, { recursive: true });
+  if (readdirSync(target).length) throw new Error('Restore target must be empty; use a new DATA_DIR.');
+  const pending = join(target, 'restore-pending.db');
+  try {
+    const buf = await readFile(source);
+    await writeFile(pending, buf[0] === 0x1f && buf[1] === 0x8b ? gunzipSync(buf) : buf, { flag: 'wx', mode: 0o600 });
+    if (!isPlannerDb(pending)) throw new Error('Backup is damaged or has an unsupported schema.');
+    renameSync(pending, join(target, 'planner.db'));
+  } catch (e) { remove(pending); throw e; }
+}
 
 export function backups({ db, dataDir, keep = Number(process.env.BACKUP_KEEP) || 7, hour = Number(process.env.BACKUP_HOUR ?? 3), log = console.log }) {
   const dir = join(dataDir, 'backups');
@@ -61,11 +90,15 @@ export function backups({ db, dataDir, keep = Number(process.env.BACKUP_KEEP) ||
   /** The chosen copy checked and set to be put in place at the next start; what is there now is backed up first. */
   async function restore(name) {
     if (!NAME.test(name) || !existsSync(join(dir, name))) return { error: 'not-found' };
-    const pending = join(dataDir, 'restore-pending.db');
-    try { await writeFile(pending, gunzipSync(await readFile(join(dir, name)))); } catch { rmSync(pending, { force: true }); return { error: 'damaged' }; }
-    if (!isPlannerDb(pending)) { remove(pending); return { error: 'damaged' }; }
-    await make('before-restore');
-    return { ok: true };
+    const staged = join(dataDir, `.restore-${Date.now()}.db`);
+    try {
+      try { await writeFile(staged, gunzipSync(await readFile(join(dir, name))), { flag: 'wx', mode: 0o600 }); }
+      catch { return { error: 'damaged' }; }
+      if (!isPlannerDb(staged)) return { error: 'damaged' };
+      await make('before-restore');
+      renameSync(staged, join(dataDir, 'restore-pending.db'));
+      return { ok: true };
+    } finally { remove(staged); }
   }
 
   /** A copy brought from elsewhere (a .db.gz of this planner, or a plain .db). */
