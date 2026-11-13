@@ -7,7 +7,7 @@ import { activeColumn, emptyDay, emptyInbox, type DayDoc, type InboxDoc } from '
 import { addDays } from '../lib/dates';
 import { showNotification } from '../lib/pwa';
 import { useDoc } from '../lib/useDoc';
-import { usePush } from '../lib/push';
+import { sendPushWords, usePush } from '../lib/push';
 
 /**
  * Lives in the shell: a notification as each block of today begins (or a few minutes before, as chosen in
@@ -19,6 +19,8 @@ export function BlockReminders() {
   const T = useT();
   const { settings } = useSettings();
   const r = settings.reminders;
+  // the words of the server's notifications follow the app's language
+  useEffect(() => { if (push) void sendPushWords(T); }, [push, T]);
   const { value: day } = useDoc<DayDoc>(`day:${today()}`, emptyDay);
   // what has been announced, so a reload or a second render does not announce it again
   const said = useRef<Set<string>>(new Set(readSaid()));

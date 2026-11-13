@@ -237,6 +237,21 @@ export function Focus() {
     return () => window.removeEventListener('keydown', onKey);
   });
 
+  // The button of a notification ("Start break" / "Start focus") opens /focus?go=break|focus. Once the phase that ended
+  // has been settled (the shell logs it, and starts the next one only when that is automatic), the button's phase starts.
+  const go = useRef(new URLSearchParams(window.location.search).get('go'));
+  useEffect(() => {
+    if (!go.current) return;
+    const stop = window.setTimeout(() => { go.current = null; }, 20_000);
+    return () => window.clearTimeout(stop);
+  }, []);
+  useEffect(() => {
+    if (!go.current || !day) return;
+    const done = () => { go.current = null; window.history.replaceState(window.history.state, '', window.location.pathname); };
+    if (go.current === 'break' && a && a.phase !== 'focus' && a.pausedLeft != null) { done(); void resumeFocus(key); }
+    else if (go.current === 'focus' && !a) { done(); void startFocus(begin); }
+  }, [a, day, key]);
+
   return (
     <>
       <div className="title-row focus-title">

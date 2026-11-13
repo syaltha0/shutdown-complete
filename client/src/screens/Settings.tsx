@@ -3,6 +3,7 @@ import { ExportDownloads } from './Publication';
 import { useRef, useState } from 'react';
 import { useSettings } from '../App';
 import { PushSetting } from '../components/PushSetting';
+import { NotificationSettings } from '../components/NotificationSettings';
 import { IconCalendar, IconPlus, IconX } from '../components/Icons';
 import { api, ApiError } from '../lib/api';
 import { refreshCalendars, useCalendar, viewerZone } from '../lib/calendar';
@@ -323,6 +324,16 @@ export function SettingsScreen() {
             {settings.reminders?.before != null && 'Notification' in window && perm !== 'granted' && (
               <p className="muted">{perm === 'denied' ? T.notifyBlocked : <button type="button" className="btn" onClick={() => Notification.requestPermission().then(setPerm)}>{T.notifyBtn}</button>}</p>
             )}
+          </div>
+        </section>
+
+        <section className="set-row" aria-labelledby="s-notif">
+          <div className="about">
+            <h2 id="s-notif">{T.notif.title}</h2>
+            <p>{T.notif.about}</p>
+          </div>
+          <div className="set-panel">
+            <NotificationSettings />
           </div>
         </section>
 
