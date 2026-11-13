@@ -222,13 +222,7 @@
 .focus-block-row { display: flex; align-items: center; justify-content: center; max-width: 100%; gap: 6px; font-size: 13px; color: var(--muted); }
 .focus-block-row span { overflow-wrap: anywhere; min-width: 0; }
 .focus-setup { width: min(220px, 100%); }
-.focus-config-anchor { position: relative; z-index: 4; }
-.focus-config-anchor .kb-pop { left: auto; right: 0; }
-.focus-config-anchor .kb-pop { width: min(320px, calc(100vw - 72px)); }
-.focus-config { display: grid; gap: 20px; width: 100%; margin: 12px 0; }
-.focus-config label { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: baseline; gap: 12px; font-size: 13px; }
-.focus-config output { color: var(--muted); white-space: nowrap; text-align: right; font-weight: 400; }
-.focus-config input { width: 100%; accent-color: var(--text); min-height: 24px; }
+
 @media (max-width: 860px) {
   .focus-card-head h2 { font-size: 14px; }
   .focus-card-actions .btn { padding: 0 8px; font-size: 12px; }
@@ -256,3 +250,27 @@
 .fw-capture { margin-top: 14px; }
 .fw-capture label { display: block; margin-bottom: 6px; font-size: 13px; }
 .fw-capture .input { width: 100%; min-width: 0; }
+
+/* Focus preferences share one layout in Settings and the modal sheet. */
+dialog.sheet.focus-settings-sheet { position: fixed; inset: 0 0 0 auto; margin: 0; width: 420px; max-width: 100%; height: 100dvh; max-height: 100dvh; border-radius: 0; padding: 24px; overflow-y: auto; background: var(--surface); color: var(--text); }
+.focus-settings-sheet::backdrop { background: rgb(0 0 0 / 16%); }
+.focus-settings-sheet > header { display: flex; justify-content: space-between; align-items: start; gap: 16px; margin-bottom: 28px; }
+.focus-settings-sheet h2 { font-size: 22px; margin: 0 0 6px; }
+.focus-config { display: grid; gap: 28px; width: 100%; max-height: none; overflow: visible; margin: 0; }
+.focus-config section { display: grid; gap: 16px; min-width: 0; }
+.focus-config section + section { border-top: 1px solid var(--border); padding-top: 24px; }
+.focus-config h3 { font-size: 16px; font-weight: 500; margin: 0; }
+.focus-config label { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px; font-size: 14px; }
+.focus-config output { color: var(--muted); font-variant-numeric: tabular-nums; white-space: nowrap; }
+.focus-config input[type=range] { width: 100%; accent-color: var(--text); min-height: 24px; }
+.focus-config .focus-switch-row { flex-wrap: nowrap; min-height: 44px; }
+.focus-switch-row span { flex: 1; }
+.focus-switch-row small { display: block; color: var(--muted); font-size: 12px; line-height: 1.5; margin-top: 4px; }
+.focus-config input[role=switch] { appearance: none; flex: 0 0 36px; width: 36px; height: 22px; min-height: 22px; border-radius: 12px; background: var(--border); position: relative; cursor: pointer; }
+.focus-config input[role=switch]::after { content: ''; position: absolute; width: 16px; height: 16px; top: 3px; left: 3px; border-radius: 50%; background: var(--surface); }
+.focus-config input[role=switch]:checked { background: var(--text); }
+.focus-config input[role=switch]:checked::after { left: 17px; }
+.focus-special { display: grid; gap: 16px; }
+.focus-special .field { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.focus-special input { min-width: 0; width: 100%; }
+@media (max-width: 600px) { dialog.sheet.focus-settings-sheet { width: 100%; padding: 20px; } .focus-settings-sheet .btn { min-height: 44px; } }
