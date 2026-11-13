@@ -152,11 +152,37 @@ git pull && docker compose up -d --build
 
 A ready-made image is also built by GitHub Actions on every push to `main` (`ghcr.io/syaltha0/shutdown-complete:latest`; a `v*` tag gives a versioned one).
 
+### Deploy behind a reverse proxy
+
+For Nginx Proxy Manager, create an HTTPS Proxy Host for the planner, forward to its HTTP port,
+enable Force SSL and forward the original Host and X-Forwarded-Proto headers. In Advanced,
+use `client_max_body_size 10m;` (or your intended backup upload limit). Do not cache `/dav/` or `/api/`.
+
+- Verify `/.well-known/caldav` returns **301** to `/dav/` on the same HTTPS host; do not send it to Nextcloud.
+- Pass OPTIONS, GET, HEAD, PUT, PROPFIND, REPORT, MKCALENDAR, PROPPATCH and DELETE unchanged.
+- Preserve Authorization, Content-Type, Depth, If-Match and If-None-Match request headers, ETag response headers and XML/calendar bodies.
+- Avoid proxy authentication or method restrictions on `/dav/`; use a planner app password in DAVx5.
+- Test discovery, task creation, update with ETag, stale ETag (412), and deletion through the public HTTPS address.
+- In DAVx5, select each Nextcloud list from one account only. Synced lists are hidden on the planner's direct CalDAV by default; Settings → Account → Nextcloud can explicitly publish individual lists with a duplicate warning.
+- Set `TZ` to the planner's intended timezone. New timed tasks are exported in UTC; imported timezone definitions and unchanged dates are preserved.
+
+For split DNS (a public Nextcloud hostname resolving to a LAN address), the server owner may link
+Nextcloud directly. For ICS subscriptions, set `CALENDAR_PRIVATE_HOSTS=cloud.example.org`
+on the planner service and restart it. This is an exact hostname allowlist, including redirects;
+do not list untrusted hosts. `CALENDAR_ALLOW_PRIVATE=on` permits **all users** to fetch any private
+HTTP(S) destination and is intended for isolated test servers. Keep it unset in production.
+Default SSRF checks remain in force for other hosts. A private-address error can mean split DNS;
+ask the administrator to grant the exact calendar hostname. Public ICS publication is read-only;
+keep its bearer URL secret, and use CalDAV for task edits.
+
 ### Settings
 
 | Variable | Default | What it does |
 |---|---|---|
 | `APP_URL` | taken from the request | Public address used in e-mail links |
+| `TZ` | system timezone | IANA timezone for planner task dates and new timed CalDAV exports |
+| `CALENDAR_PRIVATE_HOSTS` | empty | Comma-separated exact hostnames allowed on private networks for ICS and DAV sync |
+| `CALENDAR_ALLOW_PRIVATE` | unset | `on` disables private-address protection globally; isolated tests only |
 | `SMTP_URL` | empty (e-mail off) | SMTP server for confirmations and password resets |
 | `VAPID_SUBJECT` | `mailto:admin@example.com` | Push service contact URI; set to your HTTPS site or administrator mailto address |
 | `MAIL_FROM` | `Shutdown Complete <no-reply@localhost>` | Sender of those e-mails |
