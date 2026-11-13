@@ -11,9 +11,10 @@ export const fill = (v: number, min: number, max: number) => ({ '--fill': `${((v
  * its step and saved once, when the thumb is let go (saving and redrawing every settings row on each step made the
  * drag stutter). Arrow keys move one step, Page Up/Down five, Home/End to the ends.
  */
-function Slider({ id, label, min, max, step, value, format, onCommit, describedBy }: {
+function Slider({ id, label, min, max, step, value, format, onCommit, describedBy, discrete }: {
   id: string; label: string; min: number; max: number; step: number; value: number;
   format: (v: number) => string; onCommit: (v: number) => void; describedBy?: string;
+  /** a short range of a few choices moves in visible steps instead of gliding */ discrete?: boolean;
 }) {
   const [draft, setDraft] = useState<number | null>(null);
   const ref = useRef<HTMLInputElement>(null);
@@ -36,7 +37,7 @@ function Slider({ id, label, min, max, step, value, format, onCommit, describedB
   return <div className="field">
     <label htmlFor={id}>{label}<output className="num">{format(snap(shown))}</output></label>
     <div className="focus-range" style={fill(shown, min, max)}>
-      <input ref={ref} id={id} aria-label={label} aria-describedby={describedBy} aria-valuetext={format(snap(shown))} type="range" min={min} max={max} step="any" value={shown}
+      <input ref={ref} id={id} aria-label={label} aria-describedby={describedBy} aria-valuetext={format(snap(shown))} type="range" min={min} max={max} step={discrete ? step : 'any'} value={shown}
         onChange={(e) => setDraft(Number(e.target.value))} onKeyDown={key} />
     </div>
   </div>;
@@ -58,7 +59,7 @@ export function FocusConfig() {
     {([
     ['focusMin', T.focusLen, 5, 120], ['shortMin', T.shortLen, 1, 30],
     ['longMin', T.longLen, 5, 60], ['longEvery', T.longEveryLabel, 2, 8],
-  ] as const).map(([key, label, min, max]) => <Slider key={key} id={`${id}-${key}`} label={label} min={min} max={max} step={1} value={f[key]}
+  ] as const).map(([key, label, min, max]) => <Slider key={key} id={`${id}-${key}`} label={label} min={min} max={max} step={1} value={f[key]} discrete={key === 'longEvery'}
     describedBy={active ? `${id}-hint` : undefined} format={(v) => `${v} ${key === 'longEvery' ? T.sessionsWord : T.minutesUnit}`}
     onCommit={(value) => update((s) => ({ ...s, focus: { ...settingsFocus(s), [key]: value } }))} />)}
     </section><section><h3>{T.focusGroups.flow}</h3>{(['autoBreak', 'autoFocus', 'fullscreenBreak', 'strict'] as const).map(toggle)}</section>
