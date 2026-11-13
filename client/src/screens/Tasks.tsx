@@ -12,7 +12,7 @@ import { navigate, onLinkClick } from '../lib/router';
 import { useSettings } from '../App';
 import { settingsFocus, startFocus } from '../lib/focus';
 import {
-  COLLECTIONS, DEFAULT_LIST, PRESETS, SORTS, TAG, daysTo, inView, listOf, listsOf, onRuleDay, presetOf, recurWords, rollOn, sortTasks, type Sort,
+  matchesFilter, COLLECTIONS, DEFAULT_LIST, PRESETS, SORTS, TAG, daysTo, inView, listOf, listsOf, onRuleDay, presetOf, recurWords, rollOn, sortTasks, type Sort,
 } from '../lib/tasks';
 import { insertAt, offerUndo } from '../lib/undo';
 import { DayChips } from './Templates';
@@ -66,9 +66,11 @@ export function Tasks({ view: asked }: { view?: string }) {
   // the address names a collection, a list, or a tag (tag:<name>)
   const wanted = asked ? decodeURIComponent(asked) : '';
   const tagView = wanted.startsWith(TAG) ? wanted.slice(TAG.length) : null;
-  const view = (COLLECTIONS as readonly string[]).includes(wanted) || lists.some((l) => l.id === wanted) || (tagView && allTags.includes(tagView)) ? wanted : 'all';
-  const isList = !(COLLECTIONS as readonly string[]).includes(view) && !view.startsWith(TAG);
-  const viewName = isList ? lists.find((l) => l.id === view)!.name : view.startsWith(TAG) ? `#${view.slice(TAG.length)}` : T.tkViews[view as keyof typeof T.tkViews];
+  const filter = doc?.filters?.find((f) => f.id === wanted);
+  const [editingFilter, setEditingFilter] = useState<import('../lib/model').SavedTaskFilter | null>(null);
+  const view = filter ? wanted : (COLLECTIONS as readonly string[]).includes(wanted) || lists.some((l) => l.id === wanted) || (tagView && allTags.includes(tagView)) ? wanted : 'all';
+  const isList = !filter && !(COLLECTIONS as readonly string[]).includes(view) && !view.startsWith(TAG);
+  const viewName = filter ? filter.name : isList ? lists.find((l) => l.id === view)!.name : view.startsWith(TAG) ? `#${view.slice(TAG.length)}` : T.tkViews[view as keyof typeof T.tkViews];
   const [sort, setSort] = useState<Sort>(() => (SORTS as string[]).includes(store.get('sc-tasks-sort') ?? '') ? store.get('sc-tasks-sort') as Sort : 'due');
   const [q, setQ] = useState('');
   const [openId, setOpenId] = useState<string | null>(null);
@@ -103,7 +105,7 @@ export function Tasks({ view: asked }: { view?: string }) {
 
   const set = (id: string, p: Partial<Item>) => update((b) => ({ ...b, items: b.items.map((x) => (x.id === id ? { ...x, ...p } : x)) }));
   const matches = (t: Item) => taskMatches(t, q);
-  const shown = sortTasks(items.filter((t) => inView(t, view) && matches(t)), sort);
+  const shown = sortTasks(items.filter((t) => (filter ? matchesFilter(t, filter) : inView(t, view)) && matches(t)), sort);
   // in a list, its done tasks fold away under the open ones
   const doneHere = isList ? sortTasks(items.filter((t) => t.done && listOf(t) === view && matches(t)), sort) : [];
   const count = (v: string) => items.filter((t) => inView(t, v)).length;
@@ -294,6 +296,9 @@ export function Tasks({ view: asked }: { view?: string }) {
               </button></li>
             ))}
           </ul>
+          <h3 className="tk-side-h">{T.tkFilters}</h3>
+          <ul className="tk-views">{doc?.filters?.map((f) => <li key={f.id}><button type="button" aria-current={view === f.id ? 'page' : undefined} onClick={() => go(f.id)}>{f.name}</button></li>)}</ul>
+          <button className="btn ghost" onClick={() => setEditingFilter({ id: uid(), name: '' })}>{T.tkFilterNew}</button>
           <ListsPart lists={lists} view={view} count={count} go={go} doc={doc} update={update} target={target} />
           {/* tags: every tag in use, a view of its own */}
           {allTags.length > 0 && (
@@ -314,7 +319,7 @@ export function Tasks({ view: asked }: { view?: string }) {
           <span className="sr-only">{T.tkTitle}</span>
           <select className="input" value={view} onChange={(e) => go(e.target.value)}>
             <optgroup label={T.tkTitle}>{COLLECTIONS.map((v) => <option key={v} value={v}>{T.tkViews[v]} ({count(v)})</option>)}</optgroup>
-            <optgroup label={T.tkLists}>{lists.map((l) => <option key={l.id} value={l.id}>{l.name} ({count(l.id)})</option>)}</optgroup>
+            <optgroup label={T.tkFilters}>{doc?.filters?.map((f) => <option key={f.id} value={f.id}>{f.name}</option>)}</optgroup><optgroup label={T.tkLists}>{lists.map((l) => <option key={l.id} value={l.id}>{l.name} ({count(l.id)})</option>)}</optgroup>
             {allTags.length > 0 && <optgroup label={T.tkTags}>{allTags.map((g) => <option key={g} value={TAG + g}>#{g} ({count(TAG + g)})</option>)}</optgroup>}
           </select>
         </label>
@@ -335,6 +340,15 @@ export function Tasks({ view: asked }: { view?: string }) {
               </select>
             </label>
           </header>
+          {filter && <div className="tk-done-bar"><button className="btn ghost" onClick={() => setEditingFilter(filter)}>{T.tkFilterEdit}</button><button className="btn ghost" onClick={() => { update((b) => ({ ...b, filters: b.filters?.filter((f) => f.id !== filter.id) })); go('all'); }}>{T.tkDeleteAll}</button>{[-1, 1].map((delta) => <button key={delta} className="btn ghost" onClick={() => update((b) => { const filters = [...(b.filters ?? [])]; const i = filters.findIndex((f) => f.id === filter.id), j = i + delta; if (j >= 0 && j < filters.length) [filters[i], filters[j]] = [filters[j], filters[i]]; return { ...b, filters }; })}>{delta < 0 ? T.tkFilterUp : T.tkFilterDown}</button>)}</div>}
+          {editingFilter && <form className="panel" onSubmit={(e) => { e.preventDefault(); const f = { ...editingFilter, name: editingFilter.name.trim() }; if (!f.name) return; update((b) => ({ ...b, filters: [...(b.filters ?? []).filter((x) => x.id !== f.id), f] })); setEditingFilter(null); go(f.id); }}>
+            <label>{T.tkRename}<input className="input" required value={editingFilter.name} onChange={(e) => setEditingFilter({ ...editingFilter, name: e.target.value })} /></label>
+            {(['list', 'tag', 'priority', 'date', 'status'] as const).map((key) => <label key={key}>{({ list: T.tkList, tag: T.tkTags, priority: T.tkPriority, date: T.tkDue, status: T.tkViews.completed })[key]}<select className="input" value={editingFilter[key] ?? ''} onChange={(e) => setEditingFilter({ ...editingFilter, [key]: e.target.value })}>
+              {key === 'status' ? <><option value="">{T.tkFilterOpen}</option><option value="completed">{T.tkViews.completed}</option></> : <><option value="">{T.tkFilterAny}</option>{(key === 'list' ? lists.map((l) => [l.id, l.name]) : key === 'tag' ? allTags.map((g) => [g, g]) : key === 'priority' ? ['1','5','9'].map((v) => [v,v]) : [['today',T.todayBtn],['week',T.tkViews.week],['late',T.tkFilterLate],['none',T.tkNoDue],['range',T.tkFilterRange]]).map(([v,n]) => <option key={v} value={v}>{n}</option>)}</>}
+            </select></label>)}
+            {editingFilter.date === 'range' && <>{(['from','to'] as const).map((key) => <label key={key}>{T.tkFilterRange}<input type="date" className="input" value={editingFilter[key] ?? ''} onChange={(e) => setEditingFilter({ ...editingFilter, [key]: e.target.value })} /></label>)}</>}
+            <button className="btn" type="submit">{T.tkFilterSave}</button><button className="btn ghost" type="button" onClick={() => setEditingFilter(null)}>{T.tkClose}</button>
+          </form>}
           {view !== 'completed' && (
             <form className="tk-add" onSubmit={(e) => { e.preventDefault(); const t = draft.trim(); if (t) { add(t); setDraft(''); setSmartAdd(true); } }}>
               <label htmlFor="tk-new" className="sr-only">{isList ? T.tkAddPh(viewName) : T.tkAddPhAny}</label>

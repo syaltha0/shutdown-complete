@@ -545,6 +545,7 @@ export const tr: Words = {
   // görev listeleri (screens/Tasks.tsx)
   tkTitle: 'Görevler', tkInbox: 'Gelen kutusu', tkLists: 'Listeler',
   tkSummary: (open, now) => (open ? `${open} açık görev${now ? `, ${now} tanesi bugüne kadar teslim ya da başlıyor` : ''}` : 'Açık görev yok'),
+  tkFilters: 'Kay?tl? filtreler', tkFilterNew: 'Yeni filtre', tkFilterEdit: 'Filtreyi d?zenle', tkFilterSave: 'Filtreyi kaydet', tkFilterAny: 'T?m?', tkFilterRange: 'Tarih aral???', tkFilterLate: 'Gecikmi?', tkFilterUp: 'Yukar? ta??', tkFilterDown: 'A?a?? ta??', tkFilterOpen: 'A??k',
   tkViews: { all: 'Tümü', today: 'Bugün', week: 'Önümüzdeki 7 gün', important: 'Önemli', current: 'Devam eden', completed: 'Tamamlanan' },
   tkEmpty: {
     all: 'Açık görev yok. Yukarıya bir tane yaz: ödev, ayak işi, sonraya kalan bir şey.',
