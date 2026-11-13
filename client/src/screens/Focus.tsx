@@ -212,7 +212,7 @@ export function Focus() {
           </div>
         </section>
 
-        <section className="panel" aria-labelledby="f4-h" data-anim>
+        <section className="panel focus-history" aria-labelledby="f4-h" data-anim>
           <div className="chart-head">
             <h2 id="f4-h" style={{ fontSize: 16, fontWeight: 500 }}>{T.focusFourWeeks}</h2>
           </div>
