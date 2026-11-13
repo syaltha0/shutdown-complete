@@ -12,6 +12,7 @@ import { onLinkClick } from '../lib/router';
 import { useSwipeNav } from '../lib/swipe';
 import { useDoc, useRange } from '../lib/useDoc';
 import { BrokenDown, PartOf, whereOf } from '../components/Links';
+import { CapacityNote } from '../components/CapacityNote';
 import { aboveKeys, choicesOf, servingOf } from '../lib/links';
 import { emptyMonth, type MonthDoc } from '../lib/model';
 
@@ -68,6 +69,8 @@ export function Week({ id }: { id: string }) {
         </div>
       </div>
       <DocNotice status={status} error={error} retry={retry} />
+      {id >= thisWeek && dayDocs && <CapacityNote scope="week" id={id} from={days[0]} thisOne={id === thisWeek}
+        planned={days.reduce((n, d) => { const doc = dayDocs.get(`day:${d}`); return n + (doc ? minutesOfKind(doc, 'deep') : 0); }, 0)} />}
 
       <div className="grid">
         <section className="panel span-7 fill" aria-labelledby="wp-h">

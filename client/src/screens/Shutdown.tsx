@@ -143,6 +143,7 @@ export function Shutdown({ date }: { date: string }) {
               {(day.focus?.sessions.length ?? 0) === 0 ? <div className="empty">{T.noSessions}</div> : (
                 <><FocusLog sessions={day.focus?.sessions} /><p className="focus-line num"><b>{duration(focusMinutes(day))}</b> · {T.focusRow(day.focus!.sessions.length, duration(focusMinutes(day)))}</p></>
               )}
+              {(minutesOfKind(day, 'deep') > 0 || focusMinutes(day) > 0) && <p className="focus-plan muted num">{T.planVsActual(duration(minutesOfKind(day, 'deep')), duration(focusMinutes(day)))}</p>}
             </section>
           )}
 

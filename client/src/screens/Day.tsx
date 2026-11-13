@@ -18,6 +18,7 @@ import { updateKey, useDoc, useRange } from '../lib/useDoc';
 import { placeRepeats, repeatFromBlock } from '../lib/repeat';
 import { estimateFor, insights } from '../lib/insights';
 import { focusCount, focusMinutes, settingsFocus, startFocus } from '../lib/focus';
+import { CapacityNote } from '../components/CapacityNote';
 import { BlockEditor, ReviseDialog } from './BlockDialogs';
 import { kindSwatch, PPM, revise, TimeGrid, undoRevision, useNow } from './TimeGrid';
 import { applyTemplate, templateFromBlocks, TemplatesDialog, weekdayIndex } from './Templates';
@@ -166,6 +167,8 @@ export function Day({ date }: { date: string }) {
   const planned = col.blocks.reduce((s, b) => s + b.end - b.start, 0);
   const nowBlock = isToday ? col.blocks.find((b) => now >= b.start && now < b.end && b.kind !== 'personal') ?? null : null;
   const kindsOnScreen = KIND_IDS.filter((k) => blocks.some((b) => b.kind === k));
+  // what was really done shows next to the plan on a day that has begun, never on one still to come
+  const actual = date <= t ? day.focus?.sessions ?? [] : [];
   const templates = settings.templates ?? [];
   const weekday = weekdayIndex(date);
   const suggested = col.blocks.length === 0 ? templates.find((t) => t.days.includes(weekday)) : undefined;
@@ -298,9 +301,10 @@ export function Day({ date }: { date: string }) {
               <span>{T.shallow} <b>{duration(totals.shallow + totals.meeting)}</b></span>
               <span>{T.open} <b>{duration(Math.max(0, span - planned))}</b></span>
             </div>
-            {kindsOnScreen.length > 0 && (
+            {(kindsOnScreen.length > 0 || actual.length > 0) && (
               <div className="legend hide-phone" aria-label={T.kindsOfBlock}>
                 {kindsOnScreen.map((k) => <span key={k}><i style={kindSwatch(k)} />{T.kinds[k].name}</span>)}
+                {actual.length > 0 && <span><i className="lg-actual" />{T.actualLegend}</span>}
               </div>
             )}
             {day.columns.length > 1 && (
@@ -329,6 +333,7 @@ export function Day({ date }: { date: string }) {
             )}
             {flash && <span className="stamp flash" role="status" key={flash}>{flash}</span>}
           </div>
+          {date >= t && <CapacityNote scope="day" id={date} from={date} planned={minutesOfKind(day, 'deep')} thisOne={isToday} />}
           {allDayEvents.length > 0 && (
             <div className="all-day" aria-label={T.allDay}>
               <span className="lbl">{T.allDay}</span>
@@ -336,7 +341,7 @@ export function Day({ date }: { date: string }) {
             </div>
           )}
           <TimeGrid day={day} range={[r0, r1]} now={isToday ? now : null} onColumns={setCols} onOpen={setOpenId} shownCol={shownCol}
-            focusAt={focusAt} focusKey={date}
+            focusAt={focusAt} focusKey={date} sessions={actual}
             preview={drag?.slot ? { ...drag.slot, label: drag.item.text } : null} events={timedEvents} onEvent={blockOutEvent} />
         </section>
       </div>
