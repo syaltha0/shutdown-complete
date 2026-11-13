@@ -72,7 +72,14 @@
 /* the floating timer (it floats, so it may carry a shadow) */
 .mini-timer { position: fixed; right: 24px; bottom: 24px; z-index: 30; display: flex; flex-direction: column; align-items: stretch; width: 300px; max-width: calc(100vw - 24px); border: 1px solid var(--border); border-radius: 26px; background: var(--surface); box-shadow: 0 10px 30px rgba(0, 0, 0, 0.12); overflow: hidden; animation: rise-in 420ms var(--ease-out) both; transition: border-radius 200ms var(--ease-out); } /* taste-skill-ignore: a floating timer */
 .mini-timer[data-open="true"] { border-radius: 18px; }
-.mt-row { display: flex; align-items: center; gap: 10px; padding: 8px 8px 8px 10px; }
+/* the corner it sits in (dragged there, or picked in the details); the details open away from the screen edge */
+.mini-timer[data-h="left"] { right: auto; left: 24px; }
+.mini-timer[data-v="top"] { bottom: auto; top: 24px; }
+.mini-timer[data-dragging="true"] { transition: none; box-shadow: 0 16px 40px rgba(0, 0, 0, 0.2); }
+.mini-timer[data-v="top"] .mt-body { border-bottom: 0; border-top: 1px solid var(--rule); }
+.mt-row { display: flex; align-items: center; gap: 10px; padding: 8px 8px 8px 10px; cursor: grab; touch-action: none; user-select: none; }
+.mini-timer[data-dragging="true"] .mt-row { cursor: grabbing; }
+.mt-row .mt-trigger { cursor: inherit; }
 .mt-row .mt-trigger { flex: 1; }
 .mini-timer .mt-text { display: grid; line-height: 16px; min-width: 0; max-width: 200px; }
 .mini-timer .mt-text b { font-size: 16px; line-height: 20px; font-weight: 500; }
@@ -89,6 +96,7 @@
 .mt-label { display: block; margin-top: 4px; font-weight: 500; overflow-wrap: anywhere; }
 .mt-meta { display: flex; justify-content: space-between; gap: 8px; margin-top: 8px; }
 .mt-meta, .mt-next { color: var(--muted); font-size: 12px; }
+.mt-tools { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px; }
 .mt-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin-top: 14px; }
 .mini-timer .mt-link { margin-left: auto; font-size: 13px; font-weight: 400; color: var(--muted); }
 .mini-timer .mt-link:hover { color: var(--text); text-decoration: none; }
@@ -132,6 +140,8 @@
   .tab-item[aria-current="page"] { color: var(--text); }
   .tab-item[aria-current="page"] .label { font-weight: 500; }
   .mini-timer { right: 12px; left: 12px; bottom: 76px; }
+  .mini-timer[data-h] { right: 12px; left: 12px; }
+  .mini-timer[data-v="top"] { top: calc(env(safe-area-inset-top, 0px) + 52px); bottom: auto; }
   .mini-timer .mt-text { flex: 1; max-width: none; }
   .mini-timer, .mini-timer[data-open="true"] { width: auto; max-width: none; }
   .date-add { grid-template-columns: minmax(0, 1fr) auto; }
