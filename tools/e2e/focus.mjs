@@ -40,6 +40,11 @@ try {
   const a1 = await until(async () => (await doc()).focus?.active);
   check('start writes the length and break', a1 && a1.plannedMin === 40 && a1.breakMin === 10);
   check('the setup gives way to the controls', await p.locator('.focus-setup').count() === 0 && await p.getByRole('button', { name: 'Pause', exact: true }).isVisible());
+  check('the current round is distinguished from upcoming rounds', await p.locator('.focus-rounds .current').count() === 1 && await p.locator('.focus-rounds .done').count() === 0);
+  await p.locator('.focus-config-anchor > button').click();
+  check('running timer settings explain when durations apply', await p.locator('.focus-config-hint').isVisible());
+  check('duration sliders reference the explanation', await p.locator('.focus-config input').first().getAttribute('aria-describedby') === await p.locator('.focus-config-hint').getAttribute('id'));
+  await p.getByRole('dialog').getByRole('button', { name: 'Close', exact: true }).click();
 
   await p.getByRole('button', { name: 'Pause', exact: true }).click();
   check('pause keeps the time left', !!(await until(async () => (await doc()).focus?.active?.pausedLeft != null)));
@@ -60,6 +65,7 @@ try {
   const a3 = await until(async () => { const x = await doc(); return x.focus?.active?.phase === 'short' ? x : null; });
   check('finishing logs a session', a3 && a3.focus.sessions.length === 1 && a3.focus.sessions[0].minutes >= 9);
   check('the break has the chosen length', a3.focus.active.plannedMin === 10 && a3.focus.active.sessionId === a3.focus.sessions[0].id);
+  check('a completed round is filled and a break has no current focus round', await p.locator('.focus-rounds .done').count() === 1 && await p.locator('.focus-rounds .current').count() === 0);
 
   const note = p.getByLabel('A note on the session');
   await note.fill('Got through the outline; the data table is next.');
@@ -125,15 +131,20 @@ try {
   // a session begun before midnight carries on (it lives in yesterday's document) and is logged there
   const Y = iso(new Date(Date.now() - 864e5));
   await setActive('day:' + D, null, []);
-  await setActive('day:' + Y, run(25, 10), []);
+  const previousRounds = Array.from({ length: 3 }, (_, i) => ({ id: `y${i}`, blockId: null, label: 'Yesterday', kind: null, start: `${Y}T09:00:00`, end: `${Y}T09:25:00`, minutes: 25 }));
+  await setActive('day:' + Y, run(25, 10), previousRounds);
   await p.goto(s.url + '/focus');
   await btn('Pause').waitFor({ timeout: 4000 });
   check("a session begun before midnight still shows after it", (await p.locator('.focus-read .focus-label').innerText()) === 'Edge');
+  check('the carried timer shows round four from yesterday', (await p.locator('.focus-cycle-summary').innerText()).includes('4/4') && await p.locator('.focus-rounds .done').count() === 3 && await p.locator('.focus-rounds .current').count() === 1);
   await btn('Finish now').click();
-  const yd = await until(async () => { const v = (await api.get('day:' + Y)).value; return v.focus.active?.phase === 'short' ? v : null; });
-  check("it is logged on the day it began, and its break follows", yd && yd.focus.sessions.length === 1 && (await doc()).focus.sessions.length === 0);
+  const yd = await until(async () => { const v = (await api.get('day:' + Y)).value; return v.focus.active?.phase === 'long' ? v : null; });
+  check("it is logged on the day it began, and its break follows", yd && yd.focus.sessions.length === 4 && (await doc()).focus.sessions.length === 0);
+  check('the carried long break shows all four completed rounds', await p.locator('.focus-rounds .done').count() === 4 && await p.locator('.focus-rounds .current').count() === 0);
   await btn('Skip the break').click();
   check('the carried break ends too', !!(await until(async () => (await api.get('day:' + Y)).value.focus.active === null)));
+  await p.locator('.focus-setup').waitFor();
+  check('idle cycle returns to today without yesterday rounds', await p.locator('.focus-rounds .done').count() === 0);
 
   // a tab that slept through the end logs the session at its planned end, not when it woke
   const slept = run(25, 120);

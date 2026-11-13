@@ -1,3 +1,4 @@
+import { Segmented } from '../components/Segmented';
 import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { FocusConfig } from '../components/FocusConfig';
 import { Pop } from '../components/Pop';
@@ -32,6 +33,8 @@ export function Focus() {
   const now = nowMinutes();
   // the block to focus on: the one running now, unless it is lunch or a walk; then the next deep block
   const running = blocks.find((b) => now >= b.start && now < b.end && b.kind !== 'personal');
+  const blockRank = (b: typeof blocks[number]) => b.id === running?.id ? 0 : b.start > now ? 1 : 2;
+  const pickerBlocks = [...blocks].sort((a, b) => blockRank(a) - blockRank(b) || a.start - b.start);
   const current = running ?? blocks.find((b) => b.start > now && b.kind === 'deep') ?? blocks.find((b) => b.start > now && b.kind !== 'personal') ?? null;
   const [blockId, setBlockId] = useState<string | null | undefined>(undefined);
   const [readyPhase, setReadyPhase] = useState<FocusPhase>('focus');
@@ -64,7 +67,10 @@ export function Focus() {
   const saveNote = () => { const n = noteRef.current; if (n) { noteSession(n.id, n.text, key); setNoteDraft(null); } };
   useEffect(() => () => { const n = noteRef.current; if (n) noteSession(n.id, n.text, key); }, [key]);
   useEffect(() => { if (!lastSession && noteRef.current) saveNote(); }, [lastSession?.id]); // eslint-disable-line react-hooks/exhaustive-deps
-  const cycleNo = ((sessions.length % f.longEvery) + (a?.phase === 'focus' ? 1 : 0)) || f.longEvery;
+  // A timer carried past midnight finishes in its original day's document.
+  const cycleSessions = a ? holder?.focus?.sessions ?? [] : sessions;
+  const roundsDone = cycleSessions.length % f.longEvery || (cycleSessions.length && phase !== 'focus' ? f.longEvery : 0);
+  const cycleNo = ((cycleSessions.length % f.longEvery) + (a?.phase === 'focus' ? 1 : 0)) || f.longEvery;
 
   // Today's sessions shows about five rows and scrolls inside, so a long day does not push the cards below
   const listRef = useRef<HTMLDivElement>(null);
@@ -114,13 +120,14 @@ export function Focus() {
 
       <div className="grid top focus-grid">
         <section className={`panel span-7 focus-panel phase-${phase}`} aria-labelledby="fp-h" data-anim>
-          <h2 id="fp-h" className="sr-only">{T.focusRunning}</h2>
-          <button type="button" className="btn sm focus-room-btn" onClick={openRoom}>{T.roomOpen}</button>
+          <header className="focus-card-head"><h2 id="fp-h">{T.focusRunning}</h2><div className="focus-card-actions">
+          <button type="button" className="btn ghost sm focus-room-btn" onClick={openRoom}>{T.roomOpen}</button>
           <div className="focus-config-anchor"><button type="button" className="btn sm" aria-expanded={config} onClick={() => setConfig(!config)}>{T.nav.settings}</button><Pop open={config} onClose={() => setConfig(false)} title={T.focusSettings}><FocusConfig /></Pop></div>
+          </div></header>
           <div className="focus-stage">
-            <div className="focus-tabs" role="group" aria-label={T.focusRunning}>{(['focus', 'short', 'long'] as const).map((p) => <button type="button" key={p} className={`phase-${p}`} aria-pressed={phase === p} disabled={!!a && a.phase !== p} onClick={() => setReadyPhase(p)}>{T.phase[p]}</button>)}</div>
+            <Segmented className="focus-tabs sm" role="group" aria-label={T.focusRunning}>{(['focus', 'short', 'long'] as const).map((p) => <button type="button" key={p} className={`phase-${p}`} aria-pressed={phase === p} disabled={!!a && a.phase !== p} onClick={() => setReadyPhase(p)}>{T.phase[p]}</button>)}</Segmented>
             <div className="focus-ring">
-              {a ? <Ring a={a} size={248} stroke={10} /> : <svg width={248} height={248} viewBox="0 0 248 248" aria-hidden="true"><circle cx={124} cy={124} r={119} fill="none" stroke="var(--phase-color)" strokeWidth={4} /></svg>}
+              {a ? <Ring a={a} size={248} stroke={5} /> : <svg width={248} height={248} viewBox="0 0 248 248" aria-hidden="true"><circle cx={124} cy={124} r={119} fill="none" stroke="var(--phase-color)" strokeWidth={5} /></svg>}
               <div className="focus-read">
                 <span className="phase-name">{T.phase[phase]}</span>
                 <b className="num" role="timer" aria-live="off">{a ? mmss(secondsLeft(a)) : mmss(minutes * 60)}</b>
@@ -129,28 +136,32 @@ export function Focus() {
             </div>
             <p className="sr-only" role="status">{a ? `${T.phase[a.phase]}${a.pausedLeft != null ? ` · ${T.focusPaused}` : ''}` : ''}</p>
 
-            <div className="focus-rounds" role="img" aria-label={T.sessionN(sessions.length % f.longEvery || (sessions.length ? f.longEvery : 0), f.longEvery)}>{Array.from({ length: f.longEvery }, (_, i) => <i key={i} className={i < (sessions.length % f.longEvery || (sessions.length && phase !== 'focus' ? f.longEvery : 0)) ? 'done' : ''} />)}</div>
+            <div className="focus-cycle-summary">
+              <div className="focus-rounds" title={T.focusRoundsHint} aria-hidden="true">{Array.from({ length: f.longEvery }, (_, i) => <i key={i} className={i < roundsDone ? 'done' : a?.phase === 'focus' && i === roundsDone ? 'current' : ''} />)}</div>
+              <span className="muted num">{T.sessionN(a?.phase === 'focus' ? cycleNo : roundsDone, f.longEvery)}</span>
+            </div>
             <div className="focus-block-row"><span>{T.focusCurrent}: {a?.label || chosenBlock?.label || T.freeFocus}</span>{!a && <button type="button" className="btn ghost sm" aria-expanded={picking} onClick={() => setPicking(!picking)}>{T.focusChange}</button>}</div>
             {!a && <form className="focus-setup" onSubmit={(e) => { e.preventDefault(); if (day) startFocus(begin); }}>
-              {picking && <div className="field"><label htmlFor="fc-block">{T.blockPick}</label><select id="fc-block" className="input" value={chosen ?? ''} onChange={(e) => { setBlockId(e.target.value || null); setPicking(false); }}><option value="">{T.freeFocus}</option>{blocks.map((b) => <option key={b.id} value={b.id}>{clock(b.start)} ? {b.label || T.untitledBlock}</option>)}</select></div>}
+              {picking && <div className="field"><label htmlFor="fc-block">{T.blockPick}</label><select id="fc-block" className="input" value={chosen ?? ''} onChange={(e) => { setBlockId(e.target.value || null); setPicking(false); }}><option value="">{T.freeFocus}</option>{pickerBlocks.map((b) => <option key={b.id} value={b.id}>{clock(b.start)} · {b.label || T.untitledBlock}</option>)}</select></div>}
               <div className="focus-go"><button type="submit" className="btn primary big" disabled={!day}>{phase === 'focus' ? T.startFocus : T.focusStartBreak}</button></div>
             </form>}
 
             {a && (
               <div className="focus-run">
                 {a.phase === 'focus' && a.intent && <p className="focus-intent">{a.intent}</p>}
-                <p className="muted num focus-cycle">{a.phase === 'focus' ? T.sessionN(cycleNo, f.longEvery) : T.nextLong(untilLong)}</p>
                 <div className="focus-controls">
-                  <button type="button" className="btn ghost" onClick={() => stop(true)}>{stopAsk === 'reset' ? T.stopAsk(ranMin) : T.focusReset}</button>
-                  {/* the one filled button: pause or resume while focusing, back to work on a break */}
-                  {a.phase !== 'focus' && <button type="button" className="btn primary" onClick={finish}>{T.skipBreak}</button>}
                   {a.pausedLeft == null
                     ? <button type="button" className={`btn primary`} onClick={() => pauseFocus(key)}>{T.pause}</button>
                     : <button type="button" className={`btn primary`} onClick={() => resumeFocus(key)}>{T.resume}</button>}
-                  <button type="button" className="btn ghost num" disabled={a.plannedMin >= MAX_PLANNED} onClick={() => extendFocus(5, key)}>{T.plusFive}</button>
-                  {a.phase === 'focus' && <button type="button" className="btn ghost" onClick={finish}>{T.finishNow}</button>}
-                  <button type="button" className={`btn ghost${stopAsk ? ' danger' : ''}`} aria-live="polite" onClick={() => stop()}>{stopAsk === 'stop' ? T.stopAsk(ranMin) : T.stop}</button>
                 </div>
+                <div className="focus-secondary">
+                  <button type="button" className="btn ghost sm" disabled={!!a.roomId} aria-describedby={a.roomId ? 'focus-reset-hint' : undefined} onClick={() => stop(true)}>{stopAsk === 'reset' ? T.stopAsk(ranMin) : T.focusReset}</button>
+                  {a.phase !== 'focus' && <button type="button" className="btn ghost sm" onClick={finish}>{T.skipBreak}</button>}
+                  <button type="button" className="btn ghost sm num" disabled={a.plannedMin >= MAX_PLANNED} onClick={() => extendFocus(5, key)}>{T.plusFive}</button>
+                  {a.phase === 'focus' && <button type="button" className="btn ghost" onClick={finish}>{T.finishNow}</button>}
+                  <button type="button" className={`btn ghost focus-stop${stopAsk === 'stop' ? ' danger' : ''}`} aria-live="polite" onClick={() => stop()}>{stopAsk === 'stop' ? T.stopAsk(ranMin) : T.stop}</button>
+                </div>
+                {a.roomId && <p id="focus-reset-hint" className="muted focus-note">{T.focusSharedResetHint}</p>}
                 {lastSession && (
                   <div className="field focus-note-field">
                     <label htmlFor="fc-note">{T.noteLabel}</label>

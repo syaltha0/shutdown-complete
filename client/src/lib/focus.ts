@@ -183,10 +183,10 @@ export function notify(title: string, body: string) {
 
 export const mmss = (sec: number) => `${String(Math.floor(sec / 60)).padStart(2, '0')}:${String(sec % 60).padStart(2, '0')}`;
 
-/** Reset the current phase while retaining its block, task, intent and room. */
+/** Reset a solo phase; a shared room must retain its common start and end. */
 export function resetFocus(key = dayKey()) {
   return updateKey<DayDoc>(key, emptyDay, (d) => {
-    if (!d.focus?.active) return d;
+    if (!d.focus?.active || d.focus.active.roomId) return d;
     return { ...d, focus: { ...d.focus, active: { ...d.focus.active, startedAt: new Date().toISOString(), pausedLeft: null } } };
   });
 }
