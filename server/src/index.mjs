@@ -15,6 +15,7 @@ import {
   sha256, useRecoveryCode, validEmail, verifyTotp,
 } from './auth.mjs';
 import { clientIp } from './net.mjs';
+import { bodyLimits, securityHeaders } from './hardening.mjs';
 import { socialRoutes } from './social.mjs';
 import { teamRoutes } from './teams.mjs';
 import { davRoutes } from './caldav.mjs';
@@ -145,13 +146,9 @@ function current(c) {
 
 const app = new Hono();
 
-app.use('*', async (c, next) => {
-  await next();
-  c.header('X-Content-Type-Options', 'nosniff');
-  c.header('Referrer-Policy', 'same-origin');
-  c.header('X-Frame-Options', 'DENY');
-  c.header('Permissions-Policy', 'camera=(), microphone=(), geolocation=()');
-});
+const headers = securityHeaders({ appUrl: APP_URL });
+app.use('*', headers);
+app.use('*', bodyLimits());
 
 // Requests that change something must come from this site (a second line behind SameSite cookies).
 app.use('/api/*', async (c, next) => {
@@ -863,4 +860,5 @@ if (existsSync(STATIC_DIR)) {
 serve({ fetch: app.fetch, port: PORT, hostname: process.env.HOST || '0.0.0.0' }, (info) => {
   console.log(`Shutdown Complete listening on :${info.port}${db.users.count() === 0 ? ' — open it in a browser to create the first account' : ''}`);
   if (!mailEnabled) console.log('E-mail is off (no SMTP_URL): sign-ups are not verified, and passwords are reset with: node server/src/cli.mjs reset-password <email>');
+  headers.setIndex(index);
 });
