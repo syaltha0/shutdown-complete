@@ -1,3 +1,4 @@
+import { FocusLog } from '../components/FocusLog';
 import { CalendarView } from '../components/CalendarView';
 import { useEffect, useRef, useState } from 'react';
 import { useSettings } from '../App';
@@ -338,7 +339,7 @@ export function Day({ date }: { date: string }) {
       </div>
 
       <BlockEditor
-        block={openBlock} min={floor} max={r1}
+        sessions={day.focus?.sessions} block={openBlock} min={floor} max={r1}
         subjects={settings.subjects} repeatDays={repeatOf?.days ?? []} onRepeat={date >= t ? setRepeat : undefined}
         repeatEvery={repeatOf?.every ?? 1}
         onRepeatEvery={repeatOf ? (n) => updateSettings((s) => ({ ...s, schedule: (s.schedule ?? []).map((r) => (r.id === repeatOf.id ? { ...r, every: n, since: date } : r)) })) : undefined}
@@ -468,6 +469,7 @@ function MetricsBox({ day, date, defs, update }: { day: DayDoc; date: string; de
           </div>
         )}
       </div>
+      <FocusLog sessions={day.focus?.sessions} />
       <div className="shutdown-line">
         <a className="card-link" style={{ fontWeight: 400 }} href={`/shutdown/${date}`} onClick={onLinkClick}>{T.shutdownRitual}</a>
         <span className="spacer" />

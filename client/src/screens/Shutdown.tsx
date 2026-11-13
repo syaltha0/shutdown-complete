@@ -1,3 +1,4 @@
+import { FocusLog } from '../components/FocusLog';
 import { useEffect, useRef, useState } from 'react';
 import { drawDayCard } from '../lib/daycard';
 import { useSettings } from '../App';
@@ -140,7 +141,7 @@ export function Shutdown({ date }: { date: string }) {
             <section className="panel" aria-labelledby="fo-h">
               <header><h2 id="fo-h">{T.focusMetric}</h2><a className="card-link" style={{ fontWeight: 400 }} href="/focus" onClick={onLinkClick}>{T.openFocus}</a></header>
               {(day.focus?.sessions.length ?? 0) === 0 ? <div className="empty">{T.noSessions}</div> : (
-                <p className="focus-line num"><b>{duration(focusMinutes(day))}</b> · {T.focusRow(day.focus!.sessions.length, duration(focusMinutes(day)))}</p>
+                <><FocusLog sessions={day.focus?.sessions} /><p className="focus-line num"><b>{duration(focusMinutes(day))}</b> · {T.focusRow(day.focus!.sessions.length, duration(focusMinutes(day)))}</p></>
               )}
             </section>
           )}
