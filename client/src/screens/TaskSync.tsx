@@ -105,6 +105,22 @@ export function Nextcloud() {
             <button type="button" className="btn" disabled={busy} onClick={() => act(() => api.nextcloudSync())}>{busy ? W.syncing : W.syncNow}</button>
             <button type="button" className="btn ghost" disabled={busy} onClick={() => act(() => api.nextcloudUnlink())}>{W.unlink}</button>
           </div>
+          {link.history?.length > 0 && <section aria-label={W.syncLog.last}>
+            {link.history.map((run, index) => <details key={run.at}>
+              <summary>{index === 0 ? W.syncLog.last : W.syncLog.previous} · {new Date(run.at).toLocaleString(getLang())} · {run.ok ? W.syncLog.success : W.syncLog.failed}</summary>
+              <p className="muted">{W.syncLog.duration}: {run.durationMs}</p>
+              <p className="muted">{W.syncLog.counts}</p>
+              <div style={{ overflowX: 'auto' }}><table style={{ width: '100%', fontSize: '0.85rem' }}>
+                <thead><tr>{[W.syncLog.list, W.syncLog.received, W.syncLog.sent, W.syncLog.deleted, W.syncLog.skipped].map(h => <th key={h} scope="col">{h}</th>)}</tr></thead>
+                <tbody>{run.lists.map(l => <tr key={l.id}><th scope="row">{l.name}</th><td>{l.received}</td><td>{l.sent}</td><td>{l.deleted}</td><td>{l.skipped}</td></tr>)}</tbody>
+              </table></div>
+              {run.errors.map((e, n) => <p className="err-line" key={n}>{run.lists.find(l => l.id === e.listId)?.name} · {e.title || W.syncLog.unknown} · {said(e.reason)}{e.status ? ' (' + e.status + ')' : ''}</p>)}
+              {run.error && !run.errors.length && <p className="err-line">{said(run.error)}</p>}
+              {index === 0 && <button type="button" className="btn" disabled={busy} onClick={() => act(() => api.nextcloudSync())}>{W.syncLog.retry}</button>}
+            </details>)}
+          </section>}
+          {error && <p className="err-line" role="alert">{said(error)}</p>}
+
           <p className="muted">{W.howItSyncs}</p>
           <p className="muted">{W.duplicateWarning}</p>
           {link.routes.map(route => <label className="session-row" key={route.id}>

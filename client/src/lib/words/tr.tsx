@@ -555,6 +555,7 @@ serverStatus:{"title":"Sunucu durumu","backup":"Yedekler","storage":"Depolama","
     ncAbout: 'Görev listelerini Nextcloud’unla eşit tut: her liste orada bir görev takvimi olur, değişiklikler birkaç dakikada bir iki yöne de gider. Aynı görev iki tarafta da değiştiyse bu planlayıcıdaki hâli geçerli olur.',
     ncAddress: 'Nextcloud adresi', ncUser: 'Kullanıcı adı', ncPassword: 'Uygulama parolası',
     ncPasswordHint: 'Nextcloud’da üret: Kişisel ayarlar → Güvenlik → Yeni uygulama parolası oluştur.',
+    syncLog: {"last":"Son eşitleme","success":"Başarılı","failed":"Hatalı","list":"Liste","received":"↓ Alındı","sent":"↑ Gönderildi","deleted":"Silindi","skipped":"Atlandı","retry":"Tüm listeleri yeniden dene","previous":"Önceki çalıştırmalar","duration":"Süre (ms)","unknown":"Görev bilgisi yok","counts":"Tamamlanan işlemler; değişmeyen görevler atlanır. Hata çalıştırmayı durdurur. Alınan değişiklikler hata durumunda kaydedilmemiş olabilir."},
     link: 'Bağla', linking: 'Bağlanıyor…', syncNow: 'Şimdi eşitle', syncing: 'Eşitleniyor…', unlink: 'Bağlantıyı kaldır',
     linkedTo: (u) => `${u} adresine bağlı`, as: (u) => `${u} olarak`, listsN: (n) => `${n} liste`, synced: (when) => `${when} eşitlendi`,
     howItSyncs: 'Bağlantıyı kaldırınca iki taraftaki her şey yerinde kalır; sadece birbirlerini izlemeyi bırakırlar.',
