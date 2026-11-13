@@ -492,6 +492,7 @@ export const tr: Words = {
   tomorrow: 'Yarın', toDayLabel: (t) => `“${t}” görevini bir güne koy`,
   fromInbox: 'Görevlerinden ekle', addToToday: (n) => (n ? `${n} tanesini bugüne ekle` : 'Bugüne ekle'),
   review: {
+    focusNotes: 'Odak notları', focusBlocks: 'Blok / konu bazında odak',
     open: 'Haftanın özeti', home: 'Haftanın özeti', title: (n) => `${n}. haftanın özeti`, prev: 'Önceki hafta', next: 'Sonraki hafta', toWeek: 'Hafta',
     focused: 'Odak', ofDeep: (d) => `planlanan derin odak ${d}`, shutdowns: 'Kapanan gün', tasksDone: 'Biten görev', ofDayTasks: (d, n) => (n ? `günlerdeki ${n} görevin ${d} tanesi` : ''),
     weekPlan: 'Haftalık plan', noPlan: 'planlanmadı', byDay: 'Gün gün', planned: 'planlanan', focusedShort: 'odak',

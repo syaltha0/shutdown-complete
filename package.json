@@ -16,7 +16,7 @@
     "cli": "node server/src/cli.mjs",
     "tutorial:record": "node tools/tutorial/record.mjs",
     "tutorial:render": "node tools/tutorial/render.mjs",
-    "test:e2e": "node tools/e2e/features.mjs && node tools/e2e/signup.mjs && node tools/e2e/planner.mjs && node tools/e2e/tasks.mjs && node tools/e2e/caldav.mjs && node tools/e2e/extras.mjs && node tools/e2e/welcome.mjs && node tools/e2e/publication.mjs && node tools/e2e/calendar-views.mjs && node tools/e2e/focus.mjs && node tools/e2e/mobile.mjs && node tools/e2e/metrics.mjs && node tools/e2e/together.mjs && node tools/e2e/focus-widgets.mjs && node tools/e2e/mini-timer.mjs && node tools/e2e/focus-integration.mjs && node tools/e2e/focus-responsive.mjs && node tools/e2e/focus-fit.mjs && node tools/e2e/focus-align.mjs && node tools/e2e/focus-card-v2.mjs && node tools/e2e/tasks-v2.mjs && node tools/e2e/focus-render.mjs",
+    "test:e2e": "node tools/e2e/features.mjs && node tools/e2e/signup.mjs && node tools/e2e/planner.mjs && node tools/e2e/tasks.mjs && node tools/e2e/caldav.mjs && node tools/e2e/extras.mjs && node tools/e2e/welcome.mjs && node tools/e2e/publication.mjs && node tools/e2e/calendar-views.mjs && node tools/e2e/focus.mjs && node tools/e2e/mobile.mjs && node tools/e2e/metrics.mjs && node tools/e2e/together.mjs && node tools/e2e/focus-widgets.mjs && node tools/e2e/mini-timer.mjs && node tools/e2e/focus-integration.mjs && node tools/e2e/focus-responsive.mjs && node tools/e2e/focus-fit.mjs && node tools/e2e/focus-align.mjs && node tools/e2e/focus-card-v2.mjs && node tools/e2e/tasks-v2.mjs && node tools/e2e/focus-render.mjs && node tools/e2e/week-focus.mjs",
     "test": "node --test server/test/*.test.mjs"
   },
   "engines": {
