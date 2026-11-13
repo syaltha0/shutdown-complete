@@ -83,6 +83,7 @@
 .focus-read .phase-name { color: var(--muted); font-size: 13px; }
 .focus-label { max-width: 180px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .ring-fill { stroke: var(--hue); transition: stroke-dashoffset 1s linear, stroke 400ms ease; }
+:root[data-motion="reduce"] .ring-fill { transition: none; }
 .ring.phase-short .ring-fill, .ring.phase-long .ring-fill { stroke: var(--positive); }
 .focus-setup { display: grid; gap: 16px; width: min(520px, 100%); }
 .focus-setup .field { gap: 6px; }

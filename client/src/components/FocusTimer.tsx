@@ -21,17 +21,18 @@ export function useTick(on: boolean) {
   return Date.now();
 }
 
-/** The progress ring: the one hue on the screen while a session runs. */
+/** The time-left ring: full when idle and at the start of a phase, draining to empty as the phase runs. */
 export function Ring({ a, size, stroke }: { a: FocusActive; size: number; stroke: number }) {
   const total = a.plannedMin * 60;
   const left = secondsLeft(a);
   const r = (size - stroke) / 2, c = 2 * Math.PI * r;
-  const done = total ? 1 - left / total : 0;
+  const remaining = total ? Math.min(1, Math.max(0, left / total)) : 1;
   return (
-    <svg className={`ring phase-${a.phase}`} width={size} height={size} viewBox={`0 0 ${size} ${size}`} aria-hidden="true">
+    // keyed by the phase's start, so a new phase draws full at once instead of sweeping back up
+    <svg key={`${a.phase}:${a.startedAt}`} className={`ring phase-${a.phase}`} width={size} height={size} viewBox={`0 0 ${size} ${size}`} aria-hidden="true">
       <circle cx={size / 2} cy={size / 2} r={r} fill="none" stroke="var(--raised)" strokeWidth={stroke} />
       <circle className="ring-fill" cx={size / 2} cy={size / 2} r={r} fill="none" strokeWidth={stroke} strokeLinecap="round"
-        strokeDasharray={c} strokeDashoffset={c * (1 - done)} transform={`rotate(-90 ${size / 2} ${size / 2})`} />
+        strokeDasharray={c} strokeDashoffset={c * (1 - remaining)} opacity={remaining > 0 ? 1 : 0} transform={`rotate(-90 ${size / 2} ${size / 2})`} />
     </svg>
   );
 }

@@ -159,7 +159,7 @@ export function Focus() {
           </div></header>
           <div className={`focus-card-body${config ? ' is-config' : ''}`}><div className="focus-stage" inert={config} aria-hidden={config || undefined}>
             <div className="focus-ring">
-              {a ? <Ring a={a} size={248} stroke={5} /> : <svg width={248} height={248} viewBox="0 0 248 248" aria-hidden="true"><circle cx={124} cy={124} r={119} fill="none" stroke="var(--phase-color)" strokeWidth={5} /></svg>}
+              {a ? <Ring a={a} size={248} stroke={5} /> : <svg width={248} height={248} viewBox="0 0 248 248" aria-hidden="true"><circle cx={124} cy={124} r={121.5} fill="none" stroke="var(--phase-color)" strokeWidth={5} /></svg>}
               <div className="focus-read">
                 <span className="phase-name">{T.phase[phase]}</span>
                 <b className="num" role="timer" aria-live="off">{a ? mmss(secondsLeft(a)) : mmss(minutes * 60)}</b>
