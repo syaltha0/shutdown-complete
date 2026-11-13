@@ -14,6 +14,7 @@ import {
   clearLimit, describeAgent, limited, newRecoveryCodes, newTotpSecret, otpauthUrl, passwordProblem, randomToken,
   sha256, useRecoveryCode, validEmail, verifyTotp,
 } from './auth.mjs';
+import { clientIp } from './net.mjs';
 import { socialRoutes } from './social.mjs';
 import { teamRoutes } from './teams.mjs';
 import { davRoutes } from './caldav.mjs';
@@ -86,7 +87,6 @@ function formProblem(b) {
 // A few lines from the owner, shown above the sign-up form ("This server is for our family", "Data stays at home").
 const signupNote = () => db.meta.get('signup_note', '') || '';
 const inviteOf = (token) => (token ? db.invites.valid(sha256(String(token))) : null);
-const clientIp = (c) => (c.req.header('x-forwarded-for') || '').split(',')[0].trim() || c.env?.incoming?.socket?.remoteAddress || 'unknown';
 const baseUrl = (c) => APP_URL || `${c.req.header('x-forwarded-proto') || (COOKIE_SECURE ? 'https' : 'http')}://${c.req.header('x-forwarded-host') || c.req.header('host')}`;
 const lang = (l) => (LANGS.has(l) ? l : 'en');
 const fail = (c, error, status = 400) => c.json({ error }, status);
