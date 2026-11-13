@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { useSettings } from '../App';
 import { today } from '../lib/dates';
-import { chime, finishPhase, mmss, notify, pauseFocus, refreshFocus, resumeFocus, secondsLeft, settingsFocus, useFocusDay } from '../lib/focus';
+import { chime, finishPhase, mmss, notify, pauseFocus, refreshFocus, resumeFocus, secondsLeft, settingsFocus, startFocus, useFocusDay } from '../lib/focus';
 import { useT } from '../lib/i18n';
 import { type FocusActive, featureOn } from '../lib/model';
 import { onLinkClick, usePath } from '../lib/router';
@@ -45,6 +45,24 @@ export function FocusRunner() {
   const f = settingsFocus(settings);
   const { active: a, key } = useFocusDay();
   useTick(!!a && a.pausedLeft == null);
+
+  useEffect(() => {
+    const check = async () => {
+      if (!f.scheduled || a?.roomId) return;
+      const now = new Date(), time = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+      for (const b of (f.breaks ?? []).slice(0, 5)) {
+        const stamp = `sc:break:${today()}:${b.id}`;
+        if (b.time !== time || localStorage.getItem(stamp)) continue;
+        localStorage.setItem(stamp, '1');
+        if (a) await finishPhase(settings, true, {key, startedAt: a.startedAt});
+        await startFocus({phase: 'long', minutes: b.minutes, blockId: null, label: b.label || T.phase.long});
+        notify(T.focusDone, b.label || T.phase.long);
+        break;
+      }
+    };
+    void check(); const timer = window.setInterval(() => void check(), 1000);
+    return () => window.clearInterval(timer);
+  }, [settings, a, key, T]);
 
   // another device may have paused, extended, ended or started the timer: look again while the tab is in view
   const running = !!a;

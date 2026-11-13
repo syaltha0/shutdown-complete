@@ -324,7 +324,7 @@ export const tr: Words = {
 
   focusMetric: 'Odak',
   focusTitle: 'Odak',
-  focusOptions: { strict: 'S?k? odak modu', fullscreenBreak: 'Molalarda odak odas?n? a?', autoBreak: 'Molalar? otomatik ba?lat', autoFocus: 'Oda?? otomatik ba?lat' },
+  focusOptions: { scheduled: 'Planl? molalar', breakName: 'Mola ad?', breakTime: 'Mola saati', addBreak: 'Mola ekle', removeBreak: 'Molay? sil', strict: 'S?k? odak modu', fullscreenBreak: 'Molalarda odak odas?n? a?', autoBreak: 'Molalar? otomatik ba?lat', autoFocus: 'Oda?? otomatik ba?lat' },
   phase: { focus: 'Odak', short: 'Kısa mola', long: 'Uzun mola' },
   startFocus: 'Odaklanmaya başla',
   focusOn: (l) => `Odaklan: ${l}`,

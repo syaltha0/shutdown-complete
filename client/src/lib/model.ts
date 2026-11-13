@@ -226,6 +226,8 @@ export interface MetricDef {
 }
 
 export interface FocusSettings {
+  scheduled?: boolean;
+  breaks?: { id: string; time: string; minutes: number; label: string }[];
   strict?: boolean;
   fullscreenBreak?: boolean;
   autoBreak?: boolean;
