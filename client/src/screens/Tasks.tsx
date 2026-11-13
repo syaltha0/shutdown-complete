@@ -154,7 +154,8 @@ export function Tasks({ view: asked }: { view?: string }) {
     offerUndo(T.tkReopenedN(back.length), () => update((b) => ({ ...b, items: b.items.map((x) => { const was = back.find((y) => y.id === x.id); return was ? { ...x, done: was.done, doneAt: was.doneAt } : x; }) })));
   };
   const clearDone = () => {
-    const gone = items.filter((t) => t.done && (view === 'completed' || listOf(t) === view));
+    // only what is on screen: with a search, the completed tasks it hides stay (same set as "reopen")
+    const gone = (view === 'completed' ? shown : doneHere).filter((t) => t.done);
     update((b) => ({ ...b, items: b.items.filter((x) => !gone.includes(x)) }));
     offerUndo(T.tkDoneDeleted(gone.length), () => update((b) => ({ ...b, items: [...b.items, ...gone] })));
   };
