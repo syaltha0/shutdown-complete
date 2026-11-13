@@ -1,8 +1,9 @@
+import { BlockTaskLink } from '../components/TaskBlockLink';
 import { FocusLog } from '../components/FocusLog';
 import { useEffect, useRef, useState } from 'react';
 import { clock, duration } from '../lib/dates';
 import { useT } from '../lib/i18n';
-import { KIND_IDS, type Block, type FocusSession } from '../lib/model';
+import { KIND_IDS, type Block, type DayDoc, type FocusSession } from '../lib/model';
 import { kindSwatch, type ReviseMode } from './TimeGrid';
 import { Segmented } from '../components/Segmented';
 import { DayChips, weekdayNames } from './Templates';
@@ -26,8 +27,10 @@ function useModal(open: boolean) {
 
 /** Edits one block of the active column. Every change applies at once; Done closes. */
 export function BlockEditor({
-  sessions, block, min, max, onChange, onDelete, onClose, subjects = [], repeatDays = [], onRepeat, estimate, repeatEvery = 1, onRepeatEvery,
+  date, day, sessions, block, min, max, onChange, onDelete, onClose, subjects = [], repeatDays = [], onRepeat, estimate, repeatEvery = 1, onRepeatEvery,
 }: {
+  date?: string;
+  day?: DayDoc;
   sessions?: FocusSession[];
   block: Block | null;
   min: number;
@@ -54,10 +57,11 @@ export function BlockEditor({
       {block && kind && <form method="dialog" onSubmit={onClose}>
         <h2 id="be-title">{block.label ? T.editBlock : T.newBlock}</h2>
         <FocusLog sessions={sessions} block={block} />
+        <BlockTaskLink block={block} day={day} date={date} />
         <div className="field">
           <label htmlFor="be-label">{T.whatFor}</label>
           <input id="be-label" className="input" autoFocus value={block.label} placeholder={T.labelPh}
-            onChange={(e) => onChange({ label: e.target.value })} />
+            onChange={(e) => onChange({ label: e.target.value, taskLabelCustom: true })} />
         </div>
         <div className="row2">
           <div className="field">

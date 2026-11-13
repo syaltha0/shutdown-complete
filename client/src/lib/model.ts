@@ -8,6 +8,9 @@ export type Kind = 'deep' | 'shallow' | 'meeting' | 'overflow' | 'personal';
 export const KIND_IDS: Kind[] = ['deep', 'shallow', 'meeting', 'overflow', 'personal'];
 
 export interface Block {
+  task?: { id: string; list?: 'inbox' | 'day'; day?: string };
+  taskLabel?: string;
+  taskLabelCustom?: boolean;
   source?: { calendar: string; uid: string; date: string };
   id: string;
   start: number; // minutes since midnight

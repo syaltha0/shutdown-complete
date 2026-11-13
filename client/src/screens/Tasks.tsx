@@ -1,3 +1,4 @@
+import { PlannedBlocks } from '../components/TaskBlockLink';
 import './TasksExtras.css';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { Checklist } from '../components/Checklist';
@@ -59,7 +60,7 @@ const takeOut = (b: InboxDoc, ids: string[]): InboxDoc => ({
  * start and a due date, a priority (the star is "high"), how far along it is, tags, notes, subtasks, an estimate and a
  * rule to come back by (every day, every 2 days, on chosen weekdays, every month...). Click a task for its details.
  */
-export function Tasks({ view: asked }: { view?: string }) {
+function InboxTasks({ view: asked }: { view?: string }) {
   const T = useT();
   const { value: doc, update, status, error, retry } = useDoc<InboxDoc>('inbox', emptyInbox);
   useEffect(() => { if (doc?.trash?.some((x) => Date.parse(x.deletedAt) <= Date.now() - 30 * 86400000)) update((b) => cleanTrash(b)); }, [doc, update]);
@@ -76,7 +77,7 @@ export function Tasks({ view: asked }: { view?: string }) {
   const viewName = view === 'trash' ? T.tkTrash : filter ? filter.name : isList ? lists.find((l) => l.id === view)!.name : view.startsWith(TAG) ? `#${view.slice(TAG.length)}` : T.tkViews[view as keyof typeof T.tkViews];
   const [sort, setSort] = useState<Sort>(() => (SORTS as string[]).includes(store.get('sc-tasks-sort') ?? '') ? store.get('sc-tasks-sort') as Sort : 'due');
   const [q, setQ] = useState('');
-  const [openId, setOpenId] = useState<string | null>(null);
+  const [openId, setOpenId] = useState<string | null>(new URLSearchParams(location.search).get('task'));
   const [showDone, setShowDone] = useState(false);
   const [draft, setDraft] = useState('');
   const [smartAdd, setSmartAdd] = useState(true);
@@ -525,6 +526,7 @@ function Detail({ t, lists, tags, set, tick, remove, close }: {
         <button type="button" className="btn ghost icon" aria-label={T.tkClose} onClick={close}><IconX /></button>
       </div>
 
+      <PlannedBlocks task={t} />
       <div className="tk-fields">
         <label className="field"><span>{T.tkList}</span>
           <select className="input" value={listOf(t)} onChange={(e) => set({ list: e.target.value === DEFAULT_LIST ? undefined : e.target.value })}>
@@ -761,4 +763,17 @@ export function InboxPicker({ open, onClose, onTake }: { open: boolean; onClose:
       </form>
     </dialog>
   );
+}
+
+export function Tasks(props: { view?: string }) {
+  const day = new URLSearchParams(location.search).get('day');
+  return day ? <DayTaskDetail date={day} /> : <InboxTasks {...props} />;
+}
+function DayTaskDetail({ date }: { date: string }) {
+  const { value: day, update } = useDoc<DayDoc>('day:' + date, emptyDay);
+  const T = useT();
+  const id = new URLSearchParams(location.search).get('task');
+  const task = day?.tasks.find(t => t.id === id);
+  const set = (p: Partial<Item>) => update(d => ({ ...d, tasks: d.tasks.map(t => t.id === id ? {...t, ...p} : t) }));
+  return task ? <Detail t={task} lists={[]} tags={[]} set={set} tick={() => set({ done: !task.done })} remove={() => { update(d => ({...d, tasks: d.tasks.filter(t => t.id !== id)})); offerUndo(T.deleted(task.text), () => update(d => ({...d, tasks: d.tasks.some(t => t.id === task.id) ? d.tasks : [...d.tasks, task]}))); }} close={() => navigate('/day/' + date)} /> : <p>{T.taskBlock.deleted}</p>;
 }

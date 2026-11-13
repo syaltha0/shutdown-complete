@@ -36,6 +36,11 @@ export function Day({ date }: { date: string }) {
   const T = useT();
   const { settings, update: updateSettings } = useSettings();
   const { value: day, update, status, error, retry } = useDoc<DayDoc>(`day:${date}`, emptyDay);
+  useEffect(() => {
+    if (!day) return;
+    const changed = day.columns.some(c => c.blocks.some(b => { const task = b.task && day.tasks.find(t => t.id === b.task!.id); return task && !b.taskLabelCustom && b.label === b.taskLabel && b.label !== task.text; }));
+    if (changed) update(d => ({...d, columns: d.columns.map(c => ({...c, blocks: c.blocks.map(b => { const task = b.task && d.tasks.find(t => t.id === b.task!.id); return task && !b.taskLabelCustom && b.label === b.taskLabel ? {...b, label: task.text, taskLabel: task.text} : b; })}))}));
+  }, [day, update]);
   const [tplOpen, setTplOpen] = useState(false);
   const [flash, setFlash] = useState<string | null>(null);
   useEffect(() => { if (!flash) return; const t = window.setTimeout(() => setFlash(null), 3500); return () => window.clearTimeout(t); }, [flash]);
@@ -45,7 +50,8 @@ export function Day({ date }: { date: string }) {
   const [pickInbox, setPickInbox] = useState(false);
   const isToday = date === today();
   const now = useNow(isToday);
-  const [openId, setOpenId] = useState<string | null>(null);
+  const [openId, setOpenId] = useState<string | null>(new URLSearchParams(location.search).get('block'));
+  useEffect(() => { const on = () => setOpenId(new URLSearchParams(location.search).get('block')); window.addEventListener('popstate', on); return () => window.removeEventListener('popstate', on); }, []);
   const [revising, setRevising] = useState(false);
   const [shownCol, setShownCol] = useState(-1);
   const shortcut = useShortcut();
@@ -222,17 +228,18 @@ export function Day({ date }: { date: string }) {
     dragLen.current = item.estimate ?? 30;
     setDrag({ item, x: e.clientX, y: e.clientY, slot: null });
     const move = (ev: PointerEvent) => setDrag((d) => (d ? { ...d, x: ev.clientX, y: ev.clientY, slot: slotAt(ev.clientX, ev.clientY) } : d));
-    const up = (ev: PointerEvent) => {
+    const up = async (ev: PointerEvent) => {
       window.removeEventListener('pointermove', move);
       window.removeEventListener('pointerup', up);
       window.removeEventListener('pointercancel', cancel);
       const slot = slotAt(ev.clientX, ev.clientY);
       setDrag(null);
       if (!slot) return;
-      const b: Block = { id: uid(), start: slot.start, end: slot.end, label: item.text, note: '', kind: 'shallow' };
+      const taskId = from ? (await toDay([from], date))[0] : item.id;
+      const b: Block = { id: uid(), start: slot.start, end: slot.end, label: item.text, taskLabel: item.text, task: { id: taskId, list: 'day', day: date }, note: '', kind: 'shallow' };
       setCols((cols) => cols.map((c, i) => (i === cols.length - 1 ? { ...c, blocks: [...c.blocks, b].sort((a, z) => a.start - z.start) } : c)));
       setOpenId(b.id);
-      if (from) toDay([from], date);
+
     };
     const cancel = () => { window.removeEventListener('pointermove', move); window.removeEventListener('pointerup', up); window.removeEventListener('pointercancel', cancel); setDrag(null); };
     window.addEventListener('pointermove', move);
@@ -351,7 +358,7 @@ export function Day({ date }: { date: string }) {
       </div>
 
       <BlockEditor
-        sessions={day.focus?.sessions} block={openBlock} min={floor} max={r1}
+        date={date} day={day} sessions={day.focus?.sessions} block={openBlock} min={floor} max={r1}
         subjects={settings.subjects} repeatDays={repeatOf?.days ?? []} onRepeat={date >= t ? setRepeat : undefined}
         repeatEvery={repeatOf?.every ?? 1}
         onRepeatEvery={repeatOf ? (n) => updateSettings((s) => ({ ...s, schedule: (s.schedule ?? []).map((r) => (r.id === repeatOf.id ? { ...r, every: n, since: date } : r)) })) : undefined}
