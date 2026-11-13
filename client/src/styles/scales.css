@@ -239,14 +239,26 @@
 .focus-config input[type="checkbox"] { width: 16px; height: 16px; min-height: 16px; flex: 0 0 16px; }
 /* Compact context and capture above today's sessions; keep the chart last. */
 .focus-widgets { min-width: 0; }
-.fw-goal { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
-.fw-goal svg { flex-shrink: 0; }
-.fw-goal circle:last-child { stroke: var(--hue); }
+.fw-goal { display: flex; align-items: center; gap: 16px; padding: 8px 0 20px; }
+.fw-goal svg { flex: 0 0 56px; }
+.fw-goal circle:last-child { stroke: #1d5fbf; stroke-linecap: round; }
 .fw-goal circle.complete { stroke: var(--positive); }
-.fw-next { display: block; color: var(--muted); overflow-wrap: anywhere; font-size: 13px; }
-.fw-capture { margin-top: 14px; }
-.fw-capture label { display: block; margin-bottom: 6px; font-size: 13px; }
-.fw-capture .input { width: 100%; min-width: 0; }
+.fw-goal-copy { display: grid; gap: 4px; min-width: 0; }
+.fw-caption { display: block; color: var(--muted); font-size: 12px; line-height: 1.5; }
+.fw-value { font-size: 24px; font-weight: 500; line-height: 1.25; }
+.fw-target { color: var(--muted); font-size: 16px; font-weight: 400; white-space: nowrap; }
+.fw-next { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 16px 0; border-top: 1px solid var(--rule); color: var(--text); overflow-wrap: anywhere; font-size: 13px; line-height: 1.6; text-decoration: none; }
+.fw-next-copy { display: grid; gap: 4px; min-width: 0; }
+.fw-arrow { flex: 0 0 16px; color: var(--muted); }
+.fw-next:hover .fw-next-copy > span:last-child { text-decoration: underline; text-underline-offset: 3px; }
+.fw-capture { padding-top: 16px; border-top: 1px solid var(--rule); }
+.fw-capture label { display: block; margin-bottom: 10px; font-size: 13px; }
+.fw-capture-field { position: relative; }
+.fw-capture .input { width: 100%; min-width: 0; padding-right: 44px; font-size: 13px; min-height: 44px; }
+.fw-submit { position: absolute; right: 4px; top: 4px; width: 36px; height: 36px; display: grid; place-items: center; border: 0; border-radius: 4px; background: transparent; color: var(--text); cursor: pointer; }
+.fw-submit:disabled { color: var(--muted); opacity: .45; cursor: default; }
+.fw-submit:hover:not(:disabled) { background: var(--rule); }
+.fw-next:focus-visible, .fw-submit:focus-visible, .fw-capture .input:focus-visible { outline: 2px solid var(--text); outline-offset: 3px; }
 
 /* Focus preferences share one layout in Settings and the timer card. */
 .focus-config { display: grid; gap: 28px; width: 100%; max-height: none; overflow: visible; margin: 0; }
