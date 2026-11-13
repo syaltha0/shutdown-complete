@@ -342,6 +342,7 @@ export const tr: Words = {
   stopAsk: (n) => `${n} dk silinsin mi?`, focusPaused: 'duraklatıldı',
   inBlock: (l) => `Blok: ${l}`,
   freeFocus: 'Plansız odak',
+  sessionCount: (n: number, total: string) => `${n} oturum · ${total}`,
   sessionsToday: 'Bugünkü oturumlar',
   noSessions: 'Bugün henüz odak oturumu yok',
   focusSummary: (n, d) => `bugün ${n} oturum · ${d} odak`,
