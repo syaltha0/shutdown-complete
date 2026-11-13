@@ -1,3 +1,4 @@
+import { FocusWidgets } from '../components/FocusWidgets';
 import { Segmented } from '../components/Segmented';
 import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { FocusConfig } from '../components/FocusConfig';
@@ -179,6 +180,7 @@ export function Focus() {
         </section>
 
         <div className="stack span-5">
+        <FocusWidgets day={day} />
         <section className="panel focus-sessions" aria-labelledby="fs-h" data-anim>
           <header>
             <h2 id="fs-h">{T.sessionsToday}</h2>

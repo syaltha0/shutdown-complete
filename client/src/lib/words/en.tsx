@@ -337,6 +337,14 @@ export const en = {
 
   // focus (pomodoro)
   focusMetric: 'Focus',
+  fwCapture: 'Capture a thought',
+  fwPlaceholder: 'A task or idea on your mind…',
+  fwAdded: 'Added to inbox',
+  fwGoal: 'Daily focus goal',
+  fwToday: (time: string) => `Today: ${time} of focus`,
+  fwEnds: (time: string) => `This block ends at ${time}`,
+  fwNext: (name: string, start: string, end: string) => `Next: ${name} (${start}–${end})`,
+  fwNoBlocks: 'No more blocks planned today',
   focusTitle: 'Focus',
   phase: { focus: 'Focus', short: 'Short break', long: 'Long break' } as Record<string, string>,
   startFocus: 'Start focus',
