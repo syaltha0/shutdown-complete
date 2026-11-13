@@ -210,6 +210,38 @@ try {
   check('on a break, pause and skip remain available', await btn('Pause').isVisible() && await btn('Skip the break').isVisible());
   await setActive('day:' + D, null, []);
 
+  // Pomatez-inspired options persist in the shared settings document.
+  await api.put('settings', {...settings0, focus: {...settings0.focus, strict: true, autoFocus: true, autoBreak: true}});
+  await setActive('day:' + D, run(25, 3), []);
+  await p.reload();
+  await btn('Pause').waitFor();
+  check('strict mode locks pause, finish and reset', await btn('Pause').isDisabled() && await btn('Finish now').isDisabled() && await btn('Reset').isDisabled());
+  check('strict mode keeps extension available', await btn('+5 min').isEnabled());
+  await p.locator('h1').click();
+  await p.keyboard.press('Space');
+  check('strict mode blocks keyboard pause', (await doc()).focus.active.pausedLeft === null);
+  check('mini timer is hidden without document PiP', await p.evaluate(() => !!window.documentPictureInPicture) || await btn('Mini timer').count() === 0);
+  await p.locator('.focus-config-anchor > button').click();
+  await p.getByText('Start focus automatically', {exact: true}).click();
+  check('options write to settings.focus', await until(async () => (await api.get('settings')).value.focus.autoFocus === false));
+  await p.getByRole('dialog').getByRole('button', {name: 'Close', exact: true}).click();
+  await api.put('settings', {...settings0, focus: {...settings0.focus, autoFocus: true}});
+  await setActive('day:' + D, run(1, 2, {phase: 'short', plannedMin: 1}), []);
+  await p.reload();
+  check('expired break starts focus automatically', await until(async () => (await doc()).focus?.active?.phase === 'focus'));
+  await p.locator('h1').click();
+  await p.keyboard.press('Space');
+  check('space pauses focus', await until(async () => (await doc()).focus?.active?.pausedLeft != null));
+  const beforePlus = (await doc()).focus.active.plannedMin;
+  await p.keyboard.press('=');
+  check('equals extends focus', await until(async () => (await doc()).focus?.active?.plannedMin === beforePlus + 5));
+  const nowBreak = new Date();
+  await api.put('settings', {...settings0, focus: {...settings0.focus, scheduled: true, breaks: [{id: 'test-lunch', label: 'Lunch', minutes: 30, time: `${String(nowBreak.getHours()).padStart(2,'0')}:${String(nowBreak.getMinutes()).padStart(2,'0')}`}]}});
+  await p.reload();
+  check('scheduled break starts at configured local time', await until(async () => (await doc()).focus?.active?.label === 'Lunch'));
+  await api.put('settings', settings0);
+  await setActive('day:' + D, null, []);
+
   // ---------- focusing together: what the server accepts ----------
   const ece = client(s.url);
   const form = (await ece.call('/api/auth/state')).body.form;
