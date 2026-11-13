@@ -27,7 +27,7 @@ export function inView(t: Item, view: string): boolean {
     case 'all': return isOpen(t);
     // due or started by today, late ones too
     case 'waiting': return isOpen(t) && !!t.waiting;
-    case 'today': return isOpen(t) && ((!!t.waiting && !!t.review && t.review <= now) || (!!t.due && t.due <= now) || (!!t.start && t.start <= now));
+    case 'today': return isOpen(t) && (!t.waiting || (!!t.review && t.review <= now)) && ((!!t.waiting && !!t.review && t.review <= now) || (!!t.due && t.due <= now) || (!!t.start && t.start <= now));
     case 'week': return isOpen(t) && !!t.due && daysTo(t.due) <= 7;
     case 'important': return isOpen(t) && t.priority === 1;
     // begun: started, partly done, or some of its steps ticked

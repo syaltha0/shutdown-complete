@@ -1,3 +1,4 @@
+import { decideMoves, postponed } from '../lib/taskDeferral';
 import { PlannedBlocks } from '../components/TaskBlockLink';
 import './TasksExtras.css';
 import { useEffect, useMemo, useRef, useState } from 'react';
@@ -29,21 +30,24 @@ const REMINDS = [0, 5, 15, 30, 60, 120, 1440];
 const store = { get: (k: string) => { try { return localStorage.getItem(k); } catch { return null; } }, set: (k: string, v: string) => { try { localStorage.setItem(k, v); } catch { /* private window */ } } };
 
 /** What a day's task list gets of a task: the task without what only the lists need. */
-const forDay = (t: Item): Item => ({ id: uid(), text: t.text, done: false, due: t.due, dueTime: t.dueTime, remind: t.remind, estimate: t.estimate, steps: t.steps?.map((s) => ({ ...s, done: false })), card: t.card, plannedRepeat: t.repeat ? { id: t.id, due: t.due, start: t.start, doneCount: t.doneCount ?? 0 } : undefined });
+const forDay = (t: Item): Item => ({ id: uid(), text: t.text, done: false, waiting: t.waiting, waitingNote: t.waitingNote, review: t.review, deferCount: t.deferCount, due: t.due, dueTime: t.dueTime, remind: t.remind, estimate: t.estimate, steps: t.steps?.map((s) => ({ ...s, done: false })), card: t.card, plannedRepeat: t.repeat ? { id: t.id, due: t.due, start: t.start, doneCount: t.doneCount ?? 0 } : undefined });
 
 /**
  * Tasks put on a day: a one-off task moves there (it leaves the lists); a repeating one is copied and comes back on
  * its next date.
  */
-export async function toDay(items: Item[], date: string) {
+export async function toDay(items: Item[], date: string, T?: import('../lib/words/en').Words) {
+  if(T){const candidates=items.filter(t=>postponed(t,t.due,date));if(candidates.length){const r=await decideMoves(candidates,T);if(!r)return [];await updateKey<InboxDoc>('inbox',emptyInbox,b=>({...trashTasks(b,r.deleted.map(t=>t.id)),items:b.items.map(t=>r.back.find(x=>x.id===t.id)??t)}));items=[...items.filter(t=>!candidates.includes(t)),...r.moving];}}
+
   const copies = items.map(forDay);
   await updateKey<DayDoc>(`day:${date}`, emptyDay, (d) => ({ ...d, tasks: [...d.tasks, ...copies] }));
   await updateKey<InboxDoc>('inbox', emptyInbox, (b) => takeOut(b, items.map((x) => x.id)));
   return copies.map((c) => c.id);
 }
 /** One task put on a day, with an undo that takes it back off and returns the task as it was. */
-async function planOn(t: Item, date: string, message: string) {
-  const ids = await toDay([t], date);
+async function planOn(t: Item, date: string, message: string, T: import('../lib/words/en').Words) {
+  const ids = await toDay([t], date, T);
+  if (!ids.length) return;
   offerUndo(message, () => {
     updateKey<DayDoc>(`day:${date}`, emptyDay, (d) => ({ ...d, tasks: d.tasks.filter((x) => !ids.includes(x.id)) }));
     updateKey<InboxDoc>('inbox', emptyInbox, (b) => ({ ...b, items: b.items.some((x) => x.id === t.id) ? b.items.map((x) => (x.id === t.id ? t : x)) : [...b.items, t] }));
@@ -107,7 +111,14 @@ function InboxTasks({ view: asked }: { view?: string }) {
     return () => { window.clearInterval(t); window.removeEventListener('focus', look); };
   }, []);
 
-  const set = (id: string, p: Partial<Item>) => update((b) => ({ ...b, items: b.items.map((x) => (x.id === id ? { ...x, ...p } : x)) }));
+  const set = async (id: string, p: Partial<Item>) => {
+    const t = items.find(x => x.id === id);
+    if (t && postponed(t, t.due, p.due)) {
+      const result = await decideMoves([{...t,...p}], T); if (!result) return;
+      update(b => ({...trashTasks(b, result.deleted.map(x=>x.id)),items:b.items.flatMap(x=>x.id===id?[...result.moving,...result.back]:[x])})); return;
+    }
+    update((b) => ({ ...b, items: b.items.map((x) => (x.id === id ? { ...x, ...p } : x)) }));
+  };
   const matches = (t: Item) => taskMatches(t, q);
   const shown = sortTasks(items.filter((t) => (filter ? matchesFilter(t, filter) : inView(t, view)) && matches(t)), sort);
   // in a list, its done tasks fold away under the open ones
@@ -231,8 +242,10 @@ function InboxTasks({ view: asked }: { view?: string }) {
   const pick = (id: string) => setSel((s) => { const n = new Set(s ?? []); if (n.has(id)) n.delete(id); else n.add(id); return n; });
   const picked = items.filter((t) => sel?.has(t.id));
   /** One change to every picked task (null = deleted), undone together. */
-  const bulk = (change: (t: Item) => Partial<Item> | null, message: string) => {
+  const bulk = async (change: (t: Item) => Partial<Item> | null, message: string) => {
     const before = picked;
+    const dated = before.filter(t=>postponed(t,t.due,change(t)?.due));
+    if(dated.length){const r=await decideMoves(dated.map(t=>({...t,...change(t)})),T);if(!r)return;const changed=[...r.moving,...r.back];update(b=>({...trashTasks(b,r.deleted.map(t=>t.id)),items:b.items.flatMap(t=>dated.some(x=>x.id===t.id)?changed.filter(x=>x.id===t.id):before.some(x=>x.id===t.id)?[{...t,...change(t)}]:[t])}));setSel(new Set());return;}
     const ids = new Set(before.map((t) => t.id));
     update((b) => ({ ...trashTasks(b, before.filter((t) => change(t) === null).map((t) => t.id)), items: b.items.flatMap((x) => { if (!ids.has(x.id)) return [x]; const p = change(x); return p ? [{ ...x, ...p }] : []; }) }));
     offerUndo(message, () => update((b) => ({ ...b, ...restoreTasks(b, [...ids]), items: [...b.items.filter((x) => !ids.has(x.id)), ...before] })));
@@ -242,7 +255,7 @@ function InboxTasks({ view: asked }: { view?: string }) {
   const [planDate, setPlanDate] = useState(today());
   const [planning, setPlanning] = useState(false);
   const [planError, setPlanError] = useState(false);
-  const planPicked = async (date: string) => { setPlanning(true); setPlanError(false); try { await toDay(picked.filter((t) => !t.done), date); setSel(new Set()); } catch { setPlanError(true); } finally { setPlanning(false); } };
+  const planPicked = async (date: string) => { setPlanning(true); setPlanError(false); try { await toDay(picked.filter((t) => !t.done), date, T); setSel(new Set()); } catch { setPlanError(true); } finally { setPlanning(false); } };
   const [bulkTag, setBulkTag] = useState('');
 
   const row = (t: Item) => {
@@ -269,7 +282,7 @@ function InboxTasks({ view: asked }: { view?: string }) {
             {steps && <span>{T.tkStepsN(steps)}</span>}
             {(t.percent ?? 0) > 0 && !t.done && <span className="tk-pc"><i><b style={{ width: `${t.percent}%` }} /></i>{t.percent}%</span>}
             {(t.spent || t.estimate) && <span className={t.spent && t.estimate && t.spent > t.estimate ? 'over' : ''}>{t.spent ? T.tkSpent(duration(t.spent), t.estimate ? duration(t.estimate) : '') : duration(t.estimate!)}</span>}
-            {t.waiting && <span>{T.tkWaiting}{t.review ? ` ? ${shortDate(t.review)}` : ''}</span>}
+            {t.waiting && <span>{T.tkWaiting}{t.review ? ` · ${shortDate(t.review)}` : ''}</span>}
             {t.notes && <span className="tk-has" aria-label={T.tkNotes}><IconNotes /></span>}
             {t.tags?.map((g) => <span key={g} className="lbl lb-grey">{g}</span>)}
           </span>
@@ -669,9 +682,9 @@ function Detail({ t, lists, tags, set, tick, remove, close }: {
           <div className="field">
             <span>{T.tkPlan}</span>
             <div className="tk-plan">
-              <button type="button" className="btn" onClick={() => planOn(t, today(), T.tkPlanned(longDate(today())))}>{T.todayBtn}</button>
-              <button type="button" className="btn ghost" onClick={() => planOn(t, addDays(today(), 1), T.tkPlanned(longDate(addDays(today(), 1))))}>{T.tomorrow}</button>
-              <input type="date" required className="input num" min={today()} value="" aria-label={T.toDayLabel(t.text)} onChange={(e) => { if (e.target.value) planOn(t, e.target.value, T.tkPlanned(longDate(e.target.value))); }} />
+              <button type="button" className="btn" onClick={() => planOn(t, today(), T.tkPlanned(longDate(today())), T)}>{T.todayBtn}</button>
+              <button type="button" className="btn ghost" onClick={() => planOn(t, addDays(today(), 1), T.tkPlanned(longDate(addDays(today(), 1))), T)}>{T.tomorrow}</button>
+              <input type="date" required className="input num" min={today()} value="" aria-label={T.toDayLabel(t.text)} onChange={(e) => { if (e.target.value) planOn(t, e.target.value, T.tkPlanned(longDate(e.target.value)), T); }} />
             </div>
             <p className="tk-note">{t.repeat ? T.tkPlanRepeat : T.tkPlanMoves}</p>
           </div>
@@ -709,7 +722,7 @@ export function FromLists({ date, onGrab }: { date: string; onGrab: (task: Item,
               {t.priority === 1 && <span className="tk-starred" role="img" aria-label={T.tkViews.important}><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M10 3.2l2.1 4.3 4.7.7-3.4 3.3.8 4.7-4.2-2.2-4.2 2.2.8-4.7-3.4-3.3 4.7-.7z" /></svg></span>}
               {t.due && <span className={`due${t.due < today() ? ' late' : t.due === today() ? ' today' : ''}`}>{dueWords(T, t.due)}</span>}
             </span>
-            <button type="button" className="btn ghost icon sm" aria-label={T.tkAddToDay(t.text)} title={T.tkAddToDay(t.text)} onClick={() => toDay([t], date)}><IconPlus /></button>
+            <button type="button" className="btn ghost icon sm" aria-label={T.tkAddToDay(t.text)} title={T.tkAddToDay(t.text)} onClick={() => toDay([t], date, T)}><IconPlus /></button>
           </li>
         ))}
       </ul>
@@ -777,6 +790,13 @@ function DayTaskDetail({ date }: { date: string }) {
   const T = useT();
   const id = new URLSearchParams(location.search).get('task');
   const task = day?.tasks.find(t => t.id === id);
-  const set = (p: Partial<Item>) => update(d => ({ ...d, tasks: d.tasks.map(t => t.id === id ? {...t, ...p} : t) }));
+  const set = async (p: Partial<Item>) => {
+    if(task && postponed(task,task.due,p.due)){
+      const r=await decideMoves([{...task,...p}],T);if(!r)return;
+      if(r.back.length||r.deleted.length)await updateKey<InboxDoc>('inbox',emptyInbox,b=>({...b,items:[...b.items,...r.back],trash:[...(b.trash??[]),...r.deleted.map(item=>({item,deletedAt:new Date().toISOString()}))]}));
+      update(d=>({...d,tasks:d.tasks.flatMap(t=>t.id===id?r.moving:[t])}));return;
+    }
+    update(d => ({ ...d, tasks: d.tasks.map(t => t.id === id ? {...t, ...p} : t) }));
+  };
   return task ? <Detail t={task} lists={[]} tags={[]} set={set} tick={() => set({ done: !task.done })} remove={() => { update(d => ({...d, tasks: d.tasks.filter(t => t.id !== id)})); offerUndo(T.deleted(task.text), () => update(d => ({...d, tasks: d.tasks.some(t => t.id === task.id) ? d.tasks : [...d.tasks, task]}))); }} close={() => navigate('/day/' + date)} /> : <p>{T.taskBlock.deleted}</p>;
 }

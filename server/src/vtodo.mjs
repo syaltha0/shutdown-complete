@@ -101,6 +101,7 @@ export function parseTodo(ics) {
         if (/^\d{8}/.test(r.UNTIL || '')) t.repeat.until = day(r.UNTIL);
         break;
       }
+      case 'X-SC-DEFER-COUNT': t.deferCount = Math.max(0, Number(v) || 0); break;
       case 'X-SC-WAITING': t.waiting = v === '1'; break;
       case 'X-SC-WAITING-NOTE': t.waitingNote = unescape(v); break;
       case 'X-SC-REVIEW': t.review = day(v); break;
@@ -158,6 +159,7 @@ export function taskIcs(t) {
   else L.push(`STATUS:${t.percent ? 'IN-PROCESS' : 'NEEDS-ACTION'}`);
   if (t.tags?.length) L.push(`CATEGORIES:${t.tags.map(esc).join(',')}`);
   if (t.repeat) L.push(`RRULE:${rrule(t.repeat)}`);
+  if (t.deferCount) L.push(`X-SC-DEFER-COUNT:${t.deferCount}`);
   if (t.waiting) L.push('X-SC-WAITING:1');
   if (t.waitingNote) L.push(`X-SC-WAITING-NOTE:${esc(t.waitingNote)}`);
   if (t.review) L.push(`X-SC-REVIEW;VALUE=DATE:${dateVal(t.review)}`);
@@ -202,7 +204,7 @@ function preserved(t, generated) {
       if (begin >= 0) original.splice(original.findIndex(l => l.name === 'END' && l.value === 'VTODO'), 0, ...lines(generated.slice(begin, generated.indexOf('END:VALARM') + 1).join('\n')));
     }
   }
-  const fields = { 'X-SC-WAITING': ['waiting'], 'X-SC-WAITING-NOTE': ['waitingNote'], 'X-SC-REVIEW': ['review'], UID: ['id'], SUMMARY: ['text'], DESCRIPTION: ['notes'], DUE: ['due', 'dueTime'], DTSTART: ['start', 'startTime'], PRIORITY: ['priority'], 'PERCENT-COMPLETE': ['percent', 'done'], STATUS: ['done'], COMPLETED: ['done', 'doneAt'], CATEGORIES: ['tags'], RRULE: ['repeat'], 'RELATED-TO': ['parent'], 'X-SC-ESTIMATE': ['estimate'], 'X-SC-SPENT': ['spent'], 'X-SC-AFTER': ['repeat'], 'X-SC-DONE-COUNT': ['doneCount'], 'X-SC-LAST-DONE': ['lastDone'] };
+  const fields = { 'X-SC-DEFER-COUNT': ['deferCount'], 'X-SC-WAITING': ['waiting'], 'X-SC-WAITING-NOTE': ['waitingNote'], 'X-SC-REVIEW': ['review'], UID: ['id'], SUMMARY: ['text'], DESCRIPTION: ['notes'], DUE: ['due', 'dueTime'], DTSTART: ['start', 'startTime'], PRIORITY: ['priority'], 'PERCENT-COMPLETE': ['percent', 'done'], STATUS: ['done'], COMPLETED: ['done', 'doneAt'], CATEGORIES: ['tags'], RRULE: ['repeat'], 'RELATED-TO': ['parent'], 'X-SC-ESTIMATE': ['estimate'], 'X-SC-SPENT': ['spent'], 'X-SC-AFTER': ['repeat'], 'X-SC-DONE-COUNT': ['doneCount'], 'X-SC-LAST-DONE': ['lastDone'] };
   const changed = new Set(Object.entries(fields).filter(([, keys]) => keys.some(k => JSON.stringify(t[k]) !== JSON.stringify(t.davBase?.[k]))).map(([k]) => k));
   const out = []; let todo = false, depth = 0;
   for (const l of original) {
@@ -288,7 +290,7 @@ export function upsert(doc, list, name, ics, today) {
     id: v.uid, text: v.text ?? '', done: v.done, list: list === DEFAULT_LIST ? undefined : list,
     due: v.due, dueTime: v.due ? v.dueTime : undefined, remind: v.due && v.dueTime ? v.remind : undefined, start: v.start, startTime: v.startTime, priority: v.priority, percent: v.done ? undefined : v.percent,
     tags: v.categories.length ? v.categories : undefined, notes: v.notes || undefined, repeat: v.repeat,
-    waiting: v.waiting, waitingNote: v.waitingNote, review: v.review,
+    deferCount: v.deferCount, waiting: v.waiting, waitingNote: v.waitingNote, review: v.review,
     estimate: v.estimate ?? old?.estimate, spent: v.spent ?? old?.spent, doneCount: v.doneCount ?? old?.doneCount, lastDone: v.lastDone ?? old?.lastDone,
     created: old?.created ?? v.created ?? new Date().toISOString(), doneAt: v.done ? (old?.doneAt ?? v.completed ?? today) : undefined,
     ...(href ? { href } : {}),

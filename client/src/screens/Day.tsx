@@ -1,3 +1,5 @@
+import { emptyInbox, type InboxDoc } from '../lib/model';
+import { decideMoves } from '../lib/taskDeferral';
 import { FocusLog } from '../components/FocusLog';
 import { CalendarView } from '../components/CalendarView';
 import { useEffect, useRef, useState } from 'react';
@@ -541,6 +543,7 @@ const daysBetween = (a: string, b: string) => Math.round((parseISODate(b).getTim
  * first written down, so the list shows how long each has waited.
  */
 function useCarry(date: string | null, mode: 'ask' | 'auto') {
+  const T = useT();
   const from = date ? addDays(date, -7) : '0000-00-00', to = date ? addDays(date, -1) : '0000-00-00';
   const { docs } = useRange<DayDoc>(`day:${from}`, `day:${to}`);
   const [gone, setGone] = useState(() => { try { return date != null && localStorage.getItem(`sc-carry-${date}`) === 'left'; } catch { return false; } });
@@ -553,11 +556,13 @@ function useCarry(date: string | null, mode: 'ask' | 'auto') {
   }
   left.sort((a, b) => (a.day < b.day ? 1 : -1));
   const count = left.reduce((n, x) => n + x.tasks.length, 0);
-  const bring = () => {
+  const bring = async () => {
     if (!date || !count) return;
     const moving = [...left].reverse().flatMap((x) => x.tasks.map((it) => ({ ...it, since: it.since ?? x.day })));
+    const decisions = await decideMoves(moving, T); if (!decisions) return;
+    if(decisions.back.length || decisions.deleted.length) await updateKey<InboxDoc>('inbox',emptyInbox,b=>({...b,items:[...b.items,...decisions.back],trash:[...(b.trash??[]),...decisions.deleted.map(item=>({item,deletedAt:new Date().toISOString()}))]}));
     for (const x of left) updateKey<DayDoc>(`day:${x.day}`, emptyDay, (d) => ({ ...d, tasks: d.tasks.filter((it) => it.done || !it.text.trim()) }));
-    updateKey<DayDoc>(`day:${date}`, emptyDay, (d) => ({ ...d, tasks: [...moving, ...d.tasks] }));
+    updateKey<DayDoc>(`day:${date}`, emptyDay, (d) => ({ ...d, tasks: [...decisions.moving, ...d.tasks] }));
   };
   const auto = mode === 'auto' && count > 0;
   useEffect(() => { if (auto) bring(); }, [auto]); // eslint-disable-line react-hooks/exhaustive-deps
