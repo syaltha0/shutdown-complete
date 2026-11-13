@@ -272,7 +272,9 @@ export interface NotifyChoices {
   weekends?: boolean;
 }
 
+export interface ScheduleException { id: string; from: string; to: string; label: string; applies: 'all' | string[] }
 export interface Settings {
+  exceptions?: ScheduleException[];
   /** the week in review by e-mail every Sunday (when the server sends e-mail) */
   weeklyMail?: boolean;
   /** parts of the planner turned off (missing = on) */

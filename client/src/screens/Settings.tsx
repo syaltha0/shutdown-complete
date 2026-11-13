@@ -1,3 +1,4 @@
+import { ScheduleExceptions } from './ScheduleExceptions';
 import { FocusConfig } from '../components/FocusConfig';
 import { ExportDownloads } from './Publication';
 import { useRef, useState } from 'react';
@@ -226,6 +227,7 @@ export function SettingsScreen() {
           </div>
         </section>
 
+        <ScheduleExceptions settings={settings} update={update} />
         <section className="set-row" aria-labelledby="s-carry">
           <div className="about">
             <h2 id="s-carry">{T.carryTitle}</h2>

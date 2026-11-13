@@ -33,8 +33,8 @@ export function Home() {
   const now = useNow(true);
   const { value: day, update } = useDoc<DayDoc>(`day:${t}`, emptyDay);
   useEffect(() => {
-    if (day && placeRepeats(day, t, settings.schedule)) update((d) => placeRepeats(d, t, settings.schedule) ?? d);
-  }, [day != null, settings.schedule]); // eslint-disable-line react-hooks/exhaustive-deps
+    if (day && placeRepeats(day, t, settings.schedule, settings.exceptions)) update((d) => placeRepeats(d, t, settings.schedule, settings.exceptions) ?? d);
+  }, [day != null, settings.schedule, settings.exceptions]); // eslint-disable-line react-hooks/exhaustive-deps
   const wk = weekOf(t), days = weekDays(wk);
   const { docs: weekDocs } = useRange<DayDoc>(`day:${days[0]}`, `day:${days[6]}`);
   const { value: weekDoc } = useDoc<WeekDoc>(`week:${wk}`, emptyWeek);

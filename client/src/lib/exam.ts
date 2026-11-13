@@ -24,7 +24,7 @@ export interface Sitting { date: string; start: number; end: number; label: stri
 const GAP = 15; // a break between two sittings
 
 /** The sittings for an exam, given the days as they are now. `docs` are the days' documents (missing = empty). */
-export function planExam(exam: Exam, topics: string[], docs: Map<string, DayDoc>, schedule: Repeat[] | undefined, reviewLabel: string, againWord: string) {
+export function planExam(exam: Exam, topics: string[], docs: Map<string, DayDoc>, schedule: Repeat[] | undefined, reviewLabel: string, againWord: string, exceptions: import('./model').ScheduleException[] = []) {
   const t = today(), now = nowMinutes();
   const dates: string[] = [];
   for (let d = t; d < exam.date; d = addDays(d, 1)) if (exam.days.includes(weekdayOf(d))) dates.push(d);
@@ -32,7 +32,7 @@ export function planExam(exam: Exam, topics: string[], docs: Map<string, DayDoc>
   const slots: Sitting[] = [];
   for (const date of dates) {
     const base = docs.get(`day:${date}`) ?? emptyDay();
-    const day = placeRepeats(base, date, schedule) ?? base;
+    const day = placeRepeats(base, date, schedule, exceptions) ?? base;
     const col = activeColumn(day);
     const busy = col.blocks.filter((b) => b.examId !== exam.id).map((b) => [b.start - GAP, b.end + GAP] as [number, number]);
     let from = Math.max(exam.from, col.from ?? 0);

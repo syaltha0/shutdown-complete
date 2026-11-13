@@ -41,8 +41,8 @@ export function ExamPlanner({ open, exam, onClose, start }: { open: boolean; exa
     // spreading again: this exam's sittings still ahead are planned anew, the topics already studied are left out
     const clean = new Map([...docs].map(([k, d]) => [k, { ...d, columns: d.columns.map((c) => ({ ...c, blocks: c.blocks.filter((b) => !(b.examId === e.id && ahead(k.slice(4), b))) })) }]));
     const left = exam ? topicsLeft({ ...e, topics }, docs) : topics;
-    return planExam(e, left, clean, settings.schedule, T.examReviewLabel, T.examAgain);
-  }, [valid, docs, e, topicsText, settings.schedule]); // eslint-disable-line react-hooks/exhaustive-deps
+    return planExam(e, left, clean, settings.schedule, T.examReviewLabel, T.examAgain, settings.exceptions);
+  }, [valid, docs, e, topicsText, settings.schedule, settings.exceptions]); // eslint-disable-line react-hooks/exhaustive-deps
 
   async function save() {
     if (!plan || !valid) return;
@@ -55,7 +55,7 @@ export function ExamPlanner({ open, exam, onClose, start }: { open: boolean; exa
       const touched = docs?.get(`day:${d}`)?.columns.some((c) => c.blocks.some((b) => b.examId === x.id));
       if (!add.length && !touched) continue;
       await updateKey<DayDoc>(`day:${d}`, emptyDay, (doc0) => {
-        const doc = placeRepeats(doc0, d, settings.schedule) ?? doc0;
+        const doc = placeRepeats(doc0, d, settings.schedule, settings.exceptions) ?? doc0;
         const last = doc.columns.length - 1;
         return { ...doc, columns: doc.columns.map((c, i) => (i !== last ? c : {
           ...c, blocks: [...c.blocks.filter((b) => !(b.examId === x.id && (d > today() || b.start >= nowMinutes()))), ...add].sort((a, z) => a.start - z.start),
