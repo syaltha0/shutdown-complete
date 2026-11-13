@@ -22,10 +22,10 @@ try {
  if(!blocks)day.columns.forEach(c=>c.blocks=[]);
  day.focus={...day.focus,sessions:Array.from({length:count},(_,i)=>({id:'fit'+i,blockId:blocks?day.columns[0].blocks[0]?.id:null,label:'Focus',minutes:25,start:new Date(Date.now()-3600000-i*1800000).toISOString(),end:new Date(Date.now()-2100000-i*1800000).toISOString(),note:i%2?'A note with space below the text.':''})),active:state==='idle'||state==='settings'?null:{blockId:null,label:'',phase:'focus',plannedMin:25,startedAt:new Date().toISOString(),endsAt:new Date(Date.now()+1500000).toISOString(),pausedLeft:state==='paused'?1500:null}};
  await api.put(key,day); await api.put('settings',{...settings,features:{...settings.features,friends:!!friends}});
- await page.goto(server.url+'/focus',{waitUntil:'domcontentloaded'}); await page.locator('.focus-stage').waitFor(); await page.evaluate(()=>document.fonts.ready);
+ await page.goto(server.url+'/focus',{waitUntil:'domcontentloaded'}); await page.locator('.focus-stage').waitFor(); await page.evaluate(()=>document.fonts.ready); await page.locator('.focus-history .chart svg').first().waitFor(); await page.waitForFunction(()=>!document.querySelector('.focus-history .skeleton'));
  if(state==='settings')await page.locator('.focus-config-anchor > button').click();
  for(const theme of ['light','dark']) {
- await page.evaluate(t=>{document.documentElement.dataset.theme=t;window.dispatchEvent(new Event('themechange'));},theme); await page.waitForTimeout(40);
+ await page.evaluate(t=>{document.documentElement.dataset.theme=t;window.dispatchEvent(new Event('themechange'));},theme); await page.evaluate(()=>new Promise(r=>requestAnimationFrame(()=>requestAnimationFrame(r)))); await page.waitForTimeout(40);
  const m=await page.evaluate(()=>{
  const rect=s=>document.querySelector(s).getBoundingClientRect();
  const chartElement=document.querySelector('.focus-history .chart');
