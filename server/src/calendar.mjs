@@ -275,3 +275,5 @@ export const forgetFeed = (url) => cache.delete(url);
 export const RANGE_DAYS = MAX_DAYS;
 
 export { zonedToUtc };
+
+export const feedStatus = () => ({ checked: cache.size, errors: [...cache.values()].filter(x => x.error).length });

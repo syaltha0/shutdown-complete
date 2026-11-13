@@ -79,6 +79,7 @@ export function SettingsScreen() {
           <p className="sub">{tab === 'planner' ? T.savesAsYouGo : `${user.name} · ${user.email}`}</p>
         </div>
       </div>
+      {user.isAdmin && <p><a href="/settings/status" onClick={onLinkClick}>{T.serverStatus.title}</a></p>}
       <nav className="tabs" aria-label={T.settingsTitle}>
         {tabs.map((x) => <a key={x.id} href={x.href} onClick={onLinkClick} aria-current={tab === x.id ? 'page' : undefined} aria-selected={tab === x.id}>{x.label}</a>)}
       </nav>

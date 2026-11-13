@@ -64,6 +64,9 @@ export async function restoreInto(source, target) {
 }
 
 export function backups({ db, dataDir, keep = Number(process.env.BACKUP_KEEP) || 7, hour = Number(process.env.BACKUP_HOUR ?? 3), log = console.log }) {
+  let attempt = null;
+  try { attempt = JSON.parse(db.meta.get('backup_attempt', 'null')); } catch {}
+  const record = ok => { attempt = { at: new Date().toISOString(), ok }; db.meta.set('backup_attempt', JSON.stringify(attempt)); };
   const dir = join(dataDir, 'backups');
   mkdirSync(dir, { recursive: true });
 
@@ -83,8 +86,9 @@ export function backups({ db, dataDir, keep = Number(process.env.BACKUP_KEEP) ||
       const counted = list().filter((b) => b.kind === 'auto' || b.kind === 'manual');
       for (const old of counted.slice(keep)) rmSync(join(dir, old.name), { force: true });
       log(`Backup made: ${name}`);
+      record(true);
       return name;
-    } finally { remove(tmp); }
+    } catch (e) { record(false); throw e; } finally { remove(tmp); }
   }
 
   /** The chosen copy checked and set to be put in place at the next start; what is there now is backed up first. */
@@ -123,5 +127,5 @@ export function backups({ db, dataDir, keep = Number(process.env.BACKUP_KEEP) ||
   };
   if (hour >= 0) { setTimeout(daily, 60_000).unref(); setInterval(daily, 30 * 60_000).unref(); }
 
-  return { list, make, restore, upload, file: (name) => (NAME.test(name) && existsSync(join(dir, name)) ? join(dir, name) : null), stream: (f) => createReadStream(f), keep, hour };
+  return { status: () => attempt, list, make, restore, upload, file: (name) => (NAME.test(name) && existsSync(join(dir, name)) ? join(dir, name) : null), stream: (f) => createReadStream(f), keep, hour };
 }

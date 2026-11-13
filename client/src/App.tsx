@@ -46,6 +46,7 @@ const Focus = later(() => import('./screens/Focus'), 'Focus');
 const Habits = later(() => import('./screens/Habits'), 'Habits');
 const Metrics = later(() => import('./screens/Metrics'), 'Metrics');
 const Shutdown = later(() => import('./screens/Shutdown'), 'Shutdown');
+const ServerStatus = later(() => import('./screens/ServerStatus'), 'ServerStatus');
 const SettingsScreen = later(() => import('./screens/Settings'), 'SettingsScreen');
 /** Fetches the screens not opened yet, one at a time, while the browser has nothing else to do. */
 function fetchAhead() {
@@ -181,7 +182,7 @@ function route(path: string) {
       const d = DATE.test(arg) ? arg : today();
       return { nav: 'shutdown', el: <Shutdown date={d} key={d} /> };
     }
-    case 'settings': return { nav: 'settings', el: <SettingsScreen key={arg || 'planner'} /> };
+    case 'settings': return { nav: 'settings', el: arg === 'status' ? <ServerStatus /> : <SettingsScreen key={arg || 'planner'} /> };
   }
   return null;
 }
