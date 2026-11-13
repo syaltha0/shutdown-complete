@@ -72,7 +72,7 @@ export function Shortcuts() {
 
   const rows: [string[], string][] = [
     [['Space', 'S', 'R', '+'], T.focusOptions.shortcuts], [['Alt', 'P'], K.pauseFocus],
-    [['N'], K.newBlock], [['R'], K.revise], [['←', '→'], K.prevNext], [['T'], K.today], [['W'], K.week], [['M'], K.month],
+    [['N'], K.newBlock], [['N'], K.newTask], [['/'], K.searchTasks], [['X'], K.selectTasks], [['R'], K.revise], [['←', '→'], K.prevNext], [['T'], K.today], [['W'], K.week], [['M'], K.month],
     [['A'], T.calendarViews.agenda], [['Q'], K.quarter], [['P'], K.planWeek], [['F'], K.focus], [['H'], K.habits], [['I'], K.inbox], [['S'], K.shutdown], [['Ctrl', 'Z'], K.undo], [['?'], K.help],
   ];
   return (

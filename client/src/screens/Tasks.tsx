@@ -77,8 +77,22 @@ export function Tasks({ view: asked }: { view?: string }) {
   const [smartAdd, setSmartAdd] = useState(true);
   const parsedDraft = smartAdd ? parseTaskDraft(draft, lists, today()) : { text: draft.trim() };
   const addInput = useRef<HTMLInputElement>(null);
+  const searchInput = useRef<HTMLInputElement>(null);
   useEffect(() => { if (new URLSearchParams(location.search).has('add')) addInput.current?.focus(); }, [!!doc]);
   useEffect(() => { setOpenId(null); setShowDone(false); }, [view]);
+  // single keys on this screen: N writes a task, / searches, X starts or ends picking several (not while typing)
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      const el = e.target;
+      if (e.ctrlKey || e.metaKey || e.altKey || e.shiftKey || (el instanceof HTMLElement && (el.isContentEditable || ['INPUT', 'TEXTAREA', 'SELECT'].includes(el.tagName)))) return;
+      if (document.querySelector('dialog[open], .more-sheet, .tour, .kb-pop')) return;
+      if (e.key === 'n' && addInput.current) { e.preventDefault(); addInput.current.focus(); }
+      else if (e.key === '/') { e.preventDefault(); searchInput.current?.focus(); }
+      else if (e.key === 'x') { e.preventDefault(); setOpenId(null); setSel((s) => (s ? null : new Set())); }
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, []);
   // changes from a phone's task app or a Nextcloud arrive on the server: looked for now and then, and on coming back
   useEffect(() => {
     const look = () => { if (document.visibilityState === 'visible') refreshKey('inbox'); };
@@ -310,7 +324,7 @@ export function Tasks({ view: asked }: { view?: string }) {
             <label className="tk-search">
               <IconSearch />
               <span className="sr-only">{T.tkSearch}</span>
-              <input type="search" className="input" placeholder={T.tkSearch} value={q} onChange={(e) => setQ(e.target.value)} />
+              <input ref={searchInput} type="search" className="input" placeholder={T.tkSearch} value={q} onChange={(e) => setQ(e.target.value)} onKeyDown={(e) => { if (e.key === 'Escape') { if (q) setQ(''); else e.currentTarget.blur(); } }} />
             </label>
             <button type="button" className={`btn${sel ? ' primary' : ' ghost'}`} aria-pressed={!!sel} onClick={() => { setSel(sel ? null : new Set()); setOpenId(null); }}>{sel ? T.tkSelectDone : T.tkSelect}</button>
             <label className="tk-sort">
@@ -323,7 +337,7 @@ export function Tasks({ view: asked }: { view?: string }) {
           {view !== 'completed' && (
             <form className="tk-add" onSubmit={(e) => { e.preventDefault(); const t = draft.trim(); if (t) { add(t); setDraft(''); setSmartAdd(true); } }}>
               <label htmlFor="tk-new" className="sr-only">{isList ? T.tkAddPh(viewName) : T.tkAddPhAny}</label>
-              <input id="tk-new" ref={addInput} className="input" autoComplete="off" aria-describedby="tk-add-help" placeholder={isList ? T.tkAddPh(viewName) : T.tkAddPhAny} value={draft} onChange={(e) => setDraft(e.target.value)} />
+              <input id="tk-new" ref={addInput} className="input" autoComplete="off" aria-describedby="tk-add-help" placeholder={isList ? T.tkAddPh(viewName) : T.tkAddPhAny} value={draft} onChange={(e) => setDraft(e.target.value)} onKeyDown={(e) => { if (e.key === 'Escape') { setDraft(''); setSmartAdd(true); e.currentTarget.blur(); } }} />
               <button type="submit" className="btn primary" disabled={!draft.trim()}>{T.tkAdd}</button>
             </form>
           )}

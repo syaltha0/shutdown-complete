@@ -288,6 +288,30 @@ try {
   await page.locator('#tk-new').fill('');
   await shot(page, 'quick-add');
 
+  // ---------- single-key shortcuts: N writes, / searches, X picks several ----------
+  const focused = () => page.evaluate(() => document.activeElement?.id || document.activeElement?.tagName);
+  await page.evaluate(() => document.activeElement?.blur());
+  await page.keyboard.press('n');
+  check('N moves to the new-task field', (await focused()) === 'tk-new');
+  await page.keyboard.type('xn/');
+  check('keys typed into a field stay text', (await page.locator('#tk-new').inputValue()) === 'xn/');
+  await page.keyboard.press('Escape');
+  check('Escape clears and leaves the new-task field', (await page.locator('#tk-new').inputValue()) === '' && (await focused()) === 'BODY');
+  await page.keyboard.press('/');
+  check('/ moves to the search field', (await page.locator('.tk-search input').evaluate((el) => el === document.activeElement)));
+  await page.keyboard.type('zzz');
+  await page.keyboard.press('Escape');
+  check('Escape clears the search first', (await page.locator('.tk-search input').inputValue()) === '' && await page.locator('.tk-search input').evaluate((el) => el === document.activeElement));
+  await page.keyboard.press('Escape');
+  check('and leaves it the second time', !(await page.locator('.tk-search input').evaluate((el) => el === document.activeElement)));
+  await page.keyboard.press('x');
+  check('X starts picking several tasks', (await page.getByRole('button', { name: 'Done selecting' }).count()) === 1);
+  await page.keyboard.press('x');
+  check('and X ends it', (await page.getByRole('button', { name: 'Select', exact: true }).count()) === 1);
+  await page.keyboard.press('?');
+  check('the shortcut list names them', await page.locator('.keys-sheet', { hasText: 'Search tasks' }).isVisible());
+  await page.keyboard.press('Escape');
+
   // ---------- Turkish words for a rule ----------
   // ---------- phones ----------
   await page.setViewportSize({ width: 390, height: 844 });
