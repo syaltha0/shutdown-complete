@@ -368,6 +368,7 @@ export const en = {
   intentLabel: 'Intent', intentPh: 'What will you work on? (optional)',
   breakLabel: 'Break', lengthCustom: 'Custom', customMin: 'Custom length in minutes', plusFive: '+5 min',
   noteLabel: 'A note on the session', sessionNotePh: 'How did it go? (optional)',
+  miniGoFocus: 'Go to focus', miniPaused: 'Paused', miniEnds: (time: string) => `Ends at ${time}`, miniNext: (phase: string, min: number) => `Next: ${phase} \u00b7 ${min} min`,
   sessionN: (n: number, of: number) => `Session ${n}/${of}`,
   minShort: (n: number) => `${n} min`,
   focusRow: (n: number, d: string) => `${n} ${s(n, 'session', 'sessions')} · ${d}`,

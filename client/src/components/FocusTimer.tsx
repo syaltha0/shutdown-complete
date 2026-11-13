@@ -3,7 +3,7 @@ import { showNotification } from '../lib/pwa';
 import { useEffect, useRef, useState } from 'react';
 import { useSettings } from '../App';
 import { today } from '../lib/dates';
-import { chime, finishPhase, mmss, notify, pauseFocus, refreshFocus, resumeFocus, secondsLeft, settingsFocus, startFocus, useFocusDay } from '../lib/focus';
+import { chime, extendFocus, MAX_PLANNED, finishPhase, mmss, notify, pauseFocus, refreshFocus, resumeFocus, secondsLeft, settingsFocus, startFocus, useFocusDay } from '../lib/focus';
 import { useT } from '../lib/i18n';
 import { type FocusActive, featureOn } from '../lib/model';
 import { onLinkClick, usePath } from '../lib/router';
@@ -46,7 +46,7 @@ export function FocusRunner() {
   const path = usePath();
   const [closedBreak, setClosedBreak] = useState<string | null>(null);
   const f = settingsFocus(settings);
-  const { active: a, key } = useFocusDay();
+  const { active: a, key, holder } = useFocusDay();
   useTick(!!a && a.pausedLeft == null);
 
   useEffect(() => {
@@ -121,16 +121,58 @@ export function FocusRunner() {
   }, [a, left, T]);
 
   if (!a || path.startsWith('/focus')) return null;
-  return (
-    <>{f.fullscreenBreak && a.phase !== 'focus' && closedBreak !== a.startedAt && <FocusRoom start={{blockId: a.blockId, label: a.label, minutes: a.plannedMin}} onClose={() => setClosedBreak(a.startedAt)} />}<div className={`mini-timer phase-${a.phase}`} role="status" aria-label={T.focusRunning}>
-      <Ring a={a} size={36} stroke={4} />
-      <a href="/focus" onClick={onLinkClick} className="mt-text">
-        <b className="num">{mmss(left)}</b>
-        <span>{a.phase === 'focus' ? a.label || T.freeFocus : T.phase[a.phase]}</span>
-      </a>
-      {a.pausedLeft == null
-        ? <button type="button" className="btn ghost" disabled={!!f.strict && a.phase === 'focus'} onClick={() => pauseFocus(key)}>{T.pause}</button>
-        : <button type="button" className="btn ghost" disabled={!!f.strict && a.phase === 'focus'} onClick={() => resumeFocus(key)}>{T.resume}</button>}
-    </div></>
-  );
+  return <>{f.fullscreenBreak && a.phase !== 'focus' && closedBreak !== a.startedAt && <FocusRoom start={{blockId: a.blockId, label: a.label, minutes: a.plannedMin}} onClose={() => setClosedBreak(a.startedAt)} />}
+    <FocusMiniPanel a={a} docKey={key} count={holder?.focus?.sessions.length ?? 0} />
+  </>;
+}
+
+function FocusMiniPanel({ a, docKey, count }: { a: FocusActive; docKey: string; count: number }) {
+  const T = useT();
+  const { settings } = useSettings();
+  const f = settingsFocus(settings);
+  const [open, setOpen] = useState(false);
+  const root = useRef<HTMLDivElement>(null);
+  const trigger = useRef<HTMLButtonElement>(null);
+  const suppressed = useRef(false);
+  useEffect(() => {
+    const outside = (e: PointerEvent) => { if (!root.current?.contains(e.target as Node)) { suppressed.current = true; setOpen(false); } };
+    document.addEventListener('pointerdown', outside);
+    return () => document.removeEventListener('pointerdown', outside);
+  }, []);
+  const left = secondsLeft(a);
+  const locked = !!f.strict && a.phase === 'focus';
+  const cycle = Math.max(1, f.longEvery);
+  const session = (count % cycle + (a.phase === 'focus' ? 1 : 0)) || cycle;
+  const next = a.phase !== 'focus' ? 'focus' : (count + 1) % cycle === 0 ? 'long' : 'short';
+  const nextMin = next === 'focus' ? f.focusMin : next === 'long' ? f.longMin : a.breakMin ?? f.shortMin;
+  const end = new Date(Date.now() + left * 1000).toLocaleTimeString(T.locale, { hour: '2-digit', minute: '2-digit' });
+  const togglePause = () => a.pausedLeft == null ? pauseFocus(docKey) : resumeFocus(docKey);
+  return <div ref={root} className={`mini-timer phase-${a.phase}`} data-open={open}
+    onPointerEnter={e => { if (e.pointerType === 'mouse') { suppressed.current = false; setOpen(true); } }}
+    onPointerLeave={e => { if (e.pointerType === 'mouse' && !root.current?.contains(document.activeElement)) setOpen(false); }}
+    onFocus={() => { if (!suppressed.current) setOpen(true); }}
+    onBlur={e => { if (!e.currentTarget.contains(e.relatedTarget)) { suppressed.current = false; setOpen(false); } }}
+    onKeyDown={e => { if (e.key === 'Escape') { e.preventDefault(); suppressed.current = true; trigger.current?.focus(); setOpen(false); } }}>
+    <Ring a={a} size={36} stroke={4} />
+    <button ref={trigger} type="button" className="mt-text mt-trigger" aria-expanded={open} aria-controls="mini-focus-details"
+      onPointerDown={e => { if (e.pointerType !== 'mouse') { e.preventDefault(); suppressed.current = false; setOpen(true); } }}
+      onClick={() => { suppressed.current = false; setOpen(true); }}>
+      <b className="num">{mmss(left)}</b><span>{a.label || T.freeFocus}</span>
+    </button>
+    <button type="button" className="btn ghost" disabled={locked} onClick={togglePause}>{a.pausedLeft == null ? T.pause : T.resume}</button>
+    <section id="mini-focus-details" className="mt-panel" aria-label={T.focusRunning} inert={!open} aria-hidden={!open}>
+      <span className="mt-phase">{T.phase[a.phase]}</span>
+      <b className="mt-clock num">{mmss(left)}</b>
+      <div className="mt-progress" aria-hidden="true"><i style={{width: `${Math.max(0, Math.min(100, 100 * (1 - left / (a.plannedMin * 60))))}%`}} /></div>
+      <strong className="mt-label">{a.label || T.freeFocus}</strong>
+      <div className="mt-meta"><span>{T.sessionN(session, cycle)}</span><span>{a.pausedLeft == null ? T.miniEnds(end) : T.miniPaused}</span></div>
+      <p className="mt-next">{T.miniNext(T.phase[next], nextMin)}</p>
+      <div className="mt-actions">
+        <button type="button" className="btn" disabled={locked} onClick={togglePause}>{a.pausedLeft == null ? T.pause : T.resume}</button>
+        <button type="button" className="btn" disabled={a.plannedMin >= MAX_PLANNED} onClick={() => extendFocus(5, docKey)}>{T.plusFive}</button>
+        <button type="button" className="btn ghost" disabled={locked} onClick={() => finishPhase(settings, true, {key: docKey, startedAt: a.startedAt})}>{a.phase === 'focus' ? T.finishNow : T.skipBreak}</button>
+      </div>
+      <a className="mt-link" href="/focus" onClick={onLinkClick}>{T.miniGoFocus}</a>
+    </section>
+  </div>;
 }
