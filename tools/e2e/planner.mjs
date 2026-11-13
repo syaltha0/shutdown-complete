@@ -448,8 +448,10 @@ try {
       && (await page.locator('.cd-lead .cd-dots i:not(.end)').count()) === 5);
     check('a countdown shows its kind', await page.locator('.cd-card', { hasText: 'Maths exam' }).locator('.cd-kind', { hasText: 'Exam' }).isVisible());
     await page.locator('.cd-card', { hasText: 'Maths exam' }).getByRole('button', { name: 'Prepare for it' }).click();
-    check('an exam without a plan opens the exam planner, filled in', await page.locator('dialog[open] #ex-name').inputValue() === 'Maths exam'
-      && await page.locator('dialog[open] #ex-date').inputValue() === addD(D, 33));
+    // the exam planner is a lazily loaded screen: on a slow machine its fields are filled a moment after it opens
+    const examFilled = async () => { for (let i = 0; i < 50; i++) { if (await page.locator('dialog[open] #ex-name').inputValue().catch(() => '') === 'Maths exam'
+      && await page.locator('dialog[open] #ex-date').inputValue().catch(() => '') === addD(D, 33)) return true; await wait(100); } return false; };
+    check('an exam without a plan opens the exam planner, filled in', await examFilled());
     await page.locator('dialog[open]').getByRole('button', { name: 'Cancel' }).click();
     // a birthday that passed this year rolls on to next year
     await page.getByRole('button', { name: 'New countdown' }).click();
