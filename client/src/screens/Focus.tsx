@@ -20,7 +20,56 @@ import { FriendsPanel } from '../components/Friends';
 
 const ROWS = 5;
 
+/**
+ * On a desktop window the last card on the right lines up with the four-week chart on the left: the columns already
+ * end together, so giving that card the chart card's height aligns their tops too (the sessions card takes up the
+ * difference). A last card whose content needs more than that keeps its own height. The user asked for this.
+ */
+function useAlignedBottomRow() {
+  const gridRef = useRef<HTMLDivElement>(null);
+  useLayoutEffect(() => {
+    const grid = gridRef.current; if (!grid) return;
+    const wide = window.matchMedia('(min-width: 1000px) and (min-height: 601px)');
+    let frame = 0;
+    const measure = () => {
+      cancelAnimationFrame(frame);
+      frame = requestAnimationFrame(() => {
+        const history = grid.querySelector<HTMLElement>('.focus-history');
+        const last = grid.querySelector<HTMLElement>(':scope > .stack > :last-child');
+        if (!wide.matches || !history || !last) { delete grid.dataset.alignRows; return; }
+        const h = Math.round(history.getBoundingClientRect().height);
+        grid.style.setProperty('--history-h', `${h}px`);
+        // what the last card's content needs, measured at its natural height
+        const was = grid.dataset.alignRows; delete grid.dataset.alignRows;
+        const need = last.classList.contains('focus-sessions') ? 0 : Math.ceil(last.getBoundingClientRect().height);
+        if (need > h + 1) { if (was != null) delete grid.dataset.alignRows; return; }
+        grid.dataset.alignRows = '';
+        // the sessions card gives up the difference, but never below two full rows: otherwise keep the natural layout
+        const sessions = grid.querySelector<HTMLElement>('.focus-sessions');
+        const list = sessions?.querySelector<HTMLElement>('.session-scroll');
+        const row = list?.querySelector<HTMLElement>('.session')?.getBoundingClientRect().height ?? 0;
+        const squeezed = !!sessions && sessions !== last && (sessions.scrollHeight > sessions.clientHeight + 1 || (!!list && list.getBoundingClientRect().height < Math.min(2 * row, list.scrollHeight) - 1));
+        const stack = last.parentElement!;
+        const spills = stack.scrollHeight > stack.clientHeight + 1 || [...stack.children].some((el) => el.scrollHeight > el.clientHeight + 1);
+        if (squeezed || spills) delete grid.dataset.alignRows;
+      });
+    };
+    const ro = new ResizeObserver(measure);
+    const watch = () => { ro.disconnect(); ro.observe(grid); grid.querySelectorAll<HTMLElement>('.focus-history, :scope > .stack > *').forEach((el) => ro.observe(el)); measure(); };
+    // cards appear and go, and their content changes (blocks summary, friends, an incoming request, options); only the
+    // right column is watched, so the timer's ticking does not set this off every second
+    const mo = new MutationObserver(watch);
+    const right = grid.querySelector(':scope > .stack');
+    if (right) mo.observe(right, { childList: true, subtree: true, characterData: true });
+    wide.addEventListener('change', measure);
+    watch();
+    return () => { ro.disconnect(); mo.disconnect(); wide.removeEventListener('change', measure); cancelAnimationFrame(frame); };
+  }, []);
+  return gridRef;
+}
+
 export function Focus() {
+  const gridRef = useAlignedBottomRow();
   const T = useT();
   const { settings } = useSettings();
   const f = settingsFocus(settings);
@@ -160,7 +209,7 @@ export function Focus() {
       </div>
       <DocNotice status={status} error={error} retry={retry} />
 
-      <div className="grid top focus-grid">
+      <div className="grid top focus-grid" ref={gridRef}>
         <div className="span-7 focus-left">
         <section className={`panel focus-panel phase-${phase}`} aria-labelledby="fp-h" data-anim>
           <header className="focus-card-head"><h2 id="fp-h">{config ? T.focusSettings : T.focusRunning}{config && a && <small className="focus-config-time num">{T.phase[a.phase]} · {mmss(secondsLeft(a))}</small>}</h2><div className="focus-card-actions">
@@ -288,7 +337,7 @@ export function Focus() {
                 const got = byBlock(b), len = b.end - b.start;
                 return (
                   <div className="bb" key={b.id}>
-                    <div className="bb-top"><span className="l">{b.label || T.untitledBlock}</span><span className="num muted">{T.focusedOf(duration(got), duration(len))}</span></div>
+                    <div className="bb-top"><span className="l" title={b.label || T.untitledBlock}>{b.label || T.untitledBlock}</span><span className="num muted">{T.focusedOf(duration(got), duration(len))}</span></div>
                     <div className="bb-track"><i style={{ transform: `scaleX(${Math.min(1, got / len)})` }} /></div>
                   </div>
                 );

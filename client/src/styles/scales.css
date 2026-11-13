@@ -481,3 +481,19 @@
   .focus-grid:has(.friends, .focus-byblock, .sessions) .focus-panel,
   .focus-grid > .stack > .focus-sessions, .focus-grid .focus-sessions > .sessions { flex: 0 0 auto; }
 }
+
+/* the last card on the right lines up with the chart card (see useAlignedBottomRow) */
+@media (min-width: 1000px) and (min-height: 601px) {
+  .focus-grid[data-align-rows] > .stack > :last-child { flex: 0 0 var(--history-h); height: var(--history-h); min-height: 0; }
+  .focus-grid[data-align-rows] > .stack > :last-child:not(.focus-sessions) { align-content: start; }
+  .focus-grid[data-align-rows] > .stack > .focus-sessions:not(:last-child) { flex: 1 1 0; }
+  .focus-grid[data-align-rows] > .stack > .focus-sessions:last-child ~ *, .focus-grid[data-align-rows] > .stack > :first-child:has(~ .focus-sessions:last-child) { flex: 1 1 0; }
+}
+
+/* on a desktop window each block in "Focus by block" is one line (name, then the minutes), saving the right column the
+   room an incoming friend request needs; the full name stays in the tooltip */
+@media (min-width: 1000px) and (min-height: 601px) {
+  .focus-grid .focus-byblock .bb-top { grid-template-columns: minmax(0, 1fr) auto; align-items: baseline; gap: 12px; margin-bottom: 6px; }
+  .focus-grid .focus-byblock .bb-top .l { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .focus-grid .focus-byblock > header { margin-bottom: 8px; }
+}
