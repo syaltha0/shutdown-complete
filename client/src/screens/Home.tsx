@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useSettings } from '../App';
 import { addDays, addMonths, clock, duration, fmtDay, longDate, monthOf, today, weekDays, weekOf } from '../lib/dates';
 import { focusMinutes, settingsFocus, startFocus } from '../lib/focus';
@@ -23,6 +23,19 @@ export function Home() {
   const { value: m0 } = useDoc<MonthDoc>(`month:${monthOf(t)}`, emptyMonth);
   const { value: m1 } = useDoc<MonthDoc>(`month:${addMonths(monthOf(t), 1)}`, emptyMonth);
   const { value: inbox } = useDoc<InboxDoc>('inbox', emptyInbox);
+  const todayPanel = useRef<HTMLElement>(null);
+  const [blockLimit, setBlockLimit] = useState(4);
+  useEffect(() => {
+    const panel = todayPanel.current;
+    if (!panel) return;
+    const observer = new ResizeObserver(() => {
+      const mobile = window.innerWidth <= 860;
+      const available = panel.clientHeight - 180;
+      setBlockLimit(mobile ? 1000 : Math.max(1, Math.floor(available / 43)));
+    });
+    observer.observe(panel);
+    return () => observer.disconnect();
+  }, []);
   const plan = day ? [...activeColumn(day).blocks].sort((a,b) => a.start-b.start) : [];
   const cur = plan.find(b => b.start <= now && b.end > now);
   const tasks = day?.tasks.filter(x => !x.done && x.text.trim()) ?? [];
@@ -48,18 +61,18 @@ export function Home() {
   return <>
     <div className="title-row"><div><h1>{T.homeTitle}</h1><p className="sub">{longDate(t)}</p></div><a className="btn" href={`/day/${t}`} onClick={onLinkClick}>{T.openToday}</a></div>
     <div className="home overview">
-      <section className="panel home-today" aria-labelledby="overview-today">
+      <section ref={todayPanel} className="panel home-today" aria-labelledby="overview-today">
         <header><h2 id="overview-today">{T.overviewToday}</h2></header>
         <p className="overview-summary">{plan.length ? T.overviewSummary(plan.filter(b=>b.end<=now).length,plan.length,duration(day ? focusMinutes(day):0),day?.tasks.filter(x=>x.done).length ?? 0,day?.tasks.length ?? 0) : T.overviewNoPlan}</p>
         {cur && <button className="btn overview-focus" onClick={() => startFocus({blockId:cur.id,label:cur.label || T.untitledBlock,minutes:settingsFocus(settings).focusMin}).then(()=>navigate('/focus'))}>{T.focusOn(cur.label || T.untitledBlock)}</button>}
-        <div className="overview-scroll"><ul className="overview-list">{plan.map(b => {
+        <div className="overview-scroll"><ul className="overview-list">{plan.slice(0,blockLimit).map(b => {
           const focused = (day?.focus?.sessions ?? []).filter(s=>s.blockId===b.id).reduce((n,s)=>n+s.minutes,0);
           return <li className={`overview-block${b===cur?' current':b.end<=now?' done':''}`} key={b.id}>
             <span className="num">{clock(b.start)}</span><a href={`/day/${t}`} onClick={onLinkClick}>{b.label || T.untitledBlock}</a>
             <small>{T.kinds[b.kind].name} · {b===cur?T.homeNow:b.end<=now?T.overviewDone:T.homeNext}{focused ? ` · ${duration(focused)}`:''}</small>
           </li>;
         })}</ul>{!plan.length && <p className="empty">{link(`/day/${t}`,T.planDay(T.todayLower))}</p>}</div>
-        {plan.length > 0 && <footer>{link(`/day/${t}`,T.openToday)}</footer>}
+        {plan.length > 0 && <footer>{link(`/day/${t}`,plan.length>blockLimit ? T.andMore(plan.length-blockLimit) : T.openToday)}</footer>}
       </section>
       <div className="overview-middle">
         <section className="panel home-tasks" aria-labelledby="overview-open">
