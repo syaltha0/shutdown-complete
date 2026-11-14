@@ -699,6 +699,10 @@ export const en = {
   overviewSummary: (done: number, total: number, focus: string, tasks: number, all: number) => `${done} of ${total} blocks · ${focus} focused · ${tasks} of ${all} tasks`,
   overviewWeek: (focus: string, streak: number) => `This week: ${focus} focused · ${streak} day shutdown streak`,
   bento: {
+    helloThisWeek: 'This week',
+    helloWeekPlanned: 'Days planned',
+    helloWeekFocus: 'Focus',
+    helloWeekClosed: 'Shutdowns',
     tasksOpen: (n: number) => `${n} open`,
     helloUpNext: 'Up next',
     helloTomorrow: 'Tomorrow',

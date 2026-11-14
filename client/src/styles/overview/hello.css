@@ -45,3 +45,11 @@
 .b-hello-starts { display: grid; gap: 2px; } .b-hello-side .b-hello-week-item { display: block; } .b-hello-week-item a { color: var(--text); }
 
 .b-hello-summary { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; flex-shrink: 0; } .b-hello-main { gap: 5px; } .b-hello-main .b-actions { margin-top: 2px; }
+
+/* the side column always ends with the week so far, so it is never an empty half */
+.b-hello-side { justify-content: flex-start; }
+.b-hello-week-title { margin-top: auto !important; padding-top: 8px; }
+.b-hello-week { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; margin: 0; }
+.b-hello-week dt { color: var(--muted); font-size: 11px; }
+.b-hello-week dd { margin: 0; font-size: 16px; font-weight: 500; }
+.b-hello-week dd { white-space: nowrap; font-size: 15px; }

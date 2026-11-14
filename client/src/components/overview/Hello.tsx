@@ -10,7 +10,7 @@ import { useDoc } from "../../lib/useDoc";
 import { emptyWeek, type WeekDoc } from "../../lib/model";
 import { weekOf } from "../../lib/dates";
 import { addDays } from "../../lib/dates";
-export function Hello({ T, settings, t, now, plan, B, day, docs }: OverviewData) {
+export function Hello({ T, settings, t, now, plan, B, day, docs, docOf, monday }: OverviewData) {
   const { value: week } = useDoc<WeekDoc>(`week:${weekOf(t)}`, emptyWeek);
   const weekItems = week?.items.filter(x => !x.done && x.text.trim()).slice(0, 3) ?? [];
   const template = settings.templates?.find(x => x.days.includes(weekdayOf(t)));
@@ -44,7 +44,10 @@ export function Hello({ T, settings, t, now, plan, B, day, docs }: OverviewData)
       navigate('/focus');
     } catch { setFailed(true); } finally { setStarting(false); }
   }
-  return <section className={`panel b-hello${side ? " has-side" : ""}`}>
+  // this week so far, Monday to today: days with a plan, minutes focused, days closed
+  const weekDays = Array.from({ length: Math.round((Date.parse(t + "T12:00:00") - Date.parse(monday + "T12:00:00")) / 864e5) + 1 }, (_, i) => addDays(monday, i));
+  const sofar = weekDays.reduce((w, d) => { const doc = docOf(d); return { days: w.days, planned: w.planned + (doc && doc.columns.some(c => c.blocks.length) ? 1 : 0), focus: w.focus + (doc?.focus?.sessions ?? []).reduce((n, x) => n + x.minutes, 0), closed: w.closed + (doc?.shutdown?.done ? 1 : 0) }; }, { days: weekDays.length, planned: 0, focus: 0, closed: 0 });
+  return <section className={`panel b-hello has-side`}>
     <div className="b-hello-main">
     <h2>{B.greeting(Math.floor(now / 60), user.name.trim())}</h2>
     <div className="b-now" title={closed ? T.shutdownComplete : cur ? label : undefined}>
@@ -67,11 +70,18 @@ export function Hello({ T, settings, t, now, plan, B, day, docs }: OverviewData)
     <small className="b-hello-summary">{plan.length ? B.helloDaySummary(plan.length, duration(plan.filter(b => b.kind === "deep").reduce((n, b) => n + b.end - b.start, 0)), clock(plan[0].start), clock(Math.max(...plan.map(b => b.end)))) : B.helloStartHint}</small>
     {failed && <span role="alert" className="b-hello-error">{T.helloFocusError}</span>}
     </div>
-    {!side && !plan.length && weekItems.length > 0 && <aside className="b-hello-side"><h3>{B.helloWeek}</h3><ul>{weekItems.map(x => <li className="b-hello-week-item" key={x.id}><a href={`/week/${weekOf(t)}`} onClick={onLinkClick}>{x.text}</a></li>)}</ul></aside>}
-    {side && <aside className="b-hello-side" aria-label={side.title}>
-      <h3>{side.title}</h3>
-      <ul>{side.items.map(b => <li key={b.id}><span className="num">{clock(b.start)}</span><span className={b.kind === "deep" ? "deep" : undefined}>{b.label || T.untitledBlock}</span></li>)}</ul>
-    </aside>}
+    <aside className="b-hello-side" aria-label={side?.title ?? B.helloThisWeek}>
+      {side ? <><h3>{side.title}</h3>
+        <ul>{side.items.map(b => <li key={b.id}><span className="num">{clock(b.start)}</span><span className={b.kind === "deep" ? "deep" : undefined}>{b.label || T.untitledBlock}</span></li>)}</ul></>
+        : !plan.length && weekItems.length > 0 && <><h3>{B.helloWeek}</h3><ul>{weekItems.map(x => <li className="b-hello-week-item" key={x.id}><a href={`/week/${weekOf(t)}`} onClick={onLinkClick}>{x.text}</a></li>)}</ul></>}
+      {/* always there: the week so far in three figures, meaningful even on a brand-new account */}
+      <h3 className="b-hello-week-title">{B.helloThisWeek}</h3>
+      <dl className="b-hello-week">
+        <div><dt>{B.helloWeekPlanned}</dt><dd className="num">{sofar.planned}/{sofar.days}</dd></div>
+        <div><dt>{B.helloWeekFocus}</dt><dd className="num">{sofar.focus ? duration(sofar.focus) : "–"}</dd></div>
+        <div><dt>{B.helloWeekClosed}</dt><dd className="num">{sofar.closed}</dd></div>
+      </dl>
+    </aside>
   </section>;
 }
 
