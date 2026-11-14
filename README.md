@@ -56,7 +56,7 @@ docker compose up -d --build
 
 - [Self-hosting](docs/self-hosting.md) — installation, HTTPS, settings, e-mail, sync, updates and backups.
 - [Development](docs/development.md) — local setup, architecture, tools and browser tests.
-- [All features](docs/features.md) · [Documentation map](docs/readme-migration.md)
+- [All features](docs/features.md)
 
 > Shutdown Complete is an independent project. It is not affiliated with or endorsed by Cal Newport or the publishers
 > of the *Time-Block Planner*.
