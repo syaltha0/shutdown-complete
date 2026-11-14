@@ -1,0 +1,31 @@
+.b-dots a {
+  width: 8px;
+  height: 8px;
+  border: 1px solid var(--control);
+  border-radius: 50%;
+  display: block;
+}
+.b-dots a.on {
+  background: var(--hue);
+  border-color: var(--hue);
+}
+.b-streak {
+  justify-content: center;
+}
+.b-number {
+  font-size: 28px;
+  font-weight: 500;
+  line-height: 1.2;
+}
+.b-dots {
+  display: flex;
+  gap: 10px;
+}
+.b-dots {
+  justify-content: flex-start;
+}
+.b-dots a {
+  width: 14px;
+  height: 14px;
+  border-radius: 3px;
+}

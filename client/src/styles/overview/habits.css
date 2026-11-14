@@ -1,0 +1,31 @@
+.b-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  overflow: auto;
+}
+.b-chip {
+  background: transparent;
+  border: 1px solid var(--rule);
+  border-radius: 20px;
+  padding: 4px 8px;
+  font: inherit;
+  color: inherit;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.b-chip i {
+  width: 8px;
+  height: 8px;
+  border: 1px solid var(--control);
+  border-radius: 50%;
+  display: block;
+}
+.b-chip.on i {
+  background: var(--hue);
+  border-color: var(--hue);
+}
+.bento .b-habits {
+  justify-content: center;
+}

@@ -1,0 +1,29 @@
+.b-ring {
+  position: relative;
+  width: clamp(56px, 7.5vh, 88px);
+  aspect-ratio: 1;
+  flex: none;
+}
+.b-ring svg {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+.b-ring strong {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  font-size: 18px;
+  font-weight: 500;
+}
+@media (max-height: 820px) and (min-width: 861px) {
+  .b-ring {
+    width: 64px;
+  }
+}
+@media (max-height: 820px) and (min-width: 861px) {
+  .b-ring strong {
+    font-size: 14px;
+  }
+}

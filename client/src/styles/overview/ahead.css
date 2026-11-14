@@ -1,0 +1,80 @@
+.b-calendar {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 4px;
+  max-width: 400px;
+  width: 100%;
+  align-self: center;
+}
+.b-calendar a {
+  display: grid;
+  justify-items: center;
+  gap: 1px;
+  font-size: 12px;
+}
+.b-calendar small {
+  color: var(--muted);
+  font-size: 10px;
+}
+.b-calendar span {
+  width: 24px;
+  height: 24px;
+  display: grid;
+  place-items: center;
+  border: 1px solid transparent;
+  border-radius: 50%;
+}
+.b-calendar .today span {
+  border-color: var(--hue);
+  color: var(--hue);
+}
+.b-calendar i {
+  width: 3px;
+  height: 3px;
+  border-radius: 50%;
+}
+.b-calendar i.on {
+  background: var(--hue);
+}
+.b-events {
+  display: grid;
+  gap: 5px;
+}
+.b-events a {
+  display: flex;
+  gap: 10px;
+  align-items: baseline;
+}
+.b-events span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  flex: 1;
+}
+.b-events small {
+  color: var(--muted);
+  font-size: 11px;
+}
+@media (max-height: 820px) and (min-width: 861px) {
+  .b-calendar span {
+    height: 20px;
+    width: 20px;
+  }
+}
+@media (max-width: 860px) {
+  .b-events a {
+    flex-wrap: wrap;
+    gap: 2px;
+  }
+}
+@media (max-width: 860px) {
+  .b-events span {
+    flex-basis: 100%;
+  }
+}
+.b-calendar > small {
+  text-align: center;
+}
+.b-calendar .past {
+  opacity: 0.4;
+}

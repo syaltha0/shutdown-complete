@@ -12,6 +12,17 @@
 @import './auth-motion.css';
 @import './day-tools.css';
 @import './home.css';
+@import './overview/hello.css';
+@import './overview/focus-today.css';
+@import './overview/tasks-today.css';
+@import './overview/timeline.css';
+@import './overview/still-open.css';
+@import './overview/habits.css';
+@import './overview/streak.css';
+@import './overview/ahead.css';
+@import './overview/last-days.css';
+@import './overview/weeks.css';
+@import './overview/ring.css';
 @import './boards.css';
 @import './links.css';
 @import './tasks.css';

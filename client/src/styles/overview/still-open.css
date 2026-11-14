@@ -1,0 +1,45 @@
+.b-open ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 6px;
+}
+.b-open li {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+.b-open li span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.b-open > a {
+  font-size: 12px;
+}
+.b-done {
+  display: grid;
+  justify-items: center;
+  margin: auto;
+}
+.b-done svg {
+  width: 70px;
+}
+.b-open {
+  overflow: auto;
+}
+.b-open .b-shutdown {
+  align-self: flex-start;
+  min-height: 26px;
+  padding: 3px 8px;
+  font-size: 12px;
+}
+.b-capture {
+  width: 100%;
+  min-height: 28px;
+  height: 28px;
+  font-size: 12px;
+  flex-shrink: 0;
+}

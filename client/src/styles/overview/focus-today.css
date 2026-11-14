@@ -1,0 +1,11 @@
+.b-focus {
+  align-items: center;
+  justify-content: center;
+}
+
+.b-focus > * {
+  flex-shrink: 0;
+}
+.bento .b-focus {
+  gap: 5px;
+}

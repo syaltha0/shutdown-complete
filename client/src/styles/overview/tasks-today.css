@@ -1,0 +1,22 @@
+.b-tasks {
+  align-items: center;
+  justify-content: center;
+}
+.b-truncate {
+  max-width: 100%;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.b-tasks > * {
+  flex-shrink: 0;
+}
+.bento .b-tasks {
+  gap: 5px;
+}
+.bento .b-truncate {
+  width: 100%;
+  text-align: center;
+  line-height: 16px;
+}
