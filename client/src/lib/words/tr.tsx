@@ -752,6 +752,8 @@ serverStatus: { remedy: 'İlgili ayarı veya kurulum yönergesini aç',"title":"
     aheadTomorrow: (time: string, n: number) => `Yarın: ${time} ilk blok · ${n} blok`,
     aheadMore: (n: number) => `+${n} daha`,
     aheadWhen: (n: number) => n === 0 ? 'bugün' : `${n} gün sonra`,
+    weeksSummary: (total: string, average: string, best: string) => `Toplam ${total} · ${average}/hafta · en iyi ${best}`,
+    weeksYear: 'Yıl',
   },
   homeTitle: 'Genel bakış', openToday: 'Bugünü aç', homeClosed: 'Gün kapandı. Gerisi yarına kadar bekleyebilir.',
   homePlanned: (n, total, deep) => `${n} blok · ${total} planlı · ${deep} derin odak`,
