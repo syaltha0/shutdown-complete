@@ -1,3 +1,75 @@
-﻿<!doctype html><html lang="en"><meta charset="utf-8"><title>Shutdown Complete banner</title><link href="https://fonts.googleapis.com/css2?family=Jost:wght@400;500;700&display=swap" rel="stylesheet"><style>
-*{box-sizing:border-box}body{margin:0;width:1200px;height:400px;background:#fafafa;color:#171717;font-family:Jost,sans-serif;padding:58px 68px}body.dark{background:#171717;color:#fafafa}.brand{display:flex;align-items:center;gap:18px;font-size:15px;letter-spacing:3px;text-transform:uppercase}.brand img{width:36px;height:36px}h1{font-size:62px;line-height:1.1;letter-spacing:-2px;font-weight:500;margin:38px 0 14px}p{font-size:23px;margin:0;color:#666}.dark p{color:#bbb}svg{position:absolute;left:880px;top:76px}.line{stroke:currentColor;opacity:.22}.accent{stroke:#1d5fbf}footer{margin-top:30px;font-size:13px;letter-spacing:2px;text-transform:uppercase;color:#777}
-</style><body><div class="brand"><img src="../../client/public/icons/icon-192.png" alt="">Your hours, considered</div><h1>Shutdown Complete</h1><p>Plan with intention. Finish with peace of mind.</p><footer>Plan · Focus · Reflect · Shut down</footer><svg width="230" height="240" viewBox="0 0 230 240" fill="none"><circle class="line" cx="115" cy="115" r="98" stroke-width="2"/><path class="accent" d="M115 17a98 98 0 0 1 98 98" stroke-width="8"/><path class="line" d="M115 40v75l-45 45" stroke-width="2"/><rect class="accent" x="89" y="79" width="52" height="25" stroke-width="2"/><rect class="line" x="89" y="112" width="52" height="46" stroke-width="2"/></svg><script>if(location.search.includes('dark'))document.body.className='dark'</script></body></html>
+<!doctype html><html lang="en"><meta charset="utf-8"><title>Shutdown Complete banner</title>
+<!-- Two designs: ?v=a (the day as a page of time blocks, used in the README) and ?v=b (a centred title over a day strip). Add &dark for the dark theme. Render with tools/render-banner.mjs. -->
+<link href="https://fonts.googleapis.com/css2?family=Jost:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#fafaf9;--ink:#141414;--muted:#6b6b6b;--rule:#e4e4e2;--line:#cfcfcc;--block:#ececea;--hue:#1d5fbf}
+.dark{--bg:#121212;--ink:#f2f2f2;--muted:#9a9a9a;--rule:#262626;--line:#3a3a3a;--block:#222;--hue:#5b8fe0}
+*{box-sizing:border-box;margin:0}
+body{width:1280px;height:400px;background:var(--bg);color:var(--ink);font-family:Jost,sans-serif;overflow:hidden;position:relative}
+.mark{width:34px;height:34px;color:var(--ink)}
+.eyebrow{display:flex;align-items:center;gap:14px;font-size:14px;letter-spacing:.24em;text-transform:uppercase;color:var(--muted)}
+h1{font-weight:500;letter-spacing:-.025em;line-height:1}
+.motto{color:var(--muted);font-weight:300}
+.v{display:none!important}.v.show{display:block!important}.b.show{display:grid!important}
+/* A: ledger */
+.a{position:absolute;inset:0;padding:72px 80px}
+.a h1{font-size:76px;margin:34px 0 18px}
+.a .motto{font-size:25px}
+.a .tags{margin-top:34px;font-size:13px;letter-spacing:.2em;text-transform:uppercase;color:var(--muted)}
+.a .page{position:absolute;right:80px;top:40px;width:400px;height:320px;border-left:1px solid var(--rule)}
+.a .hr{position:absolute;left:0;right:0;height:1px;background:var(--rule)}
+.a .hr span{position:absolute;left:-52px;top:-8px;font-size:12px;color:var(--muted);font-variant-numeric:tabular-nums}
+.a .blk{position:absolute;left:18px;right:0;border:1px solid var(--line);background:var(--block);padding:7px 12px;font-size:14px;display:flex;justify-content:space-between;align-items:center}
+.a .blk small{color:var(--muted);font-size:12px}
+.a .blk.on{background:transparent;border:1.5px solid var(--hue);color:var(--hue)}
+.a .blk.done{background:transparent;border:1px dashed var(--line);color:var(--ink)}
+.a .now{position:absolute;left:10px;right:0;height:2px;background:var(--hue)}
+.a .now::before{content:"";position:absolute;left:-5px;top:-4px;width:10px;height:10px;border-radius:50%;background:var(--hue)}
+/* B: strip */
+.b{position:absolute;inset:0;display:grid;justify-items:center;align-content:center;text-align:center}
+.b h1{font-size:84px;margin:26px 0 16px}
+.b .motto{font-size:25px}
+.b .strip{position:relative;width:860px;height:14px;margin-top:46px;background:var(--block);border-radius:3px}
+.b .seg{position:absolute;top:0;bottom:0;background:var(--line);border-right:2px solid var(--bg)}
+.b .seg.deep{background:var(--ink)}
+.b .seg.on{background:var(--hue)}
+.b .nowl{position:absolute;top:-8px;bottom:-8px;width:2px;background:var(--hue)}
+.b .scale{width:860px;display:flex;justify-content:space-between;margin-top:10px;font-size:12px;color:var(--muted);font-variant-numeric:tabular-nums}
+</style>
+<body>
+<svg width="0" height="0" style="position:absolute"><symbol id="m" viewBox="0 0 24 24"><path d="M20 12v7a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V5a1 1 0 0 1 1-1h9" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><path d="m8.5 11.5 3 3L21 5" fill="none" stroke="#1d5fbf" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></symbol></svg>
+
+<section class="v a">
+  <div class="eyebrow"><svg class="mark"><use href="#m"/></svg>Self-hosted time blocking</div>
+  <h1>Shutdown Complete</h1>
+  <p class="motto">Plan with intention. Finish with peace of mind.</p>
+  <p class="tags">Plan · Focus · Reflect · Shut down</p>
+  <div class="page">
+    <div class="hr" style="top:0"><span>09:00</span></div><div class="hr" style="top:80px"><span>11:00</span></div><div class="hr" style="top:160px"><span>13:00</span></div><div class="hr" style="top:240px"><span>15:00</span></div><div class="hr" style="top:320px"><span>17:00</span></div>
+    <div class="blk" style="top:6px;height:68px"><span>Deep work · chapter draft</span><small>2 h</small></div>
+    <div class="blk" style="top:84px;height:30px"><span>E-mail</span><small>30 m</small></div>
+    <div class="blk on" style="top:126px;height:106px;align-items:flex-start"><span>Focus · pilot analysis</span><small style="color:inherit">25:00</small></div>
+    <div class="now" style="top:176px"></div>
+    <div class="blk" style="top:244px;height:36px"><span>Calls</span><small>45 m</small></div>
+    <div class="blk done" style="top:288px;height:30px"><span>Shutdown complete</span><small style="color:var(--hue)">✓</small></div>
+  </div>
+</section>
+
+<section class="v b">
+  <div class="eyebrow"><svg class="mark"><use href="#m"/></svg>Self-hosted time blocking</div>
+  <h1>Shutdown Complete</h1>
+  <p class="motto">Plan with intention. Finish with peace of mind.</p>
+  <div class="strip">
+    <i class="seg deep" style="left:0;width:21%"></i><i class="seg" style="left:21%;width:7%"></i><i class="seg" style="left:31%;width:9%"></i>
+    <i class="seg on" style="left:44%;width:19%"></i><i class="seg" style="left:66%;width:8%"></i><i class="seg deep" style="left:76%;width:16%"></i><i class="seg" style="left:94%;width:6%"></i>
+    <i class="nowl" style="left:52%"></i>
+  </div>
+  <div class="scale"><span>09:00</span><span>11:00</span><span>13:00</span><span>15:00</span><span>17:00</span></div>
+</section>
+
+
+<script>
+const q=new URLSearchParams(location.search);document.body.classList.toggle('dark',q.has('dark'));
+document.querySelector('.'+(q.get('v')||'a')).classList.add('show');
+</script>
+</body></html>

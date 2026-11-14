@@ -32,6 +32,7 @@ is done, so your own planner is never touched. Build first: `npm run build`.
 | `npm run tutorial:record` | Re-records the sign-in tutorial in every language (`-- --lang tr` for one) and renders the film. Needs ffmpeg (`FFMPEG_PATH`, Playwright's copy, or on the `PATH`). Run it after a UI change, then `npm run build` again |
 | `npm run tutorial:render` | Renders the film again from the last recording (kept in `tools/tutorial/.cache/`), to change how it looks without recording again; `-- --stills 2,9.5 --out <dir>` writes just those frames, `-- --probe` prints where the camera looks |
 | `node tools/screenshots.mjs` | Retakes the README screenshots in `docs/screenshots/` |
+| `node tools/render-banner.mjs` | Renders the README banner from `docs/banner/banner.html` (design A; design B is kept beside it in `docs/banner/`) |
 | `node tools/serve-demo.mjs` | A signed-in demo planner on `http://localhost:3200`, for design inspectors and quick looks (`?theme=dark` switches the theme) |
 | `node tools/make-icons.mjs` | Redraws the app icons in `client/public/icons/` |
 
