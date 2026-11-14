@@ -1,80 +1,30 @@
-.b-calendar {
-  display: grid;
-  grid-template-columns: repeat(7, 1fr);
-  gap: 4px;
-  max-width: 400px;
-  width: 100%;
-  align-self: center;
-}
-.b-calendar a {
-  display: grid;
-  justify-items: center;
-  gap: 1px;
-  font-size: 12px;
-}
-.b-calendar small {
-  color: var(--muted);
-  font-size: 10px;
-}
-.b-calendar span {
-  width: 24px;
-  height: 24px;
-  display: grid;
-  place-items: center;
-  border: 1px solid transparent;
-  border-radius: 50%;
-}
-.b-calendar .today span {
-  border-color: var(--hue);
-  color: var(--hue);
-}
-.b-calendar i {
-  width: 3px;
-  height: 3px;
-  border-radius: 50%;
-}
-.b-calendar i.on {
-  background: var(--hue);
-}
-.b-events {
-  display: grid;
-  gap: 5px;
-}
-.b-events a {
-  display: flex;
-  gap: 10px;
-  align-items: baseline;
-}
-.b-events span {
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  flex: 1;
-}
-.b-events small {
-  color: var(--muted);
-  font-size: 11px;
-}
+﻿.b-ahead .b-ahead-range { color: var(--muted); font-size: 11px; margin-top: -5px; }
+.b-ahead .b-calendar { display: grid; grid-template-columns: repeat(7,minmax(0,1fr)); gap: 3px; width: 100%; flex: 1 0 92px; align-content: space-around; }
+.b-ahead .b-calendar > small { text-align: center; color: var(--muted); font-size: 10px; }
+.b-ahead .b-calendar a { position: relative; display: grid; justify-items: center; gap: 2px; font-size: 13px; text-decoration: none; border-radius: 4px; }
+.b-ahead .b-calendar span { width: 28px; height: 28px; display: grid; place-items: center; border: 1px solid transparent; border-radius: 50%; }
+.b-ahead .b-calendar .today span { border-color: var(--hue); color: var(--hue); }
+.b-ahead .b-calendar .past { opacity: .4; }
+.b-ahead .b-calendar i { position: absolute; top: 26px; width: 3px; height: 3px; border-radius: 50%; }
+.b-ahead .b-calendar i.on { background: var(--hue); }
+.b-ahead .b-calendar em { display: block; height: 2px; min-height: 2px; margin-top: 3px; background: var(--muted); opacity: .6; }
+.b-ahead .b-calendar a:hover span { background: var(--rule); }
+.b-ahead a:focus-visible { outline: 2px solid var(--hue); outline-offset: 2px; }
+.b-ahead .b-events { display: grid; gap: 5px; min-width: 0; }
+.b-ahead .b-events > a { display: flex; gap: 10px; align-items: baseline; min-width: 0; font-size: 12px; }
+.b-ahead .b-events time { flex: 0 0 64px; color: var(--muted); font-size: 11px; }
+.b-ahead .b-events span { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.b-ahead .b-events small { color: var(--muted); font-size: 11px; white-space: nowrap; }
+.b-ahead .b-act { display: inline-flex; align-items: center; gap: 4px; min-height: 20px; color: var(--muted); font-size: 12px; text-decoration: none; }
+.b-ahead .b-act > span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.b-ahead .b-act b { font-weight: 400; }
+.b-ahead .b-act:hover > span { text-decoration: underline; text-underline-offset: 3px; }
+.b-ahead .b-ahead-tomorrow { border-bottom: 1px solid var(--rule); padding-bottom: 5px; }
+.b-ahead-empty p { margin: 0 0 3px; font-size: 12px; }
 @media (max-height: 820px) and (min-width: 861px) {
-  .b-calendar span {
-    height: 20px;
-    width: 20px;
-  }
+ .b-ahead .b-calendar { flex-basis: 75px; gap: 1px; }
+ .b-ahead .b-calendar span { width: 22px; height: 22px; }
+ .b-ahead .b-calendar i { top: 20px; }
+ .b-ahead .b-events { gap: 2px; }
 }
-@media (max-width: 860px) {
-  .b-events a {
-    flex-wrap: wrap;
-    gap: 2px;
-  }
-}
-@media (max-width: 860px) {
-  .b-events span {
-    flex-basis: 100%;
-  }
-}
-.b-calendar > small {
-  text-align: center;
-}
-.b-calendar .past {
-  opacity: 0.4;
-}
+@media (max-width: 860px) { .b-ahead .b-calendar { flex-basis: 110px; } }
