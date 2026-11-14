@@ -1,3 +1,4 @@
+import { dayStartOf, onPlanningScale, planningParts } from './planday.mjs';
 import { createECDH, createCipheriv, hkdfSync, createPrivateKey, sign, randomBytes } from 'node:crypto';
 
 const decode = (s) => Buffer.from(s, 'base64url');
@@ -86,6 +87,13 @@ function localParts(ms, timeZone) {
   const p = Object.fromEntries(fmt.formatToParts(new Date(ms)).map((x) => [x.type, x.value]));
   return { date: `${p.year}-${p.month}-${p.day}`, minute: Number(p.hour) * 60 + Number(p.minute), weekend: p.weekday === 'Sat' || p.weekday === 'Sun' };
 }
+/** The device's local time as the planning day (one that begins after midnight counts the small hours to the day before). */
+function planningLocal(ms, timeZone, settings) {
+  const l = localParts(ms, timeZone), p = planningParts(l.date, l.minute, dayStartOf(settings));
+  if (p.date === l.date) return l;
+  const wd = new Date(`${p.date}T12:00:00Z`).getUTCDay();
+  return { date: p.date, minute: p.minute, weekend: wd === 0 || wd === 6 };
+}
 const addDays = (date, n) => new Date(Date.parse(`${date}T12:00:00Z`) + n * 86400_000).toISOString().slice(0, 10);
 
 export function pushService(db, { subject = process.env.VAPID_SUBJECT || 'mailto:admin@example.com', send = fetch, clock = Date.now, timers = true } = {}) {
@@ -141,9 +149,10 @@ export function pushService(db, { subject = process.env.VAPID_SUBJECT || 'mailto
   async function daily(sub, settings, local, at) {
     const n = notifyChoices(settings);
     if (local.weekend && !n.weekends) return;
-    const due = (t) => { const d = local.minute - minutes(t); return d >= 0 && d < DAILY_WINDOW; };
+    const ds = dayStartOf(settings);
+    const due = (t, morning = false) => { const minute = minutes(t); const d = local.minute - (morning ? Math.max(ds, minute) : onPlanningScale(minute, ds)); return d >= 0 && d < DAILY_WINDOW; };
     const day = dayDoc(sub.user_id, local.date);
-    if (n.morning && due(n.morningAt)) {
+    if (n.morning && local.minute < 1440 && due(n.morningAt, true)) {
       const count = (day?.columns?.at(-1)?.blocks ?? []).length;
       await deliver(sub, `morning:${local.date}`, { type: 'morning', ...(count > 0 ? { n: Math.min(count, 99) } : {}) }, 1800, at);
     }
@@ -153,7 +162,7 @@ export function pushService(db, { subject = process.env.VAPID_SUBJECT || 'mailto
   async function check(sub, at) {
     try {
       const settings = db.docs.get(sub.user_id, 'settings')?.value;
-      const local = localParts(at, sub.timezone);
+      const local = planningLocal(at, sub.timezone, settings);
       await blocks(sub, settings, local, at);
       await focus(sub, settings, local, at);
       await daily(sub, settings, local, at);
@@ -164,7 +173,7 @@ export function pushService(db, { subject = process.env.VAPID_SUBJECT || 'mailto
   function pending(user, at = clock()) {
     const settings = db.docs.get(user, 'settings')?.value, out = [];
     for (const sub of db.push.forUser(user)) {
-      try { for (const p of plansFor(sub, settings, localParts(at, sub.timezone))) if (p.at > at - LATE) out.push({ ...p, endpoint: sub.endpoint }); } catch { /* ignore */ }
+      try { for (const p of plansFor(sub, settings, planningLocal(at, sub.timezone, settings))) if (p.at > at - LATE) out.push({ ...p, endpoint: sub.endpoint }); } catch { /* ignore */ }
     }
     return out.sort((a, b) => a.at - b.at);
   }

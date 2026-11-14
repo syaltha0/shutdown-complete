@@ -318,6 +318,8 @@ export interface Settings {
   profile?: { uses: string[]; activities: string[]; together: boolean };
   /** open tasks of earlier days: offered on today ('ask', the default) or moved by themselves ('auto') */
   carryTasks?: 'ask' | 'auto';
+  /** minutes after midnight the planning day begins (0..360; missing = midnight): working past midnight still counts as the day before */
+  dayStart?: number;
   metrics: MetricDef[];
   ritual: { id: string; text: string }[];
 }

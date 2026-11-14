@@ -354,6 +354,8 @@ export const en = {
   setHours: 'Set hours', wholeDay: 'Whole day',
   wholeDayAbout: 'The grid shows all 24 hours and opens at the current time.',
   startsAt: 'Starts at', endsAt: 'Ends at',
+  dayStartsAt: 'The day starts at',
+  dayStartAbout: 'Until then, time after midnight still counts as the day before.',
   hoursADay: (n: number) => (n === 1 ? '1 hour a day' : `${n} hours a day`),
   metricsAbout: 'The few numbers that say whether a day went well: hours of deep focus, pages read, a workout. They appear in the box at the top of each day.',
   noMetricsAddBelow: 'No metrics. Add the first one below.',

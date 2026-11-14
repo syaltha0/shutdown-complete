@@ -6,7 +6,7 @@ import { OfflineQueue } from './components/OfflineQueue';
 import { ConflictDraft } from './components/ConflictDraft';
 import { defaultSettings, type Settings } from './lib/model';
 import { dict, getLang, setLang, useT } from './lib/i18n';
-import { monthOf, quarterOf, today, weekOf } from './lib/dates';
+import { monthOf, quarterOf, setDayStart, today, weekOf } from './lib/dates';
 import {
   IconBoard, IconDay, IconFocus, IconHome, IconHourglass, IconInbox, IconHabits, IconMetrics, IconMonth, IconMore, IconQuarter, IconSettings, IconShutdown, IconWeek, IconX, Mark,
 } from './components/Icons';
@@ -146,6 +146,8 @@ function Planner() {
   if (!value) return <div className="loading-screen">{useT().loading}</div>;
   // the language stored with the settings wins, so every device shows the same one
   if (value.lang && value.lang !== getLang()) setLang(value.lang);
+  // "today" follows the day start chosen in Settings (midnight unless set later)
+  setDayStart(value.dayStart ?? 0);
   return (
     <SettingsContext.Provider value={{ settings: { ...defaultSettings(), ...value }, update }}>
       {/* a new account sets up its workday first; accounts that already took the tour never see this */}
@@ -198,6 +200,15 @@ interface NavItem { id: string; href: string; label: string; icon: React.ReactNo
 function Shell() {
   const { attention } = useAccount();
   const path = usePath();
+  // Refresh links and relative views when the planning day changes, also after sleep.
+  const [, tick] = useState(0);
+  useEffect(() => {
+    let day = today();
+    const refresh = () => { const next = today(); if (next !== day) { day = next; tick(n => n + 1); } };
+    const timer = window.setInterval(refresh, 1000);
+    window.addEventListener('focus', refresh);
+    return () => { window.clearInterval(timer); window.removeEventListener('focus', refresh); };
+  }, []);
   const r = route(path);
   const T = useT();
   const [palette, setPalette] = useState(false);

@@ -11,7 +11,7 @@
 //   /dav/calendars/<user>/<list>/  a list: its tasks (and subtasks) as <uid>.ics
 import { randomUUID } from 'node:crypto';
 import { DEFAULT_LIST, ctagOf, findUid, listOf, removeUid, resources, upsert } from './vtodo.mjs';
-import { todayIso } from './recur.mjs';
+import { planningDay, dayStartOf } from './planday.mjs';
 
 const NS = 'xmlns:d="DAV:" xmlns:c="urn:ietf:params:xml:ns:caldav" xmlns:cs="http://calendarserver.org/ns/" xmlns:ic="http://apple.com/ns/ical/"';
 const PREFIX = { 'DAV:': 'd', 'urn:ietf:params:xml:ns:caldav': 'c', 'http://calendarserver.org/ns/': 'cs', 'http://apple.com/ns/ical/': 'ic' };
@@ -236,7 +236,7 @@ export function davRoutes(app, { db, sha256, clientIp, onChange = () => {} }) {
           write(u, (d) => {
             const current = resources(d, list.id).get(where.name);
             if ((ifNone === '*' && current) || (ifMatch && (!current || (ifMatch !== '*' && ifMatch !== current.etag)))) { error = 'stale'; return null; }
-            const r = upsert(d, list.id, where.name, body, todayIso());
+            const r = upsert(d, list.id, where.name, body, planningDay(new Date(), dayStartOf(db.docs.get(u.id, 'settings')?.value)));
             if (r.error) { error = r.error; return null; }
             // a task moved here from another list in the app: it leaves that list
             return r.doc;

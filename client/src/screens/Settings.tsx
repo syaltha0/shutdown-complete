@@ -191,6 +191,16 @@ export function SettingsScreen() {
               <span className="muted" style={{ paddingBottom: 9 }}>{T.hoursADay(settings.endHour - settings.startHour)}</span>
             </div>
             )}
+            <div className="hours-row">
+              <div className="field">
+                <label htmlFor="s-daystart">{T.dayStartsAt}</label>
+                <select id="s-daystart" className="input num" value={settings.dayStart ?? 0}
+                  onChange={(e) => { const m = Number(e.target.value); update((s) => { const { dayStart: _, ...rest } = s; return m ? { ...rest, dayStart: m } : rest; }); }}>
+                  {[0, 1, 2, 3, 4, 5, 6].map((h) => <option key={h} value={h * 60}>{clock(h * 60)}</option>)}
+                </select>
+              </div>
+              <span className="muted" style={{ paddingBottom: 9 }}>{T.dayStartAbout}</span>
+            </div>
           </div>
         </section>
 

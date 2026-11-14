@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { clock, duration } from '../lib/dates';
+import { clock, duration, minutesOf } from '../lib/dates';
 import { useT } from '../lib/i18n';
 import { IconRepeat } from '../components/Icons';
 import { lockSwipe } from '../lib/swipe';
@@ -394,14 +394,14 @@ export function useNow(enabled: boolean) {
     const t = window.setInterval(() => setNow(new Date()), 30_000);
     return () => window.clearInterval(t);
   }, [enabled]);
-  return now.getHours() * 60 + now.getMinutes();
+  return minutesOf(now);
 }
 
 /** Where a focus session actually ran, from its start and end, as a strip the colour of the focus phase; hover or focus tells when and what. */
 function ActualStrip({ session: s, r0, r1 }: { session: FocusSession; r0: number; r1: number }) {
   const T = useT();
   const a = new Date(s.start), z = Date.parse(s.end);
-  const start = a.getHours() * 60 + a.getMinutes() + a.getSeconds() / 60;
+  const start = minutesOf(a) + a.getSeconds() / 60;
   const end = start + Math.max(0, (z - a.getTime()) / 60000);
   const from = Math.max(r0, start), to = Math.min(r1, end);
   if (!(to > from)) return null;

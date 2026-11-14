@@ -1,5 +1,6 @@
 // A week in review: what was planned and what got done, figured from the account's documents. The planner shows it
 // (/review/<week>), and with e-mail set up it is sent every Sunday evening to those who ask for it.
+import { planningDay, planningNow, dayStartOf } from './planday.mjs';
 const pad = (n) => String(n).padStart(2, '0');
 const iso = (d) => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
 const at = (s) => { const [y, m, d] = s.split('-').map(Number); return new Date(y, m - 1, d, 12); };
@@ -101,10 +102,11 @@ export function reviewMail(r, lang, name, link) {
 export function weeklyMails({ db, send, baseUrl, hour = Number(process.env.WEEKLY_HOUR ?? 18), log = console.log }) {
   const run = async () => {
     const now = new Date();
-    if (now.getDay() !== 0 || now.getHours() < hour) return;
-    const week = weekOf(iso(now));
+
     for (const u of db.users.list()) {
       const s = db.docs.get(u.id, 'settings')?.value;
+      const start = dayStartOf(s), date = planningDay(now, start), week = weekOf(date);
+      if (at(date).getDay() !== 0 || planningNow(now, start) < hour * 60) continue;
       if (!s?.weeklyMail || db.meta.get(`weekly:${u.id}`) === week) continue;
       const user = db.users.byId(u.id);
       const m = reviewMail(review(db, u.id, week), user.lang, user.name, `${baseUrl()}/review/${week}`);

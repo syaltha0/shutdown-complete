@@ -5,7 +5,7 @@
 // with a key of this server's own.
 import { createCipheriv, createDecipheriv, randomBytes } from 'node:crypto';
 import { DEFAULT_LIST, listOf, parseTodo, removeUid, resources, upsert } from './vtodo.mjs';
-import { todayIso } from './recur.mjs';
+import { planningDay, dayStartOf } from './planday.mjs';
 import { TINT_HEX, nearestTint } from './caldav.mjs';
 import { guardedFetch } from './safefetch.mjs';
 import { newSyncRun, countSyncOperation, finishSyncRun } from './sync-log.mjs';
@@ -126,7 +126,7 @@ export function davSync({ db, feedProblem, log = () => {} }) {
       state.home = home;
       const cur = db.docs.get(userId, 'inbox') ?? { value: null, version: 0 };
       let doc = cur.value ?? { items: [] };
-      const today = todayIso();
+      const today = planningDay(new Date(), dayStartOf(db.docs.get(userId, 'settings')?.value));
 
       // lists <-> calendars
       const remote = await calendars(link, home), gone = new Set();

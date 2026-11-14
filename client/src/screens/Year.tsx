@@ -5,6 +5,7 @@ import { useDoc, useRange } from '../lib/useDoc';
 import { onLinkClick } from '../lib/router';
 import type { DayDoc, QuarterDoc } from '../lib/model';
 import { focusMinutes } from '../lib/focus';
+import { today } from '../lib/dates';
 import { yearDays, heatLevel, longestStreak } from '../lib/year';
 import './Year.css';
 interface YearDoc { good: string; change: string }
@@ -22,7 +23,7 @@ export function Year({ id }: { id: string }) {
  const cells = Math.ceil((offset+days.length)/7)*7;
  const dateLabel = (d: string) => new Intl.DateTimeFormat(T.locale,{day:'numeric',month:'short',timeZone:'UTC'}).format(new Date(d+'T12:00:00Z'));
  return <>
- <div className="title-row"><h1>{Y.title} {id}</h1><div className="title-actions"><SaveStamp status={status}/><div className="stepper"><a className="btn icon" aria-label={Y.prev} href={`/year/${Number(id)-1}`} onClick={onLinkClick}><IconLeft/></a><a className="btn" href={`/year/${new Date().getFullYear()}`} onClick={onLinkClick}>{Y.current}</a><a className="btn icon" aria-label={Y.next} href={`/year/${Number(id)+1}`} onClick={onLinkClick}><IconRight/></a></div></div></div>
+ <div className="title-row"><h1>{Y.title} {id}</h1><div className="title-actions"><SaveStamp status={status}/><div className="stepper"><a className="btn icon" aria-label={Y.prev} href={`/year/${Number(id)-1}`} onClick={onLinkClick}><IconLeft/></a><a className="btn" href={`/year/${today().slice(0, 4)}`} onClick={onLinkClick}>{Y.current}</a><a className="btn icon" aria-label={Y.next} href={`/year/${Number(id)+1}`} onClick={onLinkClick}><IconRight/></a></div></div></div>
  <DocNotice status={status} error={error} retry={retry}/>
  <DocNotice status={daily.error || quarters.error ? 'error' : 'saved'} error={daily.error || quarters.error} retry={()=>{daily.retry();quarters.retry();}}/>
  <div className="grid year-view">
