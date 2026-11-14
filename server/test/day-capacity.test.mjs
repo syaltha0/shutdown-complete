@@ -109,3 +109,13 @@ test('a task already covered by the suggested template is not estimated twice', 
   const c = dayCapacity({ date, settings: { ...settings, templates }, doc: day([], [task('Report', 60)]) });
   assert.deepEqual([c.planned, c.estimated, c.left], [60, 0, 420]);
 });
+
+test('a shifted planning day keeps after-midnight capacity and fixed events', () => {
+  const shifted = { ...settings, wholeDay: true, dayStart: 240 };
+  const c = dayCapacity({ date, settings: shifted, from: 1560,
+    doc: day([block('night', 1560, 1590, 'deep')]), events: [event(1620, 1650)] });
+  assert.deepEqual([c.available, c.fixed, c.planned, c.left], [120, 30, 30, 60]);
+  assert.equal(dayCapacity({ date, settings: shifted }).available, 1440);
+  assert.equal(dayCapacity({ date, settings: { ...settings, dayStart: 240 }, from: 1560 }).available, 120);
+  assert.deepEqual(dayCapacity({ date, settings: { ...settings, dayStart: 0 } }), dayCapacity({ date, settings }));
+});

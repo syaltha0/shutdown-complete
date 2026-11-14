@@ -1,4 +1,5 @@
 import { T } from './i18n';
+import { dayStartOf, planningDay, planningNow } from '../../../server/src/planday.mjs';
 
 // Dates are local calendar days written as YYYY-MM-DD. Weeks are ISO weeks (Monday first), quarters are calendar quarters.
 
@@ -13,7 +14,13 @@ export function parseISODate(s: string): Date {
   return new Date(y, m - 1, d);
 }
 
-export const today = () => toISODate(new Date());
+// The planning day can begin after midnight (Settings: the day starts at …): until then "today" is still the day before,
+// and the clock reads past 24:00 on it. Set from the settings once they are loaded; 0 is midnight.
+let dayStart = 0;
+export const setDayStart = (m: number) => { dayStart = dayStartOf({ dayStart: m }); };
+export const getDayStart = () => dayStart;
+
+export const today = () => planningDay(new Date(), dayStart);
 
 export function addDays(s: string, n: number): string {
   const d = parseISODate(s);
@@ -107,10 +114,17 @@ export function duration(m: number): string {
   return r ? `${h} ${hUnit} ${r} ${mUnit}` : `${h} ${hUnit}`;
 }
 
-export const nowMinutes = () => {
-  const d = new Date();
-  return d.getHours() * 60 + d.getMinutes();
-};
+/** Minutes since the planning day's midnight (1440 and more after midnight, before the day starts). */
+export const nowMinutes = () => planningNow(new Date(), dayStart);
+/** A moment as minutes on the planning day's scale (a focus session at 02:00 drawn after 24:00). */
+export const minutesOf = (d: Date) => planningNow(d, dayStart);
+
+/** The hours a day's grid spans: the chosen ones, or all 24 from the day's start; today, after midnight, it runs on to the day start. */
+export function gridHours(s: { wholeDay?: boolean; startHour: number; endHour: number }, _nowMin: number | null = null): [number, number] {
+  const ds = dayStart / 60;
+  if (s.wholeDay) return [ds, 24 + ds];
+  return [s.startHour, ds > 0 ? Math.max(s.endHour, 24 + ds) : s.endHour];
+}
 
 /** Month id, e.g. 2026-10 */
 export const monthOf = (s: string) => s.slice(0, 7);

@@ -339,6 +339,8 @@ serverStatus:{"title":"Sunucu durumu","backup":"Yedekler","storage":"Depolama","
   setHours: 'Saatleri seç', wholeDay: 'Bütün gün',
   wholeDayAbout: 'Tablo 24 saatin hepsini gösterir ve şu anki saatte açılır.',
   startsAt: 'Başlangıç', endsAt: 'Bitiş',
+  dayStartsAt: 'Gün şu saatte başlar',
+  dayStartAbout: 'O saate kadar gece yarısından sonrası önceki güne sayılır.',
   hoursADay: (n) => `günde ${n} saat`,
   metricsAbout: 'Bir günün iyi geçip geçmediğini söyleyen birkaç sayı: derin odak saati, okunan sayfa, spor. Her günün üstündeki kutuda görünürler.',
   noMetricsAddBelow: 'Metrik yok. İlkini aşağıdan ekle.',

@@ -1,6 +1,7 @@
 // How much of a day is left once what is fixed, the deep work already planned and the tasks' estimates are taken out
 // (the preview while spreading the week's items over its days). Time is counted with `unionMinutes`, so blocks that
 // overlap, or a calendar event that is also blocked out on the day, take the same minutes once.
+import { dayStartOf } from '../../../server/src/planday.mjs';
 import { unionMinutes, type Span } from './intervals';
 import { effectivePlan, emptyDay, minutesOfKind, type DayDoc, type DayTemplate, type Item, type Repeat, type ScheduleException } from './model';
 import { isExcepted, placeRepeats, weekdayOf } from './repeat';
@@ -9,6 +10,7 @@ export interface CapacitySettings {
   startHour: number;
   endHour: number;
   wholeDay?: boolean;
+  dayStart?: number;
   schedule?: Repeat[];
   templates?: DayTemplate[];
   exceptions?: ScheduleException[];
@@ -56,7 +58,8 @@ export function dayCapacity({ date, doc, events = [], settings, from, adding = [
     : undefined;
   const all: { start: number; end: number; kind: string }[] = [...blocks, ...(tpl?.blocks ?? [])];
 
-  const [h0, h1] = settings.wholeDay ? [0, 24] : [settings.startHour, settings.endHour];
+  const ds = dayStartOf(settings) / 60;
+  const [h0, h1] = settings.wholeDay ? [ds, 24 + ds] : [settings.startHour, ds > 0 ? Math.max(settings.endHour, 24 + ds) : settings.endHour];
   const r0 = Math.min(h0 * 60, ...all.map((b) => b.start));
   const r1 = Math.max(h1 * 60, ...all.map((b) => b.end));
   const lo = Math.max(r0, from ?? r0);

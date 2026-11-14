@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useSettings } from '../App';
-import { addDays, addMonths, addWeeks, clock, duration, fmtDay, longDate, monthOf, parseISODate, shortDate, today, weekDays, weekOf } from '../lib/dates';
+import { addDays, addMonths, addWeeks, clock, duration, fmtDay, gridHours, longDate, monthOf, parseISODate, shortDate, today, weekDays, weekOf } from '../lib/dates';
 import { useCalendar } from '../lib/calendar';
 import { focusMinutes, settingsFocus, startFocus } from '../lib/focus';
 import { useT } from '../lib/i18n';
@@ -74,7 +74,7 @@ export function Home() {
         </div>
         <div className="title-actions">
           {profile?.activities?.includes('exams') && <a className="btn" href={`/month/${monthOf(t)}`} onClick={onLinkClick}>{T.examPlan}</a>}
-          {[0, 1].includes(new Date().getDay()) && <a className="btn" href={`/review/${new Date().getDay() === 1 ? addWeeks(weekOf(t), -1) : weekOf(t)}`} onClick={onLinkClick}>{T.review.home}</a>}
+          {[0, 1].includes(parseISODate(t).getDay()) && <a className="btn" href={`/review/${parseISODate(t).getDay() === 1 ? addWeeks(weekOf(t), -1) : weekOf(t)}`} onClick={onLinkClick}>{T.review.home}</a>}
           <a className="btn primary" href={`/day/${t}`} onClick={onLinkClick}>{T.openToday}</a>
         </div>
       </div>
@@ -94,7 +94,7 @@ export function Home() {
   function TodayPanel({ day, now, settings, focusing }: { day: DayDoc | null; now: number; settings: ReturnType<typeof useSettings>['settings']; focusing: boolean }) {
     if (!day) return <section className="panel span-8"><div className="skeleton" style={{ height: 220 }} /></section>;
     const plan = activeColumn(day).blocks;
-    const [h0, h1] = settings.wholeDay ? [0, 24] : [settings.startHour, settings.endHour];
+    const [h0, h1] = gridHours(settings, now);
     const r0 = Math.min(h0 * 60, ...plan.map((b) => b.start)), r1 = Math.max(h1 * 60, ...plan.map((b) => b.end));
     const at = (m: number) => `${((m - r0) / (r1 - r0)) * 100}%`;
     const step = r1 - r0 > 12 * 60 ? 180 : r1 - r0 > 6 * 60 ? 120 : 60;

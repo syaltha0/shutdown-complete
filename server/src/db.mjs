@@ -1,3 +1,4 @@
+import { planningDay, dayStartOf } from './planday.mjs';
 import { rollOn } from './recur.mjs';
 import { DatabaseSync } from 'node:sqlite';
 import { mkdirSync } from 'node:fs';
@@ -482,7 +483,7 @@ export function openDb(file) {
           if (completed.length) {
             const inbox = row(q.docGet.get(u, 'inbox'));
             if (inbox?.value) {
-              const next = { ...inbox.value, items: inbox.value.items.map((t) => completed.some((c) => { const p = c.plannedRepeat; return t.repeat && p.id === t.id && p.due === t.due && p.start === t.start && p.doneCount === (t.doneCount ?? 0); }) ? { ...t, ...rollOn(t) } : t) };
+              const next = { ...inbox.value, items: inbox.value.items.map((t) => completed.some((c) => { const p = c.plannedRepeat; return t.repeat && p.id === t.id && p.due === t.due && p.start === t.start && p.doneCount === (t.doneCount ?? 0); }) ? { ...t, ...rollOn(t, planningDay(new Date(), dayStartOf(row(q.docGet.get(u, 'settings'))?.value))) } : t) };
               q.docUpdate.run(JSON.stringify(next), now(), u, 'inbox', inbox.version);
             }
           }

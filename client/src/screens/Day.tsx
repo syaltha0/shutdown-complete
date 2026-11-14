@@ -7,7 +7,7 @@ import { useSettings } from '../App';
 import { Checklist } from '../components/Checklist';
 import { DocNotice, SaveStamp } from '../components/Common';
 import { IconCalendar, IconLeft, IconPrint, IconRevise, IconRight, IconTemplate } from '../components/Icons';
-import { addDays, clock, duration, longDate, nowMinutes, parseISODate, shortDate, today, weekNumber, weekOf } from '../lib/dates';
+import { addDays, clock, duration, gridHours, longDate, nowMinutes, parseISODate, shortDate, today, weekNumber, weekOf } from '../lib/dates';
 import { useT } from '../lib/i18n';
 import { unionMinutes } from '../lib/intervals';
 import {
@@ -114,7 +114,7 @@ export function Day({ date }: { date: string }) {
   const col = activeColumn(day);
   const blocks = day.columns.flatMap((c) => c.blocks);
   // the grid shows the hours chosen in Settings, or all 24; a block outside them widens it
-  const [h0, h1] = settings.wholeDay ? [0, 24] : [settings.startHour, settings.endHour];
+  const [h0, h1] = gridHours(settings, isToday ? now : null);
   const r0 = Math.min(h0 * 60, ...blocks.map((b) => b.start));
   const r1 = Math.max(h1 * 60, ...blocks.map((b) => b.end));
   // a whole day is taller than the screen: it opens at now (today), the first block, or the usual start of the day
@@ -168,7 +168,7 @@ export function Day({ date }: { date: string }) {
       updateKey<DayDoc>(`day:${n.date}`, emptyDay, (dd) => {
         if (dd.columns.some((c) => c.blocks.some((x) => x.source?.calendar === src.calendar && x.source.uid === src.uid && x.source.date === n.date))) return dd;
         const last = dd.columns.length - 1, from = dd.columns[last].from ?? 0;
-        const start = Math.min(Math.max(from, n.start), 24 * 60 - 15), end = Math.min(24 * 60, Math.max(n.end, start + 15));
+        const start = Math.min(Math.max(from, n.start), 24 * 60 + (settings.dayStart ?? 0) - 15), end = Math.min(24 * 60 + (settings.dayStart ?? 0), Math.max(n.end, start + 15));
         return { ...dd, columns: dd.columns.map((c, i) => (i === last ? { ...c, blocks: [...c.blocks, { ...carried, start, end }].sort((a, z) => a.start - z.start) } : c)) };
       });
       setCols((cols) => cols.map((c, i) => (i === cols.length - 1 ? { ...c, blocks: c.blocks.filter((x) => x.id !== b.id) } : c)));

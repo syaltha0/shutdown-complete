@@ -57,7 +57,7 @@ export function sortTasks(items: Item[], by: Sort): Item[] {
 export { nextDate, onRuleDay } from '../../../server/src/recur.mjs';
 import { rollOn as roll } from '../../../server/src/recur.mjs';
 /** A repeating task done: the changes that bring it back on its next date (see server/src/recur.mjs). */
-export const rollOn = (t: Item): Partial<Item> => roll(t) as Partial<Item>;
+export const rollOn = (t: Item): Partial<Item> => roll(t, today()) as Partial<Item>;
 
 /** The ready-made rules offered first; anything else is "custom". */
 export const PRESETS: { id: string; rule: Recur }[] = [
