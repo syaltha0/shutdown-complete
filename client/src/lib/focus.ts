@@ -12,9 +12,10 @@ export const focusMinutes = (d: DayDoc) => (d.focus?.sessions ?? []).reduce((s, 
 export const focusCount = (d: DayDoc) => (d.focus?.sessions ?? []).length;
 
 /** The sessions of the cycle now under way: those logged since the cycle last began (the day's start, or "Reset cycle"). A long break follows every `longEvery` of them. */
-export function cycleDone(f?: { sessions: unknown[]; cycleFrom?: number } | null): number {
+export function cycleDone(f?: { sessions: unknown[]; cycleFrom?: number; skippedRounds?: number } | null): number {
   const n = f?.sessions?.length ?? 0;
-  return n - Math.max(0, Math.min(n, Math.floor(f?.cycleFrom ?? 0)));
+  // a round skipped without counting time still moves the cycle on (the dots and "Session n/N" advance)
+  return n - Math.max(0, Math.min(n, Math.floor(f?.cycleFrom ?? 0))) + Math.max(0, Math.floor(f?.skippedRounds ?? 0));
 }
 
 /** The longest a phase can run, +5 min included (a stuck tab or a stray script cannot make it endless). */
@@ -117,7 +118,7 @@ export function noteSession(id: string, note: string, key = dayKey()) {
 
 /** Starts the cycle of rounds over: the next focus session is round one again. The logged sessions and totals stay. */
 export function resetCycle(key = dayKey()) {
-  return updateKey<DayDoc>(key, emptyDay, (d) => (d.focus ? { ...d, focus: { ...d.focus, cycleFrom: (d.focus.sessions ?? []).length } } : d));
+  return updateKey<DayDoc>(key, emptyDay, (d) => (d.focus ? { ...d, focus: { ...d.focus, cycleFrom: (d.focus.sessions ?? []).length, skippedRounds: 0 } } : d));
 }
 
 export function cancelFocus(key = dayKey()) {
@@ -165,12 +166,13 @@ export async function finishPhase(settings: Settings, early = false, opts: { key
       }
     }
     const end = session ? new Date(session.end) : new Date();
-    // a session that was not counted adds nothing to the cycle, so the break after it is a short one
-    const long = !!session && cycleDone({ sessions, cycleFrom: x.focus.cycleFrom }) % Math.max(1, f.longEvery) === 0;
+    // every finished or skipped focus round moves the cycle on, counted or not
+    const skippedRounds = (x.focus.skippedRounds ?? 0) + (session ? 0 : 1);
+    const long = cycleDone({ sessions, cycleFrom: x.focus.cycleFrom, skippedRounds }) % Math.max(1, f.longEvery) === 0;
     result = session ? 'logged' : 'skipped';
     return {
       ...x, metrics, tasks,
-      focus: { ...x.focus, sessions, active: {
+      focus: { ...x.focus, sessions, skippedRounds, active: {
         phase: long ? 'long' : 'short', startedAt: end.toISOString(), plannedMin: long ? f.longMin : (a.breakMin ?? f.shortMin),
         pausedLeft: f.autoBreak === false ? (long ? f.longMin : (a.breakMin ?? f.shortMin)) * 60 : null, blockId: a.blockId, label: a.label, ...(session ? { sessionId: session.id } : {}), ...(a.task ? { task: a.task } : {}),
       } },

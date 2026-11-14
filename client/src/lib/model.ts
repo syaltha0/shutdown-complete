@@ -207,7 +207,8 @@ export interface DayDoc {
   metrics: Record<string, number | boolean | null>;
   shutdown: { done: boolean; at: string | null; steps: Record<string, boolean> };
   /** `cycleFrom`: how many of the day's sessions were logged before the current cycle of rounds began ("Reset cycle"); the dots, "Session n/N" and the long break count from there */
-  focus?: { active: FocusActive | null; sessions: FocusSession[]; cycleFrom?: number };
+  /** `skippedRounds`: focus rounds of the current cycle that were skipped without counting any time (they still move the cycle on, like any skip). */
+  focus?: { active: FocusActive | null; sessions: FocusSession[]; cycleFrom?: number; skippedRounds?: number };
   /** the weekly schedule entries already placed on this day (or deliberately left off it) */
   repeats?: string[];
 }

@@ -17,7 +17,7 @@ const doc = async () => (await api.get('day:' + D)).value;
 const until = async (fn, ms = 5000) => { const t = Date.now(); while (Date.now() - t < ms) { const v = await fn(); if (v) return v; await p.waitForTimeout(150); } return false; };
 const settings0 = (await api.get('settings')).value;
 const run = (min, ago, extra = {}) => ({ phase: 'focus', startedAt: new Date(Date.now() - ago * 60000).toISOString(), plannedMin: min, pausedLeft: null, blockId: null, label: 'Edge', ...extra });
-const setActive = async (active, sessions, more = {}) => { const x = (await api.get('day:' + D)).value ?? {}; await api.put('day:' + D, { ...x, focus: { ...(x.focus ?? {}), active, sessions: sessions ?? x.focus?.sessions ?? [], ...more } }); };
+const setActive = async (active, sessions, more = {}) => { const x = (await api.get('day:' + D)).value ?? {}; await api.put('day:' + D, { ...x, focus: { ...(x.focus ?? {}), active, sessions: sessions ?? x.focus?.sessions ?? [], ...(sessions ? { skippedRounds: 0 } : {}), ...more } }); };
 const btn = (name) => p.getByRole('button', { name, exact: true });
 const choiceBtn = (re) => p.getByRole('button', { name: re });
 const open = async (path = '/focus') => { await p.goto(s.url + path); await p.locator('.focus-panel, .mini-timer').first().waitFor(); };
@@ -32,6 +32,7 @@ try {
   const quick = await until(async () => { const x = await doc(); return x.focus.active?.phase === 'short' ? x : null; });
   check('skipping within the first 30 seconds asks nothing and counts nothing', quick && quick.focus.sessions.length === 0 && await p.locator('.skip-choice').count() === 0);
   check('the break after an uncounted skip is a short one', quick.focus.active.plannedMin === 5 && !quick.focus.active.sessionId);
+  check('an uncounted skip still moves the round on (Session 1/4 is done)', quick.focus.skippedRounds === 1 && await until(async () => /1\/4|Session 1|Oturum 1/.test(await p.locator('.focus-cycle-summary').innerText()) && await p.locator('.focus-rounds .done').count() === 1));
 
   await setActive(run(25, 10), []);
   await open();
