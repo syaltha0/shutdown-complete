@@ -3,7 +3,7 @@
 .home-today { display: grid; gap: 14px; grid-template-rows: auto auto 1fr; }
 .day-scale { display: grid; gap: 6px; }
 .day-line { position: relative; height: 52px; border-radius: 8px; background: var(--ground); overflow: hidden; }
-.day-line button { position: absolute; top: 6px; bottom: 6px; display: flex; align-items: center; padding: 0 8px; overflow: hidden; border-radius: 5px; background: var(--control); color: var(--text); font-style: normal; font-size: 12px; }
+.day-line button { position: absolute; top: 6px; bottom: 6px; display: flex; align-items: center; padding: 0; min-width: 0; overflow: hidden; border-radius: 5px; background: var(--control); color: var(--text); font-style: normal; font-size: 12px; }
 .day-line button span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .day-line button.k-deep { color: var(--primary-ink); }
 .day-line button.k-deep { background: var(--text); }
@@ -14,7 +14,7 @@
 .day-ticks { position: relative; height: 16px; color: var(--muted); font-size: 11px; }
 .day-ticks span { position: absolute; transform: translateX(-50%); white-space: nowrap; }
 .day-ticks span:first-child { transform: none; }
-.day-ticks span:last-child { transform: translateX(-100%); }
+.day-ticks span:last-child { transform: translateX(-50%); }
 .home-now { align-self: end; display: grid; grid-template-columns: minmax(0, 1fr) auto; grid-template-areas: "label actions" "lead actions" "meta actions"; align-items: center; column-gap: 16px; padding-top: 4px; }
 .home-now .label { grid-area: label; color: var(--muted); font-size: 13px; }
 .home-now .lead { grid-area: lead; font-size: 26px; line-height: 32px; font-weight: 500; letter-spacing: -0.01em; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
