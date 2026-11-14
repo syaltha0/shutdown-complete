@@ -1,0 +1,36 @@
+import assert from 'node:assert/strict';
+import { mkdirSync } from 'node:fs';
+import { launch } from '../lib/browser.mjs';
+import { startServer, client } from '../lib/server.mjs';
+import { demoAccount, iso } from '../lib/demo.mjs';
+const s = await startServer(), b = await launch();
+try {
+ const api = await demoAccount(client(s.url));
+ const context = await b.newContext({ reducedMotion: 'reduce' });
+ await context.addCookies([{ name: 'sc_session', value: api.cookie.split('=')[1], url: s.url }]);
+ const p = await context.newPage(), key = 'day:' + iso(new Date()), base = (await api.get(key)).value;
+ mkdirSync('reports/shots/overview-tasks', { recursive: true });
+ for (const [state, count, done] of [['empty',0,0],['partial',3,1],['complete',3,3],['many',24,2]]) {
+  const tasks = Array.from({length:count},(_,i)=>({id:'task-'+i,text:i===done?'Review the project proposal and send the final detailed notes to the team':'Task '+(i+1),done:i<done}));
+  await api.put(key,{...base,tasks});
+  for (const [width,height] of [[1440,900],[390,844]]) for (const theme of ['light','dark']) {
+   await p.setViewportSize({width,height}); await p.goto(s.url); const tile=p.locator('.b-tasks'); await tile.waitFor();
+   await p.evaluate(t=>document.documentElement.dataset.theme=t,theme); await p.evaluate(()=>document.fonts.ready);
+   assert.equal(await tile.locator('[role=progressbar]').getAttribute('aria-valuenow'),String(done));
+   assert.ok(await tile.evaluate(e=>e.scrollHeight<=e.clientHeight+1 && e.scrollWidth<=e.clientWidth+1),'Tile fits '+state+' '+width);
+   assert.ok(await p.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),'No horizontal overflow');
+   await p.screenshot({path:`reports/shots/overview-tasks/${state}-${width}-${theme}.png`,fullPage:true});
+  }
+  if(state==='partial') {
+   await p.locator('.b-tasks input').click();
+   await assertEventually(async()=>assert.equal((await api.get(key)).value.tasks[1].done,true));
+   await p.getByRole('button',{name:'Undo',exact:true}).click();
+   await assertEventually(async()=>assert.equal((await api.get(key)).value.tasks[1].done,false));
+   await p.reload(); await p.locator('.b-tasks').waitFor();
+   assert.equal(await p.locator('.b-tasks [role=progressbar]').getAttribute('aria-valuenow'),'1');
+  }
+  await p.locator('.b-tasks a').click(); await p.waitForURL('**/day/'+iso(new Date()));
+ }
+ console.log('PASS Tasks today: 16 screenshots, four states, completion persisted, undo persisted, day links, fit');
+} finally { await b.close(); s.stop(); }
+async function assertEventually(check) { for(let i=0;i<30;i++){try{await check();return;}catch(e){if(i===29)throw e;await new Promise(r=>setTimeout(r,100));}} }
