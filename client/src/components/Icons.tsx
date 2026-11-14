@@ -194,3 +194,5 @@ export const IconBranch = () => (
 export const IconSteps = () => (
   <svg viewBox="0 0 20 20" aria-hidden="true" {...P}><path d="M4 5h7M8 10h8M8 15h8M4 5v10h3M4 10h3" /></svg>
 );
+
+export const IconYear = () => <svg viewBox="0 0 20 20" aria-hidden="true" {...P}><rect x="3" y="3.5" width="14" height="13.5" rx="2"/><path d="M3 7.5h14M7 2v3M13 2v3M6.5 10.5h1M10 10.5h1M13.5 10.5h.1M6.5 13.5h1M10 13.5h1M13.5 13.5h.1"/></svg>;
