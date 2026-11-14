@@ -23,7 +23,7 @@ export function FocusToday({ T, settings, day, B }: OverviewData) {
   return <section className="panel b-focus" aria-labelledby="overview-focus-title" data-complete={complete}>
     <h2 id="overview-focus-title">{B.focus}</h2>
     <OverviewRing value={focused} total={goal} label={B.focus} text={focused ? duration(focused) : "–"} complete={complete} />
-    <p className="b-focus-summary">{[goal > 0 ? B.of(duration(goal)) : null, B.focusSessions(count)].filter(Boolean).join(" · ")}</p>
+    <p className="b-focus-summary">{[goal > 0 ? B.of(duration(goal)) : null, count > 0 ? B.focusSessions(count) : null].filter(Boolean).join(" · ")}</p>
     <div className="b-focus-dots" aria-hidden="true">{Array.from({ length: Math.min(count, 8) }, (_, i) => <i key={i} />)}</div>
     <p className="b-focus-status" role={active ? "timer" : undefined} aria-live="off">{active ? `${T.phase[active.phase]} · ${B.left(B.focusMinutes(Math.ceil(secondsLeft(active, now) / 60)))}${active.pausedLeft != null ? ` · ${B.focusPaused}` : ""}` : focused ? complete ? B.focusComplete : B.focusLogged : B.noFocus}</p>
     <a className="b-act main" href="/focus" onClick={onLinkClick}><span>{active ? B.focusOpen : T.startFocus}</span><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" aria-hidden="true"><path d="m9 5 7 7-7 7" /></svg></a>
