@@ -54,6 +54,7 @@ try {
    await p.screenshot({path:`reports/shots/overview-focus/${state}-${width}-${theme}.png`,fullPage:true});
   }
   if(state==='running') {
+   await p.clock.setSystemTime(noon);
    const mutations=await p.evaluate(async()=>{let n=0;const mo=new MutationObserver(list=>n+=list.length);mo.observe(document.querySelector('.b-focus'),{subtree:true,childList:true,attributes:true,characterData:true});await new Promise(r=>setTimeout(r,3200));mo.disconnect();return n;});
    assert.equal(mutations,0,'Overview focus stays unchanged between minute ticks');
    await p.clock.runFor(60000);assert.match(await p.locator('.b-focus .b-rt-summary').innerText(),/24/,'Remaining minutes update');

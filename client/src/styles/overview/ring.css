@@ -44,3 +44,6 @@
 .b-rt-body .b-act { align-self: flex-start; }
 .bento :is(.b-focus, .b-tasks) .b-act { min-height: 22px; }
 .b-tasks .b-tasks-next { min-height: 20px; }
+
+.bento :is(.b-focus, .b-tasks) > :is(.b-ring, .b-tasks-ring) { width:52px; height:52px; }
+@media(max-width:860px) { .bento :is(.b-focus,.b-tasks) { align-items:stretch; text-align:left; justify-content:flex-start; } .b-rt-body { gap:5px; } }
