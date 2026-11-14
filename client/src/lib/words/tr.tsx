@@ -404,7 +404,6 @@ serverStatus:{"title":"Sunucu durumu","backup":"Yedekler","storage":"Depolama","
   blockPick: 'Blok', lengthLabel: 'Süre',
   intentLabel: 'Niyet', intentPh: 'Ne üzerinde çalışacaksın? (isteğe bağlı)',
   breakLabel: 'Mola', lengthCustom: 'Özel', customMin: 'Özel süre (dakika)', plusFive: '+5 dk',
-  noteLabel: 'Oturum notu', sessionNotePh: 'Nasıl geçti? (isteğe bağlı)',
   miniStartNext: 'Sonraki odağı başlat', miniBlockNext: (label, time) => `Sıradaki blok: ${label} · ${time}`, miniBlockNow: (label, time) => `Şu anki blok: ${label} · bitiş ${time}`, miniShrink: 'Küçült', miniExpand: 'Açık tut', miniAria: (what, min, paused) => `${what}, ${min} dk kaldı${paused ? ', duraklatıldı' : ''}`, miniGoFocus: 'Oda\u011fa git', miniPaused: 'Duraklat\u0131ld\u0131', miniEnds: (time) => `${time}\u2019te biter`, miniNext: (phase, min) => `S\u0131radaki: ${phase} \u00b7 ${min} dk`,
   sessionN: (n, of) => `Oturum ${n}/${of}`, cycleReset: 'Döngüyü sıfırla',
   minShort: (n) => `${n} dk`,

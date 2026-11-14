@@ -10,7 +10,7 @@ import { BlockChip, BlockSheet } from '../components/BlockPicker';
 import { addDays, clock, duration, nowMinutes, shortDate, today } from '../lib/dates';
 import { Chart, themeColor } from '../components/Chart';
 import {
-  cancelFocus, cycleDone, extendFocus, focusMinutes, MAX_PLANNED, mmss, NOTE_MAX, noteSession, pauseFocus, resumeFocus, secondsLeft,
+  cancelFocus, cycleDone, extendFocus, focusMinutes, MAX_PLANNED, mmss,  pauseFocus, resumeFocus, secondsLeft,
   resetCycle, settingsFocus, startFocus, resetFocus, useFocusDay,
 } from '../lib/focus';
 import { useT } from '../lib/i18n';
@@ -130,7 +130,6 @@ export function Focus() {
   // the chip is inert while the list is open, so focus goes back to it once the list has closed
   const wasPicking = useRef(false);
   useEffect(() => { if (wasPicking.current && !picking) chipRef.current?.focus(); wasPicking.current = picking; }, [picking]);
-  const [noteDraft, setNoteDraft] = useState<{ id: string; text: string } | null>(null);
   const [room, setRoom] = useState(false);
   const autoRoom = useRef(false);
   useEffect(() => {
@@ -159,14 +158,7 @@ export function Focus() {
   const phase: FocusPhase = a?.phase ?? 'focus';
   const minutes = f.focusMin;
   const begin = { blockId: chosen, label: chosenBlock?.label || T.freeFocus, minutes, breakMin: f.shortMin, phase: 'focus' as const };
-  // the note belongs to the session a break follows
-  const lastSession = a && a.phase !== 'focus' ? (holder?.focus?.sessions ?? []).find((x) => x.id === a.sessionId) ?? null : null;
   // a note being typed is kept even when the break ends (or is skipped) before the field loses focus
-  const noteRef = useRef(noteDraft);
-  noteRef.current = noteDraft;
-  const saveNote = () => { const n = noteRef.current; if (n) { noteSession(n.id, n.text, key); setNoteDraft(null); } };
-  useEffect(() => () => { const n = noteRef.current; if (n) noteSession(n.id, n.text, key); }, [key]);
-  useEffect(() => { if (!lastSession && noteRef.current) saveNote(); }, [lastSession?.id]); // eslint-disable-line react-hooks/exhaustive-deps
   // A timer carried past midnight finishes in its original day's document.
   // The rounds count from where the cycle last began (the day's start, or "Reset cycle"), not from all of today's sessions
   const inCycle = cycleDone(a ? holder?.focus : day?.focus);
@@ -208,14 +200,12 @@ export function Focus() {
   function stop(reset = false) {
     if (a && ranMinutes(a) >= 1 && stopAsk !== (reset ? 'reset' : 'stop')) { setStopAsk(reset ? 'reset' : 'stop'); return; }
     setStopAsk(null);
-    saveNote();
     if (reset) resetFocus(key); else cancelFocus(key);
   }
 
   // Skip: a break goes at once, a focus phase asks what to count unless it has only just begun (see useSkip)
   const skip = useSkip(a, key);
   function skipPhase() {
-    if (a && a.phase !== 'focus') saveNote();
     skip.request();
   }
 
@@ -307,16 +297,6 @@ export function Focus() {
                   <button type="button" className={`btn ghost sm focus-act focus-stop${stopAsk === 'stop' ? ' danger' : ''}`} aria-live="polite" disabled={!!f.strict && a.phase === 'focus'} onClick={() => stop()}>{stopAsk === 'stop' && a ? <StopAsk a={a} /> : T.stop}</button>
                 </div>
                 {a.roomId && <p id="focus-reset-hint" className="muted focus-note">{T.focusSharedResetHint}</p>}
-                {lastSession && (
-                  <div className="field focus-note-field">
-                    <label htmlFor="fc-note">{T.noteLabel}</label>
-                    <input id="fc-note" className="input" maxLength={NOTE_MAX} placeholder={T.sessionNotePh}
-                      value={noteDraft?.id === lastSession.id ? noteDraft.text : lastSession.note ?? ''}
-                      onChange={(e) => setNoteDraft({ id: lastSession.id, text: e.target.value })}
-                      onBlur={saveNote}
-                      onKeyDown={(e) => { if (e.key === 'Enter') e.currentTarget.blur(); }} />
-                  </div>
-                )}
               </div>
             )}
             {deepDef && !a && <p className="muted focus-note">{T.addsTo(deepDef.name)}</p>}

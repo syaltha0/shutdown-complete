@@ -1,4 +1,4 @@
-// The Focus screen: length and break choice, start/pause, +5 min, finishing with a note, skipping the break, the room.
+// The Focus screen: length and break choice, start/pause, +5 min, finishing, skipping the break, the room.
 import { mkdirSync } from 'node:fs';
 import { launch } from '../lib/browser.mjs';
 import { startServer, client } from '../lib/server.mjs';
@@ -108,11 +108,9 @@ try {
   check('the break has the chosen length', a3.focus.active.plannedMin === 10 && a3.focus.active.sessionId === a3.focus.sessions[0].id);
   check('a completed round is filled and a break has no current focus round', await p.locator('.focus-rounds .done').count() === 1 && await p.locator('.focus-rounds .current').count() === 0);
 
-  const note = p.getByLabel('A note on the session');
-  await note.fill('Got through the outline; the data table is next.');
-  await note.press('Enter');
-  const a4 = await until(async () => (await doc()).focus.sessions[0].note);
-  check('the note is saved on the session', a4 === 'Got through the outline; the data table is next.');
+  // the break asks for no note any more (the user did not want the box); a note set elsewhere still shows
+  check('the break shows no session note box', await p.locator('#fc-note').count() === 0);
+  { const x = await doc(); x.focus.sessions[0].note = 'Got through the outline; the data table is next.'; await api.put('day:' + D, x); }
   await p.locator('.session .more').waitFor();
   const shown = await p.locator('.session .more').innerText();
   check("Today's sessions shows the note", shown.includes('data table'));
@@ -219,10 +217,9 @@ try {
   const dc = await doc();
   check('a double click on the skip choice does not skip the break', dc.focus.sessions.length === 1 && dc.focus.active?.phase === 'short');
 
-  // a note typed during the break is kept when the break is skipped straight away
-  await p.getByLabel('A note on the session').fill('Kept without leaving the field');
+  // the break is skipped straight away
   await p.evaluate(() => [...document.querySelectorAll('button')].find((e) => e.textContent === 'Skip').click());
-  check('a note survives the break ending', (await until(async () => (await doc()).focus.sessions[0].note)) === 'Kept without leaving the field');
+  check('the break ends on Skip', !!(await until(async () => (await doc()).focus.active === null)));
 
   // another device pauses it: this one sees it on coming back to the tab
   await setActive('day:' + D, run(25, 3), []);
