@@ -766,6 +766,8 @@ export const en = {
     aheadTomorrow: (time: string, n: number) => `Tomorrow: ${time} first block · ${n} blocks`,
     aheadMore: (n: number) => `+${n} more`,
     aheadWhen: (n: number) => n === 0 ? 'today' : n === 1 ? 'tomorrow' : `in ${n} days`,
+    weeksSummary: (total: string, average: string, best: string) => `${total} total · ${average}/week · best ${best}`,
+    weeksYear: 'Year',
   },
   homeTitle: 'Overview', openToday: 'Open today', homeClosed: 'The day is closed. The rest can wait until tomorrow.',
   homePlanned: (n: number, total: string, deep: string) => `${n} ${s(n, 'block', 'blocks')} · ${total} planned · ${deep} deep focus`,
