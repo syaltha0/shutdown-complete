@@ -355,14 +355,14 @@ try {
   {
     await page.goto(`${srv.url}/`);
     check('the overview opens at /', await page.getByRole('heading', { name: 'Overview', level: 1 }).waitFor({ timeout: 6000 }).then(() => true, () => false));
-    check('it draws today\'s plan as a line through the hours', (await page.locator('.day-line button').count()) > 0);
-    check('it shows the week day by day', (await page.locator('.week-strip .wd').count()) === 7 && (await page.locator('.week-strip .wd.today').count()) === 1);
+    check('it draws today\'s plan as a line through the hours', (await page.locator('.b-track i').count()) > 0);
+    check('it shows the week day by day', (await page.locator('.b-calendar a').count()) === 14 && (await page.locator('.b-calendar .today').count()) === 1);
     await page.locator('#home-task').fill('Buy a notebook');
     await page.locator('#home-task').press('Enter');
     await wait(1200);
     check('a task can be written from the overview', (await doc(`day:${D}`)).tasks.some((x) => x.text === 'Buy a notebook'));
-    check('coming up lists the exam with its countdown', await page.locator('.home-coming li', { hasText: 'Physics final' }).isVisible());
-    await page.getByRole('link', { name: 'Open today' }).click();
+    check('coming up lists the exam with its countdown', await page.locator('.b-events a', { hasText: 'Physics final' }).isVisible());
+    await page.getByRole('link', { name: 'Open today' }).first().click();
     check('and the day is one click away', await page.waitForURL(`**/day/${D}`, { timeout: 4000 }).then(() => true, () => false));
   }
 

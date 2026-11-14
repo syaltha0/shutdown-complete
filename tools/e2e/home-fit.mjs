@@ -4,7 +4,7 @@ import { launch } from '../lib/browser.mjs';
 import { startServer, client } from '../lib/server.mjs';
 import { demoAccount } from '../lib/demo.mjs';
 const s=await startServer(), b=await launch();
-mkdirSync('reports/shots/home-v5',{recursive:true});
+mkdirSync('reports/shots/home-v6',{recursive:true});
 try {
  const api=await demoAccount(client(s.url));
  const context=await b.newContext({reducedMotion:'reduce'});
@@ -30,9 +30,13 @@ try {
     assert.equal(await p.locator('.overview h2').count(),disabled.includes('habits')?9:10);
     const fit=await p.evaluate(()=>{const root=document.documentElement,grid=document.querySelector('.overview'),r=grid.getBoundingClientRect();return {scroll:root.scrollHeight-innerHeight,horizontal:root.scrollWidth-innerWidth,bottom:r.bottom,overflow:[...grid.querySelectorAll('.panel')].filter(e=>e.scrollHeight>e.clientHeight+1).map(e=>({name:e.className,h:e.clientHeight,scroll:e.scrollHeight})),rings:[...grid.querySelectorAll('.b-ring')].map(e=>{const r=e.getBoundingClientRect();return Math.abs(r.width-r.height)}),strip:grid.querySelector('.b-track').getBoundingClientRect().height};});
     assert.ok(fit.horizontal<=0,JSON.stringify(fit));
+    assert.ok(fit.strip<=40,'Timeline stays at most 40px on every viewport');
+    assert.equal(await p.locator('.b-calendar>small').count(),7,'One weekday header');
+    assert.equal(await p.locator('.b-calendar>a').count(),14,'Two complete weeks');
+    assert.equal(await p.locator('.b-calendar>a').first().evaluate(e=>new Date(e.getAttribute('href').split('/').pop()+'T12:00:00').getDay()),1,'Calendar starts on Monday');
     assert.ok(await p.locator('.b-truncate').evaluate(e=>e.clientHeight>=16),'Next task stays visible');
-    if(width>860){assert.ok(fit.scroll<=1,JSON.stringify({width,height,...fit}));assert.ok(fit.overflow.length===0,JSON.stringify({width,height,...fit}));assert.ok(fit.rings.every(n=>n<=2));assert.ok(fit.strip<=56);assert.ok(Math.abs(fit.bottom-(height-32))<=1,JSON.stringify({width,height,...fit}));}
-    if(!disabled.length && [1904,1440,390].includes(width))for(const theme of ['light','dark']){await p.evaluate(t=>document.documentElement.dataset.theme=t,theme);await p.waitForTimeout(600);await p.screenshot({path:`reports/shots/home-v5/${empty?'empty':'full'}-${width}-${height}-${theme}.png`,fullPage:true});}
+    if(width>860){assert.ok(fit.scroll<=1,JSON.stringify({width,height,...fit}));assert.ok(fit.overflow.length===0,JSON.stringify({width,height,...fit}));assert.ok(fit.rings.every(n=>n<=2));assert.ok(fit.strip<=40);assert.ok(Math.abs(fit.bottom-(height-32))<=1,JSON.stringify({width,height,...fit}));}
+    if(!disabled.length && [1904,1440,390].includes(width))for(const theme of ['light','dark']){await p.evaluate(t=>document.documentElement.dataset.theme=t,theme);await p.waitForTimeout(600);await p.screenshot({path:`reports/shots/home-v6/${empty?'empty':'full'}-${width}-${height}-${theme}.png`,fullPage:true});}
    }
   }
  }
