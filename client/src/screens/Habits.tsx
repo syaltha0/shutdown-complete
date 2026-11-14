@@ -109,7 +109,7 @@ export function Habits({ id }: { id: string }) {
                 <button type="button" className="btn icon" aria-label={T.nextWeek} onClick={() => setWeekId(addWeeks(weekId, 1))}><IconRight /></button>
               </div>
               <div className="hrow head">
-                {wdays.map((d) => <span key={d} className={`hd${d === t ? ' is-today' : ''}`}>{fmtDay(d, { weekday: 'narrow' })}</span>)}
+                {wdays.map((d) => <span key={d} className={`hd${d === t ? ' is-today' : ''}`}>{fmtDay(d, { weekday: 'short' })}</span>)}
               </div>
               {habits.map((h) => (
                 <div key={h.id} className="hweek-habit">
