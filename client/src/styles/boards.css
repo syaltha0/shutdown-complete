@@ -426,3 +426,5 @@ dialog.kt-sheet { width: min(960px, calc(100vw - 32px)); max-height: calc(100dvh
 .kb-bg-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); }
 .kb-bg { padding: 4px; font-size: 10.5px; }
 .kb-meta .planned { padding: 0 6px 0 4px; border-radius: 4px; background: color-mix(in srgb, var(--hue) 12%, var(--surface)); color: var(--hue); }
+
+.kb-first-project { border-style:solid; border-color:var(--text); font-weight:500; }

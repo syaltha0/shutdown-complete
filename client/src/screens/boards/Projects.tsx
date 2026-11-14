@@ -140,7 +140,7 @@ export function Boards() {
         <div className="kb-tiles">
           {shown.map(tile)}
           {!filtering && (
-            <button type="button" className="kb-tile kb-new" onClick={() => setDialog({ kind })}>
+            <button type="button" className={`kb-tile kb-new${kind === 'personal' ? ' kb-first-project' : ''}`} onClick={() => setDialog({ kind })}>
               <IconPlus /><span>{kind === 'personal' ? T.kbCreateProject : T.kbCreateTeamProject}</span>
             </button>
           )}
