@@ -53,7 +53,7 @@ export function FocusConfig() {
     <span>{T.focusOptions[key]}{key in T.focusGroups && <small>{T.focusGroups[key as 'autoBreak' | 'autoFocus' | 'fullscreenBreak' | 'strict']}</small>}</span>
     <input type="checkbox" role="switch" checked={key === 'autoBreak' ? f[key] !== false : !!f[key]} onChange={e => update(s => ({...s, focus: {...settingsFocus(s), [key]: e.target.checked}}))} />
   </label>;
-  return <div className="focus-config">
+  return <div className="focus-config"><p className="meta focus-scroll-hint">{T.uiux.scroll}</p>
     {active && <p id={`${id}-hint`} className="muted focus-config-hint">{T.focusSettingsHint}</p>}
     <section><h3>{T.focusGroups.durations}</h3>
     {([
