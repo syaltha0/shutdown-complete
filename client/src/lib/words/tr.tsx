@@ -2,6 +2,7 @@
 import type { Words } from './en';
 
 export const tr: Words = {
+ sectionNav: "Bölümler", backSections: "Bölümlere dön",
  uiux: {"yearScroll":"Ocak–Aralık · Yılı incelemek için yana kaydırın. Ayrıntılar için bir gün seçin.","advanced":"Diğer görev seçenekleri","scroll":"Diğer ayarlar için kaydırın","attention":"İlgilenilmeli"},
  taskBlock: {"open":"Görevi aç","deleted":"Görev silindi","planned":"Planlandı:","go":"Bloğa git","done":"Tamamlandı"},
  scheduleExceptions: {"title":"İstisnalar","from":"Başlangıç","to":"Bitiş","label":"Ad","all":"Tüm tekrarlar","selected":"Seçili tekrarlar","add":"İstisna ekle","remove":"İstisnayı sil","affected":"Etkilenen günler","lessons":"blok","noClasses":"Ders yok"},
