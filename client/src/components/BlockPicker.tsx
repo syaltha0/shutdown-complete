@@ -3,6 +3,7 @@ import { useEffect, useId, useMemo, useRef, useState } from 'react';
 import { clock, duration } from '../lib/dates';
 import { useT } from '../lib/i18n';
 import type { Block } from '../lib/model';
+import { IconX } from './Icons';
 
 function WaitingMark({ block }: { block: Block }) {
   const T = useT();
@@ -67,10 +68,11 @@ export function BlockSheet({ blocks, value, nowMin, focusedMin, onChoose, onClos
     const later = blocks.filter((b) => match(b) && b.start > nowMin).sort(byStart).map((b) => entry(b, false));
     const earlier = blocks.filter((b) => match(b) && b.end <= nowMin).sort((x, y) => byStart(y, x)).map((b) => entry(b, true));
     return [
+      // unplanned focus first: it is always there, whatever the search
+      { name: 'free', title: '', items: [{ key: 'free', id: null, block: null, past: false } as Entry] },
       { name: 'now', title: T.focusCurrent, items: now },
       { name: 'later', title: T.blockLater, items: later },
       { name: 'earlier', title: T.blockEarlier, items: earlier },
-      { name: 'free', title: '', items: [{ key: 'free', id: null, block: null, past: false } as Entry] },
     ].filter((g) => g.items.length);
   }, [blocks, q, nowMin, T]);
   const flat = groups.flatMap((g) => g.items);
@@ -93,11 +95,15 @@ export function BlockSheet({ blocks, value, nowMin, focusedMin, onChoose, onClos
   const noMatch = !!q && !groups.some((g) => g.name !== 'free');
   return (
     <div className="bp-sheet" onKeyDown={onKeyDown} onBlur={(e) => { if (!e.currentTarget.contains(e.relatedTarget)) onClose(); }}>
+      <div className="bp-top">
+        <h3>{T.blockSheetTitle}</h3>
+        <button type="button" className="btn ghost sm bp-close" onClick={onClose}><IconX />{T.close}</button>
+      </div>
       <div className="bp-search">
+        <svg className="bp-search-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" aria-hidden="true"><circle cx="11" cy="11" r="6.5" /><path d="m16 16 4.5 4.5" /></svg>
         <input ref={input} className="input" type="text" role="combobox" aria-expanded="true" aria-controls={`${uid}-list`} aria-autocomplete="list"
           aria-activedescendant={flat[active] ? optionId(flat[active]) : undefined} aria-label={T.blockSearch} placeholder={T.blockSearch}
           autoComplete="off" value={query} onChange={(e) => { setQuery(e.target.value); setActive(0); }} />
-        <button type="button" className="btn ghost sm" onClick={onClose}>{T.close}</button>
       </div>
       <div className="bp-list" id={`${uid}-list`} role="listbox" aria-label={T.blockPick} ref={list}>
         {groups.map((g) => (
@@ -108,9 +114,13 @@ export function BlockSheet({ blocks, value, nowMin, focusedMin, onChoose, onClos
               return (
                 <div key={e.key} id={optionId(e)} role="option" aria-selected={e.id === value} data-active={i === active} className={`bp-option${e.past ? ' is-past' : ''}${e.id === value ? ' is-chosen' : ''}`}
                   onMouseDown={(ev) => ev.preventDefault()} onMouseMove={() => { if (i !== active) setActive(i); }} onClick={() => onChoose(e.id)}>
-                  <span className="bp-line"><span className="bp-name">{e.block ? e.block.label || T.untitledBlock : T.freeFocus}</span>{e.block && <KindMark kind={e.block.kind} />}</span>
-                  {e.block && <WaitingMark block={e.block} />}
-                  {e.block && <span className="bp-meta num">{range(e.block)}{done > 0 && <> {'·'} {T.blockFocused(duration(done))}</>}</span>}
+                  {e.block ? <span className="bp-when num">{range(e.block)}</span> : <span className="bp-when bp-free-mark" aria-hidden="true" />}
+                  <span className="bp-body">
+                    <span className="bp-line"><span className="bp-name">{e.block ? e.block.label || T.untitledBlock : T.freeFocus}</span>{e.block && (e.block.kind === 'deep' || e.block.kind === 'shallow') && <span className={`bp-tag ${e.block.kind}`}>{T.kinds[e.block.kind].name}</span>}</span>
+                    {e.block ? <>{e.block && <WaitingMark block={e.block} />}{done > 0 && <span className="bp-meta num">{T.blockFocused(duration(done))}</span>}</> : <span className="bp-meta">{T.freeFocusHint}</span>}
+                    {g.name === 'now' && e.block && <span className="bp-progress" aria-hidden="true"><i style={{ width: `${Math.min(100, Math.max(0, ((nowMin - e.block.start) / Math.max(1, e.block.end - e.block.start)) * 100))}%` }} /></span>}
+                  </span>
+                  <span className="bp-check" aria-hidden="true">{e.id === value && <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="m5 12 5 5 9-10" /></svg>}</span>
                 </div>
               );
             })}

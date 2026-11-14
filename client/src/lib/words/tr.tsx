@@ -391,6 +391,7 @@ serverStatus: { remedy: 'İlgili ayarı veya kurulum yönergesini aç',"title":"
   skipTitle: 'Bu odak atlansın mı?', skipRan: (n, of) => `${of} dakikanın ${n} dakikasında odaklandın.`, skipElapsed: (n) => `Geçen süreyi say (${n} dk)`, skipFull: (n) => `Oturumun tamamını say (${n} dk)`, skipCancel: 'Vazgeç', stop: 'Durdur',
   stopAsk: (n) => `${n} dk silinsin mi?`, focusPaused: 'duraklatıldı',
   inBlock: (l) => `Blok: ${l}`,
+  blockSheetTitle: 'Neye odaklanacaksın?', freeFocusHint: 'Bugünkü plandan bir bloğa bağlamadan',
   freeFocus: 'Plansız odak',
   actualLegend: 'Yapılan odak',
   actualTip: (range: string, min: number, label: string) => `${range} · ${min} dk · ${label}`,
