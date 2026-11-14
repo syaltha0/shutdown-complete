@@ -67,7 +67,7 @@
 
 | | |
 |---|---|
-| ![Sign in, beside five short clips of the planner in use](screenshots/sign-in.jpg) | ![The day in the dark theme](screenshots/day-dark.jpg) |
+| ![Sign in, beside five short clips of the planner in use](screenshots/sign-in.jpg) | ![The shutdown ritual](screenshots/shutdown.jpg) |
 | ![The month](screenshots/month.jpg) | ![Habits](screenshots/habits.jpg) |
 | ![The overview: today, what is left, the week, what is coming up](screenshots/home.jpg) | ![Focus](screenshots/focus.jpg) |
 

@@ -15,10 +15,7 @@
   <a href="https://github.com/syaltha0/shutdown-complete/releases"><b>Releases</b></a>
 </p>
 
-<picture>
-  <source media="(prefers-color-scheme: dark)" srcset="docs/showcase-dark.jpg">
-  <img src="docs/showcase-light.jpg" alt="The day as time blocks on a desktop, and the focus timer on a phone">
-</picture>
+<img src="docs/showcase-light.jpg" alt="The day as time blocks on a desktop, and the focus timer on a phone">
 
 ## A day, start to shutdown
 
@@ -96,8 +93,10 @@ every setting are in the [self-hosting guide](docs/self-hosting.md).
 
 ## Disclaimer
 
-Shutdown Complete is an independent project. It is not affiliated with or endorsed by Cal Newport or the publishers
-of the *Time-Block Planner*.
+Shutdown Complete is inspired by the time-blocking method and the end-of-day shutdown ritual that Cal Newport
+describes in *Deep Work* and builds into the paper *Time-Block Planner*; the app's name comes from the words that
+close his ritual. It is an independent project, written from scratch, and it is not affiliated with or endorsed by
+Cal Newport or the planner's publishers. If the method works for you, the book and the paper planner are worth a look.
 
 ## License
 
