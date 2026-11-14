@@ -26,6 +26,14 @@ export function FocusWidgets({ day }: { day: DayDoc | null }) {
   const current = blocks.find((b) => b.start <= now && b.end > now);
   const next = blocks.find((b) => b.start >= (current?.end ?? now) && b.id !== current?.id);
   const nextText = next ? T.fwNext(next.label || T.untitledBlock, clock(next.start), clock(next.end)) : T.fwNoBlocks;
+  // the day at a glance: the planned hours as a strip with the blocks and where now is, and three small figures
+  const from = settings.wholeDay ? 0 : Math.min(settings.startHour * 60, blocks[0]?.start ?? Infinity);
+  const to = settings.wholeDay ? 1440 : Math.max(settings.endHour * 60, blocks.at(-1)?.end ?? 0);
+  const span = Math.max(60, to - from);
+  const at = (m: number) => `${(Math.min(Math.max(m, from), to) - from) / span * 100}%`;
+  const deepPlanned = blocks.filter((b) => b.kind === 'deep').reduce((s, b) => s + b.end - b.start, 0);
+  const blocksLeft = blocks.filter((b) => b.end > now).length;
+  const dayLeft = Math.max(0, to - now);
   return <section className="panel focus-widgets" aria-labelledby="fw-heading">
     <header><h2 id="fw-heading">{T.nav.today}</h2></header>
     <div className="fw-goal">
@@ -33,10 +41,22 @@ export function FocusWidgets({ day }: { day: DayDoc | null }) {
         <circle cx="18" cy="18" r="15" fill="none" stroke="var(--border)" strokeWidth="3" />
         <circle className={ratio >= 1 ? 'complete' : ''} cx="18" cy="18" r="15" fill="none" strokeWidth="3" pathLength="1" strokeDasharray={`${ratio} 1`} transform="rotate(-90 18 18)" />
       </svg>}
-      <div className="fw-goal-copy"><span className="fw-caption">{T.fwGoal}</span><span className="fw-value num">{duration(minutes)}{target && <span className="fw-target"> / {duration(target)}</span>}</span></div>
+      <div className="fw-goal-copy"><span className="fw-caption">{T.fwGoal}</span><span className="fw-value num">{duration(minutes)}{target && <span className="fw-target"> / {duration(target)}</span>}</span>{target && <span className="fw-caption fw-left">{minutes >= target ? T.fwGoalMet : T.fwGoalLeft(duration(target - minutes))}</span>}</div>
+    </div>
+    <div className="fw-day">
+      <div className="fw-strip" role="img" aria-label={T.fwStrip(clock(from), clock(to), blocks.length)}>
+        {blocks.map((b) => <span key={b.id} className={`fw-seg${b.kind === 'deep' ? ' deep' : ''}${b.end <= now ? ' past' : ''}`} style={{ left: at(b.start), width: `calc(${at(b.end)} - ${at(b.start)})` }} />)}
+        {now >= from && now <= to && <span className="fw-now" style={{ left: at(now) }} />}
+      </div>
+      <div className="fw-strip-scale num" aria-hidden="true"><span>{clock(from)}</span><span>{clock(to)}</span></div>
+      <dl className="fw-stats">
+        <div><dt>{T.fwDeepPlanned}</dt><dd className="num">{duration(deepPlanned)}</dd></div>
+        <div><dt>{T.fwBlocksLeft}</dt><dd className="num">{blocksLeft}</dd></div>
+        <div><dt>{T.fwDayLeft}</dt><dd className="num">{duration(dayLeft)}</dd></div>
+      </dl>
     </div>
     <a className="fw-next" href={`/day/${today()}`} onClick={onLinkClick}>
-      <span className="fw-next-copy">{current && <span className="fw-caption">{T.fwEnds(clock(current.end))}</span>}<span>{nextText}</span></span>
+      <span className="fw-next-copy">{current && <span className="fw-caption">{T.fwEnds(clock(current.end))}</span>}<span>{nextText}</span>{!next && !current && <span className="fw-caption">{T.fwPlanDay}</span>}</span>
       <svg className="fw-arrow" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" aria-hidden="true"><path d="m9 5 7 7-7 7" /></svg>
     </a>
     {featureOn(settings, 'inbox') && <form className="fw-capture" onSubmit={async (e) => {

@@ -367,7 +367,11 @@ export function Focus() {
             <h2 id="fs-h">{T.sessionsToday}<small className="session-count num">{T.sessionCount(sessions.length, duration(total))}</small></h2>
             <a className="card-link" href={`/day/${today()}`} onClick={onLinkClick}>{T.nav.today}</a>
           </header>
-          {sessions.length === 0 ? <div className="empty">{T.noSessions}</div> : (
+          {sessions.length === 0 ? <div className="empty fs-empty">
+            <div className="fs-empty-copy"><b>{T.noSessions}</b><span>{T.noSessionsHint}</span></div>
+            {/* a faint outline of the rows that will come, so the empty card reads as the list it will become */}
+            <div className="fs-ghost" aria-hidden="true">{[0.8, 0.55, 0.7].map((w, i) => <div className="fs-ghost-row" key={i}><i style={{ width: 44 }} /><i style={{ width: `${w * 100}%` }} /><i style={{ width: 32 }} /></div>)}</div>
+          </div> : (
             <div className="sessions">
               <div className="session-scroll" ref={listRef} tabIndex={-1} role="region" aria-label={T.sessionsToday}>
               {[...sessions].reverse().map((s) => {

@@ -188,6 +188,17 @@
 .fw-next-copy { display: grid; gap: 4px; min-width: 0; }
 .fw-arrow { flex: 0 0 16px; color: var(--muted); }
 .fw-next:hover .fw-next-copy > span:last-child { text-decoration: underline; text-underline-offset: 3px; }
+.fw-day { padding: 0 0 16px; }
+.fw-strip { position: relative; height: 10px; border-radius: 3px; background: var(--ground); overflow: hidden; }
+.fw-seg { position: absolute; top: 0; bottom: 0; min-width: 2px; border-right: 1px solid var(--surface); background: var(--border); }
+.fw-seg.deep { background: var(--text); }
+.fw-seg.past { opacity: .45; }
+.fw-now { position: absolute; top: 0; bottom: 0; width: 2px; margin-left: -1px; background: var(--hue); }
+.fw-strip-scale { display: flex; justify-content: space-between; margin-top: 4px; color: var(--muted); font-size: 11px; }
+.fw-stats { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; margin: 12px 0 0; }
+.fw-stats > div { min-width: 0; }
+.fw-stats dt { color: var(--muted); font-size: 12px; line-height: 1.5; }
+.fw-stats dd { margin: 0; font-size: 15px; font-weight: 500; line-height: 1.4; }
 .fw-capture { padding-top: 16px; border-top: 1px solid var(--rule); }
 .fw-capture label { display: block; margin-bottom: 10px; font-size: 13px; }
 .fw-capture-field { position: relative; }
@@ -591,3 +602,19 @@ button.bp-chip:hover { background: var(--raised); }
 }
 .mini-timer[data-compact="true"]:not([data-open="true"]) .mt-trigger > .mt-phase-label { display: block; position: absolute; right: 48px; top: 12px; padding: 1px 5px; border-radius: 4px; background: var(--surface); color: var(--text); }
 .mini-timer[data-compact="true"][data-h="left"]:not([data-open="true"]) .mt-trigger > .mt-phase-label { right: auto; left: 48px; }
+
+/* the day strip only shows where Today has room of its own: hidden when it must line up in a tight row */
+@media (min-width: 1000px) { .focus-grid:not([data-align-rows="halves"]) .fw-day { display: none; } }
+@media (min-width: 1000px) and (max-height: 820px) { .focus-grid .fw-day { display: none; } }
+
+/* Today's sessions: an empty card shows what it will hold */
+.focus-sessions > .fs-empty, .focus-grid[data-align-rows] .focus-sessions > .fs-empty { display: flex; flex-direction: column; flex: 1 1 auto; justify-content: center; align-items: stretch; gap: 20px; width: 100%; text-align: left; }
+.fs-empty-copy { display: grid; gap: 4px; }
+.fs-empty-copy b { font-weight: 500; font-size: 14px; color: var(--text); }
+.fs-empty-copy span { color: var(--muted); font-size: 13px; line-height: 1.5; }
+.fs-ghost { display: grid; width: 100%; min-height: 0; overflow: hidden; }
+.fs-ghost-row { display: grid; grid-template-columns: 96px minmax(0, 1fr) 40px; column-gap: 16px; align-items: center; padding: 14px 0; border-bottom: 1px dashed var(--rule); }
+.fs-ghost-row:last-child { border-bottom: 0; }
+.fs-ghost-row i { display: block; height: 8px; border-radius: 4px; background: var(--rule); }
+.fs-ghost-row i:last-child { justify-self: end; }
+@media (min-width: 1000px) and (max-height: 820px) { .focus-grid .fs-ghost { display: none; } }
