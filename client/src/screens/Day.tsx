@@ -359,13 +359,14 @@ export function Day({ date }: { date: string }) {
         <section className="panel plan page-right" aria-labelledby="plan-h" data-tour="grid" data-anim>
           <div className="plan-head">
             <h2 id="plan-h">{T.timeBlocks}</h2>
+            <p className="meta plan-actual-help">{T.planActualHelp}</p>
             <div className="plan-totals num" aria-label={T.plannedInColumn}>
               <span>{T.deep} <b>{duration(totals.deep)}</b></span>
               <span>{T.shallow} <b>{duration(totals.shallow + totals.meeting)}</b></span>
               <span>{T.open} <b>{duration(Math.max(0, span - planned))}</b></span>
             </div>
             {(kindsOnScreen.length > 0 || actual.length > 0) && (
-              <div className="legend hide-phone" aria-label={T.kindsOfBlock}>
+              <div className="legend" aria-label={T.kindsOfBlock}>
                 {kindsOnScreen.map((k) => <span key={k}><i style={kindSwatch(k)} />{T.kinds[k].name}</span>)}
                 {actual.length > 0 && <span><i className="lg-actual" />{T.actualLegend}</span>}
               </div>

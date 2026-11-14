@@ -121,3 +121,9 @@
 .capacity-note span { flex: 1 1 260px; min-width: 0; }
 .capacity-note .card-link.quiet { min-height: 32px; }
 .plan .capacity-note { margin: 0; padding: 8px 16px; border-bottom: 1px solid var(--rule); }
+
+.actual { cursor: pointer; }
+.actual::before { content: ""; position: absolute; inset: 0 0 0 -10px; }
+.actual:focus .tip { display: block; white-space: normal; width: max-content; max-width: min(240px, 65vw); }
+.plan-actual-help { flex-basis: 100%; }
+@media print { .plan-actual-help { display: none; } }
