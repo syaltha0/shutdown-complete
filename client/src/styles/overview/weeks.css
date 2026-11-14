@@ -27,5 +27,6 @@
 @media (max-width: 860px) { .bento .b-heat { height: 230px; } .b-heat-legend { gap: 5px; font-size: 9px; } .b-heat-head { gap: 8px; } }
 :root[data-motion="reduce"] .b-heat a { transition: none; }
 /* Keep cell proportions stable as the card changes size. */
-.b-heat-body { flex: none; aspect-ratio: 15.43; margin-block: auto; }
-@media (max-width: 860px) { .b-heat-body { aspect-ratio: 3.43; } }
+/* the grid takes the tile's height (a fixed wide ratio flattened the cells to lines) */
+.b-heat-body { flex: 1 1 auto; min-height: 0; max-height: 150px; }
+@media (max-width: 860px) { .b-heat-body { flex: none; aspect-ratio: 3.43; max-height: none; } }

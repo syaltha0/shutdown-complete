@@ -23,3 +23,4 @@
 .b-recent-chart { max-height: none; min-height: 36px; margin-bottom: 20px; }
 .b-recent .b-bars small { display: none; }
 @media (max-height: 820px) and (min-width: 861px) { .b-recent-chart { min-height: 40px; margin-bottom: 18px; } }
+.b-recent-chart { margin-top: 4px; }
