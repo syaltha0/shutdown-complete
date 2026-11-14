@@ -281,6 +281,7 @@ export function Day({ date }: { date: string }) {
       const slot = slotAt(ev.clientX, ev.clientY);
       setDrag(null);
       if (!slot) return;
+      if (item.waiting && !window.confirm(T.waitingBlockConfirm)) return;
       const taskId = from ? (await toDay([from], date))[0] : item.id;
       const b: Block = { id: uid(), start: slot.start, end: slot.end, label: item.text, taskLabel: item.text, task: { id: taskId, list: 'day', day: date }, note: '', kind: 'shallow' };
       setCols((cols) => cols.map((c, i) => (i === cols.length - 1 ? { ...c, blocks: [...c.blocks, b].sort((a, z) => a.start - z.start) } : c)));

@@ -1,0 +1,41 @@
+﻿import assert from 'node:assert/strict';
+import { mkdirSync } from 'node:fs';
+import { launch } from '../lib/browser.mjs';
+import { startServer, client } from '../lib/server.mjs';
+import { demoAccount, iso } from '../lib/demo.mjs';
+const s=await startServer(), b=await launch(), api=await demoAccount(client(s.url),{lang:'en'});
+const dir='reports/shots/review2-a'; mkdirSync(dir,{recursive:true});
+const c=await b.newContext({viewport:{width:390,height:844},timezoneId:'Europe/Istanbul',reducedMotion:'reduce'});
+await c.addCookies([{name:'sc_session',value:api.cookie.split('=')[1],url:s.url}]);
+const p=await c.newPage(); const date=iso(new Date());
+try {
+ const settings=(await api.get('settings')).value;
+ await api.put('settings',{...settings,wholeDay:true,dayStart:240,startHour:9,endHour:17,focus:{...settings.focus,fullscreenBreak:false}});
+ const base=(await api.get('day:'+date)).value;
+ const task={id:'waiting-review',text:'Waiting approval',waiting:true,waitingNote:'Publisher approval',review:date,done:false,due:date};
+ const blocks=[{id:'night-a',start:1450,end:1480,label:'Night A',kind:'deep',note:'',task:{id:task.id,list:'day',day:date}},{id:'night-b',start:1500,end:1530,label:'Night B',kind:'deep',note:''}];
+ await api.put('day:'+date,{...base,tasks:[task],columns:[{from:null,closedAt:null,blocks}],focus:{sessions:[],active:{phase:'long',startedAt:new Date().toISOString(),plannedMin:15,pausedLeft:null,blockId:'night-a',label:'Night A'}}});
+ await p.goto(s.url+'/'); await p.locator('.day-line button').first().waitFor();
+ await p.evaluate(() => document.fonts.ready);
+ const boxes=await p.locator('.day-line button').evaluateAll(es=>es.map(e=>{const r=e.getBoundingClientRect();return {x:r.x,right:r.right,width:r.width}}));
+ assert(boxes[0].width>0 && boxes[0].right<=boxes[1].x,'overnight blocks do not overlap');
+ const ticks=await p.locator('.day-ticks span').evaluateAll(es=>es.map(e=>{const r=e.getBoundingClientRect();return {x:r.x,right:r.right}}));
+ for(let i=1;i<ticks.length;i++) assert(ticks[i-1].right<=ticks[i].x,'time labels do not overlap');
+ await p.screenshot({path:dir+'/after-night.png'});
+ const mini=p.locator('.mini-timer'); await mini.waitFor();
+ assert(await mini.locator('.mt-phase-label').isVisible()); assert.match(await mini.locator('.mt-trigger').getAttribute('aria-label'),/Long break/i);
+ await p.screenshot({path:dir+'/after-mini.png'});
+ await api.put('inbox',{...(await api.get('inbox')).value,items:[{...task,id:'inbox-waiting'}]});
+ await p.goto(s.url+'/tasks/waiting'); await p.getByText('Publisher approval',{exact:false}).first().waitFor();
+ await p.screenshot({path:dir+'/after-waiting.png'});
+ await p.goto(s.url+'/day/'+date); await p.locator('.task-meta').filter({hasText:'Publisher approval'}).first().waitFor();
+ await p.screenshot({path:dir+'/after-day-waiting.png'});
+ const current=(await api.get('day:'+date)).value;
+ await api.put('day:'+date,{...current,focus:{sessions:[],active:null}});
+ await p.goto(s.url+'/focus'); await p.locator('button.bp-chip').click();
+ await p.locator('.bp-option').filter({hasText:'Publisher approval'}).waitFor();
+ await p.screenshot({path:dir+'/after-picker.png'});
+ console.log('PASS picker waiting reason');
+ console.log('PASS overnight block and label bounding boxes; phase text and accessible name; waiting reason in task and day rows');
+} finally { await b.close();s.stop(); }
+

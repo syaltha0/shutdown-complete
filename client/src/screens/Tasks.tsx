@@ -720,6 +720,7 @@ export function FromLists({ date, onGrab }: { date: string; onGrab: (task: Item,
             <span className="tk-grip" role="button" tabIndex={-1} aria-label={T.tkDragToDay(t.text)} title={T.tkDragToDay(t.text)} onPointerDown={(e) => { e.preventDefault(); onGrab(forDay(t), t, e); }}><IconGrip /></span>
             <span className="text">{t.text}</span>
             <span className="task-meta num">
+              {t.waiting && <span title={t.waitingNote}>{T.tkWaiting}</span>}
               {t.repeat && <span className="tk-rep"><IconRepeat /></span>}
               {t.priority === 1 && <span className="tk-starred" role="img" aria-label={T.tkViews.important}><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M10 3.2l2.1 4.3 4.7.7-3.4 3.3.8 4.7-4.2-2.2-4.2 2.2.8-4.7-3.4-3.3 4.7-.7z" /></svg></span>}
               {t.due && <span className={`due${t.due < today() ? ' late' : t.due === today() ? ' today' : ''}`}>{dueWords(T, t.due)}</span>}

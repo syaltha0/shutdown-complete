@@ -601,6 +601,7 @@ serverStatus:{"title":"Sunucu durumu","backup":"Yedekler","storage":"Depolama","
   tkFilters: 'Kayıtlı filtreler', tkFilterNew: 'Yeni filtre', tkFilterEdit: 'Filtreyi düzenle', tkFilterSave: 'Filtreyi kaydet', tkFilterAny: 'Tümü', tkFilterRange: 'Tarih aralığı', tkFilterLate: 'Gecikmiş', tkFilterUp: 'Yukarı taşı', tkFilterDown: 'Aşağı taşı', tkFilterOpen: 'Açık',
   tkDeferred: 'Bu görev 3 kez ertelendi:', tkSplit: 'Böl', tkChooseDay: 'Belirli bir güne koy', tkBackList: 'Listeye geri bırak (tarihsiz)', tkDecisionApply: 'Kararları uygula',
   nextDayTime: (time) => `${time} +1 gün`,
+  waitingBlockConfirm: 'Bekleme sürüyor. Yine de zaman ayır?',
   workBudget: (start, end) => `Çalışma bütçesi: ${start}–${end}`,
   tkWaiting: 'Beklemede', tkWaitingNote: 'Bekleme açıklaması', tkReview: 'Tekrar bakma tarihi',
   tkViews: { waiting: 'Beklemede', all: 'Tümü', today: 'Bugün', week: 'Önümüzdeki 7 gün', important: 'Önemli', current: 'Devam eden', completed: 'Tamamlanan' },
