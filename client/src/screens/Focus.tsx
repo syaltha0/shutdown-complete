@@ -170,6 +170,7 @@ export function Focus() {
   const { docs: past } = useRange<DayDoc>(`day:${from28}`, `day:${today()}`);
   const days28 = Array.from({ length: 28 }, (_, i) => addDays(from28, i));
   // the minutes focused on each of the 28 days; the chart draws again only when these change (the range hands out a new Map on every render)
+  const goalMin = deepDef?.target != null && deepDef.target > 0 ? Math.round(deepDef.target * 60) : 0;
   const vals = past ? days28.map((d) => (d === today() && day ? focusMinutes(day) : (past.get(`day:${d}`) ? focusMinutes(past.get(`day:${d}`)!) : null))) : [];
   const workBlocks = blocks.filter((b) => b.kind !== 'personal');
   // a revision gives a block a new id, so a session also counts for a block of the same name
@@ -329,7 +330,7 @@ export function Focus() {
 
         <section className="panel focus-history" aria-labelledby="f4-h" data-anim>
           <div className="chart-head">
-            <h2 id="f4-h">{T.focusFourWeeks}</h2>
+            <h2 id="f4-h">{T.focusFourWeeks}{past && <small className="session-count num">{goalMin ? T.focusStats.onTarget(vals.filter((v) => (v ?? 0) >= goalMin).length, 28) : T.focusStats.daysFocused(vals.filter((v) => (v ?? 0) > 0).length, 28)}</small>}</h2>
           </div>
           {past && (() => {
             // three figures above the chart: a card that stretches with the timer card is not just a tall chart
@@ -337,10 +338,13 @@ export function Focus() {
             const sinceMon = (new Date(`${today()}T12:00`).getDay() + 6) % 7;
             const week = mins.slice(27 - sinceMon).reduce((n, m) => n + m, 0);
             const logged = mins.filter((m) => m > 0);
+            // the same days of last week, so Monday is not compared with a whole week
+            const lastWeek = mins.slice(20 - sinceMon, 21).reduce((n, m) => n + m, 0);
+            const change = week - lastWeek;
             const bestAt = mins.indexOf(Math.max(...mins));
             return (
               <dl className="focus-stats">
-                <div><dt>{T.focusStats.week}</dt><dd className="num">{duration(week)}</dd></div>
+                <div><dt>{T.focusStats.week}</dt><dd className="num">{duration(week)}{change !== 0 && <> <small title={T.focusStats.vsLastWeek}>{change > 0 ? '+' : '−'}{duration(Math.abs(change))}</small></>}</dd></div>
                 <div><dt>{T.focusStats.avg}</dt><dd className="num">{logged.length ? duration(Math.round(logged.reduce((n, m) => n + m, 0) / logged.length)) : '—'}</dd></div>
                 <div><dt>{T.focusStats.best}</dt><dd className="num">{mins[bestAt] > 0 ? <>{duration(mins[bestAt])} <small>{shortDate(days28[bestAt])}</small></> : '—'}</dd></div>
               </dl>
@@ -353,6 +357,8 @@ export function Focus() {
               // today is the one bar in the data colour; with no focus yet today, a thin marker shows where today is
               highlight: 27, colour: themeColor('--hue'), mutedColour: themeColor('--chart-1'), height: Math.min(240, Math.max(120, el.clientHeight)),
               annotations: vals[27] ? undefined : [{ at: 27, label: T.nav.today, short: T.nav.today }],
+              // the daily goal as a quiet line, so the days that reached it read at a glance
+              reference: goalMin ? { value: goalMin, label: T.focusStats.goal(duration(goalMin)), at: 'left' } : undefined,
               format: (v: number) => duration(v), tickFormat: (v: number) => T.minShort(v),
               xAt: days28.map((_, i) => (i % (el.clientWidth < 640 ? 14 : 7) === 0 ? i : -1)).filter((i) => i >= 0),
             })} />

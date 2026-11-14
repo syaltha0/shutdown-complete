@@ -420,7 +420,7 @@ serverStatus: { remedy: 'İlgili ayarı veya kurulum yönergesini aç',"title":"
   focusByBlock: 'Bloklara göre odak', noDeepBlocks: 'Bugün derin odak bloğu yok',
   focusedOf: (a, b) => `${a} / ${b}`,
   focusFourWeeks: 'Günlük odak, son dört hafta',
-  focusStats: { week: 'Bu hafta', avg: 'Günlük ortalama', best: 'En iyi gün' },
+  focusStats: { week: 'Bu hafta', avg: 'Günlük ortalama', best: 'En iyi gün', vsLastWeek: 'Geçen haftanın aynı günlerine göre', goal: (t: string) => `Hedef ${t}`, onTarget: (n: number, of: number) => `hedefte ${n}/${of} gün`, daysFocused: (n: number, of: number) => `odaklı ${n}/${of} gün` },
   currentRun: (d) => `Şu anki seri ${d}`,
   habitRates: 'Bu ay yapılanlar', allDoneDays: 'Bütün alışkanlıkların yapıldığı günler, haftalık',
   focusRunning: 'Odak zamanlayıcı',
