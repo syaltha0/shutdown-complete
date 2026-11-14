@@ -347,6 +347,19 @@ function InboxTasks({ view: asked }: { view?: string }) {
         </label>
 
         <section className="panel tk-main" aria-labelledby="tk-h">
+          {view !== 'trash' && view !== 'completed' && (
+            <form className="tk-add" onSubmit={(e) => { e.preventDefault(); const t = draft.trim(); if (t) { add(t); setDraft(''); setSmartAdd(true); } }}>
+              <label htmlFor="tk-new" className="sr-only">{isList ? T.tkAddPh(viewName) : T.tkAddPhAny}</label>
+              <input id="tk-new" ref={addInput} className="input" autoComplete="off" aria-describedby="tk-add-help" placeholder={isList ? T.tkAddPh(viewName) : T.tkAddPhAny} value={draft} onChange={(e) => setDraft(e.target.value)} onKeyDown={(e) => { if (e.key === 'Escape') { setDraft(''); setSmartAdd(true); e.currentTarget.blur(); } }} />
+              <button type="submit" className="btn primary" disabled={!draft.trim()}>{T.tkAdd}</button>
+            </form>
+          )}
+          {view !== 'trash' && view !== 'completed' && <div id="tk-add-help" className="muted tk-quick-help">
+            {draft.trim() ? <>
+              <span role="status">{T.tkDetected}: {parsedDraft.text} · {[parsedDraft.due, parsedDraft.dueTime, parsedDraft.list && lists.find((l) => l.id === parsedDraft.list)?.name, parsedDraft.priority && `${T.tkPriority} ${parsedDraft.priority}`, parsedDraft.tags?.map((g) => `@${g}`).join(' '), parsedDraft.repeat && recurWords(T, parsedDraft.repeat)].filter(Boolean).join(' · ')}</span>{' '}
+              <button type="button" className="card-link quiet" onClick={() => setSmartAdd(false)}>{T.tkLiteral}</button>
+            </> : <span>{T.tkQuickHelp}</span>}
+          </div>}
           <header className="tk-head">
             <h2 id="tk-h">{viewName}</h2><button className="btn ghost" onClick={() => setEditingFilter({ id: uid(), name: '' })}>{T.tkFilterNew}</button>
             <label className="tk-search">
@@ -371,19 +384,6 @@ function InboxTasks({ view: asked }: { view?: string }) {
             {editingFilter.date === 'range' && <>{(['from','to'] as const).map((key) => <label key={key}>{T.tkFilterRange}<input type="date" className="input" value={editingFilter[key] ?? ''} onChange={(e) => setEditingFilter({ ...editingFilter, [key]: e.target.value })} /></label>)}</>}
             <button className="btn" type="submit">{T.tkFilterSave}</button><button className="btn ghost" type="button" onClick={() => setEditingFilter(null)}>{T.tkClose}</button>
           </form>}
-          {view !== 'trash' && view !== 'completed' && (
-            <form className="tk-add" onSubmit={(e) => { e.preventDefault(); const t = draft.trim(); if (t) { add(t); setDraft(''); setSmartAdd(true); } }}>
-              <label htmlFor="tk-new" className="sr-only">{isList ? T.tkAddPh(viewName) : T.tkAddPhAny}</label>
-              <input id="tk-new" ref={addInput} className="input" autoComplete="off" aria-describedby="tk-add-help" placeholder={isList ? T.tkAddPh(viewName) : T.tkAddPhAny} value={draft} onChange={(e) => setDraft(e.target.value)} onKeyDown={(e) => { if (e.key === 'Escape') { setDraft(''); setSmartAdd(true); e.currentTarget.blur(); } }} />
-              <button type="submit" className="btn primary" disabled={!draft.trim()}>{T.tkAdd}</button>
-            </form>
-          )}
-          {view !== 'trash' && view !== 'completed' && <div id="tk-add-help" className="muted tk-quick-help">
-            {draft.trim() ? <>
-              <span role="status">{T.tkDetected}: {parsedDraft.text} · {[parsedDraft.due, parsedDraft.dueTime, parsedDraft.list && lists.find((l) => l.id === parsedDraft.list)?.name, parsedDraft.priority && `${T.tkPriority} ${parsedDraft.priority}`, parsedDraft.tags?.map((g) => `@${g}`).join(' '), parsedDraft.repeat && recurWords(T, parsedDraft.repeat)].filter(Boolean).join(' · ')}</span>{' '}
-              <button type="button" className="card-link quiet" onClick={() => setSmartAdd(false)}>{T.tkLiteral}</button>
-            </> : <span>{T.tkQuickHelp}</span>}
-          </div>}
           {view === 'trash' && <><p className="muted">{T.tkTrashHelp}</p><button className="btn ghost" onClick={() => { if (window.confirm(T.tkPurgeConfirm)) update((b) => ({ ...b, trash: [] })); }}>{T.tkEmptyTrash}</button><ul className="tk-list">{doc?.trash?.map(({ item: t }) => <li key={t.id} className="tk-row"><span className="tk-title">{t.text}</span><button className="btn ghost" onClick={() => update((b) => restoreTasks(b, [t.id]))}>{T.tkRestore}</button><button className="btn ghost" onClick={() => { if (window.confirm(T.tkPurgeConfirm)) update((b) => ({ ...b, trash: b.trash?.filter((x) => x.item.id !== t.id) })); }}>{T.tkPurge}</button></li>)}</ul></>}
           {shown.length > 0 && <ul className="tk-list">{shown.map(row)}</ul>}
           {view !== 'trash' && doc && shown.length === 0 && <p className="muted tk-empty">{q.trim() ? T.tkNoMatch : T.tkEmpty[view as keyof typeof T.tkEmpty] ?? T.tkEmpty.list}</p>}
