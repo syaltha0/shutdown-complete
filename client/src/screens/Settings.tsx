@@ -86,10 +86,10 @@ export function SettingsScreen() {
       </nav>
 
       {tab === 'account' ? <AccountSettings /> : tab === 'server' ? <ServerSettings /> : (
-      <div className="settings">
+      <div className="settings-layout"><nav className="settings-index" id="settings-index" tabIndex={-1} aria-label={T.sectionNav}><b>{T.sectionNav}</b><a href="#s-lang">{T.language}</a><a href="#s-features">{T.featuresTitle}</a><a href="#s-theme">{T.appearance}</a><a href="#s-install">{T.installTitle}</a><a href="#s-hours">{T.workday}</a><a href="#s-sched">{T.scheduleTitle}</a><a href="#s-carry">{T.carryTitle}</a><a href="#s-metrics">{T.dailyMetrics}</a><a href="#s-focus">{T.focusSettings}</a><a href="#s-remind">{T.remindTitle}</a><a href="#s-notif">{T.notif.title}</a><a href="#s-tpl">{T.tplSettings}</a><a href="#s-ritual">{T.shutdownRitual}</a><a href="#s-tour">{T.tourSettings}</a><a href="#s-about">{A.source}</a><a href="#s-data">{T.yourData}</a><a href="#s-cal">{T.calTitle}</a></nav><div className="settings" onClick={(e) => { const link = (e.target as HTMLElement).closest('a[href="#settings-index"]'); if (link) document.getElementById('settings-index')?.focus(); }}>
         <section className="set-row" aria-labelledby="s-lang">
           <div className="about">
-            <h2 id="s-lang">{T.language}</h2>
+            <h2 id="s-lang" tabIndex={-1}>{T.language}</h2><a className="settings-back" href="#settings-index">{T.backSections}</a>
             <p>{T.languageAbout}</p>
           </div>
           <div className="set-panel">
@@ -102,7 +102,7 @@ export function SettingsScreen() {
 
         <section className="set-row" aria-labelledby="s-features">
           <div className="about">
-            <h2 id="s-features">{T.featuresTitle}</h2>
+            <h2 id="s-features" tabIndex={-1}>{T.featuresTitle}</h2><a className="settings-back" href="#settings-index">{T.backSections}</a>
             <p>{T.featuresAbout}</p>
           </div>
           <div className="set-panel features">
@@ -118,7 +118,7 @@ export function SettingsScreen() {
 
         <section className="set-row" aria-labelledby="s-theme">
           <div className="about">
-            <h2 id="s-theme">{T.appearance}</h2>
+            <h2 id="s-theme" tabIndex={-1}>{T.appearance}</h2><a className="settings-back" href="#settings-index">{T.backSections}</a>
             <p>{T.appearanceAbout}</p>
           </div>
           <div className="set-panel">
@@ -148,7 +148,7 @@ export function SettingsScreen() {
 
         <section className="set-row" aria-labelledby="s-install">
           <div className="about">
-            <h2 id="s-install">{T.installTitle}</h2>
+            <h2 id="s-install" tabIndex={-1}>{T.installTitle}</h2><a className="settings-back" href="#settings-index">{T.backSections}</a>
             <p>{T.installAbout}</p>
           </div>
           <div className="set-panel">
@@ -165,7 +165,7 @@ export function SettingsScreen() {
 
         <section className="set-row" aria-labelledby="s-hours">
           <div className="about">
-            <h2 id="s-hours">{T.workday}</h2>
+            <h2 id="s-hours" tabIndex={-1}>{T.workday}</h2><a className="settings-back" href="#settings-index">{T.backSections}</a>
             <p>{T.workdayAbout}</p>
           </div>
           <div className="set-panel">
@@ -206,7 +206,7 @@ export function SettingsScreen() {
 
         <section className="set-row" aria-labelledby="s-sched">
           <div className="about">
-            <h2 id="s-sched">{T.scheduleTitle}</h2>
+            <h2 id="s-sched" tabIndex={-1}>{T.scheduleTitle}</h2><a className="settings-back" href="#settings-index">{T.backSections}</a>
             <p>{T.scheduleAbout}</p>
           </div>
           <div className="set-panel">
@@ -240,7 +240,7 @@ export function SettingsScreen() {
         <ScheduleExceptions settings={settings} update={update} />
         <section className="set-row" aria-labelledby="s-carry">
           <div className="about">
-            <h2 id="s-carry">{T.carryTitle}</h2>
+            <h2 id="s-carry" tabIndex={-1}>{T.carryTitle}</h2><a className="settings-back" href="#settings-index">{T.backSections}</a>
             <p>{T.carryAbout}</p>
           </div>
           <div className="set-panel">
@@ -253,7 +253,7 @@ export function SettingsScreen() {
 
         <section className="set-row" aria-labelledby="s-metrics">
           <div className="about">
-            <h2 id="s-metrics">{T.dailyMetrics}</h2>
+            <h2 id="s-metrics" tabIndex={-1}>{T.dailyMetrics}</h2><a className="settings-back" href="#settings-index">{T.backSections}</a>
             <p>{T.metricsAbout}</p>
           </div>
           <div className="set-panel">
@@ -291,7 +291,7 @@ export function SettingsScreen() {
 
         <section className="set-row" aria-labelledby="s-focus">
           <div className="about">
-            <h2 id="s-focus">{T.focusSettings}</h2>
+            <h2 id="s-focus" tabIndex={-1}>{T.focusSettings}</h2><a className="settings-back" href="#settings-index">{T.backSections}</a>
             <p>{T.focusAbout}</p>
           </div>
           <div className="set-panel">
@@ -313,7 +313,7 @@ export function SettingsScreen() {
 
         <section className="set-row" aria-labelledby="s-remind">
           <div className="about">
-            <h2 id="s-remind">{T.remindTitle}</h2>
+            <h2 id="s-remind" tabIndex={-1}>{T.remindTitle}</h2><a className="settings-back" href="#settings-index">{T.backSections}</a>
             <p>{T.remindAbout}</p>
           </div>
           <div className="set-panel">
@@ -342,7 +342,7 @@ export function SettingsScreen() {
 
         <section className="set-row" aria-labelledby="s-notif">
           <div className="about">
-            <h2 id="s-notif">{T.notif.title}</h2>
+            <h2 id="s-notif" tabIndex={-1}>{T.notif.title}</h2><a className="settings-back" href="#settings-index">{T.backSections}</a>
             <p>{T.notif.about}</p>
           </div>
           <div className="set-panel">
@@ -352,7 +352,7 @@ export function SettingsScreen() {
 
         <section className="set-row" aria-labelledby="s-tpl">
           <div className="about">
-            <h2 id="s-tpl">{T.tplSettings}</h2>
+            <h2 id="s-tpl" tabIndex={-1}>{T.tplSettings}</h2><a className="settings-back" href="#settings-index">{T.backSections}</a>
             <p>{T.tplSettingsAbout}</p>
           </div>
           <div className="set-panel">
@@ -382,7 +382,7 @@ export function SettingsScreen() {
 
         <section className="set-row" aria-labelledby="s-ritual">
           <div className="about">
-            <h2 id="s-ritual">{T.shutdownRitual}</h2>
+            <h2 id="s-ritual" tabIndex={-1}>{T.shutdownRitual}</h2><a className="settings-back" href="#settings-index">{T.backSections}</a>
             <p>{T.ritualAbout}</p>
           </div>
           <div className="set-panel">
@@ -408,7 +408,7 @@ export function SettingsScreen() {
 
         <section className="set-row" aria-labelledby="s-tour">
           <div className="about">
-            <h2 id="s-tour">{T.tourSettings}</h2>
+            <h2 id="s-tour" tabIndex={-1}>{T.tourSettings}</h2><a className="settings-back" href="#settings-index">{T.backSections}</a>
             <p>{T.tourAbout}</p>
           </div>
           <div className="set-panel">
@@ -420,7 +420,7 @@ export function SettingsScreen() {
 
         <section className="set-row" aria-labelledby="s-about">
           <div className="about">
-            <h2 id="s-about">{A.source}</h2>
+            <h2 id="s-about" tabIndex={-1}>{A.source}</h2><a className="settings-back" href="#settings-index">{T.backSections}</a>
             <p>{A.sourceAbout}</p>
           </div>
           <div className="set-panel">
@@ -430,7 +430,7 @@ export function SettingsScreen() {
 
         <section className="set-row" aria-labelledby="s-data">
           <div className="about">
-            <h2 id="s-data">{T.yourData}</h2>
+            <h2 id="s-data" tabIndex={-1}>{T.yourData}</h2><a className="settings-back" href="#settings-index">{T.backSections}</a>
             <p>{T.dataAbout}</p>
           </div>
           <div className="set-panel">
@@ -444,7 +444,7 @@ export function SettingsScreen() {
           </div>
         </section>
 
-      </div>
+      </div></div>
       )}
     </>
   );
@@ -474,7 +474,7 @@ function Calendars() {
   return (
     <section className="set-row" aria-labelledby="s-cal">
       <div className="about">
-        <h2 id="s-cal">{T.calTitle}</h2>
+        <h2 id="s-cal" tabIndex={-1}>{T.calTitle}</h2><a className="settings-back" href="#settings-index">{T.backSections}</a>
         <p>{T.calAbout}</p>
       </div>
       <div className="set-panel">

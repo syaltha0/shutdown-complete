@@ -4,6 +4,8 @@ import type { ReactNode } from 'react';
 const s = (n: number, one: string, many: string) => (n === 1 ? one : many);
 
 export const en = {
+ planActualHelp: "Planned blocks and actual focus: the narrow strip shows when you focused. Tap it for details.",
+ sectionNav: "Sections", backSections: "Back to sections",
  uiux: {"yearScroll":"January–December · Scroll sideways to explore the year. Select a day to open its details.","advanced":"More task options","scroll":"Scroll for more settings","attention":"Needs attention"},
  taskBlock: {"open":"Open task","deleted":"Task deleted","planned":"Planned:","go":"Go to block","done":"Completed"},
  scheduleExceptions: {"title":"Exceptions","from":"From","to":"To","label":"Name","all":"All repeats","selected":"Selected repeats","add":"Add exception","remove":"Delete exception","affected":"Affected days","lessons":"blocks","noClasses":"No classes"},

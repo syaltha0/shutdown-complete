@@ -31,6 +31,7 @@ export function Home() {
   const { settings } = useSettings();
   const t = today();
   const now = useNow(true);
+  const [selectedBlock, selectBlock] = useState<string | null>(null);
   const { value: day, update } = useDoc<DayDoc>(`day:${t}`, emptyDay);
   useEffect(() => {
     if (day && placeRepeats(day, t, settings.schedule, settings.exceptions)) update((d) => placeRepeats(d, t, settings.schedule, settings.exceptions) ?? d);
@@ -109,16 +110,17 @@ export function Home() {
           <span className="meta num">{plan.length ? T.homePlanned(plan.length, duration(total), duration(deep)) : ''}</span>
         </header>
         <div className="day-scale">
-          <div className="day-line" aria-hidden="true">
+          <div className="day-line">
             {plan.map((b) => (
-              <i key={b.id} className={`k-${b.kind}${b === cur ? ' current' : ''}`} style={{ left: at(b.start), width: `calc(${at(b.end)} - ${at(b.start)} - 2px)` }}>
+              <button type="button" key={b.id} onClick={() => selectBlock(b.id)} aria-pressed={selectedBlock === b.id} aria-label={`${b.label || T.untitledBlock}, ${clock(b.start)}–${clock(b.end)}`} title={b.label || T.untitledBlock} className={`k-${b.kind}${b === cur ? ' current' : ''}`} style={{ left: at(b.start), width: `calc(${at(b.end)} - ${at(b.start)} - 2px)` }}>
                 {(b.end - b.start) / (r1 - r0) > 0.08 && <span>{b.label}</span>}
-              </i>
+              </button>
             ))}
             {now >= r0 && now <= r1 && <span className="now" style={{ left: at(now) }} />}
           </div>
           <div className="day-ticks num" aria-hidden="true">{ticks.map((m) => <span key={m} style={{ left: at(m) }}>{m === 1440 ? '24:00' : clock(m)}</span>)}</div>
         </div>
+        {plan.filter((b) => b.id === selectedBlock).map((b) => <p className="timeline-detail" role="status" key={b.id}><b>{b.label || T.untitledBlock}</b> <span className="num">{clock(b.start)}–{clock(b.end)}</span></p>)}
         <div className="home-now">
           {lead ? (
             <>

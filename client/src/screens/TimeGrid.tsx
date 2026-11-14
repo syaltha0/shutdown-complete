@@ -409,7 +409,7 @@ function ActualStrip({ session: s, r0, r1 }: { session: FocusSession; r0: number
   const range = `${clock(a.getHours() * 60 + a.getMinutes())}–${clock(e.getHours() * 60 + e.getMinutes())}`;
   const tip = T.actualTip(range, s.minutes, s.label || s.subject || T.freeFocus);
   return (
-    <span className="actual" role="img" tabIndex={0} aria-label={tip} style={{ top: (from - r0) * PPM, height: Math.max(3, (to - from) * PPM) }}
+    <span className="actual" role="img" tabIndex={0} onClick={(e) => e.currentTarget.focus()} aria-label={tip} style={{ top: (from - r0) * PPM, height: Math.max(3, (to - from) * PPM) }}
       onPointerDown={(ev) => ev.stopPropagation()}>
       <span className="tip" aria-hidden="true">{tip}</span>
     </span>
