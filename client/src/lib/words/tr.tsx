@@ -676,7 +676,7 @@ serverStatus: { remedy: 'İlgili ayarı veya kurulum yönergesini aç',"title":"
   helloReady: 'Günün seni bekliyor', helloNoPlan: 'Henüz plan yok', helloPlan: 'Bugünü planla', helloResume: 'Odağa dön',
   helloFirst: (time: string) => `İlk blok ${time} saatinde`, helloNext: (label: string, time: string) => `Sırada: ${label} · ${time}`,
   helloClose: 'Günü zihnin rahat bir şekilde kapat.', helloMakeRoom: 'Bugün önem verdiklerine yer aç.',
-  helloSummary: (tasks: number, focus: string) => `${tasks} görev tamamlandı · ${focus} odaklanıldı`, helloFocusError: 'Odak başlatılamadı. Tekrar dene.',
+  helloTasksDone: (tasks: number) => `${tasks} görev tamamlandı`, helloClosedAt: (t: string) => `Kapanış ${t}`, helloSummary: (tasks: number, focus: string) => `${tasks} görev tamamlandı · ${focus} odaklanıldı`, helloFocusError: 'Odak başlatılamadı. Tekrar dene.',
   overviewToday: 'Bugün — planlanan ve yapılan', overviewOpen: 'Bugün açık kalanlar', overviewAhead: 'Yaklaşanlar', overviewRecent: 'Son günler',
   overviewNoPlan: 'Bugün için plan yok', overviewDone: 'Bitti', overviewNothingOpen: 'Bugün açık kalan bir şey yok', overviewShutdown: 'Kapanış yapılmadı',
   overviewNoHistory: 'Tamamladığın günler burada görünecek.', overviewLegend: 'Gün · derin odak · kapanış · görevler · alışkanlıklar',

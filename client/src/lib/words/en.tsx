@@ -690,7 +690,7 @@ export const en = {
   helloReady: 'Your day is ahead', helloNoPlan: 'Nothing planned yet', helloPlan: 'Plan today', helloResume: 'Return to focus',
   helloFirst: (time: string) => `First block at ${time}`, helloNext: (label: string, time: string) => `Next: ${label} · ${time}`,
   helloClose: 'Close your day with a clear mind.', helloMakeRoom: 'Make room for what matters today.',
-  helloSummary: (tasks: number, focus: string) => `${tasks} ${tasks === 1 ? 'task' : 'tasks'} done · ${focus} focused`, helloFocusError: 'Could not start focus. Try again.',
+  helloTasksDone: (tasks: number) => `${tasks} ${tasks === 1 ? 'task' : 'tasks'} done`, helloClosedAt: (t: string) => `Closed at ${t}`, helloSummary: (tasks: number, focus: string) => `${tasks} ${tasks === 1 ? 'task' : 'tasks'} done · ${focus} focused`, helloFocusError: 'Could not start focus. Try again.',
   overviewToday: 'Today — planned and done', overviewOpen: 'Still open today', overviewAhead: 'Ahead', overviewRecent: 'Recent days',
   overviewNoPlan: 'Nothing planned today', overviewDone: 'Done', overviewNothingOpen: 'Nothing left open today', overviewShutdown: 'Shutdown not done',
   overviewNoHistory: 'Your completed days will appear here.', overviewLegend: 'Day · deep focus · shutdown · tasks · habits',

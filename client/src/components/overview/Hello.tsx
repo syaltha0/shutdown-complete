@@ -16,7 +16,10 @@ export function Hello({ T, settings, t, now, plan, B, day }: OverviewData) {
   const label = cur?.label || T.untitledBlock;
   const progress = cur ? Math.min(100, Math.max(0, (now - cur.start) / (cur.end - cur.start) * 100)) : 0;
   const at = day?.shutdown.at ? new Date(day.shutdown.at) : null;
-  const summary = T.helloSummary(day?.tasks.filter(x => x.done).length ?? 0, duration((day?.focus?.sessions ?? []).reduce((sum, s) => sum + s.minutes, 0)));
+  // the day in a line: the time it closed, the tasks done and, when there was any, the focus
+  const focusedMin = (day?.focus?.sessions ?? []).reduce((sum, s) => sum + s.minutes, 0);
+  const tasksDone = day?.tasks.filter(x => x.done).length ?? 0;
+  const summary = focusedMin > 0 ? T.helloSummary(tasksDone, duration(focusedMin)) : T.helloTasksDone(tasksDone);
   async function focus() {
     if (active) { navigate('/focus'); return; }
     if (!cur || starting) return;
@@ -32,7 +35,7 @@ export function Hello({ T, settings, t, now, plan, B, day }: OverviewData) {
       {closed ? T.shutdownComplete : cur ? label : ended ? B.ended : next ? T.helloReady : T.helloNoPlan}
     </div>
     <div className="b-hello-detail muted">
-      {closed ? <><span>{at && Number.isFinite(at.getTime()) ? T.shutdownCompleteAt(at.toLocaleTimeString(T.locale, { hour: '2-digit', minute: '2-digit', hour12: false })) : T.shutdownComplete}</span><span>{summary}</span></>
+      {closed ? <span>{at && Number.isFinite(at.getTime()) ? `${T.helloClosedAt(at.toLocaleTimeString(T.locale, { hour: '2-digit', minute: '2-digit', hour12: false }))} · ` : ''}{summary}</span>
         : cur ? <><div className="b-hello-time"><span>{clock(cur.start)}–{clock(cur.end)}</span><span>{B.left(duration(Math.ceil(cur.end - now)))}</span></div><div className="b-hello-progress" role="progressbar" aria-label={label} aria-valuemin={0} aria-valuemax={100} aria-valuenow={Math.round(progress)}><span style={{ width: `${progress}%` }} /></div></>
         : <span>{next ? T.helloFirst(clock(next.start)) : ended ? T.helloClose : T.helloMakeRoom}</span>}
       {!closed && next && <span className="b-hello-next" title={next.label || T.untitledBlock}>{T.helloNext(next.label || T.untitledBlock, clock(next.start))}</span>}
