@@ -71,5 +71,39 @@ try {
    }
   }
  }
+ const {iso}=await import('../lib/demo.mjs');
+ const date=iso(new Date()), base=(await api.get('day:'+date)).value;
+ const block=(id,start,end,kind)=>({id,start,end,kind,label:`Timeline ${id}`,note:''});
+ const full=[block('deep',540,660,'deep'),block('shallow',690,750,'shallow'),block('meeting',780,840,'meeting'),block('overflow',870,930,'overflow'),block('personal',960,1020,'personal')];
+ mkdirSync('reports/shots/overview-timeline',{recursive:true});
+ await api.put('settings',{...settings,schedule:[]});
+ for(const [name,columns] of [
+  ['full',[{from:null,closedAt:null,blocks:full}]],
+  ['revision',[{from:null,closedAt:700,blocks:[block('obsolete',540,660,'deep')]},{from:700,closedAt:null,blocks:full.slice(2)}]],
+  ['overnight',[{from:null,closedAt:null,blocks:[block('night-a',1450,1480,'deep'),block('night-b',1500,1530,'personal')]}]],
+  ['empty',[{from:null,closedAt:null,blocks:[]}]],
+ ]) {
+  await api.put('day:'+date,{...base,columns,focus:{active:null,sessions:[]}});
+  for(const [width,height] of [[1904,1015],[1440,900],[390,844]]) {
+   await p.setViewportSize({width,height});await p.goto(s.url+'/');await p.locator('.b-track').waitFor();await p.evaluate(()=>document.fonts.ready);
+   const links=p.locator('.b-timeline-block');
+   assert.equal(await links.count(),columns.at(-1).blocks.length,'Only active revision blocks');
+   assert.ok(await p.locator('.b-track').evaluate(e=>e.getBoundingClientRect().height<=40));
+   const ticks=await p.locator('.b-ticks span').evaluateAll(es=>es.map(e=>{const r=e.getBoundingClientRect();return {left:r.left,right:r.right}}));
+   for(let i=1;i<ticks.length;i++)assert.ok(ticks[i-1].right<=ticks[i].left,'Timeline ticks do not overlap');
+   if(await links.count()) {
+    await links.first().focus();
+    assert.match(await links.first().getAttribute('aria-label'),/Timeline.*[0-9]{2}:[0-9]{2}.*0/);
+    assert.ok(await links.first().locator('.b-timeline-tip').isVisible(),'Keyboard reveals block details');
+    if(await links.count()>1){await p.keyboard.press('Tab');assert.ok(await links.nth(1).evaluate(e=>e===document.activeElement));}
+    await links.first().click();await p.waitForURL('**/day/'+date);await p.goto(s.url+'/');await p.locator('.b-track').waitFor();
+   } else assert.ok(await p.locator('.b-empty-plan').isVisible());
+   for(const theme of ['light','dark']) {
+    await p.evaluate(t=>document.documentElement.dataset.theme=t,theme);await p.waitForTimeout(100);
+    await p.screenshot({path:`reports/shots/overview-timeline/${name}-${width}-${height}-${theme}.png`,fullPage:true});
+   }
+  }
+ }
+ console.log('PASS timeline: active revision, empty CTA, keyboard tooltip, navigation, tick geometry, 24 screenshots');
  console.log('PASS home-fit: bento tiles, desktop geometry, feature toggles, empty account, 12 screenshots');
 } finally {await b.close();await s.stop();}

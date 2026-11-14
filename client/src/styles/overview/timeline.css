@@ -22,7 +22,7 @@
   background: var(--control);
   border-radius: 2px;
 }
-.b-track i.deep {
+.b-track .deep i {
   background: var(--text);
 }
 .b-track b {
@@ -83,7 +83,7 @@
     display: none;
   }
 }
-.b-track i.deep {
+.b-track .deep i {
   color: var(--primary-ink);
 }
 .b-track em {
@@ -108,3 +108,24 @@
     grid-template-rows: auto 32px 12px;
   }
 }
+
+.b-timeline h2 { min-width: 0; }
+.b-revision { display: block; color: var(--muted); font-size: 10px; font-weight: 400; }
+.b-timeline-block { position: absolute; top: 0; bottom: 0; color: var(--text); }
+.b-track .b-timeline-block i { inset: 3px 0; border: 1px solid transparent; }
+.b-track .meeting i { background: var(--surface); border-color: var(--text); }
+.b-track .overflow i { background: var(--surface); border: 1px dashed var(--line-strong); }
+.b-track .personal i { background-color: var(--surface); background-image: var(--hatch); }
+.b-track .past i { opacity: .68; }
+.b-track .current i { border-color: var(--hue); box-shadow: inset 0 0 0 1px var(--hue); }
+.b-timeline-block:focus-visible { outline: 2px solid var(--hue); outline-offset: 2px; z-index: 4; }
+.b-timeline-tip { display: none; position: absolute; bottom: calc(100% + 7px); left: 50%; transform: translateX(-50%); width: max-content; max-width: min(260px, 70vw); padding: 6px 9px; background: var(--text); color: var(--ground); font-size: 11px; line-height: 1.4; border-radius: 3px; pointer-events: none; }
+.b-timeline-block:hover, .b-timeline-block:focus-visible { z-index: 5; }
+.b-timeline-block:hover .b-timeline-tip, .b-timeline-block:focus-visible .b-timeline-tip { display: block; }
+.b-timeline-block:first-of-type .b-timeline-tip { left: 0; transform: none; }
+.b-timeline-block:last-of-type .b-timeline-tip { left: auto; right: 0; transform: none; }
+.b-track b, .b-track em { pointer-events: none; }
+.b-track.is-empty { border: 1px dashed var(--line-strong); box-sizing: border-box; }
+.b-empty-plan { display: flex; height: 100%; align-items: center; justify-content: center; font-size: 12px; color: var(--muted); }
+.b-empty-plan:focus-visible { outline: 2px solid var(--hue); }
+@media (max-width: 860px) { .b-revision { display: inline; margin-left: 8px; } }
