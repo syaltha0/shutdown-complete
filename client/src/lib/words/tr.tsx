@@ -678,6 +678,7 @@ serverStatus: { remedy: 'İlgili ayarı veya kurulum yönergesini aç',"title":"
   helloClose: 'Günü zihnin rahat bir şekilde kapat.', helloMakeRoom: 'Bugün önem verdiklerine yer aç.',
   helloTasksDone: (tasks: number) => `${tasks} görev tamamlandı`, helloClosedAt: (t: string) => `Kapanış ${t}`, helloSummary: (tasks: number, focus: string) => `${tasks} görev tamamlandı · ${focus} odaklanıldı`, helloFocusError: 'Odak başlatılamadı. Tekrar dene.',
   overviewToday: 'Bugün — planlanan ve yapılan', overviewOpen: 'Bugün açık kalanlar', overviewAhead: 'Yaklaşanlar', overviewRecent: 'Son günler',
+  overviewTasksEmpty: 'Bugün için görev yok', overviewTasksAllDone: 'Hepsi bitti', overviewTasksAdd: 'Görev ekle', overviewTasksMore: (n: number) => `+${n} görev daha`, overviewTaskFinished: (text: string) => `Tamamlandı: ${text}`,
   overviewNoPlan: 'Bugün için plan yok', overviewDone: 'Bitti', overviewNothingOpen: 'Bugün açık kalan bir şey yok', overviewShutdown: 'Kapanış yapılmadı',
   overviewNoHistory: 'Tamamladığın günler burada görünecek.', overviewLegend: 'Gün · derin odak · kapanış · görevler · alışkanlıklar',
   overviewMetric: (name: string) => `${name}: kaydedilmedi`, overviewInbox: (n: number) => `Gelen kutusu: düzenlenecek ${n} öğe`,
