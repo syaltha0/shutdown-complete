@@ -39,6 +39,28 @@ try {
   if(state==='ended') {await p.locator('.b-hello a.b-act.main').click();await p.waitForURL('**/shutdown/'+iso(noon));}
   if(state==='before'||state==='empty') {await p.locator('.b-hello a.b-act.main').click();await p.waitForURL('**/day/'+iso(noon));}
  }
+ mkdirSync('reports/shots/overview-focus',{recursive:true});
+ await api.put('settings',{...settings,schedule:[],metrics:settings.metrics.map(m=>m.id===(settings.focus?.metricId??'deep')?{...m,target:3}:m)});
+ for(const state of ['empty','partial','complete','running','break']) {
+  const minutes=state==='empty'?0:state==='complete'?180:60;
+  const active=['running','break'].includes(state)?{phase:state==='break'?'short':'focus',startedAt:noon.toISOString(),plannedMin:25,pausedLeft:null,blockId:null,label:''}:null;
+  await api.put(key,{...original,metrics:{...original.metrics,[settings.focus?.metricId??'deep']:minutes/60},focus:{active,sessions:Array.from({length:minutes?5:0},(_,i)=>({id:'focus-'+i,minutes:minutes/5,kind:'deep',blockId:null,label:'',start:noon.toISOString(),end:noon.toISOString()}))}});
+  for(const [width,height] of [[1440,900],[390,844]]) for(const theme of ['light','dark']) {
+   await p.setViewportSize({width,height});await p.goto(s.url+'/');const tile=p.locator('.b-focus');await tile.waitFor();await p.waitForTimeout(250);
+   await p.evaluate(t=>document.documentElement.dataset.theme=t,theme);
+   assert.ok(await tile.evaluate(e=>e.scrollHeight<=e.clientHeight+1&&e.scrollWidth<=e.clientWidth+1),'Focus fits '+state+' '+width);
+   const ring=await tile.locator('.b-ring').boundingBox();assert.ok(Math.abs(ring.width-ring.height)<1,'Focus ring is square');
+   assert.equal(await tile.getAttribute('data-complete'),String(state==='complete'));
+   await p.screenshot({path:`reports/shots/overview-focus/${state}-${width}-${theme}.png`,fullPage:true});
+  }
+  if(state==='running') {
+   const mutations=await p.evaluate(async()=>{let n=0;const mo=new MutationObserver(list=>n+=list.length);mo.observe(document.querySelector('.b-focus'),{subtree:true,childList:true,attributes:true,characterData:true});await new Promise(r=>setTimeout(r,3200));mo.disconnect();return n;});
+   assert.equal(mutations,0,'Overview focus stays unchanged between minute ticks');
+   await p.clock.runFor(60000);assert.match(await p.locator('.b-focus-status').innerText(),/24/,'Remaining minutes update');
+  }
+  await p.locator('.b-focus .b-act').click();await p.waitForURL('**/focus');
+ }
+ console.log('PASS Focus today: five states, 20 screenshots, square ring, minute timer, action route');
  await api.put(key,original);await api.put('settings',settings);
  await p.clock.resume();
  console.log('PASS Hello: five states, 20 screenshots, focus timer and action routes');

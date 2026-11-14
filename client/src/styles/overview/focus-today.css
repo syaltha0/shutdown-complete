@@ -1,11 +1,22 @@
-.b-focus {
-  align-items: center;
-  justify-content: center;
-}
+.b-focus { align-items: center; justify-content: center; text-align: center; }
+.b-focus > * { flex-shrink: 0; }
+.bento .b-focus { gap: 2px; padding-block: 10px; }
+.b-focus .b-focus-summary, .b-focus .b-focus-status { font-size: 12px; line-height: 1.35; margin: 0; }
+.b-focus-summary { color: var(--muted); }
+.b-focus-dots { display: flex; gap: 4px; min-height: 4px; }
+.b-focus-dots i { width: 4px; height: 4px; border-radius: 50%; background: var(--hue); }
+.b-focus[data-complete="true"] .b-focus-dots i { background: var(--positive); }
+.b-focus .b-ring strong { font-size: 14px; }
 
-.b-focus > * {
-  flex-shrink: 0;
-}
-.bento .b-focus {
-  gap: 5px;
-}
+.b-focus .b-ring { width: 64px; }
+.b-focus h2 { margin: 0; }
+.b-focus-dots:empty { display: none; }
+
+@media (max-width: 860px) { .b-focus .b-ring { width: 64px; } .bento .b-focus { gap: 3px; } }
+
+@media (max-height: 820px) and (min-width: 861px) { .bento .b-focus { padding-block: 6px; gap: 1px; } .b-focus .b-ring { width: 48px; } }
+
+/* the action is a quiet link like the other tiles' */
+.b-focus .b-act { display: inline-flex; align-items: center; gap: 2px; min-height: 26px; color: var(--text); font-size: 13px; font-weight: 500; text-decoration: none; }
+.b-focus .b-act:hover > span { text-decoration: underline; text-underline-offset: 3px; }
+.b-focus .b-act:focus-visible { outline: 2px solid var(--focus-ring); outline-offset: 3px; border-radius: 4px; }

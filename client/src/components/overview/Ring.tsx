@@ -3,11 +3,13 @@ export function OverviewRing({
   total,
   label,
   text,
+  complete = false,
 }: {
   value: number;
   total: number;
   label: string;
   text: string;
+  complete?: boolean;
 }) {
   return (
     <div className="b-ring">
@@ -25,7 +27,7 @@ export function OverviewRing({
           cy="50"
           r="43"
           fill="none"
-          stroke="var(--hue)"
+          stroke={complete ? "var(--positive)" : "var(--hue)"}
           opacity={value > 0 && total > 0 ? 1 : 0}
           strokeWidth="5"
           pathLength="100"
