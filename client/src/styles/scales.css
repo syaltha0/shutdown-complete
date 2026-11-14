@@ -578,7 +578,18 @@ button.bp-chip:hover { background: var(--raised); }
 }
 /* and while a break carries that field the ring is a little smaller, so the card still holds everything */
 
-.focus-config .focus-scroll-hint { position:sticky; top:0; z-index:1; margin:0 0 8px; padding:4px 0; background:var(--surface); border-bottom:1px solid var(--border); }
+/* Focus settings: section tabs that stay on top (opaque, so nothing shows through), and one cycle drawn to scale */
+.focus-settings-view { padding-top: 0; }
+.focus-config .fc-nav { position: sticky; top: 0; z-index: 2; display: flex; gap: 4px; flex-wrap: wrap; margin: 0 0 -8px; padding: 16px 0 12px; background: var(--surface); border-bottom: 1px solid var(--border); }
+.fc-nav button { min-height: 32px; padding: 0 12px; border: 1px solid transparent; border-radius: var(--radius-control); background: transparent; color: var(--muted); font: inherit; font-size: 13px; cursor: pointer; }
+.fc-nav button:hover { color: var(--text); background: var(--ground); }
+.fc-nav button.on { color: var(--text); border-color: var(--border); background: var(--ground); font-weight: 500; }
+.fc-nav button:focus-visible { outline: 2px solid var(--text); outline-offset: 2px; }
+.focus-config section { scroll-margin-top: 72px; }
+.fc-cycle { display: grid; gap: 6px; }
+.fc-cycle-bar { display: flex; gap: 2px; height: 8px; }
+.fc-cycle-bar i { display: block; min-width: 3px; border-radius: 2px; background: var(--phase-color); }
+.fc-cycle p { margin: 0; font-size: 12px; }
 
 /* Two cards on the right share the column in equal halves; with Focus together last (lined up with the chart), Today
    and the sessions share what is above it equally. Inside a stretched card the content spreads instead of leaving an
@@ -633,3 +644,10 @@ button.bp-chip:hover { background: var(--raised); }
 /* the "time to go" line under the goal only where Today has room: not in a four-card column or a short window */
 .focus-grid > .stack:has(> :nth-child(4)) .fw-left { display: none; }
 @media (min-width: 1000px) and (max-height: 820px) { .focus-grid .fw-left { display: none; } }
+
+/* Focus together lined up with the chart has a fixed height: the extras step aside when it is short */
+@media (min-width: 1000px) and (min-height: 601px) {
+  .focus-grid[data-align-rows="one"] .friends { container-type: size; container-name: together; }
+}
+@container together (max-height: 290px) { .friends-online.is-empty .seats { display: none !important; } }
+@container together (max-height: 250px) { .together-hint { display: none; } }

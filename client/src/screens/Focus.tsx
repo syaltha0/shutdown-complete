@@ -48,6 +48,9 @@ function useAlignedBottomRow() {
     const el = grid; // narrowed for the closures below
     const wide = window.matchMedia('(min-width: 1000px) and (min-height: 601px)');
     let frame = 0;
+    // a layout that was tried and did not fit is not tried again until something about it changes: trying it, dropping
+    // it and trying it again on every resize made the cards flicker between the two layouts frame after frame
+    let failed = '';
     const measure = () => {
       cancelAnimationFrame(frame);
       frame = requestAnimationFrame(apply);
@@ -63,6 +66,8 @@ function useAlignedBottomRow() {
         const was = el.dataset.alignRows; delete el.dataset.alignRows;
         const stack0 = last.parentElement!, kids = [...stack0.children] as HTMLElement[];
         const gap = parseFloat(getComputedStyle(stack0).rowGap) || 0;
+        const tried = `${h}|${el.clientWidth}|${kids.map((k) => `${k.className}:${k.textContent?.length ?? 0}`).join(',')}`;
+        if (tried === failed) return;
         // four cards (blocks summary and Focus together both shown): the two of them together match the chart card
         const pairUp = kids.length >= 4 && last.classList.contains('friends') && kids[kids.length - 2].classList.contains('focus-byblock');
         if (pairUp) {
@@ -93,7 +98,7 @@ function useAlignedBottomRow() {
         // page opens (a 14 px entrance transform), and measuring mid-animation used to drop the alignment at random
         const lastCard = stack.lastElementChild as HTMLElement | null;
         const spills = (lastCard ? lastCard.offsetTop + lastCard.offsetHeight : 0) > stack.offsetTop + stack.offsetHeight + 1 || !sessionsFit || [...stack.children].some((el) => (pairUp && el === sessions ? false : el.scrollHeight > el.clientHeight + 1));
-        if (squeezed || spills) delete el.dataset.alignRows;
+        if (squeezed || spills) { delete el.dataset.alignRows; failed = tried; } else failed = '';
       }
     }
     const ro = new ResizeObserver(measure);
@@ -204,7 +209,8 @@ export function Focus() {
       }
       const h = `${height}px`;
       if (el.style.getPropertyValue('--rows-h') !== h) el.style.setProperty('--rows-h', h);
-      el.tabIndex = el.scrollHeight > el.clientHeight ? 0 : -1;
+      const tab = el.scrollHeight > el.clientHeight ? 0 : -1;
+      if (el.tabIndex !== tab) el.tabIndex = tab;
     };
     fit();
     const ro = new ResizeObserver(fit);
