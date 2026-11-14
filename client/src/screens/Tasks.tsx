@@ -379,7 +379,7 @@ function InboxTasks({ view: asked }: { view?: string }) {
             </form>
           )}
           {view !== 'trash' && view !== 'completed' && <div id="tk-add-help" className="muted tk-quick-help">
-            {draft.trim() && parsedDraft.text !== draft.trim() ? <>
+            {draft.trim() ? <>
               <span role="status">{T.tkDetected}: {parsedDraft.text} · {[parsedDraft.due, parsedDraft.dueTime, parsedDraft.list && lists.find((l) => l.id === parsedDraft.list)?.name, parsedDraft.priority && `${T.tkPriority} ${parsedDraft.priority}`, parsedDraft.tags?.map((g) => `@${g}`).join(' '), parsedDraft.repeat && recurWords(T, parsedDraft.repeat)].filter(Boolean).join(' · ')}</span>{' '}
               <button type="button" className="card-link quiet" onClick={() => setSmartAdd(false)}>{T.tkLiteral}</button>
             </> : <span>{T.tkQuickHelp}</span>}
