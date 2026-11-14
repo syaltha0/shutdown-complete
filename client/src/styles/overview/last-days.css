@@ -19,3 +19,7 @@
 @media(max-width:860px) { .bento .b-recent { height:220px; } }
 .b-recent-goal span { background:var(--panel, var(--bg)); padding-left:3px; z-index:1; }
 @media(max-height:820px) and (min-width:861px) { .b-recent-chart { min-height:20px; margin-top:4px; margin-bottom:30px; } .b-recent-summary { gap:0 8px; } }
+/* the bars take the room the tile has (they were held to a short strip), and the task counts stay in the tip */
+.b-recent-chart { max-height: none; min-height: 36px; margin-bottom: 20px; }
+.b-recent .b-bars small { display: none; }
+@media (max-height: 820px) and (min-width: 861px) { .b-recent-chart { min-height: 40px; margin-bottom: 18px; } }
