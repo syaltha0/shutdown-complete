@@ -53,3 +53,8 @@
 .b-hello-week dt { color: var(--muted); font-size: 11px; }
 .b-hello-week dd { margin: 0; font-size: 16px; font-weight: 500; }
 .b-hello-week dd { white-space: nowrap; font-size: 15px; }
+.b-hello-side { gap: 4px; }
+.b-hello-side ul { gap: 3px; }
+.b-hello-week-title { padding-top: 4px; }
+.b-hello-week dd { font-size: 14px; line-height: 1.3; }
+@media (max-height: 820px) and (min-width: 861px) { .b-hello-week-title { display: none; } .b-hello-week dt { font-size: 10px; } }

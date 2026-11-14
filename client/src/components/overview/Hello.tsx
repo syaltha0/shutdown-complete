@@ -12,7 +12,7 @@ import { weekOf } from "../../lib/dates";
 import { addDays } from "../../lib/dates";
 export function Hello({ T, settings, t, now, plan, B, day, docs, docOf, monday }: OverviewData) {
   const { value: week } = useDoc<WeekDoc>(`week:${weekOf(t)}`, emptyWeek);
-  const weekItems = week?.items.filter(x => !x.done && x.text.trim()).slice(0, 3) ?? [];
+  const weekItems = week?.items.filter(x => !x.done && x.text.trim()).slice(0, 2) ?? [];
   const template = settings.templates?.find(x => x.days.includes(weekdayOf(t)));
   const scheduled = settings.schedule?.filter(x => x.days.includes(weekdayOf(t)) && x.since <= t && onItsWeek(x, t) && !isExcepted(settings.exceptions ?? [], t, x.id)).length ?? 0;
   const { user } = useAccount();
@@ -31,9 +31,9 @@ export function Hello({ T, settings, t, now, plan, B, day, docs, docOf, monday }
   const tasksDone = day?.tasks.filter(x => x.done).length ?? 0;
   const summary = focusedMin > 0 ? T.helloSummary(tasksDone, duration(focusedMin)) : T.helloTasksDone(tasksDone);
   // beside the greeting: the blocks still to come today, or the first ones of tomorrow once today is through
-  const later = plan.filter(b => b.start > now).slice(cur ? 0 : 1, (cur ? 0 : 1) + 3);
+  const later = plan.filter(b => b.start > now).slice(cur ? 0 : 1, (cur ? 0 : 1) + 2);
   const tomorrowDoc = docs?.get(`day:${addDays(t, 1)}`);
-  const tomorrow = later.length || !tomorrowDoc ? [] : [...activeColumn(tomorrowDoc).blocks].sort((a, b) => a.start - b.start).slice(0, 3);
+  const tomorrow = later.length || !tomorrowDoc ? [] : [...activeColumn(tomorrowDoc).blocks].sort((a, b) => a.start - b.start).slice(0, 2);
   const side = later.length ? { title: B.helloUpNext, items: later } : tomorrow.length ? { title: B.helloTomorrow, items: tomorrow } : null;
   async function focus() {
     if (active) { navigate('/focus'); return; }
