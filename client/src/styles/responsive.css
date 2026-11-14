@@ -63,3 +63,5 @@
 .tomorrow .mini-blocks { width: 100%; }
 .tomorrow .mini-block { padding: 6px 0; font-size: 14px; }
 .switch-row { display: flex; align-items: center; gap: 10px; cursor: pointer; }
+
+@media (max-width:600px) { .month-cal .cal-day,.month-cal .wk { min-height:44px; } .hweek .hcell { width:100%; min-width:44px; height:44px; } .hweek .hrow { gap:0; } .tk-detail .btn.icon,.tk-detail .tk-tag button,.habit-add .btn,.hweek-nav .btn { min-width:44px; min-height:44px; } .month-cal ~ * { min-width:0; } }
