@@ -162,3 +162,5 @@ export const quarterMonths = (q: string) => {
   const [y, n] = q.split('-Q').map(Number);
   return [0, 1, 2].map((i) => `${y}-${pad((n - 1) * 3 + i + 1)}`);
 };
+
+export const fmtDateTime = (s: string) => new Date(s).toLocaleString(T().locale, {year:'numeric',month:'long',day:'numeric',hour:'2-digit',minute:'2-digit',second:'2-digit',timeZoneName:'short'});
