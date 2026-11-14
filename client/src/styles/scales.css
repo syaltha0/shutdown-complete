@@ -684,7 +684,7 @@ button.bp-chip:hover { background: var(--raised); }
 .bp-chip.is-empty:hover { color: var(--text); background: var(--raised); }
 .bp-chip.is-empty .bp-name { flex: 0 1 auto; font-weight: 400; }
 .bp-chip.is-empty .bp-time { flex: 0 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.bp-plus { flex: none; font-size: 16px; line-height: 1; }
+.bp-plus { flex: none; display: block; width: 14px; height: 14px; }
 .focus-sessions { position: relative; }
 .focus-sessions > .bp-sheet { padding: 16px var(--card-pad, 20px); border-radius: inherit; }
 .session-link { justify-self: end; margin: 0; padding: 0 4px; border: 0; border-radius: 4px; background: transparent; color: var(--muted); font: inherit; font-size: 12px; text-decoration: underline; text-underline-offset: 3px; cursor: pointer; }

@@ -33,7 +33,7 @@ export function BlockChip({ block, label, open, locked, onOpen, chipRef, suggest
   if (!block && !locked) return (
     <button ref={chipRef} type="button" className="bp-chip is-empty" aria-haspopup="listbox" aria-expanded={open} onClick={onOpen}
       onKeyDown={(e) => { if (e.key === 'ArrowDown' || e.key === 'ArrowUp') { e.preventDefault(); onOpen(); } }}>
-      <span className="sr-only">{T.freeFocus}. </span><span className="bp-plus" aria-hidden="true">+</span><span className="bp-name">{T.linkToBlock}</span>{suggest && <span className="bp-time">{T.nowIs(suggest)}</span>}
+      <span className="sr-only">{T.freeFocus}. </span><svg className="bp-plus" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14" /></svg><span className="bp-name">{T.linkToBlock}</span>{suggest && <span className="bp-time">{T.nowIs(suggest)}</span>}
     </button>
   );
   const body = <>
