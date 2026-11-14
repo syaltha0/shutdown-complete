@@ -18,6 +18,7 @@ export function TaskMeta({ item, onChange, editDue = false }: { item: Item; onCh
   const n = item.due ? daysTo(item.due) : null;
   return (
     <span className="task-meta">
+      {item.waiting && <span>{T.tkWaiting}{item.waitingNote ? ` · ${item.waitingNote}` : ''}{item.review ? ` · ${T.tkReview}: ${shortDate(item.review)}` : ''}</span>}
       {item.due && !editDue && <span className={`due${n! < 0 && !item.done ? ' late' : n === 0 ? ' today' : ''}`}>{dueWords(T, item.due)}</span>}
       {editDue && (
         <input type="date" required className="due-input num" title={T.dueLabel(item.text)} aria-label={T.dueLabel(item.text)} value={item.due ?? ''} onChange={(e) => onChange({ due: e.target.value || undefined })} />

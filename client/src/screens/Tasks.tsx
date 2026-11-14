@@ -282,7 +282,7 @@ function InboxTasks({ view: asked }: { view?: string }) {
             {steps && <span>{T.tkStepsN(steps)}</span>}
             {(t.percent ?? 0) > 0 && !t.done && <span className="tk-pc"><i><b style={{ width: `${t.percent}%` }} /></i>{t.percent}%</span>}
             {(t.spent || t.estimate) && <span className={t.spent && t.estimate && t.spent > t.estimate ? 'over' : ''}>{t.spent ? T.tkSpent(duration(t.spent), t.estimate ? duration(t.estimate) : '') : duration(t.estimate!)}</span>}
-            {t.waiting && <span>{T.tkWaiting}{t.review ? ` · ${shortDate(t.review)}` : ''}</span>}
+            {t.waiting && <span>{T.tkWaiting}{t.waitingNote ? ` · ${t.waitingNote}` : ''}{t.review ? ` · ${T.tkReview}: ${shortDate(t.review)}` : ''}</span>}
             {t.notes && <span className="tk-has" aria-label={T.tkNotes}><IconNotes /></span>}
             {t.tags?.map((g) => <span key={g} className="lbl lb-grey">{g}</span>)}
           </span>
