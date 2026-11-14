@@ -8,7 +8,7 @@ import { defaultSettings, type Settings } from './lib/model';
 import { dict, getLang, setLang, useT } from './lib/i18n';
 import { monthOf, quarterOf, setDayStart, today, weekOf } from './lib/dates';
 import {
-  IconBoard, IconDay, IconFocus, IconHome, IconHourglass, IconInbox, IconHabits, IconMetrics, IconMonth, IconMore, IconQuarter, IconSettings, IconShutdown, IconWeek, IconX, Mark,
+  IconBoard, IconDay, IconFocus, IconHome, IconHourglass, IconInbox, IconHabits, IconMetrics, IconMonth, IconMore, IconQuarter, IconYear, IconSettings, IconShutdown, IconWeek, IconX, Mark,
 } from './components/Icons';
 import { FocusRunner } from './components/FocusTimer';
 import { BlockReminders } from './components/Reminders';
@@ -239,7 +239,7 @@ function Shell() {
     { id: 'day', href: `/day/${t}`, label: T.nav.today, icon: <IconDay /> },
     { id: 'week', href: `/week/${weekOf(t)}`, label: T.nav.week, icon: <IconWeek /> },
     { id: 'month', href: `/month/${monthOf(t)}`, label: T.nav.month, icon: <IconMonth /> },
-    { id: 'year', href: `/year/${t.slice(0,4)}`, label: T.nav.year, icon: <IconQuarter /> },
+    { id: 'year', href: `/year/${t.slice(0,4)}`, label: T.nav.year, icon: <IconYear /> },
     { id: 'quarter', href: `/quarter/${quarterOf(t)}`, label: T.nav.quarter, icon: <IconQuarter /> },
   ];
   const work: NavItem[] = [
