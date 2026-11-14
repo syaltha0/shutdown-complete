@@ -39,7 +39,7 @@ export const en = {
   roomTaskAdd: 'Add task',
   pushClosed: 'Even when the app is closed',
   pushBody: 'A planned block is about to start. Open your plan.',
-  notif: {
+  notif: { help: 'How to allow notifications', recheck: 'Check permission again', test: 'Send a test notification', chrome: 'Chrome: Site controls beside the address → Site settings → Notifications → Allow.', edge: 'Edge: Site information beside the address → Permissions for this site → Notifications → Allow.', firefox: 'Firefox: Lock beside the address → Connection secure → More information → Permissions → Send notifications → Allow.', safari: 'Safari on Mac: Settings → Websites → Notifications → Allow this site.', android: 'Android: In the browser, open this site’s information → Permissions → Notifications → Allow. Also check Android Settings → Apps → your browser → Notifications.', iosHelp: 'iPhone or iPad: Settings → Apps → this Home Screen app → Notifications → Allow Notifications. Open the app from the Home Screen.', generic: 'Open your browser’s site permissions and allow notifications for this site.',
     title: 'Notifications',
     about: 'Reminders that reach this device even when the app is closed.',
     statusOn: 'On for this device.',

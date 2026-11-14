@@ -37,7 +37,7 @@ serverStatus: { remedy: 'İlgili ayarı veya kurulum yönergesini aç',"title":"
   roomTaskAdd: 'Görev ekle',
   pushClosed: 'Uygulama kapalıyken de',
   pushBody: 'Planladığın bir blok başlamak üzere. Planını aç.',
-  notif: {
+  notif: { help: 'Bildirim izni nasıl açılır?', recheck: 'İzni tekrar denetle', test: 'Deneme bildirimi gönder', chrome: 'Chrome: Adresin yanındaki site kontrolleri → Site ayarları → Bildirimler → İzin ver.', edge: 'Edge: Adresin yanındaki site bilgisi → Bu site için izinler → Bildirimler → İzin ver.', firefox: 'Firefox: Adresin yanındaki kilit → Bağlantı güvenli → Daha fazla bilgi → İzinler → Bildirim gönder → İzin ver.', safari: 'Mac’te Safari: Ayarlar → Web Siteleri → Bildirimler → Bu siteye izin ver.', android: 'Android: Tarayıcıda bu sitenin bilgilerini açın → İzinler → Bildirimler → İzin ver. Android Ayarlar → Uygulamalar → tarayıcınız → Bildirimler bölümünü de denetleyin.', iosHelp: 'iPhone veya iPad: Ayarlar → Uygulamalar → Ana Ekran’a eklenen bu uygulama → Bildirimler → Bildirimlere İzin Ver. Uygulamayı Ana Ekran’dan açın.', generic: 'Tarayıcınızın site izinlerini açıp bu site için bildirimlere izin verin.',
     title: 'Bildirimler',
     about: 'Uygulama kapalıyken de bu cihaza ulaşan hatırlatmalar.',
     statusOn: 'Bu cihazda açık.',

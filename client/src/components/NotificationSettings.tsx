@@ -15,6 +15,9 @@ export function NotificationSettings() {
   const n = notifyView(settings);
   const set = (patch: Partial<NotifyChoices>) => update((s) => ({ ...s, notify: { ...s.notify, ...patch } }));
   const supported = pushSupported();
+  const [, refresh] = useState(0);
+  const ua = navigator.userAgent;
+  const help = isIOS() ? N.iosHelp : /Android/i.test(ua) ? N.android : /Edg/i.test(ua) ? N.edge : /Firefox/i.test(ua) ? N.firefox : /Chrome|Chromium/i.test(ua) ? N.chrome : /Safari/i.test(ua) ? N.safari : N.generic;
   const blocked = supported && 'Notification' in window && Notification.permission === 'denied';
   const allow = async () => {
     setBusy(true); setError(false);
@@ -24,7 +27,7 @@ export function NotificationSettings() {
   return (
     <div className="notif-panel" data-state={!supported ? 'unsupported' : blocked ? 'blocked' : enabled === true ? 'on' : 'off'}>
       {!supported && <p className="muted notif-status">{isIOS() && !isStandalone() ? N.ios : N.unavailable}</p>}
-      {supported && blocked && <p className="muted notif-status">{N.blocked}</p>}
+      {supported && blocked && <><p className="muted notif-status">{N.blocked}</p><details><summary>{N.help}</summary><p>{help}</p></details><button className="btn" onClick={()=>refresh(v=>v+1)}>{N.recheck}</button></>}
       {supported && !blocked && enabled !== true && (
         <p className="notif-status">
           <span className="muted">{N.statusOff}</span>{' '}
@@ -32,6 +35,7 @@ export function NotificationSettings() {
         </p>
       )}
       {supported && !blocked && enabled === true && <p className="muted notif-status">{N.statusOn}</p>}
+      {supported && !blocked && enabled === true && <button className="btn" onClick={async()=>{try { await (await navigator.serviceWorker.ready).showNotification(N.test); } catch { setError(true); }}}>{N.test}</button>}
       {error && <p role="alert">{T.pushError}</p>}
 
       <fieldset className="notif-choices" disabled={enabled !== true}>
