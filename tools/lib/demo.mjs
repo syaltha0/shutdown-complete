@@ -39,9 +39,9 @@ export const WORDS = {
 
 /**
  * Fills an account's planner. `today` decides the dates; `plan` is today's starting plan:
- * 'partial' (the morning left open, for blocking it out on camera) or 'full'.
+ * 'partial' (the morning left open, for blocking it out on camera) or 'full'. `history` is how many days before it are filled.
  */
-export async function fillDemo(api, { lang = 'en', today = new Date(), plan = 'full', tourDone = true } = {}) {
+export async function fillDemo(api, { lang = 'en', today = new Date(), plan = 'full', tourDone = true, history = 40 } = {}) {
   const L = WORDS[lang];
   let n = 0; const id = () => `d${(n++).toString(36)}`;
   let seed = 5; const rand = () => ((seed = (seed * 16807) % 2147483647) / 2147483647);
@@ -65,7 +65,7 @@ export async function fillDemo(api, { lang = 'en', today = new Date(), plan = 'f
     ] }],
   });
 
-  for (let k = 40; k >= 1; k--) {
+  for (let k = history; k >= 1; k--) {
     const d = new Date(today); d.setDate(d.getDate() - k);
     const we = d.getDay() === 0 || d.getDay() === 6;
     const deep = Math.round((1.5 + rand() * 2.5) * 2) / 2;

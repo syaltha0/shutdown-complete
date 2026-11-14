@@ -1,8 +1,5 @@
 <p align="center">
-  <picture>
-    <source media="(prefers-color-scheme: dark)" srcset="docs/banner-dark.png">
-    <img src="docs/banner-light.png" alt="Shutdown Complete — Plan with intention. Finish with peace of mind." width="900">
-  </picture>
+  <img src="docs/banner-light.png" alt="Shutdown Complete — Plan with intention. Finish with peace of mind." width="900">
 </p>
 
 <h3 align="center">A self-hosted time-block planner. Give every hour a job, focus on it, and end the day on purpose.</h3>
