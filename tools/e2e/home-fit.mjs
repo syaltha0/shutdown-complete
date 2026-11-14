@@ -31,13 +31,13 @@ try {
    await p.screenshot({path:'reports/shots/overview-hello/'+state+'-'+width+'-'+theme+'.png',fullPage:true});
   }
   if(state==='active') {
-   await p.locator('.b-hello button.primary').click();await p.waitForURL('**/focus');
+   await p.locator('.b-hello button.b-act.main').click();await p.waitForURL('**/focus');
    await p.clock.runFor(1500);await p.waitForTimeout(300);
    const running=(await api.get(key)).value.focus.active;
    assert.equal(running.blockId,'now');assert.equal(running.pausedLeft,null);assert.ok(running.startedAt);
   }
-  if(state==='ended') {await p.locator('.b-hello a.primary').click();await p.waitForURL('**/shutdown/'+iso(noon));}
-  if(state==='before'||state==='empty') {await p.locator('.b-hello a.primary').click();await p.waitForURL('**/day/'+iso(noon));}
+  if(state==='ended') {await p.locator('.b-hello a.b-act.main').click();await p.waitForURL('**/shutdown/'+iso(noon));}
+  if(state==='before'||state==='empty') {await p.locator('.b-hello a.b-act.main').click();await p.waitForURL('**/day/'+iso(noon));}
  }
  await api.put(key,original);await api.put('settings',settings);
  await p.clock.resume();

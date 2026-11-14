@@ -41,10 +41,12 @@ export function Hello({ T, settings, t, now, plan, B, day }: OverviewData) {
       {!closed && next && <span className="b-hello-next" title={next.label || T.untitledBlock}>{T.helloNext(next.label || T.untitledBlock, clock(next.start))}</span>}
     </div>
     <div className="b-actions">
-      {cur ? <button className="btn primary" disabled={starting} onClick={focus}>{active ? T.helloResume : T.focusOn(label)}</button>
-        : !closed && <a className="btn primary" href={ended ? `/shutdown/${t}` : `/day/${t}`} onClick={onLinkClick}>{ended ? T.runShutdown : T.helloPlan}</a>}
-      <a className="btn" href={`/day/${t}`} onClick={onLinkClick}>{T.openToday}</a>
+      {cur ? <button type="button" className="b-act main" disabled={starting} onClick={focus}><span>{active ? T.helloResume : T.focusOn(label)}</span><Chev /></button>
+        : !closed && <a className="b-act main" href={ended ? `/shutdown/${t}` : `/day/${t}`} onClick={onLinkClick}><span>{ended ? T.runShutdown : T.helloPlan}</span><Chev /></a>}
+      <a className="b-act" href={`/day/${t}`} onClick={onLinkClick}><span>{T.openToday}</span><Chev /></a>
     </div>
     {failed && <span role="alert" className="b-hello-error">{T.helloFocusError}</span>}
   </section>;
 }
+
+const Chev = () => <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" aria-hidden="true"><path d="m9 5 7 7-7 7" /></svg>;
