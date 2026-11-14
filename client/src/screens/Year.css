@@ -20,3 +20,5 @@
 .year-legend { display:flex; flex-wrap:wrap; gap:16px; margin-top:12px; font-size:12px; }
 .year-legend span { display:flex; align-items:center; gap:6px; }
 .year-legend i { width:10px; height:10px; }
+
+.year-cell.year-future { background:transparent; border:1px dashed var(--line, #8886); opacity:.5; }

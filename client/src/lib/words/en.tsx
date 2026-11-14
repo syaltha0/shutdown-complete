@@ -87,7 +87,7 @@ export const en = {
   } as Record<string, [string, string]>,
   loading: 'Opening your planner…',
   unreachable: 'The planner’s server is not answering. It may be starting or down; this page tries again on its own.',
-  year: { legend: ['0', '<30 min', '30–60 min', '1–2 h', '2+ h'], title: 'Year', prev: 'Previous year', next: 'Next year', current: 'This year', heat: 'Deep work', days: 'Focused days', streak: 'Longest streak', shutdowns: 'Shutdown days', top: 'Top subjects', review: 'Year review', good: 'What did I do well this year?', change: 'What will I change next year?', go: 'Go to year', time: (n: number) => Math.floor(n / 60) + ' h ' + (n % 60) + ' min' },
+  year: { future: 'Not yet reached', noRecord: 'No record', legend: ['0', '<30 min', '30–60 min', '1–2 h', '2+ h'], title: 'Year', prev: 'Previous year', next: 'Next year', current: 'This year', heat: 'Deep work', days: 'Focused days', streak: 'Longest streak', shutdowns: 'Shutdown days', top: 'Top subjects', review: 'Year review', good: 'What did I do well this year?', change: 'What will I change next year?', go: 'Go to year', time: (n: number) => Math.floor(n / 60) + ' h ' + (n % 60) + ' min' },
   nav: { home: 'Overview', inbox: 'Tasks', countdown: 'Countdown', boards: 'Boards', today: 'Today', week: 'Week', month: 'Month', quarter: 'Quarter', year: 'Year', focus: 'Focus', habits: 'Habits', metrics: 'Metrics', shutdown: 'Shutdown', settings: 'Settings', more: 'More' },
   save: { loading: 'Loading…', saved: 'Saved', saving: 'Saving…', unsaved: 'Saving…', error: 'Not saved', conflict: 'Updated from another device', offline: 'Offline' },
   offlineNotice: 'You are offline. Your changes are kept on this screen and will be saved when the connection is back.',
