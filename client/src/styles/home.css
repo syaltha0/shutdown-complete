@@ -3,13 +3,13 @@
 .home-today { display: grid; gap: 14px; grid-template-rows: auto auto 1fr; }
 .day-scale { display: grid; gap: 6px; }
 .day-line { position: relative; height: 52px; border-radius: 8px; background: var(--ground); overflow: hidden; }
-.day-line i { position: absolute; top: 6px; bottom: 6px; display: flex; align-items: center; padding: 0 8px; overflow: hidden; border-radius: 5px; background: var(--control); color: var(--text); font-style: normal; font-size: 12px; }
-.day-line i span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.day-line i.k-deep { color: var(--primary-ink); }
-.day-line i.k-deep { background: var(--text); }
-.day-line i.k-personal { background: var(--raised); }
-.day-line i.k-meeting { background: var(--surface); border: 1.5px solid var(--text); }
-.day-line i.current { outline: 2px solid var(--hue); outline-offset: 1px; }
+.day-line button { position: absolute; top: 6px; bottom: 6px; display: flex; align-items: center; padding: 0 8px; overflow: hidden; border-radius: 5px; background: var(--control); color: var(--text); font-style: normal; font-size: 12px; }
+.day-line button span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.day-line button.k-deep { color: var(--primary-ink); }
+.day-line button.k-deep { background: var(--text); }
+.day-line button.k-personal { background: var(--raised); }
+.day-line button.k-meeting { background: var(--surface); border: 1.5px solid var(--text); }
+.day-line button.current { outline: 2px solid var(--hue); outline-offset: 1px; }
 .day-line .now { position: absolute; top: 0; bottom: 0; width: 2px; margin-left: -1px; background: var(--hue); }
 .day-ticks { position: relative; height: 16px; color: var(--muted); font-size: 11px; }
 .day-ticks span { position: absolute; transform: translateX(-50%); white-space: nowrap; }
@@ -138,3 +138,7 @@
 .cd-passed .home-list li { grid-template-columns: auto minmax(0, 1fr) auto; }
 dialog.sheet .kb-dlg { padding: 20px; }
 dialog.sheet .kb-dlg form { padding: 0; }
+
+.day-line button { border: 0; min-width: 4px; cursor: pointer; height: 40px; }
+.day-line button:focus-visible { outline: 2px solid var(--hue); outline-offset: -2px; }
+.timeline-detail { overflow-wrap: anywhere; padding: 8px 0; }

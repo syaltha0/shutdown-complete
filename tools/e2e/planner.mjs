@@ -355,7 +355,7 @@ try {
   {
     await page.goto(`${srv.url}/`);
     check('the overview opens at /', await page.getByRole('heading', { name: 'Overview', level: 1 }).waitFor({ timeout: 6000 }).then(() => true, () => false));
-    check('it draws today\'s plan as a line through the hours', (await page.locator('.day-line i').count()) > 0);
+    check('it draws today\'s plan as a line through the hours', (await page.locator('.day-line button').count()) > 0);
     check('it shows the week day by day', (await page.locator('.week-strip .wd').count()) === 7 && (await page.locator('.week-strip .wd.today').count()) === 1);
     await page.locator('#home-task').fill('Buy a notebook');
     await page.locator('#home-task').press('Enter');
