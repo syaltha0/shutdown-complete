@@ -1,31 +1,22 @@
-.b-chips {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-  overflow: auto;
-}
-.b-chip {
-  background: transparent;
-  border: 1px solid var(--rule);
-  border-radius: 20px;
-  padding: 4px 8px;
-  font: inherit;
-  color: inherit;
-  display: flex;
-  align-items: center;
-  gap: 6px;
-}
-.b-chip i {
-  width: 8px;
-  height: 8px;
-  border: 1px solid var(--control);
-  border-radius: 50%;
-  display: block;
-}
-.b-chip.on i {
-  background: var(--hue);
-  border-color: var(--hue);
-}
-.bento .b-habits {
-  justify-content: center;
-}
+﻿.bento .b-habits { gap: 5px; }
+.b-habits header { display: flex; align-items: baseline; justify-content: space-between; gap: 6px; flex-shrink: 0; }
+.b-habits header > span { color: var(--muted); font-size: 11px; white-space: nowrap; }
+.b-habits .b-habit-list { min-height: 32px; overflow: auto; flex: 1; scrollbar-width: thin; }
+.b-habit-row { padding: 3px 0; display: flex; align-items: center; gap: 8px; min-height: 32px; }
+.b-habits .b-chip { display: flex; align-items: center; gap: 7px; min-width: 0; flex: 1; padding: 0; border: 0; background: none; color: var(--text); font: inherit; text-align: left; cursor: pointer; min-height: 28px; }
+.b-habits .b-chip > span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.b-habits .b-chip i { display: grid; place-items: center; width: 18px; height: 18px; flex: none; border: 1px solid var(--control); border-radius: 50%; }
+.b-habits .b-chip.on i { background: var(--hue); border-color: var(--hue); }
+.b-habits .b-chip svg { width: 14px; fill: none; stroke: var(--surface); stroke-width: 2; }
+.b-habit-week { display: flex; gap: 4px; flex: none; padding: 2px; }
+.b-habit-week > span { width: 5px; height: 5px; border: 1px solid var(--control); border-radius: 50%; }
+.b-habit-week .done { background: var(--muted); border-color: var(--muted); }
+.b-habit-week .today { outline: 1px solid var(--control); outline-offset: 2px; margin-left: 2px; }
+.b-habit-week .today.done { background: var(--hue); border-color: var(--hue); }
+.b-habits .b-habits-complete { font-size: 11px; color: var(--muted); flex-shrink: 0; }
+.b-habits .b-act { display: inline-flex; align-items: center; gap: 2px; min-height: 28px; padding: 0; border: 0; background: none; color: var(--muted); font: inherit; font-size: 13px; text-decoration: none; flex-shrink: 0; }
+.b-habits .b-act svg { flex: none; }
+.b-habits .b-act:hover > span { text-decoration: underline; text-underline-offset: 3px; }
+.b-habits :focus-visible { outline: 2px solid var(--focus-ring); outline-offset: 2px; border-radius: 4px; }
+@media (max-width: 1100px) { .b-habit-row { flex-wrap: wrap; gap: 0; } .b-habits .b-chip { flex-basis: 100%; } .b-habit-week { margin: 0 0 4px 25px; } }
+.b-habits .b-habit-list { max-height: 180px; }

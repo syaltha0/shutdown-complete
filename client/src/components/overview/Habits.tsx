@@ -1,31 +1,35 @@
-import { featureOn } from "../../lib/model";
+﻿import { featureOn } from "../../lib/model";
+import { longDate } from "../../lib/dates";
+import { onLinkClick } from "../../lib/router";
 import type { OverviewData } from "./data";
-export function Habits({ T, settings, day, update, B }: OverviewData) {
-  const habits = settings.metrics.filter(
-    (m) => m.kind === "check" && featureOn(settings, "habits"),
-  );
+export function Habits({ T, settings, day, update, B, recent, docOf, t }: OverviewData) {
+  const habits = settings.metrics.filter((m) => m.kind === "check" && featureOn(settings, "habits"));
+  const done = habits.filter((m) => day?.metrics[m.id] === true).length;
   return (
     <section className="panel b-habits">
-      <h2>{T.nav.habits}</h2>
-      <div className="b-chips">
-        {habits.map((m) => (
-          <button
-            key={m.id}
-            className={`b-chip${day?.metrics[m.id] === true ? " on" : ""}`}
-            aria-pressed={day?.metrics[m.id] === true}
-            onClick={() =>
-              update((d) => ({
-                ...d,
-                metrics: { ...d.metrics, [m.id]: d.metrics[m.id] !== true },
-              }))
-            }
-          >
-            <i />
-            {m.name}
-          </button>
-        ))}
-      </div>
-      {!habits.length && <p>{B.noHabits}</p>}
+      <header><h2>{T.nav.habits}</h2><span className="num" aria-live="polite">{habits.length > 0 && B.habitsToday(done, habits.length)}</span></header>
+      {habits.length > 0 ? <>
+        <div className="b-habit-list" role="group" aria-label={T.nav.habits} tabIndex={0}>
+          {habits.map((m) => {
+            const checked = day?.metrics[m.id] === true;
+            return <div className="b-habit-row" key={m.id}>
+              <button type="button" className={`b-chip${checked ? " on" : ""}`} aria-label={m.name} aria-pressed={checked}
+                onClick={() => update((d) => ({ ...d, metrics: { ...d.metrics, [m.id]: d.metrics[m.id] !== true } }))}>
+                <i aria-hidden="true">{checked && <svg viewBox="0 0 16 16"><path d="m4 8 3 3 5-6" /></svg>}</i><span title={m.name}>{m.name}</span>
+              </button>
+              <div className="b-habit-week" aria-label={B.habitsWeek}>
+                {[...recent].reverse().map((date) => {
+                  const value = docOf(date)?.metrics[m.id] === true;
+                  const label = B.habitsDay(longDate(date), value);
+                  return <span key={date} className={`${value ? "done" : ""}${date === t ? " today" : ""}`} data-date={date} data-done={value} role="img" aria-label={label} title={label} />;
+                })}
+              </div>
+            </div>;
+          })}
+        </div>
+        {done === habits.length && <small className="b-habits-complete">{B.habitsComplete}</small>}
+      </> : <p>{B.noHabits}</p>}
+      <a className="b-act" href="/habits" onClick={onLinkClick}><span>{habits.length ? B.habitsOpen : B.habitsAdd}</span><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" aria-hidden="true"><path d="m9 5 7 7-7 7" /></svg></a>
     </section>
   );
 }
