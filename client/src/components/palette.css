@@ -7,3 +7,5 @@
 #palette-results kbd{color:var(--muted);font:inherit;font-size:12px}
 .palette-preview,.palette-body p{padding:8px 20px;color:var(--muted);font-size:13px}
 :root[data-motion="reduce"] .command-palette{animation:none;transition:none}
+
+@media (pointer:coarse) { #palette-results kbd,.more-card .more-item kbd { display:none; } #palette-results [role=option],.more-card .more-item { min-height:44px; } }
