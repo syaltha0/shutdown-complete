@@ -568,3 +568,24 @@ button.bp-chip:hover { background: var(--raised); }
 /* and while a break carries that field the ring is a little smaller, so the card still holds everything */
 
 .focus-config .focus-scroll-hint { position:sticky; top:0; z-index:1; margin:0 0 8px; padding:4px 0; background:var(--surface); border-bottom:1px solid var(--border); }
+
+/* Two cards on the right share the column in equal halves; with Focus together last (lined up with the chart), Today
+   and the sessions share what is above it equally. Inside a stretched card the content spreads instead of leaving an
+   empty band at the bottom (user, 2026-11-14). */
+@media (min-width: 1000px) and (min-height: 601px) {
+  .focus-grid[data-align-rows="halves"] > .stack { display: grid; grid-template-rows: minmax(min-content, 1fr) minmax(0, 1fr); }
+  .focus-grid[data-align-rows="halves"] > .stack > * { min-height: 0; }
+  .focus-grid[data-align-rows="one"] > .stack:has(> .focus-widgets + .focus-sessions + .friends:last-child) { display: grid; grid-template-rows: minmax(min-content, 1fr) minmax(0, 1fr) var(--history-h); }
+  .focus-grid[data-align-rows="one"] > .stack:has(> .focus-widgets + .focus-sessions + .friends:last-child) > * { min-height: 0; }
+  .focus-grid[data-align-rows] .focus-widgets { display: flex; flex-direction: column; justify-content: space-between; }
+  .focus-grid[data-align-rows] .focus-sessions > .empty { display: grid; place-content: center; text-align: center; }
+  .focus-grid[data-align-rows="one"] .friends { display: flex; flex-direction: column; gap: 12px; }
+  .focus-grid[data-align-rows="one"] .friends > .friends-online.is-empty { flex: 1; display: grid; place-content: center; justify-items: center; text-align: center; gap: 4px; padding: 16px; border-radius: var(--radius-control); background: var(--ground); }
+}
+@media (min-width: 1000px) and (min-height: 601px) {
+  /* three cards with Focus together last: Today tightens so it and the sessions card can share the space equally */
+  .focus-grid[data-align-rows="one"] > .stack:has(> .focus-widgets + .focus-sessions + .friends:last-child) .fw-goal { padding: 0 0 10px; }
+  .focus-grid[data-align-rows="one"] > .stack:has(> .focus-widgets + .focus-sessions + .friends:last-child) .fw-next { padding: 10px 0; }
+  .focus-grid[data-align-rows="one"] > .stack:has(> .focus-widgets + .focus-sessions + .friends:last-child) .fw-capture { padding-top: 10px; }
+  .focus-grid[data-align-rows="one"] > .stack:has(> .focus-widgets + .focus-sessions + .friends:last-child) .focus-widgets > header { margin-bottom: 8px; }
+}

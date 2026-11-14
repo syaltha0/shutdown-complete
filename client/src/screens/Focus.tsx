@@ -70,6 +70,9 @@ function useAlignedBottomRow() {
           if (lastH + gap + prevH > h + 1) { if (was != null) delete el.dataset.alignRows; return; }
           el.style.setProperty('--pair-h', `${h - gap - lastH}px`);
           el.dataset.alignRows = 'pair';
+        } else if (kids.length === 2) {
+          // two cards (Today and the sessions): they share the column in equal halves (user, 2026-11-14)
+          el.dataset.alignRows = 'halves';
         } else {
           // three cards with the blocks summary and no Focus together keep their natural layout
           if (kids.length >= 3 && last.classList.contains('focus-byblock')) return;
@@ -347,7 +350,9 @@ export function Focus() {
             <Chart label={T.focusFourWeeks} deps={[from28, vals.join(), T.locale]} draw={(el, C) => C.bars(el, {
               labels: days28.map((d) => shortDate(d)),
               values: vals,
-              colour: themeColor('--chart-1'), mutedColour: themeColor('--chart-1'), height: Math.min(240, Math.max(120, el.clientHeight)),
+              // today is the one bar in the data colour; with no focus yet today, a thin marker shows where today is
+              highlight: 27, colour: themeColor('--hue'), mutedColour: themeColor('--chart-1'), height: Math.min(240, Math.max(120, el.clientHeight)),
+              annotations: vals[27] ? undefined : [{ at: 27, label: T.nav.today, short: T.nav.today }],
               format: (v: number) => duration(v), tickFormat: (v: number) => T.minShort(v),
               xAt: days28.map((_, i) => (i % (el.clientWidth < 640 ? 14 : 7) === 0 ? i : -1)).filter((i) => i >= 0),
             })} />

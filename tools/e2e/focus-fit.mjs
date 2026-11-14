@@ -30,7 +30,10 @@ try {
  const rect=s=>document.querySelector(s).getBoundingClientRect();
  const chartElement=document.querySelector('.focus-history .chart');
  const token=getComputedStyle(chartElement).getPropertyValue('--chart-1').trim();
- const chartTheme=[...chartElement.querySelectorAll('.chart-bar')].every(e=>e.getAttribute('fill')===token);
+ const hue=getComputedStyle(chartElement).getPropertyValue('--hue').trim();
+ // every bar takes the theme's muted chart colour, except today's, which takes the data colour
+ const bars=[...chartElement.querySelectorAll('.chart-bar')];
+ const chartTheme=bars.every((e,i)=>e.getAttribute('fill')===(i===bars.length-1?hue:token)||(i===bars.length-1&&e.getAttribute('fill')===token));
  const l=rect('.focus-left'),r=rect('.focus-grid > .stack'),chart=rect('.focus-history .chart');
  const list=document.querySelector('.session-scroll');
  const total=document.querySelector('.sessions .total'), timer=document.querySelector('.focus-secondary');
