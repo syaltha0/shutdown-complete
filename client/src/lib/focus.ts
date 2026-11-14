@@ -121,6 +121,32 @@ export function resetCycle(key = dayKey()) {
   return updateKey<DayDoc>(key, emptyDay, (d) => (d.focus ? { ...d, focus: { ...d.focus, cycleFrom: (d.focus.sessions ?? []).length, skippedRounds: 0 } } : d));
 }
 
+/**
+ * Ties a logged session to one of the day's blocks afterwards (or back to no block, with `blockId` null): its name and
+ * kind follow the block, and the focus metric gains or gives back its minutes as it moves in or out of deep work.
+ */
+export function linkSession(settings: Settings, sessionId: string, blockId: string | null, freeLabel: string, key = dayKey()) {
+  const f = settingsFocus(settings);
+  return updateKey<DayDoc>(key, emptyDay, (d) => {
+    const x = withFocus(d);
+    const old = x.focus.sessions.find((s) => s.id === sessionId);
+    if (!old) return d;
+    const block = blockId ? x.columns.flatMap((c) => c.blocks).find((b) => b.id === blockId) : undefined;
+    if (blockId && !block) return d;
+    const kind: Kind | null = block?.kind ?? null;
+    const next: FocusSession = { ...old, blockId: block?.id ?? null, label: block ? block.label || old.label : freeLabel, kind, subject: block?.subject };
+    if (!block) delete next.subject;
+    let metrics = x.metrics;
+    const def = settings.metrics.find((m) => m.id === f.metricId && m.kind === 'number');
+    const change = (kind === 'deep' ? old.minutes : 0) - (old.kind === 'deep' ? old.minutes : 0);
+    if (def && change) {
+      const prev = typeof metrics[def.id] === 'number' ? (metrics[def.id] as number) : 0;
+      metrics = { ...metrics, [def.id]: Math.max(0, Math.round((prev + change / 60) * 100) / 100) };
+    }
+    return { ...x, metrics, focus: { ...x.focus, sessions: x.focus.sessions.map((s) => (s.id === sessionId ? next : s)) } };
+  });
+}
+
 export function cancelFocus(key = dayKey()) {
   return updateKey<DayDoc>(key, emptyDay, (d) => (d.focus ? { ...d, focus: { ...d.focus, active: null } } : d));
 }

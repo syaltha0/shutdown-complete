@@ -10,7 +10,7 @@ import { BlockChip, BlockSheet } from '../components/BlockPicker';
 import { addDays, clock, duration, nowMinutes, shortDate, today } from '../lib/dates';
 import { Chart, themeColor } from '../components/Chart';
 import {
-  cancelFocus, cycleDone, extendFocus, focusMinutes, MAX_PLANNED, mmss,  pauseFocus, resumeFocus, secondsLeft,
+  cancelFocus, cycleDone, linkSession, extendFocus, focusMinutes, MAX_PLANNED, mmss,  pauseFocus, resumeFocus, secondsLeft,
   resetCycle, settingsFocus, startFocus, resetFocus, useFocusDay,
 } from '../lib/focus';
 import { useT } from '../lib/i18n';
@@ -150,6 +150,8 @@ export function Focus() {
     return () => window.removeEventListener('keydown', escape);
   }, [config]);
   const [picking, setPicking] = useState(false);
+  // a logged session being tied to a block afterwards
+  const [linking, setLinking] = useState<string | null>(null);
   const chipRef = useRef<HTMLButtonElement>(null);
   const closePicker = () => setPicking(false);
   // the chip is inert while the list is open, so focus goes back to it once the list has closed
@@ -162,7 +164,8 @@ export function Focus() {
     else if (autoRoom.current) { autoRoom.current = false; setRoom(false); if (document.fullscreenElement) void document.exitFullscreen().catch(() => {}); }
   }, [a?.phase, f.fullscreenBreak]);
   const openRoom = () => { try { document.documentElement.requestFullscreen?.().catch(() => {}); } catch { /* not allowed here */ } setRoom(true); };
-  const chosen = blockId === undefined ? current?.id ?? null : blockId;
+  // starting straight away is unplanned focus; a block is tied to it only when chosen (user, 2026-11-14)
+  const chosen = blockId ?? null;
   const chosenBlock = blocks.find((b) => b.id === chosen) ?? null;
   // the block shown on the chip: the one the running timer belongs to, else the one chosen to focus on
   const shownBlock = a ? blocks.find((b) => b.id === a.blockId) ?? null : chosenBlock;
@@ -303,7 +306,7 @@ export function Focus() {
               <span className="muted num">{T.sessionN(a?.phase === 'focus' ? cycleNo : roundsDone, f.longEvery)}</span>
               {!a && roundsDone >= 1 && <button type="button" className="btn ghost sm focus-cycle-reset" onClick={() => resetCycle(key)}>{T.cycleReset}</button>}
             </div>
-            <BlockChip block={shownBlock} label={a ? a.label || T.freeFocus : chosenBlock ? chosenBlock.label || T.untitledBlock : T.freeFocus} open={picking} locked={!!a} onOpen={() => setPicking(true)} chipRef={chipRef} />
+            <BlockChip block={shownBlock} label={a ? a.label || T.freeFocus : chosenBlock ? chosenBlock.label || T.untitledBlock : T.freeFocus} open={picking} locked={!!a} onOpen={() => setPicking(true)} chipRef={chipRef} suggest={!a && !chosenBlock && current ? current.label || T.untitledBlock : undefined} />
             {!a && <form className="focus-setup" onSubmit={(e) => { e.preventDefault(); if (day) startFocus(begin); }}>
               <div className="focus-go"><button type="submit" className="btn primary big" disabled={!day}>{phase === 'focus' ? T.startFocus : T.focusStartBreak}</button></div>
             </form>}
@@ -379,6 +382,8 @@ export function Focus() {
             <h2 id="fs-h">{T.sessionsToday}<small className="session-count num">{T.sessionCount(sessions.length, duration(total))}</small></h2>
             <a className="card-link" href={`/day/${today()}`} onClick={onLinkClick}>{T.nav.today}</a>
           </header>
+          {linking && <BlockSheet blocks={blocks} value={sessions.find((x) => x.id === linking)?.blockId ?? null} nowMin={now} focusedMin={byBlock} title={T.linkSessionTitle}
+            onChoose={(id) => { const sid = linking; setLinking(null); void linkSession(settings, sid, id, T.freeFocus, key); }} onClose={() => setLinking(null)} />}
           {sessions.length === 0 ? <div className="empty fs-empty">
             <div className="fs-empty-copy"><b>{T.noSessions}</b><span>{T.noSessionsHint}</span></div>
             {/* a faint outline of the rows that will come, so the empty card reads as the list it will become */}
@@ -392,6 +397,7 @@ export function Focus() {
                   <div className="session" key={s.id}>
                     <span className="t num">{clock(st.getHours() * 60 + st.getMinutes())}–{clock(en.getHours() * 60 + en.getMinutes())}</span>
                     <span className="l" title={s.label || T.freeFocus}>{s.label || T.freeFocus}</span>
+                    {!s.blockId && blocks.length > 0 && <button type="button" className="session-link" onClick={() => setLinking(s.id)}>{T.linkToBlock}</button>}
                     <span className="n num">{duration(s.minutes)}</span>
                     {(s.intent || s.note) && <span className="more">{[s.intent, s.note].filter(Boolean).join(' · ')}</span>}
                   </div>

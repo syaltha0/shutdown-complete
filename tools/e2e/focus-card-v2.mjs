@@ -144,7 +144,7 @@ try {
   const chip = p.locator('.bp-chip');
   const chipText = await chip.innerText();
   const hh = (m) => `${String(Math.floor(m / 60)).padStart(2, '0')}:${String(m % 60).padStart(2, '0')}`;
-  check('the chip shows the block name, its hours and a deep mark', /Alpha now/.test(chipText) && chipText.includes(`${hh(at - 20)}–${hh(at + Math.round(40 * k))}`) && await chip.locator('.bp-kind.deep').count() === 1);
+  check('starting straight away is unplanned: the chip offers to link a block and names the one running now', /Link to a block/.test(chipText) && /now: Alpha now/.test(chipText) && await chip.locator('.bp-time.num').count() === 0);
   check('the old Now / Change row and the hidden select are gone', await p.locator('.focus-block-row, #fc-block').count() === 0 && await p.locator('#fc-task, #fc-intent').count() === 0);
   const h0 = await p.locator('.focus-panel').evaluate((e) => e.getBoundingClientRect().height);
   await chip.click();
@@ -157,12 +157,14 @@ try {
   check('with headings for now, up next and earlier', JSON.stringify(await p.locator('.bp-heading').allInnerTexts()) === JSON.stringify(['Now', 'Up next', 'Earlier']));
   check('each shows its hours; the minutes already focused show too', (await p.locator('.bp-sheet').getByRole('option').nth(2).innerText()).includes(`${hh(at + Math.round(60 * k))}–${hh(at + Math.round(100 * k))}`) && /40 m focused/.test(await p.locator('.bp-sheet').getByRole('option').nth(4).innerText()));
   check('past blocks are muted', await p.locator('.bp-option.is-past').count() === 1 && await p.locator('.bp-option.is-past').evaluate((e) => getComputedStyle(e).color) !== await p.locator('.bp-option').first().evaluate((e) => getComputedStyle(e).color));
-  check('the chosen block is marked selected and active', await p.locator('.bp-sheet').getByRole('option').nth(1).getAttribute('aria-selected') === 'true' && await combo.getAttribute('aria-activedescendant') === await p.locator('.bp-sheet').getByRole('option').nth(1).getAttribute('id'));
+  check('unplanned focus, the current choice, is marked selected and active', await p.locator('.bp-sheet').getByRole('option').first().getAttribute('aria-selected') === 'true' && await combo.getAttribute('aria-activedescendant') === await p.locator('.bp-sheet').getByRole('option').first().getAttribute('id'));
+  await p.keyboard.press('ArrowDown');
   await p.keyboard.press('ArrowDown');
   await p.keyboard.press('ArrowDown');
   check('the arrow keys move the active option', await combo.getAttribute('aria-activedescendant') === await p.locator('.bp-sheet').getByRole('option').nth(3).getAttribute('id'));
   await p.keyboard.press('Enter');
   await p.locator('.bp-sheet').waitFor({ state: 'detached' });
+  check('a chosen block shows on the chip with its hours and its kind', chipText !== await chip.innerText() && (await chip.innerText()).includes(`${hh(at + Math.round(120 * k))}–${hh(at + Math.round(180 * k))}`) && await chip.locator('.bp-kind.deep').count() === 1);
   check('Enter chooses it: the chip changes and keyboard focus returns to it', /Gamma later/.test(await chip.innerText()) && await p.evaluate(() => document.activeElement?.classList.contains('bp-chip')));
   await chip.click();
   await p.keyboard.type('beta');
@@ -173,7 +175,7 @@ try {
   await p.keyboard.type('zzz');
   check('no match says so and keeps the unplanned focus', await p.locator('.bp-none').isVisible() && await p.locator('.bp-sheet').getByRole('option').count() === 1);
   await p.keyboard.press('Enter');
-  check('unplanned focus chooses no block', /Unplanned focus/.test(await chip.innerText()) && await chip.locator('.bp-time').count() === 0);
+  check('unplanned focus chooses no block', /Link to a block/.test(await chip.innerText()) && await chip.locator('.bp-time.num').count() === 0);
   await chip.press('ArrowDown');
   await p.locator('.bp-sheet').waitFor();
   await p.locator('.bp-sheet').getByRole('option', { name: /Beta later/ }).click();
@@ -190,6 +192,18 @@ try {
   check('on a phone the list stays inside the card with no sideways scroll', fits);
   await p.keyboard.press('Escape');
   await p.setViewportSize({ width: 1440, height: 900 });
+
+  // ---------- 2b. an unplanned session tied to a block afterwards ----------
+  await planDay(plan, [session(1, 30, { blockId: null, label: 'Unplanned focus', kind: null })]);
+  const m0 = (await doc()).metrics?.deep ?? 0;
+  await open();
+  await p.locator('.session-link').first().click();
+  await p.locator('.focus-sessions .bp-sheet').waitFor();
+  await p.locator('.focus-sessions .bp-sheet').getByRole('option', { name: /Alpha now/ }).click();
+  const linked = await until(async () => { const x = await doc(); return x.focus.sessions[0]?.blockId === 'pa' ? x : null; });
+  check('an unplanned session can be linked to a block later: its name and kind follow the block', linked && linked.focus.sessions[0].label === 'Alpha now' && linked.focus.sessions[0].kind === 'deep');
+  check('linking it to a deep block adds its minutes to the deep focus metric', linked && Math.abs((linked.metrics?.deep ?? 0) - m0 - 0.5) < 0.01);
+  check('a linked session no longer offers the link', await p.locator('.session-link').count() === 0);
 
   // ---------- 3. the running controls ----------
   await planDay([]);

@@ -678,3 +678,21 @@ button.bp-chip:hover { background: var(--raised); }
 .bp-progress i { display: block; height: 100%; background: var(--hue); }
 .bp-option.is-past .bp-name { color: var(--muted); }
 @media (max-width: 480px) { .bp-option { grid-template-columns: 78px minmax(0, 1fr) 16px; column-gap: 8px; } .bp-top h3 { font-size: 15px; } }
+
+/* Unplanned by default: the chip is a quiet "+ Link to a block"; a logged unplanned session offers the same link */
+.bp-chip.is-empty { border-style: dashed; background: transparent; color: var(--muted); }
+.bp-chip.is-empty:hover { color: var(--text); background: var(--raised); }
+.bp-chip.is-empty .bp-name { flex: 0 1 auto; font-weight: 400; }
+.bp-chip.is-empty .bp-time { flex: 0 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.bp-plus { flex: none; font-size: 16px; line-height: 1; }
+.focus-sessions { position: relative; }
+.focus-sessions > .bp-sheet { padding: 16px var(--card-pad, 20px); border-radius: inherit; }
+.session-link { justify-self: end; margin: 0; padding: 0 4px; border: 0; border-radius: 4px; background: transparent; color: var(--muted); font: inherit; font-size: 12px; text-decoration: underline; text-underline-offset: 3px; cursor: pointer; }
+.session-link:hover { color: var(--text); }
+
+.session:has(> .session-link) { grid-template-columns: 96px minmax(0, 1fr) auto auto; }
+@media (max-width: 860px) {
+  .session:has(> .session-link) { grid-template-columns: minmax(0, 1fr) auto; }
+  .session:has(> .session-link) .t { grid-column: 1; }
+  .session .session-link { grid-column: 2; grid-row: 2; }
+}

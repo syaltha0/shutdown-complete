@@ -24,10 +24,18 @@ const range = (b: Block) => `${clock(b.start)}–${clock(b.end)}`;
  * The block the focus belongs to, as a chip on the timer card: its name, its hours, whether it is deep work, and a
  * chevron. Pressing it opens the list (BlockSheet). While a timer runs the chip only shows the block (locked).
  */
-export function BlockChip({ block, label, open, locked, onOpen, chipRef }: {
+export function BlockChip({ block, label, open, locked, onOpen, chipRef, suggest }: {
   block: Block | null; label: string; open: boolean; locked: boolean; onOpen: () => void; chipRef: React.RefObject<HTMLButtonElement | null>;
+  /** with no block chosen: the block running now, offered beside "Link to a block" */ suggest?: string;
 }) {
   const T = useT();
+  // nothing chosen: unplanned focus, and a quiet button to tie a block to it
+  if (!block && !locked) return (
+    <button ref={chipRef} type="button" className="bp-chip is-empty" aria-haspopup="listbox" aria-expanded={open} onClick={onOpen}
+      onKeyDown={(e) => { if (e.key === 'ArrowDown' || e.key === 'ArrowUp') { e.preventDefault(); onOpen(); } }}>
+      <span className="sr-only">{T.freeFocus}. </span><span className="bp-plus" aria-hidden="true">+</span><span className="bp-name">{T.linkToBlock}</span>{suggest && <span className="bp-time">{T.nowIs(suggest)}</span>}
+    </button>
+  );
   const body = <>
     <span className="sr-only">{T.blockPick}: </span>
     <span className="bp-name">{label}</span>
@@ -50,8 +58,8 @@ type Entry = { key: string; id: string | null; block: Block | null; past: boolea
  * with their hours, those already past (muted), and last the unplanned focus. Each shows the minutes already focused on
  * it. Arrow keys move, Enter chooses, Esc closes; the field is the combobox and the list its listbox.
  */
-export function BlockSheet({ blocks, value, nowMin, focusedMin, onChoose, onClose }: {
-  blocks: Block[]; value: string | null; nowMin: number; focusedMin: (b: Block) => number; onChoose: (id: string | null) => void; onClose: () => void;
+export function BlockSheet({ blocks, value, nowMin, focusedMin, onChoose, onClose, title }: {
+  blocks: Block[]; value: string | null; nowMin: number; focusedMin: (b: Block) => number; onChoose: (id: string | null) => void; onClose: () => void; title?: string;
 }) {
   const T = useT();
   const uid = useId();
@@ -96,7 +104,7 @@ export function BlockSheet({ blocks, value, nowMin, focusedMin, onChoose, onClos
   return (
     <div className="bp-sheet" onKeyDown={onKeyDown} onBlur={(e) => { if (!e.currentTarget.contains(e.relatedTarget)) onClose(); }}>
       <div className="bp-top">
-        <h3>{T.blockSheetTitle}</h3>
+        <h3>{title ?? T.blockSheetTitle}</h3>
         <button type="button" className="btn ghost sm bp-close" onClick={onClose}><IconX />{T.close}</button>
       </div>
       <div className="bp-search">

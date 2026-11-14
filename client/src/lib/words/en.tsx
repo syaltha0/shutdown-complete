@@ -406,6 +406,7 @@ export const en = {
   skipTitle: 'Skip this focus?', skipRan: (n: number, of: number) => `You have focused ${n} min of ${of}.`, skipElapsed: (n: number) => `Count the time so far (${n} min)`, skipFull: (n: number) => `Count the whole session (${n} min)`, skipCancel: 'Keep going', stop: 'Stop',
   stopAsk: (n: number) => `Discard ${n} min?`, focusPaused: 'paused',
   inBlock: (l: string) => `In block: ${l}`,
+  linkToBlock: 'Link to a block', nowIs: (name: string) => `now: ${name}`, linkSessionTitle: 'Which block was this session for?',
   blockSheetTitle: 'What will you focus on?', freeFocusHint: 'Without a block from today’s plan',
   freeFocus: 'Unplanned focus',
   actualLegend: 'Focus done',
