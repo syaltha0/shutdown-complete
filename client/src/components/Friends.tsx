@@ -38,6 +38,7 @@ export function FriendsPanel() {
   const [picking, setPicking] = useState(false);
   const [chosen, setChosen] = useState<string[]>([]);
   const [len, setLen] = useState(settingsFocus(settings).focusMin);
+  const [copied, setCopied] = useState(false);
   const [, tick] = useState(0);
   useEffect(() => { const t = window.setInterval(() => tick((x) => x + 1), 30_000); return () => window.clearInterval(t); }, []);
   if (!S) return null;
@@ -76,12 +77,13 @@ export function FriendsPanel() {
   return (
     <section className="panel friends" aria-labelledby="fr-h" data-anim>
       <header>
-        <h2 id="fr-h">{T.together}</h2>
+        <h2 id="fr-h">{T.together}{S.friends.length > 0 && <small className="session-count num">{T.friendCount(S.friends.length, S.online.length)}</small>}</h2>
         <button type="button" className="friends-opt" aria-expanded={optOpen} aria-controls="fr-options" onClick={() => setOptOpen(!optOpen)}>
           {T.friendsOptions}
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" aria-hidden="true"><path d="m9 5 7 7-7 7" /></svg>
         </button>
       </header>
+      <p className="muted together-hint">{T.togetherHint}</p>
       <div className="together-form">
         <label className="sr-only" htmlFor="together-length">{T.lengthLabel}</label>
         <select id="together-length" className="input num" value={len} disabled={running} onChange={(e) => setLen(Number(e.target.value))}>
@@ -89,10 +91,16 @@ export function FriendsPanel() {
         </select>
         <button type="button" className="btn" disabled={busy || (running && !S.room?.isHost)} onClick={() => together()}>{T.togetherLink}</button>
       </div>
-      {link && <label className="together-link">{T.togetherLinkHint}<input className="input" readOnly value={link} onFocus={(e) => e.target.select()} /></label>}
+      {link && <div className="together-link"><label htmlFor="together-url">{T.togetherLinkHint}</label>
+        <div className="together-link-row"><input id="together-url" className="input" readOnly value={link} onFocus={(e) => e.target.select()} />
+          <button type="button" className="btn" onClick={() => { void navigator.clipboard?.writeText(link).then(() => { setCopied(true); window.setTimeout(() => setCopied(false), 2000); }, () => {}); }}>{copied ? T.linkCopied : T.copyLink}</button></div></div>}
       <div className={`friends-online${S.online.length ? '' : ' is-empty'}`}>
         <h3>{T.onlinePeople}</h3>
-        {S.online.length ? <ul className="friend-list">{S.online.map((u) => <li key={u.id}><i className="dot" aria-hidden="true" /><b>{u.name}</b><button className="btn" disabled={busy || (running && !S.room?.isHost)} onClick={() => together(u.id)}>{T.inviteFriend(u.name)}</button></li>)}</ul> : <p className="muted friends-empty">{T.onlineNone}</p>}
+        {S.online.length ? <ul className="friend-list">{S.online.map((u) => <li key={u.id} className="with-avatar"><i className="avatar" aria-hidden="true">{(u.name.trim()[0] ?? '?').toLocaleUpperCase(T.locale)}</i><span className="who"><b>{u.name}</b>{(() => { const f = S.friends.find((x) => x.id === u.id); return f?.status ? <small className="muted">{status(f)}</small> : null; })()}</span><button className="btn" disabled={busy || (running && !S.room?.isHost)} onClick={() => together(u.id)}>{T.inviteFriend(u.name)}</button></li>)}</ul> : <>
+          {/* three empty seats: the people who will be here */}
+          <svg className="seats" width="72" height="32" viewBox="0 0 72 32" stroke="currentColor" strokeWidth="1.5" aria-hidden="true">{[16, 36, 56].map((x) => <g key={x}><circle cx={x} cy="16" r="14" fill="var(--surface)" /><circle cx={x} cy="13" r="4.5" fill="none" /><path d={`M${x - 7} 25a7 6 0 0 1 14 0`} fill="none" /></g>)}</svg>
+          <p className="muted friends-empty">{T.onlineNone}</p>
+        </>}
       </div>
       {S.invites.map((r) => (
         <div className="invite-row" key={r.id}>

@@ -160,3 +160,11 @@
 .drift-note p { margin: 0; }
 .drift-note .drift-acts { display: flex; flex-wrap: wrap; gap: 8px; }
 @media (max-width: 600px) { .block.short .bd { display: none; } } /* a narrow short block keeps its title; the dashed edge and the dialog carry the news */
+
+/* Focus together: a line on how it works, a link to copy, people with their initial, and empty seats when nobody is online */
+.together-hint { margin: 0; font-size: var(--fs-small); line-height: 1.5; }
+.together-link-row { display: flex; gap: 8px; min-width: 0; }
+.together-link-row .input { flex: 1; }
+.friend-list li.with-avatar { grid-template-columns: 28px minmax(0, 1fr) auto; }
+.friend-list .avatar { display: grid; place-items: center; width: 28px; height: 28px; border-radius: 50%; background: var(--ground); color: var(--text); font-size: 12px; font-style: normal; font-weight: 500; }
+.friends-online .seats { display: none; color: var(--control); }

@@ -618,3 +618,18 @@ button.bp-chip:hover { background: var(--raised); }
 .fs-ghost-row i { display: block; height: 8px; border-radius: 4px; background: var(--rule); }
 .fs-ghost-row i:last-child { justify-self: end; }
 @media (min-width: 1000px) and (max-height: 820px) { .focus-grid .fs-ghost { display: none; } }
+
+/* Focus together in its own row: empty seats fill the online box; tight rows drop the hint */
+@media (min-width: 1000px) and (min-height: 601px) {
+  .focus-grid[data-align-rows="one"] .friends > .friends-online.is-empty { gap: 8px; }
+  .focus-grid[data-align-rows="one"] .friends-online.is-empty .seats { display: block; }
+  .focus-grid > .stack:has(> :nth-child(4)) .together-hint { display: none; }
+}
+@media (min-width: 1000px) and (max-height: 820px) {
+  .focus-grid .together-hint, .focus-grid .friends-online .seats, .focus-grid .friends-online .who small { display: none; }
+  .focus-grid .friend-list li.with-avatar { grid-template-columns: 22px minmax(0, 1fr) auto; }
+  .focus-grid .friend-list .avatar { width: 22px; height: 22px; font-size: 11px; }
+}
+/* the "time to go" line under the goal only where Today has room: not in a four-card column or a short window */
+.focus-grid > .stack:has(> :nth-child(4)) .fw-left { display: none; }
+@media (min-width: 1000px) and (max-height: 820px) { .focus-grid .fw-left { display: none; } }
