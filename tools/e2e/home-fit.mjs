@@ -11,6 +11,37 @@ try {
  await context.addCookies([{name:'sc_session',value:api.cookie.split('=')[1],url:s.url}]);
  const p=await context.newPage();
  const settings=(await api.get('settings')).value;
+ // Hello's five day states use a fixed local noon, independent of test run time.
+ const {iso}=await import('../lib/demo.mjs');
+ const noon=new Date();noon.setHours(12,0,0,0);
+ await p.clock.install({time:noon});
+ const key='day:'+iso(noon), original=(await api.get(key)).value;
+ await api.put('settings',{...settings,schedule:[]});
+ mkdirSync('reports/shots/overview-hello',{recursive:true});
+ const block=(id,start,end,label)=>({id,start,end,label,note:'',kind:'deep'});
+ for(const state of ['active','before','ended','closed','empty']) {
+  const blocks=state==='empty'?[]:state==='active'?[block('now',690,780,'Writing the next chapter'),block('next',810,840,'Shutdown ritual')]:state==='before'?[block('first',810,870,'Writing')]:[block('done',540,600,'Writing')];
+  await api.put(key,{...original,columns:[{id:'hello',blocks}],activeColumn:'hello',focus:{sessions:[],active:null},shutdown:{done:state==='closed',at:state==='closed'?new Date(noon.getTime()-60000).toISOString():null,steps:{}}});
+  for(const [width,height] of [[1440,900],[390,844]]) for(const theme of ['light','dark']) {
+   await p.setViewportSize({width,height});await p.goto(s.url+'/');await p.locator('.b-hello').waitFor();await p.waitForTimeout(250);
+   await p.evaluate(t=>document.documentElement.dataset.theme=t,theme);
+   const tile=p.locator('.b-hello');
+   assert.ok(await tile.evaluate(e=>e.scrollHeight<=e.clientHeight+1 && e.scrollWidth<=e.clientWidth+1),'Hello fits: '+state+' '+width);
+   assert.equal(await tile.locator('[role=progressbar]').count(),state==='active'?1:0);
+   await p.screenshot({path:'reports/shots/overview-hello/'+state+'-'+width+'-'+theme+'.png',fullPage:true});
+  }
+  if(state==='active') {
+   await p.locator('.b-hello button.primary').click();await p.waitForURL('**/focus');
+   await p.clock.runFor(1500);await p.waitForTimeout(300);
+   const running=(await api.get(key)).value.focus.active;
+   assert.equal(running.blockId,'now');assert.equal(running.pausedLeft,null);assert.ok(running.startedAt);
+  }
+  if(state==='ended') {await p.locator('.b-hello a.primary').click();await p.waitForURL('**/shutdown/'+iso(noon));}
+  if(state==='before'||state==='empty') {await p.locator('.b-hello a.primary').click();await p.waitForURL('**/day/'+iso(noon));}
+ }
+ await api.put(key,original);await api.put('settings',settings);
+ await p.clock.resume();
+ console.log('PASS Hello: five states, 20 screenshots, focus timer and action routes');
  for(const empty of [false,true]) {
   if(empty) {
    // Clear known demo keys through the same API used to seed the account.

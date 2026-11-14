@@ -1,23 +1,18 @@
-.b-hello {
-  justify-content: center;
-}
-.b-now {
-  font-size: clamp(20px, 2vw, 30px);
-  line-height: 1.2;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-.b-actions {
-  display: flex;
-  align-items: center;
-  gap: 16px;
-  margin-top: 6px;
-  min-width: 0;
-}
-.b-actions .btn {
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  max-width: 70%;
-}
+﻿.b-hello { justify-content: center; }
+.b-now { font-size: clamp(20px, 2vw, 30px); line-height: 1.2; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.b-hello-detail { display: grid; gap: 5px; min-width: 0; font-size: 12px; line-height: 1.3; }
+.b-hello-detail > span, .b-hello-next { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.b-hello-time { display: flex; justify-content: space-between; gap: 12px; font-variant-numeric: tabular-nums; }
+.b-hello-time > :last-child { color: var(--hue); }
+.b-hello-progress { height: 3px; background: var(--border); overflow: hidden; border-radius: 2px; }
+.b-hello-progress > span { display: block; height: 100%; background: var(--hue); }
+.b-actions { display: flex; align-items: center; gap: 8px; margin-top: 2px; min-width: 0; }
+.b-actions .btn { min-width: 0; max-width: 70%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 12px; padding: 5px 10px; }
+.b-actions .btn:last-child { flex-shrink: 0; }
+.b-hello-error { font-size: 11px; }
+@media (max-height: 820px) and (min-width: 861px) { .b-hello-detail { gap: 3px; font-size: 11px; } .b-hello .b-now { font-size: 22px; } .b-hello .b-actions .btn { padding: 3px 8px; } }
+.bento .b-hello { gap: 6px; }
+.b-hello .b-now { flex-shrink: 0; }
+.b-hello .b-actions .btn { min-height: 30px; line-height: 1.2; }
+.b-hello-detail { gap: 3px; }
+@media (max-height: 820px) and (min-width: 861px) { .bento .b-hello { gap: 4px; } .b-hello .b-actions .btn { min-height: 26px; } }
