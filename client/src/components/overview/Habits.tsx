@@ -7,7 +7,7 @@ export function Habits({ T, settings, day, update, B, recent, docOf, t }: Overvi
   const done = habits.filter((m) => day?.metrics[m.id] === true).length;
   return (
     <section className="panel b-habits">
-      <header><h2>{T.nav.habits}</h2><span className="num" aria-live="polite">{habits.length > 0 && B.habitsToday(done, habits.length)}</span></header>
+      <header><h2>{T.nav.habits}</h2>{habits.length > 0 && <a className="b-habits-count num" href="/habits" onClick={onLinkClick} aria-label={`${B.habitsToday(done, habits.length)} · ${B.habitsOpen}`}><span aria-live="polite">{B.habitsToday(done, habits.length)}</span><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" aria-hidden="true"><path d="m9 5 7 7-7 7" /></svg></a>}</header>
       {habits.length > 0 ? <>
         <div className="b-habit-list" role="group" aria-label={T.nav.habits} tabIndex={0}>
           {habits.map((m) => {
@@ -29,7 +29,7 @@ export function Habits({ T, settings, day, update, B, recent, docOf, t }: Overvi
         </div>
         {done === habits.length && <small className="b-habits-complete">{B.habitsComplete}</small>}
       </> : <p>{B.noHabits}</p>}
-      <a className="b-act" href="/habits" onClick={onLinkClick}><span>{habits.length ? B.habitsOpen : B.habitsAdd}</span><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" aria-hidden="true"><path d="m9 5 7 7-7 7" /></svg></a>
+      {habits.length === 0 && <a className="b-act" href="/habits" onClick={onLinkClick}><span>{B.habitsAdd}</span><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" aria-hidden="true"><path d="m9 5 7 7-7 7" /></svg></a>}
     </section>
   );
 }

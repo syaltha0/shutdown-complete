@@ -24,11 +24,13 @@ try {
    assert.equal(await tile.locator('.b-habits-complete').count(),state==='complete'?1:0);
    if(count===6){await tile.locator('button').last().scrollIntoViewIfNeeded();assert.ok(await tile.locator('button').last().isVisible());await tile.locator('.b-habit-list').evaluate(e=>e.scrollTop=0);}
    assert.ok(await tile.evaluate(e=>e.scrollWidth<=e.clientWidth+1&&e.scrollHeight<=e.clientHeight+1),'tile fits '+state+width);
+   // up to four habits are all in view, with no scrolling inside the tile (user, 2026-11-14)
+   if(count&&count<=3&&width>1000) assert.ok(await tile.evaluate(e=>{const b=e.getBoundingClientRect().bottom;return [...e.querySelectorAll('.b-habit-row')].every(r=>r.getBoundingClientRect().bottom<=b+1);}),'every habit row in view '+state+width);
    if(count){const dots=tile.locator('.b-habit-row').first().locator('.b-habit-week > span');assert.equal(await dots.count(),7);for(let i=0;i<7;i++)assert.equal(await dots.nth(i).getAttribute('data-done'),String(i===6||i%2===0));}
    await p.screenshot({path:`reports/shots/overview-habits/${state}-${width}-${theme}.png`,fullPage:true});
   }
   if(count){const button=p.locator('.b-habits button').first();await button.click();await p.waitForTimeout(700);assert.equal((await api.get('day:'+dates[6])).value.metrics['habit-0'],false);await button.click();await p.waitForTimeout(700);assert.equal((await api.get('day:'+dates[6])).value.metrics['habit-0'],true);await p.reload();await p.locator('.b-habits button[aria-pressed=true]').first().waitFor();}
-  await p.locator('.b-habits .b-act').click();await p.waitForURL('**/habits');
+  await p.locator('.b-habits .b-act, .b-habits .b-habits-count').first().click();await p.waitForURL('**/habits');
  }
  console.log('PASS habits: 16 screenshots, fit, real seven-day history, persisted toggle both ways, habits route');
 } finally {await b.close();await s.stop();}

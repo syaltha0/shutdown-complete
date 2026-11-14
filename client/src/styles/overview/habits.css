@@ -20,3 +20,14 @@
 .b-habits :focus-visible { outline: 2px solid var(--focus-ring); outline-offset: 2px; border-radius: 4px; }
 @media (max-width: 1100px) { .b-habit-row { flex-wrap: wrap; gap: 0; } .b-habits .b-chip { flex-basis: 100%; } .b-habit-week { margin: 0 0 4px 25px; } }
 .b-habits .b-habit-list { max-height: 180px; }
+
+/* all habits in view without scrolling: compact rows, and the count in the header leads to Habits */
+.bento .b-habits { gap: 4px; }
+.b-habit-row { min-height: 22px; padding: 0; }
+.b-habits .b-chip { min-height: 22px; font-size: 13px; }
+.b-habits .b-chip i { width: 16px; height: 16px; }
+.b-habits .b-chip svg { width: 12px; }
+/* more habits than fit scroll inside the tile; up to about four fit as they are */
+.b-habits .b-habit-list { overflow: auto; flex: 1 1 auto; min-height: 0; max-height: none; }
+.b-habits-count { display: inline-flex; align-items: center; gap: 2px; color: var(--muted); font-size: 12px; text-decoration: none; }
+.b-habits-count:hover > span { text-decoration: underline; text-underline-offset: 3px; }

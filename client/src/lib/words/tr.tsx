@@ -685,6 +685,8 @@ serverStatus: { remedy: 'İlgili ayarı veya kurulum yönergesini aç',"title":"
   overviewSummary: (done: number, total: number, focus: string, tasks: number, all: number) => `${total} bloktan ${done} bitti · ${focus} odak · ${all} görevden ${tasks} bitti`,
   overviewWeek: (focus: string, streak: number) => `Bu hafta: ${focus} odak · ${streak} günlük kapanış serisi`,
   bento: {
+    helloUpNext: 'Sıradaki',
+    helloTomorrow: 'Yarın',
     openLeft: (n: number) => n === 0 ? 'Tamamlanacak bir şey kalmadı' : `Tamamlanacak ${n} öğe`,
     openCompleted: (s: string) => `Tamamlandı: ${s}`,
     openMore: (n: number) => `+${n} görev daha`,
@@ -711,7 +713,7 @@ serverStatus: { remedy: 'İlgili ayarı veya kurulum yönergesini aç',"title":"
     timelineRevision: (n: number) => `${n}. revizyon`,
     timelineEmpty: 'Plan yok · Bugünü planla ›',
     timelineBlock: (name: string, start: string, end: string, minutes: number) => `${name} · ${start}–${end} · ${minutes} dk odak`,
-    timeline: 'Bugünün zaman çizelgesi',
+    timeline: 'Bugünün planı',
     ahead: 'Önümüzdeki 14 gün',
     recent: 'Son 7 gün',
     weeks: '12 hafta',

@@ -699,6 +699,8 @@ export const en = {
   overviewSummary: (done: number, total: number, focus: string, tasks: number, all: number) => `${done} of ${total} blocks · ${focus} focused · ${tasks} of ${all} tasks`,
   overviewWeek: (focus: string, streak: number) => `This week: ${focus} focused · ${streak} day shutdown streak`,
   bento: {
+    helloUpNext: 'Up next',
+    helloTomorrow: 'Tomorrow',
     openLeft: (n: number) => n === 0 ? 'Nothing left to close' : `${n} left to close`,
     openCompleted: (s: string) => `Completed: ${s}`,
     openMore: (n: number) => `+${n} more tasks`,

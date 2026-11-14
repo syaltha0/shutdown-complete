@@ -26,3 +26,16 @@
 .b-act:hover > span { text-decoration: underline; text-underline-offset: 3px; }
 .b-act:disabled { opacity: .5; cursor: default; }
 .b-act:focus-visible { outline: 2px solid var(--focus-ring); outline-offset: 3px; border-radius: 4px; }
+
+/* content from the top, actions at the foot, and what comes next on the right (user, 2026-11-14) */
+.bento .b-hello { flex-direction: row; justify-content: flex-start; gap: 24px; }
+.b-hello-main { display: flex; flex-direction: column; gap: 6px; flex: 1 1 auto; min-width: 0; }
+.b-hello-main .b-actions { margin-top: auto; }
+.b-hello-side { flex: 0 0 38%; min-width: 0; display: flex; flex-direction: column; gap: 6px; padding-left: 20px; border-left: 1px solid var(--rule); }
+.b-hello-side h3 { margin: 0; font-size: 12px; font-weight: 500; color: var(--muted); }
+.b-hello-side ul { margin: 0; padding: 0; list-style: none; display: grid; gap: 6px; }
+.b-hello-side li { display: grid; grid-template-columns: 42px minmax(0, 1fr); gap: 8px; font-size: 13px; }
+.b-hello-side li > span:first-child { color: var(--muted); }
+.b-hello-side li > span:last-child { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.b-hello-side li .deep { font-weight: 500; }
+@media (max-width: 860px) { .bento .b-hello { flex-direction: column; } .b-hello-side { flex-basis: auto; padding: 10px 0 0; border-left: 0; border-top: 1px solid var(--rule); } }

@@ -153,10 +153,14 @@ dialog.sheet .kb-dlg form { padding: 0; }
 .b-hello { grid-column:span 2; }
 .bento .b-timeline { grid-column:1/-1; }
 .b-open { grid-row:span 2; }
-.b-streak { grid-column:2; grid-row:4; }
+.b-focus { grid-column:2; grid-row:3; }
+.b-tasks { grid-column:2; grid-row:4; }
 .b-ahead { grid-column:3/5; grid-row:3/5; }
 .b-recent { grid-column:span 2; }
 .b-heat { grid-column:span 2; }
-.no-habits .b-streak { grid-row:3/5; }
+.no-habits .b-streak { grid-column:span 2; }
 @media (max-height:820px) and (min-width:861px) { .home.overview.bento { gap:8px; min-height:560px; } .bento .panel { padding:10px 12px; gap:5px; } }
 @media (max-width:860px) { .home.overview.bento { height:auto; min-height:0; grid-template-columns:repeat(2,minmax(0,1fr)); grid-template-rows:none; grid-auto-flow:row dense; } .bento .panel { grid-row:auto; grid-column:auto; min-height:140px; } .bento .b-hello { grid-column:1/-1; } .bento .b-timeline { grid-column:1/-1; } .bento .b-open { grid-column:1/-1; } .bento .b-ahead { grid-column:1/-1; } .bento .b-recent { grid-column:1/-1; } .bento .b-heat { grid-column:1/-1; } }
+
+/* links whose words underline themselves get no second line from the link (user, 2026-11-14) */
+.bento a:has(> span):hover { text-decoration: none; }

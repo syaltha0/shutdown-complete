@@ -25,12 +25,12 @@ export function Home() {
         className={`home overview bento${featureOn(settings, "habits") ? "" : " no-habits"}`}
       >
         <Hello {...data} />
-        <FocusToday {...data} />
-        <TasksToday {...data} />
-        <Timeline {...data} />
-        <StillOpen {...data} />
         {featureOn(settings, "habits") && <Habits {...data} />}
         <Streak {...data} />
+        <Timeline {...data} />
+        <StillOpen {...data} />
+        <FocusToday {...data} />
+        <TasksToday {...data} />
         <Ahead {...data} />
         <LastDays {...data} />
         <Weeks {...data} />
