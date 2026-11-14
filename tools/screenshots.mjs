@@ -56,6 +56,7 @@ try {
   await tasks.close();
   await shoot(light, '/tasks', 'tasks.jpg');
   await shoot(light, `/year/${D.slice(0, 4)}`, 'year.jpg');
+  await shoot(light, `/shutdown/${D}`, 'shutdown.jpg');
   const room = await light.newPage();
   await room.goto(srv.url + '/focus');
   await room.getByRole('button', { name: 'Focus room', exact: true }).click();
