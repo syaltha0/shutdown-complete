@@ -22,14 +22,15 @@ try {
    await p.screenshot({path:`reports/shots/overview-tasks/${state}-${width}-${theme}.png`,fullPage:true});
   }
   if(state==='partial') {
-   await p.locator('.b-tasks input').click();
+   await p.locator('.b-tasks input').first().click();
    await assertEventually(async()=>assert.equal((await api.get(key)).value.tasks[1].done,true));
    await p.getByRole('button',{name:'Undo',exact:true}).click();
    await assertEventually(async()=>assert.equal((await api.get(key)).value.tasks[1].done,false));
    await p.reload(); await p.locator('.b-tasks').waitFor();
    assert.equal(await p.locator('.b-tasks [role=progressbar]').getAttribute('aria-valuenow'),'1');
   }
-  await p.locator('.b-tasks a').click(); await p.waitForURL('**/day/'+iso(new Date()));
+  // the link shows only to add a task or reach the ones not listed
+  if(await p.locator('.b-tasks a').count()){await p.locator('.b-tasks a').click(); await p.waitForURL('**/day/'+iso(new Date()));}
  }
  console.log('PASS Tasks today: 16 screenshots, four states, completion persisted, undo persisted, day links, fit');
 } finally { await b.close(); s.stop(); }

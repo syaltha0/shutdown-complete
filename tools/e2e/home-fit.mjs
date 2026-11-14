@@ -56,7 +56,7 @@ try {
   if(state==='running') {
    const mutations=await p.evaluate(async()=>{let n=0;const mo=new MutationObserver(list=>n+=list.length);mo.observe(document.querySelector('.b-focus'),{subtree:true,childList:true,attributes:true,characterData:true});await new Promise(r=>setTimeout(r,3200));mo.disconnect();return n;});
    assert.equal(mutations,0,'Overview focus stays unchanged between minute ticks');
-   await p.clock.runFor(60000);assert.match(await p.locator('.b-focus-status').innerText(),/24/,'Remaining minutes update');
+   await p.clock.runFor(60000);assert.match(await p.locator('.b-focus .b-rt-summary').innerText(),/24/,'Remaining minutes update');
   }
   await p.locator('.b-focus .b-act').click();await p.waitForURL('**/focus');
  }
@@ -87,7 +87,7 @@ try {
     assert.equal(await p.locator('.b-calendar>small').count(),7,'One weekday header');
     assert.equal(await p.locator('.b-calendar>a').count(),14,'Two complete weeks');
     assert.equal(await p.locator('.b-calendar>a').first().evaluate(e=>new Date(e.getAttribute('href').split('/').pop()+'T12:00:00').getDay()),1,'Calendar starts on Monday');
-    assert.ok(await p.locator('.b-truncate').evaluate(e=>e.clientHeight>=16),'Next task stays visible');
+    assert.ok(await p.locator('.b-tasks .b-truncate, .b-tasks .b-rt-summary').first().evaluate(e=>e.clientHeight>=16),'Next task stays visible');
     if(width>860){assert.ok(fit.scroll<=1,JSON.stringify({width,height,...fit}));assert.ok(fit.overflow.length===0,JSON.stringify({width,height,...fit}));assert.ok(fit.rings.every(n=>n<=2));assert.ok(fit.strip<=40);assert.ok(Math.abs(fit.bottom-(height-32))<=1,JSON.stringify({width,height,...fit}));}
     if(!disabled.length && [1904,1440,390].includes(width))for(const theme of ['light','dark']){await p.evaluate(t=>document.documentElement.dataset.theme=t,theme);await p.waitForTimeout(600);await p.screenshot({path:`reports/shots/home-v6/${empty?'empty':'full'}-${width}-${height}-${theme}.png`,fullPage:true});}
    }

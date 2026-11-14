@@ -362,7 +362,7 @@ try {
     await wait(1200);
     check('a task can be written from the overview', (await doc(`day:${D}`)).tasks.some((x) => x.text === 'Buy a notebook'));
     check('coming up lists the exam with its countdown', await page.locator('.b-events a', { hasText: 'Physics final' }).isVisible());
-    await page.getByRole('link', { name: 'Open today' }).first().click();
+    await page.locator('.b-timeline a').first().click();
     check('and the day is one click away', await page.waitForURL(`**/day/${D}`, { timeout: 4000 }).then(() => true, () => false));
   }
 

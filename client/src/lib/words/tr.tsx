@@ -685,6 +685,7 @@ serverStatus: { remedy: 'İlgili ayarı veya kurulum yönergesini aç',"title":"
   overviewSummary: (done: number, total: number, focus: string, tasks: number, all: number) => `${total} bloktan ${done} bitti · ${focus} odak · ${all} görevden ${tasks} bitti`,
   overviewWeek: (focus: string, streak: number) => `Bu hafta: ${focus} odak · ${streak} günlük kapanış serisi`,
   bento: {
+    tasksOpen: (n: number) => `${n} açık`,
     helloUpNext: 'Sıradaki',
     helloTomorrow: 'Yarın',
     openLeft: (n: number) => n === 0 ? 'Tamamlanacak bir şey kalmadı' : `Tamamlanacak ${n} öğe`,

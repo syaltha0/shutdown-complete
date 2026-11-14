@@ -51,7 +51,6 @@ export function Hello({ T, settings, t, now, plan, B, day, docs }: OverviewData)
     <div className="b-actions">
       {cur ? <button type="button" className="b-act main" disabled={starting} onClick={focus}><span>{active ? T.helloResume : T.focusOn(label)}</span><Chev /></button>
         : !closed && <a className="b-act main" href={ended ? `/shutdown/${t}` : `/day/${t}`} onClick={onLinkClick}><span>{ended ? T.runShutdown : T.helloPlan}</span><Chev /></a>}
-      <a className="b-act" href={`/day/${t}`} onClick={onLinkClick}><span>{T.openToday}</span><Chev /></a>
     </div>
     {failed && <span role="alert" className="b-hello-error">{T.helloFocusError}</span>}
     </div>

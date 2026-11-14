@@ -5,7 +5,6 @@
 .b-streak-summary small { margin-left: auto; }
 .b-streak-days { display: grid; grid-template-columns: repeat(14, minmax(0, 1fr)); gap: 4px; padding: 2px; }
 .b-streak-days a { display: block; height: 12px; border: 1px solid var(--control); border-radius: 2px; }
-.b-streak-days a.weekend { border-bottom-width: 3px; }
 .b-streak-days a.on { background: var(--hue); border-color: var(--hue); }
 .b-streak-days a.today { outline: 1px solid var(--muted); outline-offset: 2px; }
 .b-streak-days a.today:not(.on) { border-style: dashed; }
