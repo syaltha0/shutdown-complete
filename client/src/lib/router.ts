@@ -38,3 +38,17 @@ export function onLinkClick(e: React.MouseEvent<HTMLAnchorElement>) {
   e.preventDefault();
   navigate(href);
 }
+
+/** Wait for a destination section to mount, including during view transitions. */
+export function navigateSection(id: string) {
+  const reveal = () => {
+    const el = document.getElementById(id);
+    if (!el || location.pathname !== '/settings') return false;
+    el.scrollIntoView({block:'start'}); el.focus({preventScroll:true}); return true;
+  };
+  const observer = new MutationObserver(()=>{if(reveal()) observer.disconnect();});
+  observer.observe(document.body,{childList:true,subtree:true});
+  navigate('/settings#'+id);
+  requestAnimationFrame(()=>{if(reveal()) observer.disconnect();});
+  setTimeout(()=>observer.disconnect(),5000);
+}

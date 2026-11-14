@@ -1,7 +1,7 @@
 ﻿import { useEffect, useRef, useState } from 'react';
 import { useAccount, useSettings } from '../App';
 import { useT, dict } from '../lib/i18n';
-import { navigate } from '../lib/router';
+import { navigate, navigateSection } from '../lib/router';
 import { addDays, today, weekOf, monthOf, quarterOf } from '../lib/dates';
 import { emptyInbox, featureOn, uid, type Feature, type InboxDoc } from '../lib/model';
 import { useDoc, updateKey } from '../lib/useDoc';
@@ -50,6 +50,8 @@ export default function CommandPalette({ onClose }: { onClose: () => void }) {
   ];
   const { user } = useAccount();
   const commands: Command[] = destinations.filter(([, , , f]) => !f || featureOn(settings,f)).map(([id,path,shortcut]) => ({id, label:id === 'year' ? T.year.go : T.nav[id], keywords:`${dict('en').nav[id]} ${dict('tr').nav[id]}`,shortcut,run:()=>navigate(path)}));
+  const sections = [['s-hours','workday'],['s-notif','notifications'],['s-focus','focus'],['s-data','data']] as const;
+  for (const [id,name] of sections) commands.push({id, label:P.sections[name], keywords:dict('en').palette.sections[name]+' '+dict('tr').palette.sections[name],run:()=>navigateSection(id)});
   if(user.isAdmin) commands.push({id:'server-status',label:T.serverStatus.title,run:()=>navigate('/settings/status')});
   commands.push({id:'agenda',label:T.calendarViews.agenda,keywords:'agenda ajanda',shortcut:'A',run:()=>navigate('/agenda')});
   commands.push({id:'plan',label:T.keys.planWeek,keywords:`${dict('en').keys.planWeek} ${dict('tr').keys.planWeek}`,shortcut:'P',run:()=>navigate(`/plan/${weekOf(t)}`)}, {id:'review',label:T.review.open,keywords:`${dict('en').review.open} ${dict('tr').review.open}`,run:()=>navigate(`/review/${weekOf(t)}`)});
