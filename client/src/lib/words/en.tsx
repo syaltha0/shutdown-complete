@@ -396,6 +396,7 @@ export const en = {
   fwPlanDay: 'Open the day to plan',
   fwNoBlocks: 'No more blocks planned today',
   focusTitle: 'Focus',
+  focusCycle: (n: number, total: string) => `One cycle: ${n} focus rounds with their breaks, ${total}`,
   focusGroups: { durations: 'Durations', flow: 'Flow', audio: 'Sound', breaks: 'Special breaks', preview: 'Listen', empty: 'Add a break at a specific time of day.', autoBreak: 'Begin a break when a focus session ends.', autoFocus: 'Begin focusing when a break ends.', fullscreenBreak: 'Show the focus room for a quieter break.', strict: 'Keep pause, reset and skip locked during focus.' },
   focusOptions: { shortcuts: 'Focus: start/pause, finish/skip, reset, +5 min', voice: 'Spoken notifications', sound: 'Bell sound', bell: 'Bell', classic: 'Classic', soft: 'Soft', single: 'Single', breakVoice: 'Time for a break', focusVoice: 'Time to focus', scheduled: 'Scheduled breaks', breakName: 'Break name', breakTime: 'Break time', addBreak: 'Add break', removeBreak: 'Remove break', strict: 'Strict focus mode', fullscreenBreak: 'Open focus room during breaks', autoBreak: 'Start breaks automatically', autoFocus: 'Start focus automatically' },
   phase: { focus: 'Focus', short: 'Short break', long: 'Long break' } as Record<string, string>,

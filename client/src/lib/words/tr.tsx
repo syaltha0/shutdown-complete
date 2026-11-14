@@ -381,6 +381,7 @@ serverStatus: { remedy: 'İlgili ayarı veya kurulum yönergesini aç',"title":"
   fwPlanDay: 'Planlamak için günü aç',
   fwNoBlocks: 'Bugün planlı başka blok yok',
   focusTitle: 'Odak',
+  focusCycle: (n: number, total: string) => `Bir döngü: molalarıyla ${n} odak turu, ${total}`,
   focusGroups: { durations: 'Süreler', flow: 'Akış', audio: 'Ses', breaks: 'Özel molalar', preview: 'Dinle', empty: 'Günün belirli bir saati için mola ekleyin.', autoBreak: 'Odak oturumu bitince molayı başlatır.', autoFocus: 'Mola bitince odak oturumunu başlatır.', fullscreenBreak: 'Molada odak odasını gösterir.', strict: 'Odak sırasında duraklatma, sıfırlama ve atlamayı kilitler.' },
   focusOptions: { shortcuts: 'Odak: başlat/duraklat, bitir/atla, sıfırla, +5 dk', voice: 'Sesli bildirimler', sound: 'Zil sesi', bell: 'Zil', classic: 'Klasik', soft: 'Yumuşak', single: 'Tek ton', breakVoice: 'Mola zamanı', focusVoice: 'Odak zamanı', scheduled: 'Planlı molalar', breakName: 'Mola adı', breakTime: 'Mola saati', addBreak: 'Mola ekle', removeBreak: 'Molayı sil', strict: 'Sıkı odak modu', fullscreenBreak: 'Molalarda odak odasını aç', autoBreak: 'Molaları otomatik başlat', autoFocus: 'Odağı otomatik başlat' },
   phase: { focus: 'Odak', short: 'Kısa mola', long: 'Uzun mola' },
