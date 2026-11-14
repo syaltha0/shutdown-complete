@@ -568,3 +568,6 @@ button.bp-chip:hover { background: var(--raised); }
 /* and while a break carries that field the ring is a little smaller, so the card still holds everything */
 
 .focus-config .focus-scroll-hint { position:sticky; top:0; z-index:1; margin:0 0 8px; padding:4px 0; background:var(--surface); border-bottom:1px solid var(--border); }
+
+.mini-timer[data-compact="true"]:not([data-open="true"]) .mt-trigger > .mt-phase-label { display: block; position: absolute; right: 48px; top: 12px; padding: 1px 5px; border-radius: 4px; background: var(--surface); color: var(--text); }
+.mini-timer[data-compact="true"][data-h="left"]:not([data-open="true"]) .mt-trigger > .mt-phase-label { right: auto; left: 48px; }
