@@ -1,4 +1,4 @@
-﻿// Retakes the README screenshots in docs/screenshots/ from a throwaway demo planner.
+// Retakes the README screenshots in docs/screenshots/ from a throwaway demo planner.
 //   npm run build && node tools/screenshots.mjs
 import { mkdirSync } from 'node:fs';
 import { join, resolve } from 'node:path';
@@ -67,6 +67,17 @@ try {
   await dark.addInitScript(CLOCK);
   await dark.addCookies([{ name: 'sc_session', value: api.cookie.split('=')[1], url: srv.url }]);
   await shoot(dark, `/day/${D}`, 'day-dark.jpg');
+
+  // the same planner on a phone, for the README showcase (tools/render-showcase.mjs)
+  const phone = { viewport: { width: 390, height: 844 }, deviceScaleFactor: 2, isMobile: true, hasTouch: true, locale: 'en-GB', reducedMotion: 'reduce' };
+  for (const [scheme, suffix] of [['light', ''], ['dark', '-dark']]) {
+    const ctx = await browser.newContext({ ...phone, colorScheme: scheme });
+    await ctx.addInitScript(CLOCK);
+    await ctx.addCookies([{ name: 'sc_session', value: api.cookie.split('=')[1], url: srv.url }]);
+    await shoot(ctx, `/day/${D}`, `phone-day${suffix}.jpg`);
+    await shoot(ctx, '/focus', `phone-focus${suffix}.jpg`);
+    await ctx.close();
+  }
 
   // signed out, with the tutorial a few seconds in
   const guest = await browser.newContext({ viewport: { width: 1440, height: 900 }, locale: 'en-GB' });
