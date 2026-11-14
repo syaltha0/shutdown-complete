@@ -142,3 +142,42 @@ dialog.sheet .kb-dlg form { padding: 0; }
 .day-line button { border: 0; min-width: 4px; cursor: pointer; height: 40px; }
 .day-line button:focus-visible { outline: 2px solid var(--focus-ring); outline-offset: -2px; }
 .timeline-detail { overflow-wrap: anywhere; padding: 8px 0; }
+
+/* Overview: equal columns, naturally sized rows flowing from the top. */
+.home.overview { display: grid; grid-template-columns: 1.05fr 1fr 1fr; gap: 16px; height: calc(100dvh - 150px); min-height: 440px; font-size: 14px; }
+.overview .panel { min-width: 0; min-height: 0; display: flex; flex-direction: column; gap: 10px; padding: 18px; }
+.overview .panel header { flex: none; }
+.overview h2 { font-size: 16px; margin: 0; }
+.overview h3 { font-size: 13px; margin: 12px 0 4px; }
+.overview p { margin: 4px 0; }
+.overview-middle { display: grid; grid-template-rows: 1fr 1fr; gap: 16px; min-height: 0; min-width: 0; }
+.overview-scroll { overflow: auto; min-height: 0; scrollbar-gutter: stable; }
+.overview-summary { color: var(--muted); font-size: 13px; line-height: 1.5; }
+.overview-list { list-style: none; padding: 0; margin: 0; display: grid; align-content: start; gap: 4px; }
+.overview-list li { padding: 5px 0; border-bottom: 1px solid var(--rule); line-height: 20px; overflow-wrap: anywhere; }
+.overview a { color: inherit; text-decoration: none; }
+.overview a:hover { text-decoration: underline; }
+.overview-list .overview-block { padding: 2px 0; display: grid; grid-template-columns: 42px minmax(0,1fr); column-gap: 8px; }
+.overview-block small { grid-column: 2; font-size: 12px; line-height: 14px; color: var(--muted); }
+.overview-block a { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.overview-block.done { opacity: .6; }
+.overview .current { color: var(--hue); }
+.overview-task { display: flex; align-items: start; gap: 8px; }
+.overview-date b { display: block; font-size: 12px; font-weight: 500; color: var(--muted); }
+.overview-focus { align-self: start; max-width: 100%; white-space: normal; }
+.overview .home-habits { margin: 6px 0; }
+.overview-day { display: grid; grid-template-columns: 58px 48px minmax(20px,1fr) 14px 14px 14px; gap: 6px; align-items: center; font-size: 13px; }
+.overview-bar { height: 4px; background: var(--ground); }
+.overview-bar i { display: block; height: 100%; background: currentColor; }
+.overview footer { flex: none; font-size: 13px; }
+@media (max-width: 1000px) and (min-width: 861px) { .home.overview { gap: 10px; } .overview .panel { padding: 12px; } .overview-day { gap: 3px; grid-template-columns: 48px 40px minmax(10px,1fr) 12px 12px 12px; } }
+@media (max-width: 860px) { .home.overview { height: auto; min-height: 0; grid-template-columns: minmax(0,1fr); } .overview-middle { display: contents; } .overview-scroll { overflow: visible; } }
+
+@media (min-width: 861px) {
+  .home.overview { grid-template-columns: 1fr 1fr; grid-template-rows: 56% minmax(0,1fr); }
+  .overview-middle { display: contents; }
+  .overview .home-today { grid-area: 1 / 1; }
+  .overview .home-recent { grid-area: 1 / 2; }
+  .overview .home-tasks { grid-area: 2 / 1; }
+  .overview .home-coming { grid-area: 2 / 2; }
+}
