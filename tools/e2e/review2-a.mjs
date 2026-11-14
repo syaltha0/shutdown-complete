@@ -15,11 +15,11 @@ try {
  const task={id:'waiting-review',text:'Waiting approval',waiting:true,waitingNote:'Publisher approval',review:date,done:false,due:date};
  const blocks=[{id:'night-a',start:1450,end:1480,label:'Night A',kind:'deep',note:'',task:{id:task.id,list:'day',day:date}},{id:'night-b',start:1500,end:1530,label:'Night B',kind:'deep',note:''}];
  await api.put('day:'+date,{...base,tasks:[task],columns:[{from:null,closedAt:null,blocks}],focus:{sessions:[],active:{phase:'long',startedAt:new Date().toISOString(),plannedMin:15,pausedLeft:null,blockId:'night-a',label:'Night A'}}});
- await p.goto(s.url+'/'); await p.locator('.day-line button').first().waitFor();
+ await p.goto(s.url+'/'); await p.locator('.b-track i').first().waitFor();
  await p.evaluate(() => document.fonts.ready);
- const boxes=await p.locator('.day-line button').evaluateAll(es=>es.map(e=>{const r=e.getBoundingClientRect();return {x:r.x,right:r.right,width:r.width}}));
+ const boxes=await p.locator('.b-track i').evaluateAll(es=>es.map(e=>{const r=e.getBoundingClientRect();return {x:r.x,right:r.right,width:r.width}}));
  assert(boxes[0].width>0 && boxes[0].right<=boxes[1].x,'overnight blocks do not overlap');
- const ticks=await p.locator('.day-ticks span').evaluateAll(es=>es.map(e=>{const r=e.getBoundingClientRect();return {x:r.x,right:r.right}}));
+ const ticks=await p.locator('.b-ticks span').evaluateAll(es=>es.map(e=>{const r=e.getBoundingClientRect();return {x:r.x,right:r.right}}));
  for(let i=1;i<ticks.length;i++) assert(ticks[i-1].right<=ticks[i].x,'time labels do not overlap');
  await p.screenshot({path:dir+'/after-night.png'});
  const mini=p.locator('.mini-timer'); await mini.waitFor();
