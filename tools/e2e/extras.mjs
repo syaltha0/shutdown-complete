@@ -46,6 +46,8 @@ const errors = [];
 page.on('pageerror', (e) => errors.push(e.message));
 const row = (text) => page.locator('.tk-main .tk-row', { hasText: text });
 
+// repeat, time and other rarer fields live in the task detail's Advanced fold
+const openAdvanced = async () => { const f = page.locator('.tk-advanced').first(); if (await f.count() && !(await f.evaluate((d) => d.open))) await f.locator('summary').click(); };
 try {
   // ---------- 3: a rule that ends ----------
   await page.goto(`${srv.url}/tasks`);
@@ -59,6 +61,7 @@ try {
   t = await task('t4');
   check('the second tick ends it for good', t.done && t.doneAt === D && (await page.locator('.undo-note').textContent()).includes('last time'));
   await row('Buy milk').locator('.tk-open').click();
+  await openAdvanced();
   await page.locator('#tk-rep').selectOption('weekly');
   await page.locator('#tk-end').selectOption('count');
   await page.locator('.tk-ends input[type=number]').fill('3');
@@ -76,6 +79,7 @@ try {
   const soon = new Date(Date.now() + 3 * 60_000);
   const hhmm = `${pad(soon.getHours())}:${pad(soon.getMinutes())}`;
   await row('Read chapter 5').locator('.tk-open').click();
+  await openAdvanced();
   await page.locator('.tk-detail input[type=time]').fill(hhmm);
   await page.locator('.tk-detail .tk-two select').selectOption('5');
   await wait(1500);
