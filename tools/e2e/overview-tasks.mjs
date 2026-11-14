@@ -16,6 +16,8 @@ try {
   for (const [width,height] of [[1440,900],[390,844]]) for (const theme of ['light','dark']) {
    await p.setViewportSize({width,height}); await p.goto(s.url); const tile=p.locator('.b-tasks'); await tile.waitFor();
    await p.evaluate(t=>document.documentElement.dataset.theme=t,theme); await p.evaluate(()=>document.fonts.ready);
+   await p.waitForFunction(expected => document.querySelector('.b-tasks [role=progressbar]')?.getAttribute('aria-valuenow') === String(expected), done);
+   assert.equal(await tile.locator('input[type=checkbox]').count(),Math.min(3,count-done));
    assert.equal(await tile.locator('[role=progressbar]').getAttribute('aria-valuenow'),String(done));
    assert.ok(await tile.evaluate(e=>e.scrollHeight<=e.clientHeight+1 && e.scrollWidth<=e.clientWidth+1),'Tile fits '+state+' '+width);
    assert.ok(await p.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),'No horizontal overflow');

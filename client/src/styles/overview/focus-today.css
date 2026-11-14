@@ -21,3 +21,10 @@
 .b-focus .b-act:hover > span { text-decoration: underline; text-underline-offset: 3px; }
 .b-focus .b-act:focus-visible { outline: 2px solid var(--focus-ring); outline-offset: 3px; border-radius: 4px; }
 
+
+.b-focus-stats { display:grid; gap:3px; font-size:11px; color:var(--muted); line-height:1.4; }
+.b-focus .b-rt-summary { margin:2px 0; }
+.bento .b-focus .b-ring { width:52px; height:52px; }
+
+.b-focus-stats { grid-template-columns:1fr 1fr; gap:2px 8px; } .b-focus-stats > :first-child { grid-column:1/-1; }
+.b-focus-stats > span { font-size:10px; }

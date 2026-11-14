@@ -17,6 +17,9 @@ try {
   for(let i=0;i<14;i++) await api.put('day:'+date(i),{...base,tasks:state==='empty'?[]:[{id:'done',text:'Completed task',done:true}],shutdown:{done:state!=='empty'&&i%2===0,at:null,steps:{}},focus:{active:null,sessions:vals[i]?[{id:'session',minutes:vals[i],kind:'deep',blockId:null,label:'',start:now.toISOString(),end:now.toISOString()}]:[]}});
   for(const [width,height] of [[1440,900],[1904,1015],[390,844]]) for(const theme of ['light','dark']) {
    await p.setViewportSize({width,height});await p.goto(s.url+'/');const tile=p.locator('.b-recent');await tile.waitFor();await p.waitForTimeout(300);await p.evaluate(t=>document.documentElement.dataset.theme=t,theme);
+   const expected = state === 'empty' ? Array(7).fill(String.fromCharCode(8211)) : Array.from({length:7},(_,i)=>state==='today-zero'&&i===6?String.fromCharCode(8211):state==='over-goal'?'4 h':'1 h');
+   await p.waitForFunction(values => { const cells=[...document.querySelectorAll('.b-recent-value')]; return cells.length===7 && cells.every((e,i)=>(e.querySelector('.b-duration-wide')?.textContent ?? e.textContent)?.trim()===values[i]); },expected);
+   assert.equal(await tile.locator('.b-recent-goal').count(),0);
    assert.ok(await tile.evaluate(e=>e.scrollWidth<=e.clientWidth+1&&e.scrollHeight<=e.clientHeight+1),'tile fits '+state+' '+width);
    assert.equal(await tile.locator('.b-bars a').count(),7);
    assert.equal(await tile.locator('.b-bars a').first().getAttribute('href'),'/day/'+date(6));

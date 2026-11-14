@@ -17,3 +17,10 @@
 :root[data-motion="reduce"] .b-tasks-fill { transition: none; }
 @media (max-height:820px) and (min-width:861px) { .bento .b-tasks { gap: 3px; } .b-tasks-ring { width: 46px; } }
 
+
+.b-task-progress { color:var(--muted); font-size:11px; line-height:1.4; margin:0 0 3px; }
+.bento .b-tasks .b-tasks-ring { width:52px; height:52px; }
+.b-tasks-next input { border-radius:50%; }
+
+.b-tasks .b-rt-list { gap:0; } .b-tasks .b-rt-list li,.b-tasks .b-tasks-next { min-height:18px; line-height:18px; }
+.b-tasks .b-rt-body { gap:0; }
