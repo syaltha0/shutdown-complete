@@ -1,4 +1,4 @@
-﻿.bento .b-habits { gap: 5px; }
+.bento .b-habits { gap: 5px; }
 .b-habits header { display: flex; align-items: baseline; justify-content: space-between; gap: 6px; flex-shrink: 0; }
 .b-habits header > span { color: var(--muted); font-size: 11px; white-space: nowrap; }
 .b-habits .b-habit-list { min-height: 32px; overflow: auto; flex: 1; scrollbar-width: thin; }
@@ -31,3 +31,5 @@
 .b-habits .b-habit-list { overflow: auto; flex: 1 1 auto; min-height: 0; max-height: none; }
 .b-habits-count { display: inline-flex; align-items: center; gap: 2px; color: var(--muted); font-size: 12px; text-decoration: none; }
 .b-habits-count:hover > span { text-decoration: underline; text-underline-offset: 3px; }
+
+.b-habits-summary { color: var(--muted); font-size: 12px; } .b-habits.is-sparse .b-habit-list { flex: 0 1 auto; } .b-habits.is-sparse .b-habit-row { flex-wrap: wrap; padding: 5px 0; gap: 5px; } .b-habits.is-sparse .b-chip { flex-basis: 100%; } .b-habits.is-sparse .b-habit-week { margin-left: 23px; gap: 7px; } .b-habits.is-sparse .b-habit-week > span { width: 12px; height: 12px; border-radius: 3px; }

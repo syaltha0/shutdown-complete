@@ -10,6 +10,8 @@ export function Streak({ T, day, t, docOf, B, now, plan }: OverviewData) {
     run = docOf(addDays(t, -i))?.shutdown.done ? run + 1 : 0;
     best = Math.max(best, run);
   }
+  const elapsed = Number(t.slice(8));
+  const count = Array.from({ length: elapsed }, (_, i) => addDays(t, -i)).filter(d => docOf(d)?.shutdown.done).length;
   const closed = !!day?.shutdown.done;
   const at = day?.shutdown.at ? new Date(day.shutdown.at) : null;
   const nearEnd = now >= (plan.length ? Math.max(...plan.map(b => b.end)) - 30 : 17 * 60);
@@ -25,6 +27,7 @@ export function Streak({ T, day, t, docOf, B, now, plan }: OverviewData) {
           className={[done ? "on" : "", weekend ? "weekend" : "", d === t ? "today" : ""].join(" ")} />;
       })}
     </div>
+    <small className="b-streak-month">{B.streakMonth(count, elapsed)}</small>
     {closed ? <span className="b-streak-status">{at && Number.isFinite(at.getTime()) ? B.streakDoneAt(at.toLocaleTimeString(T.locale, { hour: "2-digit", minute: "2-digit", hour12: false })) : B.streakClosed}</span>
       : <a className="b-act" href={`/shutdown/${t}`} onClick={onLinkClick}><span>{!streak ? B.streakStart : nearEnd ? B.streakRun : B.streakTonight}</span><span aria-hidden="true">›</span></a>}
   </section>;

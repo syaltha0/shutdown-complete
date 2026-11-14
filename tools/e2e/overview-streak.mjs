@@ -26,7 +26,7 @@ try {
    const tile=p.locator('.b-streak'); await tile.waitFor();
    await p.waitForTimeout(350); await p.evaluate(t=>document.documentElement.dataset.theme=t,theme);
    assert.equal(await tile.locator('.b-streak-number').innerText(),String(current));
-   assert.equal(await tile.locator('small').innerText(),`Best: ${best}`);
+   assert.equal(await tile.locator('.b-streak-summary small').innerText(),`Best: ${best}`);
    assert.equal(await tile.locator('.b-streak-days a').count(),14);
    assert.equal(await tile.locator('.today.on').count(),closed?1:0);
    assert.ok(await tile.evaluate(e=>e.scrollWidth<=e.clientWidth+1&&e.scrollHeight<=e.clientHeight+1),`${state} fits ${width}`);

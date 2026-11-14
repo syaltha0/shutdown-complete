@@ -20,3 +20,5 @@
   .b-streak-days a { height: 9px; }
   .b-streak .b-act { font-size: 12px; }
 }
+
+.bento .b-streak { justify-content: flex-start; } .b-streak-month { color: var(--muted); font-size: 12px; line-height: 1.5; }

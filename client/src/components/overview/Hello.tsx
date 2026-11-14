@@ -1,12 +1,20 @@
-﻿import { useState } from "react";
+import { useState } from "react";
 import { useAccount } from "../../App";
 import { clock, duration } from "../../lib/dates";
 import { settingsFocus, startFocus, useFocusDay } from "../../lib/focus";
 import { navigate, onLinkClick } from "../../lib/router";
 import type { OverviewData } from "./data";
 import { activeColumn } from "../../lib/model";
+import { weekdayOf, onItsWeek, isExcepted } from "../../lib/repeat";
+import { useDoc } from "../../lib/useDoc";
+import { emptyWeek, type WeekDoc } from "../../lib/model";
+import { weekOf } from "../../lib/dates";
 import { addDays } from "../../lib/dates";
 export function Hello({ T, settings, t, now, plan, B, day, docs }: OverviewData) {
+  const { value: week } = useDoc<WeekDoc>(`week:${weekOf(t)}`, emptyWeek);
+  const weekItems = week?.items.filter(x => !x.done && x.text.trim()).slice(0, 3) ?? [];
+  const template = settings.templates?.find(x => x.days.includes(weekdayOf(t)));
+  const scheduled = settings.schedule?.filter(x => x.days.includes(weekdayOf(t)) && x.since <= t && onItsWeek(x, t) && !isExcepted(settings.exceptions ?? [], t, x.id)).length ?? 0;
   const { user } = useAccount();
   const { active } = useFocusDay();
   const [starting, setStarting] = useState(false);
@@ -52,8 +60,14 @@ export function Hello({ T, settings, t, now, plan, B, day, docs }: OverviewData)
       {cur ? <button type="button" className="b-act main" disabled={starting} onClick={focus}><span>{active ? T.helloResume : T.focusOn(label)}</span><Chev /></button>
         : !closed && <a className="b-act main" href={ended ? `/shutdown/${t}` : `/day/${t}`} onClick={onLinkClick}><span>{ended ? T.runShutdown : T.helloPlan}</span><Chev /></a>}
     </div>
+    {!plan.length && (template || scheduled > 0) && <div className="b-hello-starts">
+      {template && <a className="b-act" href={`/day/${t}`} onClick={onLinkClick}><span>{B.helloTemplate(template.name)}</span><Chev /></a>}
+      {scheduled > 0 && <a className="b-act" href={`/day/${t}`} onClick={onLinkClick}><span>{B.helloSchedule(scheduled)}</span><Chev /></a>}
+    </div>}
+    <small className="b-hello-summary">{plan.length ? B.helloDaySummary(plan.length, duration(plan.filter(b => b.kind === "deep").reduce((n, b) => n + b.end - b.start, 0)), clock(plan[0].start), clock(Math.max(...plan.map(b => b.end)))) : B.helloStartHint}</small>
     {failed && <span role="alert" className="b-hello-error">{T.helloFocusError}</span>}
     </div>
+    {!side && !plan.length && weekItems.length > 0 && <aside className="b-hello-side"><h3>{B.helloWeek}</h3><ul>{weekItems.map(x => <li className="b-hello-week-item" key={x.id}><a href={`/week/${weekOf(t)}`} onClick={onLinkClick}>{x.text}</a></li>)}</ul></aside>}
     {side && <aside className="b-hello-side" aria-label={side.title}>
       <h3>{side.title}</h3>
       <ul>{side.items.map(b => <li key={b.id}><span className="num">{clock(b.start)}</span><span className={b.kind === "deep" ? "deep" : undefined}>{b.label || T.untitledBlock}</span></li>)}</ul>
