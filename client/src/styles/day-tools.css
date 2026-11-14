@@ -180,3 +180,11 @@
 .focus-room .room-ring .focus-read .focus-label { max-width: 100%; }
 .room-ends { font-size: 13px; }
 @media (max-width: 640px) { .room-top { top: 12px; left: 12px; right: 12px; } .room-cycle .num { display: none; } }
+
+/* The room's task bar slides open and shut instead of appearing at once */
+.room-task-drawer { display: grid; grid-template-rows: 0fr; opacity: 0; transition: grid-template-rows 320ms var(--ease-out, cubic-bezier(.2, .8, .2, 1)), opacity 220ms ease; }
+.room-tasks.open .room-task-drawer { grid-template-rows: 1fr; opacity: 1; }
+.room-task-drawer > .room-task-body { min-height: 0; overflow: hidden; padding-block: 0; transition: padding-block 320ms var(--ease-out, cubic-bezier(.2, .8, .2, 1)); }
+.room-tasks.open .room-task-drawer > .room-task-body { overflow: auto; padding-block: 12px; }
+:root[data-motion="reduce"] :is(.room-task-drawer, .room-task-drawer > .room-task-body) { transition: none; }
+@media (prefers-reduced-motion: reduce) { :is(.room-task-drawer, .room-task-drawer > .room-task-body) { transition: none; } }

@@ -25,7 +25,13 @@ export function FocusRoom({ start, onClose }: { start: { blockId: string | null;
   const { active: a, key } = useFocusDay();
   const [sound, setSound] = useState<Ambient | null>(ambientPlaying() ?? ambientPref().sound);
   const [volume, setVolume] = useState(ambientPref().volume);
-  const [tasksOpen, setTasksOpen] = useState(false);
+  const [tasksOpen, setTasksOpenRaw] = useState(false);
+  // the pointer resting on the bar opens it after a moment and leaving closes it after a moment, so a pointer passing
+  // across does not flick it open and shut; a click or the keyboard acts at once
+  const hoverTimer = useRef(0);
+  const setTasksOpen = (v: boolean) => { window.clearTimeout(hoverTimer.current); setTasksOpenRaw(v); };
+  const hoverTasks = (v: boolean) => { window.clearTimeout(hoverTimer.current); hoverTimer.current = window.setTimeout(() => setTasksOpenRaw(v), v ? 140 : 260); };
+  useEffect(() => () => window.clearTimeout(hoverTimer.current), []);
   const [draft, setDraft] = useState('');
   const [pickedTask, setPickedTask] = useState(start.task);
   const skip = useSkip(a, key);
@@ -105,12 +111,13 @@ export function FocusRoom({ start, onClose }: { start: { blockId: string | null;
         <div className="room-cycle"><span className="focus-rounds" aria-hidden="true">{Array.from({ length: f.longEvery }, (_, i) => <i key={i} className={i < roundsDone ? 'done' : phase === 'focus' && i === roundsDone ? 'current' : ''} />)}</span><span className="muted num">{T.sessionN(cycleNo, f.longEvery)}</span></div>
         <button type="button" className="btn ghost room-leave" onClick={leave}><IconX />{T.roomLeave}</button>
       </div>
-      <section className={`room-tasks${tasksOpen ? ' open' : ''}`} onPointerEnter={e => {if (e.pointerType === 'mouse') setTasksOpen(true);}} onPointerLeave={e => {if (e.pointerType === 'mouse' && !e.currentTarget.contains(document.activeElement)) setTasksOpen(false);}} onBlur={e => {if (!e.currentTarget.contains(e.relatedTarget)) setTasksOpen(false);}}>
+      <section className={`room-tasks${tasksOpen ? ' open' : ''}`} onPointerEnter={e => {if (e.pointerType === 'mouse') hoverTasks(true);}} onPointerLeave={e => {if (e.pointerType === 'mouse' && !e.currentTarget.contains(document.activeElement)) hoverTasks(false);}} onBlur={e => {if (!e.currentTarget.contains(e.relatedTarget)) setTasksOpen(false);}}>
         <button className="room-task-tab btn ghost" aria-expanded={tasksOpen} onClick={() => setTasksOpen(!tasksOpen)}>{T.tasks} ({tasks.length})</button>
-        {tasksOpen && <div className="room-task-body">
+        {/* always there, so it can slide: closed it folds to nothing and is out of the tab order */}
+        <div className="room-task-drawer" inert={!tasksOpen} aria-hidden={!tasksOpen || undefined}><div className="room-task-body">
           {tasks.map(t => <div className="room-task-row" key={t.id}><label><input className="check" type="checkbox" checked={false} onChange={() => update(d => ({...d, tasks: d.tasks.map(x => x.id === t.id ? {...x, done: true} : x)}))} />{t.text}</label><button className="btn ghost" aria-pressed={(a?.task ?? pickedTask)?.id === t.id} onClick={() => focusTask(t)}>{T.roomTaskFocus}</button></div>)}
           <form onSubmit={e => {e.preventDefault(); if (draft.trim()) {update(d => ({...d, tasks: [...d.tasks, {id: uid(), text: draft.trim(), done: false}]})); setDraft('');}}}><input className="input" aria-label={T.captureTask} placeholder={T.captureTask} value={draft} onChange={e => setDraft(e.target.value)} /><button className="btn" type="submit">{T.roomTaskAdd}</button></form>
-        </div>}
+        </div></div>
       </section>
       <div className="room-stage">
         <div className="focus-ring room-ring">
