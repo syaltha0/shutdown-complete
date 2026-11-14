@@ -552,7 +552,7 @@ button.bp-chip:hover { background: var(--raised); }
 /* The running controls share one look (card, mini timer, room): the same pill shape, hover, focus ring and disabled state.
    Reset, +5 and Skip are the quiet row; a thin rule sets Stop apart, and asking for its second press turns it to the danger tone. */
 .focus-act { border-radius: 999px; }
-.focus-act:focus-visible { border-radius: 999px; outline: 2px solid var(--hue); outline-offset: 2px; }
+.focus-act:focus-visible { border-radius: 999px; outline: 2px solid var(--focus-ring); outline-offset: 2px; }
 .focus-act:disabled { cursor: not-allowed; color: var(--muted); opacity: 0.55; }
 .focus-act.ghost:disabled:hover { background: transparent; }
 .focus-act.danger { color: var(--negative); border-color: var(--error-border); }

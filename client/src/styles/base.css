@@ -8,7 +8,8 @@ ul, ol { padding: 0; list-style: none; }
 img, svg { display: block; max-width: 100%; }
 button, input, select, textarea { font: inherit; color: inherit; }
 a { color: inherit; text-decoration: none; }
-:focus-visible { outline: 2px solid var(--hue); outline-offset: 2px; border-radius: 4px; }
+:root { --focus-ring: var(--text); }
+:focus-visible { outline: 2px solid var(--focus-ring); outline-offset: 2px; border-radius: 4px; }
 .num, table, .kpi-value { font-variant-numeric: tabular-nums; }
 .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
 .muted { color: var(--muted); }
@@ -140,4 +141,9 @@ textarea.input { height: auto; padding: 8px 12px; line-height: 20px; resize: ver
 @media (min-width: 861px) and (max-height: 620px) {
   .rail-item { height: 30px; }
   .rail .mark { width: 30px; height: 30px; margin-bottom: 4px; }
+}
+
+/* Text fields: being typed in shows as a darker edge, not a thick ring around the box (user, 2026-11-14) */
+:root :is(.input, input:not([type="checkbox"], [type="radio"], [type="range"], [type="color"]), textarea, select):focus-visible {
+  outline: none; border-color: var(--text); box-shadow: none;
 }

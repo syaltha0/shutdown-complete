@@ -9,7 +9,7 @@
 .day-line button.k-deep { background: var(--text); }
 .day-line button.k-personal { background: var(--raised); }
 .day-line button.k-meeting { background: var(--surface); border: 1.5px solid var(--text); }
-.day-line button.current { outline: 2px solid var(--hue); outline-offset: 1px; }
+.day-line button.current { outline: 2px solid var(--focus-ring); outline-offset: 1px; }
 .day-line .now { position: absolute; top: 0; bottom: 0; width: 2px; margin-left: -1px; background: var(--hue); }
 .day-ticks { position: relative; height: 16px; color: var(--muted); font-size: 11px; }
 .day-ticks span { position: absolute; transform: translateX(-50%); white-space: nowrap; }
@@ -140,5 +140,5 @@ dialog.sheet .kb-dlg { padding: 20px; }
 dialog.sheet .kb-dlg form { padding: 0; }
 
 .day-line button { border: 0; min-width: 4px; cursor: pointer; height: 40px; }
-.day-line button:focus-visible { outline: 2px solid var(--hue); outline-offset: -2px; }
+.day-line button:focus-visible { outline: 2px solid var(--focus-ring); outline-offset: -2px; }
 .timeline-detail { overflow-wrap: anywhere; padding: 8px 0; }
