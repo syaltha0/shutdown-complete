@@ -1,4 +1,4 @@
-// Retakes the README screenshots in docs/screenshots/ from a throwaway demo planner.
+﻿// Retakes the README screenshots in docs/screenshots/ from a throwaway demo planner.
 //   npm run build && node tools/screenshots.mjs
 import { mkdirSync } from 'node:fs';
 import { join, resolve } from 'node:path';
@@ -21,6 +21,7 @@ const shoot = async (ctx, path, file, wait = 1400) => {
   const page = await ctx.newPage();
   await page.goto(srv.url + path);
   await page.waitForTimeout(wait);
+  await page.evaluate(() => document.fonts.ready);
   await page.screenshot({ path: join(OUT, file), type: 'jpeg', quality: 84 });
   await page.close();
   console.log(file);
@@ -45,6 +46,22 @@ try {
   await shoot(light, `/month/${D.slice(0, 7)}`, 'month.jpg');
   await shoot(light, `/habits/${D.slice(0, 7)}`, 'habits.jpg');
   await shoot(light, '/focus', 'focus.jpg');
+  const tasks = await light.newPage();
+  await tasks.goto(srv.url + '/tasks');
+  for (const title of ['Draft the next chapter', 'Review research notes', 'Prepare the weekly plan']) {
+    await tasks.getByPlaceholder(/^Add a task/).fill(title);
+    await tasks.getByPlaceholder(/^Add a task/).press('Enter');
+    await tasks.waitForTimeout(300);
+  }
+  await tasks.close();
+  await shoot(light, '/tasks', 'tasks.jpg');
+  await shoot(light, `/year/${D.slice(0, 4)}`, 'year.jpg');
+  const room = await light.newPage();
+  await room.goto(srv.url + '/focus');
+  await room.getByRole('button', { name: 'Focus room', exact: true }).click();
+  await room.locator('.focus-room').waitFor();
+  await room.screenshot({ path: join(OUT, 'focus-room.jpg'), type: 'jpeg', quality: 84 });
+  await room.close();
 
   const dark = await browser.newContext({ ...opts, colorScheme: 'dark' });
   await dark.addInitScript(CLOCK);
