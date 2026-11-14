@@ -13,3 +13,6 @@
 .year-view textarea { width:100%; }
 :root[data-motion="reduce"] .year-cell { transition:none; }
 .year-view input[type="checkbox"] { accent-color: #777; pointer-events:none; }
+
+.year-scroll-hint { display:none; }
+@media(max-width:600px) { .year-scroll-hint { display:block; } .year-months { min-width:1300px; } .year-heat { min-width:1300px; grid-template-rows:repeat(7,22px); gap:4px; } .year-scroll { border-bottom:1px solid var(--border); } }

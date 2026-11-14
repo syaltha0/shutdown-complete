@@ -371,3 +371,5 @@ kbd { display: inline-grid; place-items: center; min-width: 26px; height: 24px; 
 .attn { position: absolute; top: 8px; right: 10px; width: 8px; height: 8px; border-radius: 50%; background: var(--hue); box-shadow: 0 0 0 2px var(--surface); animation: rise-in 300ms var(--ease-out) both; } /* taste-skill-ignore: a ring separates the dot from the icon */
 .welcome .input[aria-invalid="true"] { border-color: var(--negative); }
 .welcome-foot .btn.ready[aria-disabled="true"] { opacity: 1; cursor: default; }
+
+@media(max-width:600px) { .welcome-main { display:flex; flex-direction:column; } .welcome-main .welcome-foot { order:-1; padding:0 0 12px; margin-bottom:12px; border-top:0; border-bottom:1px solid var(--rule); } }

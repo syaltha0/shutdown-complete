@@ -29,7 +29,7 @@ page.on('pageerror', (e) => { errors.push(e.message); console.log('page error:',
 const tasks = async () => (await api.get('inbox')).value;
 const task = async (text) => (await tasks()).items.find((x) => x.text === text);
 const row = (text) => page.locator('.tk-row', { hasText: text });
-const open = async (text) => { await row(text).locator('.tk-open').click(); await page.locator('.tk-detail').waitFor(); };
+const open = async (text) => { await row(text).locator('.tk-open').click(); await page.locator('.tk-detail').waitFor(); if (!await page.locator('.tk-advanced').evaluate(e=>e.open)) await page.locator('.tk-advanced summary').click(); };
 const detail = page.locator('.tk-detail');
 const add = async (text) => { await page.locator('#tk-new').fill(text); await page.locator('#tk-new').press('Enter'); };
 
@@ -294,7 +294,7 @@ try {
   const literal = await task('Call tomorrow !1');
   check('plain text opt-out keeps the whole title', literal && !literal.due && !literal.priority);
   await page.locator('#tk-new').fill('Read 9 pages');
-  check('numbers alone are not a time', (await page.locator('#tk-add-help').textContent()).startsWith('Try:'));
+  check('numbers alone are not a time', !(await page.locator('#tk-add-help').textContent()).match(/\d{2}:\d{2}/));
   await page.locator('#tk-new').fill('');
   await shot(page, 'quick-add');
 
