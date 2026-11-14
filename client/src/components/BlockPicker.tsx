@@ -1,7 +1,14 @@
+import { useBlockTask } from './TaskBlockLink';
 import { useEffect, useId, useMemo, useRef, useState } from 'react';
 import { clock, duration } from '../lib/dates';
 import { useT } from '../lib/i18n';
 import type { Block } from '../lib/model';
+
+function WaitingMark({ block }: { block: Block }) {
+  const T = useT();
+  const { item } = useBlockTask(block);
+  return item?.waiting ? <span className="bp-meta" title={item.waitingNote}>{T.tkWaiting}{item.waitingNote ? ': ' + item.waitingNote : ''}</span> : null;
+}
 
 /** The kind of a block as a small mark (deep: filled, small tasks: outlined) with its name for a screen reader. */
 function KindMark({ kind }: { kind: Block['kind'] }) {
@@ -102,6 +109,7 @@ export function BlockSheet({ blocks, value, nowMin, focusedMin, onChoose, onClos
                 <div key={e.key} id={optionId(e)} role="option" aria-selected={e.id === value} data-active={i === active} className={`bp-option${e.past ? ' is-past' : ''}${e.id === value ? ' is-chosen' : ''}`}
                   onMouseDown={(ev) => ev.preventDefault()} onMouseMove={() => { if (i !== active) setActive(i); }} onClick={() => onChoose(e.id)}>
                   <span className="bp-line"><span className="bp-name">{e.block ? e.block.label || T.untitledBlock : T.freeFocus}</span>{e.block && <KindMark kind={e.block.kind} />}</span>
+                  {e.block && <WaitingMark block={e.block} />}
                   {e.block && <span className="bp-meta num">{range(e.block)}{done > 0 && <> {'·'} {T.blockFocused(duration(done))}</>}</span>}
                 </div>
               );

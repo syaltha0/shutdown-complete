@@ -615,6 +615,9 @@ export const en = {
   tkTrash: 'Trash', tkRestore: 'Restore', tkPurge: 'Delete permanently', tkEmptyTrash: 'Empty trash', tkPurgeConfirm: 'Permanently delete these tasks?', tkTrashHelp: 'Deleted tasks are kept for 30 days.',
   tkFilters: 'Saved filters', tkFilterNew: 'New filter', tkFilterEdit: 'Edit filter', tkFilterSave: 'Save filter', tkFilterAny: 'Any', tkFilterRange: 'Date range', tkFilterLate: 'Overdue', tkFilterUp: 'Move up', tkFilterDown: 'Move down', tkFilterOpen: 'Open',
   tkDeferred: 'This task has been postponed 3 times:', tkSplit: 'Split', tkChooseDay: 'Choose a day', tkBackList: 'Return to list (undated)', tkDecisionApply: 'Apply decisions',
+  nextDayTime: (time: string) => `${time} +1 day`,
+  waitingBlockConfirm: 'This task is still waiting. Reserve time anyway?',
+  workBudget: (start: string, end: string) => `Working budget: ${start}–${end}` ,
   tkWaiting: 'Waiting', tkWaitingNote: 'Waiting for', tkReview: 'Review on',
   tkViews: { waiting: 'Waiting', all: 'All', today: 'Today', week: 'Next 7 days', important: 'Important', current: 'In progress', completed: 'Completed' },
   tkEmpty: {

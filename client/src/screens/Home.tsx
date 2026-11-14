@@ -98,9 +98,9 @@ export function Home() {
     const [h0, h1] = gridHours(settings, now);
     const r0 = Math.min(h0 * 60, ...plan.map((b) => b.start)), r1 = Math.max(h1 * 60, ...plan.map((b) => b.end));
     const at = (m: number) => `${((m - r0) / (r1 - r0)) * 100}%`;
-    const step = r1 - r0 > 12 * 60 ? 180 : r1 - r0 > 6 * 60 ? 120 : 60;
+    const step = r1 - r0 > 12 * 60 ? 360 : r1 - r0 > 6 * 60 ? 180 : 120;
     const ticks: number[] = [];
-    for (let m = Math.ceil(r0 / step) * step; m <= r1; m += step) ticks.push(m);
+    for (let m = Math.ceil(r0 / step) * step; m <= r1 - (r1 - r0) * 0.08; m += step) ticks.push(m);
     const deep = minutesOfKind(day, 'deep'), total = effectivePlan(day).reduce((s, b) => s + b.end - b.start, 0);
     const lead = cur ?? next;
     return (
@@ -112,13 +112,13 @@ export function Home() {
         <div className="day-scale">
           <div className="day-line">
             {plan.map((b) => (
-              <button type="button" key={b.id} onClick={() => selectBlock(b.id)} aria-pressed={selectedBlock === b.id} aria-label={`${b.label || T.untitledBlock}, ${clock(b.start)}–${clock(b.end)}`} title={b.label || T.untitledBlock} className={`k-${b.kind}${b === cur ? ' current' : ''}`} style={{ left: at(b.start), width: `calc(${at(b.end)} - ${at(b.start)} - 2px)` }}>
+              <button type="button" key={b.id} onClick={() => selectBlock(b.id)} aria-pressed={selectedBlock === b.id} aria-label={`${b.label || T.untitledBlock}, ${clock(b.start)}–${clock(b.end)}`} title={b.label || T.untitledBlock} className={`k-${b.kind}${b === cur ? ' current' : ''}`} style={{ left: at(b.start), width: `calc(${((b.end - b.start) / (r1 - r0)) * 100}% - 2px)` }}>
                 {(b.end - b.start) / (r1 - r0) > 0.08 && <span>{b.label}</span>}
               </button>
             ))}
             {now >= r0 && now <= r1 && <span className="now" style={{ left: at(now) }} />}
           </div>
-          <div className="day-ticks num" aria-hidden="true">{ticks.map((m) => <span key={m} style={{ left: at(m) }}>{m === 1440 ? '24:00' : clock(m)}</span>)}</div>
+          <div className="day-ticks num" aria-hidden="true">{ticks.map((m) => <span key={m} style={{ left: at(m) }}>{m >= 1440 ? T.nextDayTime(clock(m)) : clock(m)}</span>)}</div>
         </div>
         {plan.filter((b) => b.id === selectedBlock).map((b) => <p className="timeline-detail" role="status" key={b.id}><b>{b.label || T.untitledBlock}</b> <span className="num">{clock(b.start)}–{clock(b.end)}</span></p>)}
         <div className="home-now">

@@ -336,9 +336,9 @@ function FocusMiniPanel({ a, docKey, count, blocks }: { a: FocusActive; docKey: 
       <RingLive a={a} size={36} stroke={4} />
       {/* shrunk to a ring, the name carries the time left to the minute, so a screen reader is not read the clock every second */}
       <button ref={trigger} type="button" className="mt-text mt-trigger" aria-expanded={open} aria-controls="mini-focus-details"
-        aria-label={compact && !open ? T.miniAria(a.phase === 'focus' ? a.label || T.freeFocus : T.phase[a.phase], Math.ceil(left / 60), a.pausedLeft != null) : undefined}
+        aria-label={T.miniAria(`${T.phase[a.phase]}, ${a.label || T.freeFocus}`, Math.ceil(left / 60), a.pausedLeft != null)}
         onClick={() => { suppressed.current = false; setOpen(true); }}>
-        <b className="num"><TimeLeft a={a} /></b><span>{a.label || T.freeFocus}</span>
+        <b className="num"><TimeLeft a={a} /></b><span className="mt-phase-label">{T.phase[a.phase]}</span><span>{a.label || T.freeFocus}</span>
       </button>
       <button type="button" className="btn ghost mt-pause focus-act" disabled={skip.locked} onClick={togglePause}>{a.pausedLeft == null ? T.pause : T.resume}</button>
     </div>

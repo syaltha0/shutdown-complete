@@ -1,4 +1,4 @@
-import { test } from 'node:test';
+﻿import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { build } from 'esbuild';
 const result = await build({ entryPoints: ['client/src/lib/dayCapacity.ts'], bundle: true, platform: 'node', format: 'esm', write: false });
@@ -18,12 +18,12 @@ test('a day without a document has the whole range free', () => {
   assert.deepEqual([c.available, c.fixed, c.planned, c.estimated, c.left, c.unestimated], [480, 0, 0, 0, 480, 0]);
 });
 
-test('the range comes from the settings, the whole day, or a block outside it', () => {
+test('working budget ignores whole-day display and outlying blocks', () => {
   assert.equal(dayCapacity({ date, settings: { startHour: 8, endHour: 20 } }).available, 720);
-  assert.equal(dayCapacity({ date, settings: { startHour: 9, endHour: 17, wholeDay: true } }).available, 1440);
-  // a block at 18:00-19:00 widens the day to 19:00, as the day grid does
+  assert.equal(dayCapacity({ date, settings: { startHour: 9, endHour: 17, wholeDay: true } }).available, 480);
+  // Display-only hours and blocks outside the working range do not enlarge capacity.
   const c = dayCapacity({ date, doc: day([block('late', hm(18), hm(19), 'personal')]), settings });
-  assert.deepEqual([c.available, c.fixed, c.left], [600, 60, 540]);
+  assert.deepEqual([c.available, c.fixed, c.left], [480, 0, 480]);
   // today: only what is still ahead
   assert.equal(dayCapacity({ date, settings, from: hm(15) }).available, 120);
   assert.equal(dayCapacity({ date, settings, from: hm(23) }).available, 0);
@@ -110,12 +110,13 @@ test('a task already covered by the suggested template is not estimated twice', 
   assert.deepEqual([c.planned, c.estimated, c.left], [60, 0, 420]);
 });
 
-test('a shifted planning day keeps after-midnight capacity and fixed events', () => {
+test('a shifted display keeps the configured working budget', () => {
   const shifted = { ...settings, wholeDay: true, dayStart: 240 };
   const c = dayCapacity({ date, settings: shifted, from: 1560,
     doc: day([block('night', 1560, 1590, 'deep')]), events: [event(1620, 1650)] });
-  assert.deepEqual([c.available, c.fixed, c.planned, c.left], [120, 30, 30, 60]);
-  assert.equal(dayCapacity({ date, settings: shifted }).available, 1440);
-  assert.equal(dayCapacity({ date, settings: { ...settings, dayStart: 240 }, from: 1560 }).available, 120);
+  assert.deepEqual([c.available, c.fixed, c.planned, c.left], [0, 0, 0, 0]);
+  assert.equal(dayCapacity({ date, settings: shifted }).available, 480);
+  assert.equal(dayCapacity({ date, settings: { ...settings, dayStart: 240 }, from: 1560 }).available, 0);
   assert.deepEqual(dayCapacity({ date, settings: { ...settings, dayStart: 0 } }), dayCapacity({ date, settings }));
 });
+

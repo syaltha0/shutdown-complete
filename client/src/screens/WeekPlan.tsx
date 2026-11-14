@@ -173,6 +173,7 @@ export function WeekPlan({ id }: { id: string }) {
               <p className="welcome-body">{P.spreadBody}</p>
               {plan.length > 0 && caps.length > 0 && (
                 <div className="pw-cap" role="group" aria-label={P.capacityTitle} data-testid="week-capacity">
+                  <p className="muted">{T.workBudget(String(settings.startHour).padStart(2, '0') + ':00', String(settings.endHour).padStart(2, '0') + ':00')}</p>
                   <p className="pw-cap-week num" data-cap="week">
                     {P.capacityWeek(duration(Math.max(0, capSum((c) => c.left))), duration(capSum((c) => c.fixed)),
                       duration(capSum((c) => c.planned)))}

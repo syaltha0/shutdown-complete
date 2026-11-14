@@ -281,6 +281,7 @@ export function Day({ date }: { date: string }) {
       const slot = slotAt(ev.clientX, ev.clientY);
       setDrag(null);
       if (!slot) return;
+      if (item.waiting && !window.confirm(T.waitingBlockConfirm)) return;
       const taskId = from ? (await toDay([from], date))[0] : item.id;
       const b: Block = { id: uid(), start: slot.start, end: slot.end, label: item.text, taskLabel: item.text, task: { id: taskId, list: 'day', day: date }, note: '', kind: 'shallow' };
       setCols((cols) => cols.map((c, i) => (i === cols.length - 1 ? { ...c, blocks: [...c.blocks, b].sort((a, z) => a.start - z.start) } : c)));
@@ -328,7 +329,7 @@ export function Day({ date }: { date: string }) {
                 <h2 id="tasks-h">{T.tasks}</h2>
                 <span className="meta num">{day.tasks.length ? T.tasksDone(day.tasks.filter((x) => x.done).length, day.tasks.length) : ''}</span>
               </header>
-              <Overload day={day} r0={r0} r1={r1} floor={floor} now={isToday ? now : null} past={date < t} />
+              <Overload day={day} r0={settings.startHour * 60} r1={settings.endHour * 60} floor={floor} now={isToday ? now : null} past={date < t} />
               <Checklist label={T.tasks} items={day.tasks} placeholder={T.captureTask} onChange={(tasks) => { syncCards(day.tasks, tasks); update((d) => ({ ...d, tasks })); }} onGrab={grabTask}
                 steps
                 line={(it, change) => (it.due || it.estimate || it.card || it.up) && <>
@@ -635,7 +636,7 @@ function Overload({ day, r0, r1, floor, now, past }: { day: DayDoc; r0: number; 
   const over = need - free;
   return (
     <p className={`overload${over > 0 ? ' over' : ''}`} role={over > 0 ? 'status' : undefined}>
-      {over > 0 ? T.overloaded(duration(need), duration(free), duration(over)) : T.fits(duration(need), duration(free))}
+      {over > 0 ? T.overloaded(duration(need), duration(free), duration(over)) : T.fits(duration(need), duration(free))} �E {T.workBudget(clock(r0), clock(r1))}
     </p>
   );
 }

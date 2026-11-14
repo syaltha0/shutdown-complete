@@ -589,3 +589,5 @@ button.bp-chip:hover { background: var(--raised); }
   .focus-grid[data-align-rows="one"] > .stack:has(> .focus-widgets + .focus-sessions + .friends:last-child) .fw-capture { padding-top: 10px; }
   .focus-grid[data-align-rows="one"] > .stack:has(> .focus-widgets + .focus-sessions + .friends:last-child) .focus-widgets > header { margin-bottom: 8px; }
 }
+.mini-timer[data-compact="true"]:not([data-open="true"]) .mt-trigger > .mt-phase-label { display: block; position: absolute; right: 48px; top: 12px; padding: 1px 5px; border-radius: 4px; background: var(--surface); color: var(--text); }
+.mini-timer[data-compact="true"][data-h="left"]:not([data-open="true"]) .mt-trigger > .mt-phase-label { right: auto; left: 48px; }

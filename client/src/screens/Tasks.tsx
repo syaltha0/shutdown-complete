@@ -282,7 +282,7 @@ function InboxTasks({ view: asked }: { view?: string }) {
             {steps && <span>{T.tkStepsN(steps)}</span>}
             {(t.percent ?? 0) > 0 && !t.done && <span className="tk-pc"><i><b style={{ width: `${t.percent}%` }} /></i>{t.percent}%</span>}
             {(t.spent || t.estimate) && <span className={t.spent && t.estimate && t.spent > t.estimate ? 'over' : ''}>{t.spent ? T.tkSpent(duration(t.spent), t.estimate ? duration(t.estimate) : '') : duration(t.estimate!)}</span>}
-            {t.waiting && <span>{T.tkWaiting}{t.review ? ` · ${shortDate(t.review)}` : ''}</span>}
+            {t.waiting && <span>{T.tkWaiting}{t.waitingNote ? ` · ${t.waitingNote}` : ''}{t.review ? ` · ${T.tkReview}: ${shortDate(t.review)}` : ''}</span>}
             {t.notes && <span className="tk-has" aria-label={T.tkNotes}><IconNotes /></span>}
             {t.tags?.map((g) => <span key={g} className="lbl lb-grey">{g}</span>)}
           </span>
@@ -720,6 +720,7 @@ export function FromLists({ date, onGrab }: { date: string; onGrab: (task: Item,
             <span className="tk-grip" role="button" tabIndex={-1} aria-label={T.tkDragToDay(t.text)} title={T.tkDragToDay(t.text)} onPointerDown={(e) => { e.preventDefault(); onGrab(forDay(t), t, e); }}><IconGrip /></span>
             <span className="text">{t.text}</span>
             <span className="task-meta num">
+              {t.waiting && <span title={t.waitingNote}>{T.tkWaiting}</span>}
               {t.repeat && <span className="tk-rep"><IconRepeat /></span>}
               {t.priority === 1 && <span className="tk-starred" role="img" aria-label={T.tkViews.important}><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M10 3.2l2.1 4.3 4.7.7-3.4 3.3.8 4.7-4.2-2.2-4.2 2.2.8-4.7-3.4-3.3 4.7-.7z" /></svg></span>}
               {t.due && <span className={`due${t.due < today() ? ' late' : t.due === today() ? ' today' : ''}`}>{dueWords(T, t.due)}</span>}
