@@ -71,16 +71,15 @@ try {
    }
   }
  }
- const {iso}=await import('../lib/demo.mjs');
  const date=iso(new Date()), base=(await api.get('day:'+date)).value;
- const block=(id,start,end,kind)=>({id,start,end,kind,label:`Timeline ${id}`,note:''});
- const full=[block('deep',540,660,'deep'),block('shallow',690,750,'shallow'),block('meeting',780,840,'meeting'),block('overflow',870,930,'overflow'),block('personal',960,1020,'personal')];
+ const tlBlock=(id,start,end,kind)=>({id,start,end,kind,label:`Timeline ${id}`,note:''});
+ const full=[tlBlock('deep',540,660,'deep'),tlBlock('shallow',690,750,'shallow'),tlBlock('meeting',780,840,'meeting'),tlBlock('overflow',870,930,'overflow'),tlBlock('personal',960,1020,'personal')];
  mkdirSync('reports/shots/overview-timeline',{recursive:true});
  await api.put('settings',{...settings,schedule:[]});
  for(const [name,columns] of [
   ['full',[{from:null,closedAt:null,blocks:full}]],
-  ['revision',[{from:null,closedAt:700,blocks:[block('obsolete',540,660,'deep')]},{from:700,closedAt:null,blocks:full.slice(2)}]],
-  ['overnight',[{from:null,closedAt:null,blocks:[block('night-a',1450,1480,'deep'),block('night-b',1500,1530,'personal')]}]],
+  ['revision',[{from:null,closedAt:700,blocks:[tlBlock('obsolete',540,660,'deep')]},{from:700,closedAt:null,blocks:full.slice(2)}]],
+  ['overnight',[{from:null,closedAt:null,blocks:[tlBlock('night-a',1450,1480,'deep'),tlBlock('night-b',1500,1530,'personal')]}]],
   ['empty',[{from:null,closedAt:null,blocks:[]}]],
  ]) {
   await api.put('day:'+date,{...base,columns,focus:{active:null,sessions:[]}});
