@@ -16,7 +16,7 @@
 .metric-kpis .kpi.lead .kpi-value { font-weight: 500; color: var(--hue); }
 .metric-kpis .kpi.lead .kpi-value small { color: var(--muted); font-weight: 400; }
 .metric-kpis .kpi .delta { min-height: 18px; }
-.metric-kpis .vs.down { color: var(--negative); }
+.metric-kpis .vs.down { color: var(--muted); }
 @media (max-width: 860px) {
   .metric-kpis .kpi .delta { white-space: normal; }
 }
