@@ -336,7 +336,7 @@ export function Focus() {
 
         <section className="panel focus-history" aria-labelledby="f4-h" data-anim>
           <div className="chart-head">
-            <h2 id="f4-h">{T.focusFourWeeks}{past && <small className="session-count num">{goalMin ? T.focusStats.onTarget(vals.filter((v) => (v ?? 0) >= goalMin).length, 28) : T.focusStats.daysFocused(vals.filter((v) => (v ?? 0) > 0).length, 28)}</small>}</h2>
+            <h2 id="f4-h">{T.focusFourWeeks}</h2>
           </div>
           {past && (() => {
             // three figures above the chart: a card that stretches with the timer card is not just a tall chart
