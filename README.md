@@ -3,8 +3,6 @@
   <img src="docs/banner-light.png" alt="Shutdown Complete — Plan with intention. Finish with peace of mind." width="1200">
 </picture>
 
-**Plan with intention. Finish with peace of mind.**
-
 Self-hosted · Multiple accounts · Day → year planning · Focus · Tasks & CalDAV · English / Türkçe
 
 ![Today's time blocks, revisions, metrics and tasks](docs/screenshots/day.jpg)
