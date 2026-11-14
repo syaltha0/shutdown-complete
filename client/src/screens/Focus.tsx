@@ -38,62 +38,79 @@ function StopAsk({ a }: { a: FocusActive }) {
  * difference). A last card whose content needs more than that keeps its own height. The user asked for this.
  */
 function useAlignedBottomRow() {
-  const gridRef = useRef<HTMLDivElement>(null);
+  // a callback ref: the grid appears only once the day has loaded, and the measuring must start then, not at mount
+  const [grid, setGrid] = useState<HTMLDivElement | null>(null);
+  const rewatch = useRef<(() => void) | null>(null);
+  // the cards inside are re-created as data arrives (sessions, blocks summary, friends): re-bind and re-measure after every render
+  useLayoutEffect(() => { rewatch.current?.(); });
   useLayoutEffect(() => {
-    const grid = gridRef.current; if (!grid) return;
+    if (!grid) return;
+    const el = grid; // narrowed for the closures below
     const wide = window.matchMedia('(min-width: 1000px) and (min-height: 601px)');
     let frame = 0;
     const measure = () => {
       cancelAnimationFrame(frame);
-      frame = requestAnimationFrame(() => {
-        const history = grid.querySelector<HTMLElement>('.focus-history');
-        const last = grid.querySelector<HTMLElement>(':scope > .stack > :last-child');
-        if (!wide.matches || !history || !last) { delete grid.dataset.alignRows; return; }
+      frame = requestAnimationFrame(apply);
+    };
+    function apply() {
+      {
+        const history = el.querySelector<HTMLElement>('.focus-history');
+        const last = el.querySelector<HTMLElement>(':scope > .stack > :last-child');
+        if (!wide.matches || !history || !last) { delete el.dataset.alignRows; return; }
         const h = Math.round(history.getBoundingClientRect().height);
-        grid.style.setProperty('--history-h', `${h}px`);
+        el.style.setProperty('--history-h', `${h}px`);
         // what the last card's content needs, measured at its natural height
-        const was = grid.dataset.alignRows; delete grid.dataset.alignRows;
+        const was = el.dataset.alignRows; delete el.dataset.alignRows;
         const stack0 = last.parentElement!, kids = [...stack0.children] as HTMLElement[];
         const gap = parseFloat(getComputedStyle(stack0).rowGap) || 0;
         // four cards (blocks summary and Focus together both shown): the two of them together match the chart card
         const pairUp = kids.length >= 4 && last.classList.contains('friends') && kids[kids.length - 2].classList.contains('focus-byblock');
         if (pairUp) {
           const lastH = Math.ceil(last.getBoundingClientRect().height), prevH = Math.ceil(kids[kids.length - 2].getBoundingClientRect().height);
-          if (lastH + gap + prevH > h + 1) { if (was != null) delete grid.dataset.alignRows; return; }
-          grid.style.setProperty('--pair-h', `${h - gap - lastH}px`);
-          grid.dataset.alignRows = 'pair';
+          if (lastH + gap + prevH > h + 1) { if (was != null) delete el.dataset.alignRows; return; }
+          el.style.setProperty('--pair-h', `${h - gap - lastH}px`);
+          el.dataset.alignRows = 'pair';
         } else {
           // three cards with the blocks summary and no Focus together keep their natural layout
           if (kids.length >= 3 && last.classList.contains('focus-byblock')) return;
           const need = last.classList.contains('focus-sessions') ? 0 : Math.ceil(last.getBoundingClientRect().height);
-          if (need > h + 1) { if (was != null) delete grid.dataset.alignRows; return; }
-          grid.dataset.alignRows = 'one';
+          if (need > h + 1) { if (was != null) delete el.dataset.alignRows; return; }
+          el.dataset.alignRows = 'one';
         }
         // the sessions card gives up the difference, but never below two full rows (one with four cards, where the user
         // asked for the pair to always line up): otherwise keep the natural layout
-        const sessions = grid.querySelector<HTMLElement>('.focus-sessions');
+        const sessions = el.querySelector<HTMLElement>('.focus-sessions');
         const list = sessions?.querySelector<HTMLElement>('.session-scroll');
         const row = list?.querySelector<HTMLElement>('.session')?.getBoundingClientRect().height ?? 0;
         const squeezed = !!sessions && sessions !== last && !pairUp && (sessions.scrollHeight > sessions.clientHeight + 1 || (!!list && list.getBoundingClientRect().height < Math.min((pairUp ? 1 : 2) * row, list.scrollHeight) - 1));
         const stack = last.parentElement!;
         // with four cards the session list is about to refit to one row, so judge the sessions card by that
         const sessionsFit = !pairUp || !sessions || !list || sessions.clientHeight + 1 >= sessions.scrollHeight - list.clientHeight + Math.min(row, list.scrollHeight);
-        const spills = stack.scrollHeight > stack.clientHeight + 1 || !sessionsFit || [...stack.children].some((el) => (pairUp && el === sessions ? false : el.scrollHeight > el.clientHeight + 1));
-        if (squeezed || spills) delete grid.dataset.alignRows;
-      });
-    };
+        // the cards must end inside the column. Layout offsets, not on-screen boxes: the cards rise into place when the
+        // page opens (a 14 px entrance transform), and measuring mid-animation used to drop the alignment at random
+        const lastCard = stack.lastElementChild as HTMLElement | null;
+        const spills = (lastCard ? lastCard.offsetTop + lastCard.offsetHeight : 0) > stack.offsetTop + stack.offsetHeight + 1 || !sessionsFit || [...stack.children].some((el) => (pairUp && el === sessions ? false : el.scrollHeight > el.clientHeight + 1));
+        if (squeezed || spills) delete el.dataset.alignRows;
+      }
+    }
     const ro = new ResizeObserver(measure);
-    const watch = () => { ro.disconnect(); ro.observe(grid); grid.querySelectorAll<HTMLElement>('.focus-history, :scope > .stack > *').forEach((el) => ro.observe(el)); measure(); };
+    let right: Element | null = null;
+    const watch = () => {
+      ro.disconnect(); ro.observe(el); el.querySelectorAll<HTMLElement>('.focus-history, :scope > .stack > *').forEach((c) => ro.observe(c));
+      const now = el.querySelector(':scope > .stack');
+      if (now !== right) { mo.disconnect(); right = now; if (right) mo.observe(right, { childList: true, subtree: true, characterData: true }); }
+      measure();
+    };
     // cards appear and go, and their content changes (blocks summary, friends, an incoming request, options); only the
     // right column is watched, so the timer's ticking does not set this off every second
     const mo = new MutationObserver(watch);
-    const right = grid.querySelector(':scope > .stack');
-    if (right) mo.observe(right, { childList: true, subtree: true, characterData: true });
     wide.addEventListener('change', measure);
+    rewatch.current = () => { watch(); apply(); };
     watch();
-    return () => { ro.disconnect(); mo.disconnect(); wide.removeEventListener('change', measure); cancelAnimationFrame(frame); };
-  }, []);
-  return gridRef;
+    apply(); // before the first paint, so the cards do not visibly jump into place
+    return () => { rewatch.current = null; ro.disconnect(); mo.disconnect(); wide.removeEventListener('change', measure); cancelAnimationFrame(frame); };
+  }, [grid]);
+  return setGrid;
 }
 
 export function Focus() {
