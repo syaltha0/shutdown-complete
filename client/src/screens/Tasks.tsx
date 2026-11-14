@@ -555,114 +555,6 @@ function Detail({ t, lists, tags, set, tick, remove, close }: {
             <input type="date" className="input num" value={t.due ?? ''} min={t.start} onChange={(e) => set({ due: e.target.value || undefined, ...(t.repeat?.monthDay ? { repeat: { ...t.repeat, monthDay: undefined } } : {}) })} />
           </label>
         </div>
-        {/* the hour it is due and a reminder before it */}
-        {t.due && (
-          <div className="tk-two">
-            <label className="field"><span>{T.tkDueTime}</span>
-              <input type="time" className="input num" value={t.dueTime ?? ''} onChange={(e) => set({ dueTime: e.target.value || undefined, ...(e.target.value ? {} : { remind: undefined }) })} />
-            </label>
-            <label className="field"><span>{T.tkRemind}</span>
-              <select className="input" value={t.remind ?? ''} disabled={!t.dueTime} onChange={(e) => set({ remind: e.target.value === '' ? undefined : Number(e.target.value) })}>
-                <option value="">{T.tkRemindNone}</option>
-                {REMINDS.map((m) => <option key={m} value={m}>{m === 0 ? T.tkRemindAt : T.tkRemindBefore(m >= 1440 ? T.tkDaysN(m / 1440) : duration(m))}</option>)}
-              </select>
-            </label>
-          </div>
-        )}
-        <div className="field">
-          <span id="tk-prio">{T.tkPriority}</span>
-          <Segmented role="group" aria-labelledby="tk-prio">
-            {([undefined, 9, 5, 1] as const).map((p) => (
-              <button key={p ?? 0} type="button" aria-pressed={t.priority === p} onClick={() => set({ priority: p })}>{T.tkPrios[p ?? 0]}</button>
-            ))}
-          </Segmented>
-        </div>
-        <label className="field"><span>{T.tkProgress} <b className="num">{t.percent ?? 0}%</b></span>
-          <input type="range" className="tk-range" min={0} max={100} step={5} value={t.percent ?? 0}
-            style={{ '--v': `${t.percent ?? 0}%` } as React.CSSProperties} onChange={(e) => set({ percent: Number(e.target.value) || undefined })} />
-        </label>
-
-        {/* coming back: the usual rules in one list, or any "every N days / weeks / months / years" */}
-        <div className="field tk-repeat">
-          <label htmlFor="tk-rep">{T.tkRepeat}</label>
-          <select id="tk-rep" className="input" value={custom ? 'custom' : preset} onChange={(e) => {
-            const v = e.target.value;
-            if (v === 'custom') { setCustom(true); if (!r) setRepeat({ every: 1, unit: 'week' }); return; }
-            setCustom(false);
-            setRepeat(v === 'none' ? undefined : { ...PRESETS.find((p) => p.id === v)!.rule, after: r?.after, count: r?.count, until: r?.until });
-          }}>
-            <option value="none">{T.tkRepeats.none}</option>
-            {PRESETS.map((p) => <option key={p.id} value={p.id}>{T.tkRepeats[p.id as keyof typeof T.tkRepeats]}</option>)}
-            <option value="custom">{T.tkRepeats.custom}</option>
-          </select>
-          {r && (custom || r.unit === 'week') && (
-            <div className="tk-rule">
-              {custom && (
-                <span className="tk-every">
-                  <span>{T.tkEveryWord}</span>
-                  <input type="number" className="input num" min={1} max={365} value={r.every} aria-label={T.tkEveryWord}
-                    onChange={(e) => setRepeat({ ...r, every: Math.max(1, Math.min(365, Number(e.target.value) || 1)) })} />
-                  <select className="input" value={r.unit} aria-label={T.tkUnitLabel} onChange={(e) => setRepeat({ ...r, unit: e.target.value as Recur['unit'], days: e.target.value === 'week' ? r.days : undefined })}>
-                    {(['day', 'week', 'month', 'year'] as const).map((u) => <option key={u} value={u}>{T.tkUnits[u](r.every)}</option>)}
-                  </select>
-                </span>
-              )}
-              {r.unit === 'week' && (
-                <DayChips days={r.days ?? []} label={T.tkOnDays} onChange={(days) => setRepeat({ ...r, days: days.length ? days : undefined })} />
-              )}
-            </div>
-          )}
-          {r && (
-            <>
-              {/* when it ends: never, after a number of times, or after a day */}
-              <div className="tk-ends">
-                <label htmlFor="tk-end">{T.tkEnds}</label>
-                <select id="tk-end" className="input" value={r.count ? 'count' : r.until ? 'until' : 'never'} onChange={(e) => {
-                  const v = e.target.value;
-                  setRepeat({ ...r, count: v === 'count' ? Math.max(2, (t.doneCount ?? 0) + 5) : undefined, until: v === 'until' ? addDays(t.due ?? today(), 90) : undefined });
-                }}>
-                  <option value="never">{T.tkEndNever}</option>
-                  <option value="count">{T.tkEndCount}</option>
-                  <option value="until">{T.tkEndUntil}</option>
-                </select>
-                {r.count != null && (
-                  <input type="number" className="input num" min={1} max={999} value={r.count} aria-label={T.tkEndCount}
-                    onChange={(e) => setRepeat({ ...r, count: Math.max(1, Math.min(999, Number(e.target.value) || 1)) })} />
-                )}
-                {r.until != null && (
-                  <input type="date" className="input num" min={t.due ?? today()} value={r.until} aria-label={T.tkEndUntil}
-                    onChange={(e) => setRepeat({ ...r, until: e.target.value || undefined })} />
-                )}
-              </div>
-              <label className="tk-check-row"><input type="checkbox" className="check" checked={!!r.after} onChange={(e) => setRepeat({ ...r, after: e.target.checked || undefined })} />{T.tkAfter}</label>
-              <p className="tk-note num">{recurWords(T, r)}{t.due ? ` · ${T.tkNextOn(longDate(t.due))}` : ''}{t.doneCount ? ` · ${T.tkDoneTimes(t.doneCount)}` : ''}</p>
-            </>
-          )}
-        </div>
-
-        <label className="field"><span>{T.tkEstimate}{t.spent ? <b className="num">{T.tkFocusedFor(duration(t.spent))}</b> : null}</span>
-          <select className="input num" value={t.estimate ?? ''} onChange={(e) => set({ estimate: e.target.value ? Number(e.target.value) : undefined })}>
-            <option value="">{T.estimateNone}</option>
-            {ESTIMATES.map((m) => <option key={m} value={m}>{duration(m)}</option>)}
-          </select>
-        </label>
-
-        <div className="field">
-          <label htmlFor="tk-tag">{T.tkTags}</label>
-          <div className="tk-tags">
-            {t.tags?.map((g) => (
-              <span key={g} className="lbl lb-grey tk-tag">{g}
-                <button type="button" aria-label={T.tkRemoveTag(g)} onClick={() => set({ tags: t.tags!.filter((x) => x !== g).length ? t.tags!.filter((x) => x !== g) : undefined })}><IconX /></button>
-              </span>
-            ))}
-            <input id="tk-tag" className="input" list="tk-tag-list" placeholder={T.tkTagPh} value={tag} onChange={(e) => (e.target.value.endsWith(',') ? (setTag(e.target.value), setTimeout(addTag)) : setTag(e.target.value))}
-              onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); addTag(); } }} onBlur={addTag} />
-            <datalist id="tk-tag-list">{tags.filter((g) => !t.tags?.includes(g)).map((g) => <option key={g} value={g} />)}</datalist>
-          </div>
-        </div>
-
-        <label className="field"><span><input type="checkbox" checked={!!t.waiting} onChange={e => set({ waiting: e.target.checked })} />{T.tkWaiting}</span></label>
-        {t.waiting && <><label className="field"><span>{T.tkWaitingNote}</span><input className="input" value={t.waitingNote ?? ''} onChange={e => set({ waitingNote: e.target.value })} /></label><label className="field"><span>{T.tkReview}</span><input className="input" type="date" value={t.review ?? ''} onChange={e => set({ review: e.target.value || undefined })} /></label></>}
         <label className="field"><span>{T.tkNotes}</span>
           <textarea className="input tk-notes" rows={4} placeholder={T.tkNotesPh} value={t.notes ?? ''} onChange={(e) => set({ notes: e.target.value || undefined })} />
         </label>
@@ -800,3 +692,113 @@ function DayTaskDetail({ date }: { date: string }) {
   };
   return task ? <Detail t={task} lists={[]} tags={[]} set={set} tick={() => set({ done: !task.done })} remove={() => { update(d => ({...d, tasks: d.tasks.filter(t => t.id !== id)})); offerUndo(T.deleted(task.text), () => update(d => ({...d, tasks: d.tasks.some(t => t.id === task.id) ? d.tasks : [...d.tasks, task]}))); }} close={() => navigate('/day/' + date)} /> : <p>{T.taskBlock.deleted}</p>;
 }
+        <details className="tk-advanced"><summary>{T.uiux.advanced}</summary>
+        {/* the hour it is due and a reminder before it */}
+        {t.due && (
+          <div className="tk-two">
+            <label className="field"><span>{T.tkDueTime}</span>
+              <input type="time" className="input num" value={t.dueTime ?? ''} onChange={(e) => set({ dueTime: e.target.value || undefined, ...(e.target.value ? {} : { remind: undefined }) })} />
+            </label>
+            <label className="field"><span>{T.tkRemind}</span>
+              <select className="input" value={t.remind ?? ''} disabled={!t.dueTime} onChange={(e) => set({ remind: e.target.value === '' ? undefined : Number(e.target.value) })}>
+                <option value="">{T.tkRemindNone}</option>
+                {REMINDS.map((m) => <option key={m} value={m}>{m === 0 ? T.tkRemindAt : T.tkRemindBefore(m >= 1440 ? T.tkDaysN(m / 1440) : duration(m))}</option>)}
+              </select>
+            </label>
+          </div>
+        )}
+        <div className="field">
+          <span id="tk-prio">{T.tkPriority}</span>
+          <Segmented role="group" aria-labelledby="tk-prio">
+            {([undefined, 9, 5, 1] as const).map((p) => (
+              <button key={p ?? 0} type="button" aria-pressed={t.priority === p} onClick={() => set({ priority: p })}>{T.tkPrios[p ?? 0]}</button>
+            ))}
+          </Segmented>
+        </div>
+        <label className="field"><span>{T.tkProgress} <b className="num">{t.percent ?? 0}%</b></span>
+          <input type="range" className="tk-range" min={0} max={100} step={5} value={t.percent ?? 0}
+            style={{ '--v': `${t.percent ?? 0}%` } as React.CSSProperties} onChange={(e) => set({ percent: Number(e.target.value) || undefined })} />
+        </label>
+
+        {/* coming back: the usual rules in one list, or any "every N days / weeks / months / years" */}
+        <div className="field tk-repeat">
+          <label htmlFor="tk-rep">{T.tkRepeat}</label>
+          <select id="tk-rep" className="input" value={custom ? 'custom' : preset} onChange={(e) => {
+            const v = e.target.value;
+            if (v === 'custom') { setCustom(true); if (!r) setRepeat({ every: 1, unit: 'week' }); return; }
+            setCustom(false);
+            setRepeat(v === 'none' ? undefined : { ...PRESETS.find((p) => p.id === v)!.rule, after: r?.after, count: r?.count, until: r?.until });
+          }}>
+            <option value="none">{T.tkRepeats.none}</option>
+            {PRESETS.map((p) => <option key={p.id} value={p.id}>{T.tkRepeats[p.id as keyof typeof T.tkRepeats]}</option>)}
+            <option value="custom">{T.tkRepeats.custom}</option>
+          </select>
+          {r && (custom || r.unit === 'week') && (
+            <div className="tk-rule">
+              {custom && (
+                <span className="tk-every">
+                  <span>{T.tkEveryWord}</span>
+                  <input type="number" className="input num" min={1} max={365} value={r.every} aria-label={T.tkEveryWord}
+                    onChange={(e) => setRepeat({ ...r, every: Math.max(1, Math.min(365, Number(e.target.value) || 1)) })} />
+                  <select className="input" value={r.unit} aria-label={T.tkUnitLabel} onChange={(e) => setRepeat({ ...r, unit: e.target.value as Recur['unit'], days: e.target.value === 'week' ? r.days : undefined })}>
+                    {(['day', 'week', 'month', 'year'] as const).map((u) => <option key={u} value={u}>{T.tkUnits[u](r.every)}</option>)}
+                  </select>
+                </span>
+              )}
+              {r.unit === 'week' && (
+                <DayChips days={r.days ?? []} label={T.tkOnDays} onChange={(days) => setRepeat({ ...r, days: days.length ? days : undefined })} />
+              )}
+            </div>
+          )}
+          {r && (
+            <>
+              {/* when it ends: never, after a number of times, or after a day */}
+              <div className="tk-ends">
+                <label htmlFor="tk-end">{T.tkEnds}</label>
+                <select id="tk-end" className="input" value={r.count ? 'count' : r.until ? 'until' : 'never'} onChange={(e) => {
+                  const v = e.target.value;
+                  setRepeat({ ...r, count: v === 'count' ? Math.max(2, (t.doneCount ?? 0) + 5) : undefined, until: v === 'until' ? addDays(t.due ?? today(), 90) : undefined });
+                }}>
+                  <option value="never">{T.tkEndNever}</option>
+                  <option value="count">{T.tkEndCount}</option>
+                  <option value="until">{T.tkEndUntil}</option>
+                </select>
+                {r.count != null && (
+                  <input type="number" className="input num" min={1} max={999} value={r.count} aria-label={T.tkEndCount}
+                    onChange={(e) => setRepeat({ ...r, count: Math.max(1, Math.min(999, Number(e.target.value) || 1)) })} />
+                )}
+                {r.until != null && (
+                  <input type="date" className="input num" min={t.due ?? today()} value={r.until} aria-label={T.tkEndUntil}
+                    onChange={(e) => setRepeat({ ...r, until: e.target.value || undefined })} />
+                )}
+              </div>
+              <label className="tk-check-row"><input type="checkbox" className="check" checked={!!r.after} onChange={(e) => setRepeat({ ...r, after: e.target.checked || undefined })} />{T.tkAfter}</label>
+              <p className="tk-note num">{recurWords(T, r)}{t.due ? ` · ${T.tkNextOn(longDate(t.due))}` : ''}{t.doneCount ? ` · ${T.tkDoneTimes(t.doneCount)}` : ''}</p>
+            </>
+          )}
+        </div>
+
+        <label className="field"><span>{T.tkEstimate}{t.spent ? <b className="num">{T.tkFocusedFor(duration(t.spent))}</b> : null}</span>
+          <select className="input num" value={t.estimate ?? ''} onChange={(e) => set({ estimate: e.target.value ? Number(e.target.value) : undefined })}>
+            <option value="">{T.estimateNone}</option>
+            {ESTIMATES.map((m) => <option key={m} value={m}>{duration(m)}</option>)}
+          </select>
+        </label>
+
+        <div className="field">
+          <label htmlFor="tk-tag">{T.tkTags}</label>
+          <div className="tk-tags">
+            {t.tags?.map((g) => (
+              <span key={g} className="lbl lb-grey tk-tag">{g}
+                <button type="button" aria-label={T.tkRemoveTag(g)} onClick={() => set({ tags: t.tags!.filter((x) => x !== g).length ? t.tags!.filter((x) => x !== g) : undefined })}><IconX /></button>
+              </span>
+            ))}
+            <input id="tk-tag" className="input" list="tk-tag-list" placeholder={T.tkTagPh} value={tag} onChange={(e) => (e.target.value.endsWith(',') ? (setTag(e.target.value), setTimeout(addTag)) : setTag(e.target.value))}
+              onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); addTag(); } }} onBlur={addTag} />
+            <datalist id="tk-tag-list">{tags.filter((g) => !t.tags?.includes(g)).map((g) => <option key={g} value={g} />)}</datalist>
+          </div>
+        </div>
+
+        <label className="field"><span><input type="checkbox" checked={!!t.waiting} onChange={e => set({ waiting: e.target.checked })} />{T.tkWaiting}</span></label>
+        {t.waiting && <><label className="field"><span>{T.tkWaitingNote}</span><input className="input" value={t.waitingNote ?? ''} onChange={e => set({ waitingNote: e.target.value })} /></label><label className="field"><span>{T.tkReview}</span><input className="input" type="date" value={t.review ?? ''} onChange={e => set({ review: e.target.value || undefined })} /></label></>}
+        </details>

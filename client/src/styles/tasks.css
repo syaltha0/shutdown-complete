@@ -244,3 +244,5 @@ label.btn { cursor: pointer; }
 .dav-linked summary { cursor: pointer; padding: 4px 0; }
 .dav-linked table { font-variant-numeric: tabular-nums; }
 .dav-linked details th, .dav-linked details td { padding: 6px; font-size: 12px; }
+
+.tk-advanced summary { cursor:pointer; padding:12px 0; color:var(--muted); } .tk-advanced[open] summary { margin-bottom:12px; }
