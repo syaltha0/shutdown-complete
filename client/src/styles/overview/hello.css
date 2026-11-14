@@ -1,0 +1,23 @@
+.b-hello {
+  justify-content: center;
+}
+.b-now {
+  font-size: clamp(20px, 2vw, 30px);
+  line-height: 1.2;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.b-actions {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-top: 6px;
+  min-width: 0;
+}
+.b-actions .btn {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 70%;
+}
