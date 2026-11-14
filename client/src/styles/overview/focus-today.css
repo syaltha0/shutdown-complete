@@ -1,11 +1,18 @@
-.b-focus {
-  align-items: center;
-  justify-content: center;
-}
+.b-focus { align-items: center; justify-content: center; text-align: center; }
+.b-focus > * { flex-shrink: 0; }
+.bento .b-focus { gap: 2px; padding-block: 10px; }
+.b-focus .b-focus-summary, .b-focus .b-focus-status { font-size: 12px; line-height: 1.35; margin: 0; }
+.b-focus-summary { color: var(--muted); }
+.b-focus-dots { display: flex; gap: 4px; min-height: 4px; }
+.b-focus-dots i { width: 4px; height: 4px; border-radius: 50%; background: var(--hue); }
+.b-focus[data-complete="true"] .b-focus-dots i { background: var(--positive); }
+.b-focus .btn { margin-top: 2px; min-height: 28px; padding: 3px 12px; font-size: 12px; }
+.b-focus .b-ring strong { font-size: 14px; }
 
-.b-focus > * {
-  flex-shrink: 0;
-}
-.bento .b-focus {
-  gap: 5px;
-}
+.b-focus .b-ring { width: 56px; }
+.b-focus h2 { margin: 0; }
+.b-focus-dots:empty { display: none; }
+
+@media (max-width: 860px) { .b-focus .b-ring { width: 64px; } .bento .b-focus { gap: 3px; } }
+
+@media (max-height: 820px) and (min-width: 861px) { .bento .b-focus { padding-block: 6px; gap: 1px; } .b-focus .b-ring { width: 48px; } }
