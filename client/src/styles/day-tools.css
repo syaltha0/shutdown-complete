@@ -168,3 +168,15 @@
 .friend-list li.with-avatar { grid-template-columns: 28px minmax(0, 1fr) auto; }
 .friend-list .avatar { display: grid; place-items: center; width: 28px; height: 28px; border-radius: 50%; background: var(--ground); color: var(--text); font-size: 12px; font-style: normal; font-weight: 500; }
 .friends-online .seats { display: none; color: var(--control); }
+
+/* Focus room: the cycle on the left of the top bar, a ring that keeps its own size (the Focus page's smaller ring
+   rules do not reach it) and a time that scales with the ring, so it never runs past the circle */
+.room-top { position: absolute; top: 16px; left: 16px; right: 16px; display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+.room-top .room-leave { position: static; }
+.room-cycle { display: inline-flex; align-items: center; gap: 12px; font-size: 13px; }
+.focus-room .room-ring.focus-ring { width: min(420px, 78vw, 46vh); height: auto; margin: 0; container-type: inline-size; }
+.focus-room .room-ring .focus-read { padding: 0 12%; }
+.focus-room .room-ring .focus-read b { font-size: 23cqi; letter-spacing: -0.02em; }
+.focus-room .room-ring .focus-read .focus-label { max-width: 100%; }
+.room-ends { font-size: 13px; }
+@media (max-width: 640px) { .room-top { top: 12px; left: 12px; right: 12px; } .room-cycle .num { display: none; } }

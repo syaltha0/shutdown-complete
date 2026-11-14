@@ -719,6 +719,7 @@ export const en = {
   friendSelf: 'That is your own address.', friendFailed: 'That did not go through. Try again in a while.',
   shareFocus: 'Friends see when I am focusing', shareLabel: 'and the name of my block',
   shareLabelOff: 'Turn on the option above first.', friendsOptions: 'Options',
+  roomEnds: (time: string) => `Ends ${time}`,
   roomOpen: 'Focus room', roomTitle: 'Focus room', roomLeave: 'Leave the room',
   ambientLabel: 'Sound', volume: 'Volume',
   ambient: { off: 'Silence', rain: 'Rain', waves: 'Waves', fire: 'Fire', brown: 'Brown noise' } as Record<string, string>,

@@ -1,8 +1,8 @@
 import { useEffect, useRef, useState } from 'react';
 import { useSettings } from '../App';
 import { AMBIENTS, ambientPlaying, ambientPref, onAmbient, playAmbient, setAmbientVolume, type Ambient } from '../lib/ambient';
-import { today } from '../lib/dates';
-import { cancelFocus, extendFocus, finishPhase, MAX_PLANNED, mmss, pauseFocus, resumeFocus, resetFocus, secondsLeft, settingsFocus, startFocus, useFocusDay } from '../lib/focus';
+import { clock, today } from '../lib/dates';
+import { cycleDone, cancelFocus, extendFocus, finishPhase, MAX_PLANNED, mmss, pauseFocus, resumeFocus, resetFocus, secondsLeft, settingsFocus, startFocus, useFocusDay } from '../lib/focus';
 import { useT } from '../lib/i18n';
 import { emptyDay, uid, type DayDoc } from '../lib/model';
 import { useDoc } from '../lib/useDoc';
@@ -89,11 +89,22 @@ export function FocusRoom({ start, onClose }: { start: { blockId: string | null;
       await startFocus({blockId: a.blockId, label: task.text, minutes: Math.max(1, Math.ceil(secondsLeft(a) / 60)), task: ref});
     }
   }
+  // where this round sits in the cycle (the dots), and the time of day it ends unless paused
+  const inCycle = cycleDone(day?.focus);
+  const phase = a?.phase ?? 'focus';
+  const roundsDone = inCycle % f.longEvery || (inCycle && phase !== 'focus' ? f.longEvery : 0);
+  const cycleNo = ((inCycle % f.longEvery) + (a?.phase === 'focus' ? 1 : 0)) || f.longEvery;
+  const [, tick] = useState(0);
+  useEffect(() => { const t = window.setInterval(() => tick((x) => x + 1), 15_000); return () => window.clearInterval(t); }, []);
+  const endsAt = a && a.pausedLeft == null ? (() => { const d = new Date(Date.now() + secondsLeft(a) * 1000); return clock(d.getHours() * 60 + d.getMinutes()); })() : null;
   const linked = day?.columns.flatMap(c => c.blocks).find(b => b.id === (a?.blockId ?? start.blockId));
   const tasks = (day?.tasks ?? []).filter(t => !t.done).sort((x,y) => Number(y.id === a?.task?.id || (linked?.task ? y.id === linked.task.id : y.text === linked?.label)) - Number(x.id === a?.task?.id || (linked?.task ? x.id === linked.task.id : x.text === linked?.label)));
   return (
     <div ref={rootRef} tabIndex={-1} className={`focus-room${a ? ` phase-${a.phase}` : ' phase-focus'}`} role="dialog" aria-modal="true" aria-label={T.roomTitle}>
-      <button type="button" className="btn ghost room-leave" onClick={leave}><IconX />{T.roomLeave}</button>
+      <div className="room-top">
+        <div className="room-cycle"><span className="focus-rounds" aria-hidden="true">{Array.from({ length: f.longEvery }, (_, i) => <i key={i} className={i < roundsDone ? 'done' : phase === 'focus' && i === roundsDone ? 'current' : ''} />)}</span><span className="muted num">{T.sessionN(cycleNo, f.longEvery)}</span></div>
+        <button type="button" className="btn ghost room-leave" onClick={leave}><IconX />{T.roomLeave}</button>
+      </div>
       <section className={`room-tasks${tasksOpen ? ' open' : ''}`} onPointerEnter={e => {if (e.pointerType === 'mouse') setTasksOpen(true);}} onPointerLeave={e => {if (e.pointerType === 'mouse' && !e.currentTarget.contains(document.activeElement)) setTasksOpen(false);}} onBlur={e => {if (!e.currentTarget.contains(e.relatedTarget)) setTasksOpen(false);}}>
         <button className="room-task-tab btn ghost" aria-expanded={tasksOpen} onClick={() => setTasksOpen(!tasksOpen)}>{T.tasks} ({tasks.length})</button>
         {tasksOpen && <div className="room-task-body">
@@ -108,6 +119,7 @@ export function FocusRoom({ start, onClose }: { start: { blockId: string | null;
             <span className="phase-name" role="status">{a ? T.phase[a.phase] : T.phase.focus}{a?.pausedLeft != null && <span className="room-paused"> &middot; {T.focusPaused}</span>}</span>
             <b className="num" aria-live="off">{a ? <TimeLeft a={a} /> : mmss(start.minutes * 60)}</b>
             <span className="muted focus-label">{a ? a.label || T.freeFocus : start.label}</span>
+            {endsAt && <span className="muted room-ends num">{T.roomEnds(endsAt)}</span>}
           </div>
         </div>
         <div className="room-controls">
