@@ -1,4 +1,4 @@
-﻿import { featureOn } from "../../lib/model";
+import { featureOn } from "../../lib/model";
 import { longDate } from "../../lib/dates";
 import { onLinkClick } from "../../lib/router";
 import type { OverviewData } from "./data";
@@ -6,7 +6,7 @@ export function Habits({ T, settings, day, update, B, recent, docOf, t }: Overvi
   const habits = settings.metrics.filter((m) => m.kind === "check" && featureOn(settings, "habits"));
   const done = habits.filter((m) => day?.metrics[m.id] === true).length;
   return (
-    <section className="panel b-habits">
+    <section className={`panel b-habits${habits.length <= 2 ? " is-sparse" : ""}`}>
       <header><h2>{T.nav.habits}</h2>{habits.length > 0 && <a className="b-habits-count num" href="/habits" onClick={onLinkClick} aria-label={`${B.habitsToday(done, habits.length)} · ${B.habitsOpen}`}><span aria-live="polite">{B.habitsToday(done, habits.length)}</span><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" aria-hidden="true"><path d="m9 5 7 7-7 7" /></svg></a>}</header>
       {habits.length > 0 ? <>
         <div className="b-habit-list" role="group" aria-label={T.nav.habits} tabIndex={0}>
@@ -27,6 +27,7 @@ export function Habits({ T, settings, day, update, B, recent, docOf, t }: Overvi
             </div>;
           })}
         </div>
+        <small className="b-habits-summary">{B.habitsRecentSummary(habits.reduce((n, m) => n + recent.filter(d => docOf(d)?.metrics[m.id] === true).length, 0), habits.length * 7)}</small>
         {done === habits.length && <small className="b-habits-complete">{B.habitsComplete}</small>}
       </> : <p>{B.noHabits}</p>}
       {habits.length === 0 && <a className="b-act" href="/habits" onClick={onLinkClick}><span>{B.habitsAdd}</span><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" aria-hidden="true"><path d="m9 5 7 7-7 7" /></svg></a>}
