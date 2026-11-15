@@ -304,6 +304,8 @@ serverStatus: { remedy: 'İlgili ayarı veya kurulum yönergesini aç',"title":"
   allClosed: 'Bütün açık uçlar kapandı.',
   scheduleShutdown: 'Kapanış tamamlandı, günü kapat',
   stillOpen: 'Bugün hâlâ açık',
+  handoffTarget: 'Plan g\u00fcn\u00fc', handoffTomorrow: 'Yar\u0131n', handoffDate: 'Tarih se\u00e7',
+  handoffSuggestion: (d) => `\u00d6nerilen hafta i\u00e7i g\u00fcn\u00fc: ${d}`,
   moveTo: (d) => `${d} gününe taşı`,
   andMoreOnDay: (n) => `ve gün sayfasında ${n} tane daha`,
   allTasksDone: 'Bugün yakalanan her görev bitti ya da taşındı',

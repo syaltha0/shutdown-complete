@@ -317,6 +317,8 @@ export const en = {
   allClosed: 'Every loop is closed.',
   scheduleShutdown: 'Schedule shutdown, complete',
   stillOpen: 'Still open today',
+  handoffTarget: 'Planning day', handoffTomorrow: 'Tomorrow', handoffDate: 'Choose date',
+  handoffSuggestion: (d: string) => `Suggested weekday: ${d}`,
   moveTo: (d: string) => `Move to ${d}`,
   andMoreOnDay: (n: number) => `and ${n} more on the day`,
   allTasksDone: 'Every task captured today is done or moved',

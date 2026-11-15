@@ -1,3 +1,5 @@
+import { Segmented } from '../components/Segmented';
+import { handoffTasks } from '../lib/shutdownHandoff';
 import { decideMoves } from '../lib/taskDeferral';
 import { emptyInbox, type InboxDoc } from '../lib/model';
 import { updateKey } from '../lib/useDoc';
@@ -6,7 +8,7 @@ import { useEffect, useRef, useState } from 'react';
 import { drawDayCard } from '../lib/daycard';
 import { useSettings } from '../App';
 import { DocNotice, SaveStamp } from '../components/Common';
-import { addDays, clock, longDate, today, weekdayLong, weekOf } from '../lib/dates';
+import { addDays, clock, longDate, today, parseISODate, weekdayLong, weekOf } from '../lib/dates';
 import { useT } from '../lib/i18n';
 import { activeColumn, effectivePlan, emptyDay, emptyWeek, minutesOfKind, type Block, type DayDoc, type Settings, type WeekDoc } from '../lib/model';
 import { onLinkClick } from '../lib/router';
@@ -27,6 +29,14 @@ export function Shutdown({ date }: { date: string }) {
   useEffect(() => {
     if (next && placeRepeats(next, tomorrow, settings.schedule, settings.exceptions)) updateNext((n) => placeRepeats(n, tomorrow, settings.schedule, settings.exceptions) ?? n);
   }, [next != null, tomorrow, settings.schedule, settings.exceptions]); // eslint-disable-line react-hooks/exhaustive-deps
+  const [mode, setMode] = useState('tomorrow');
+  const [chosenDate, setChosenDate] = useState('');
+  const [excluded, setExcluded] = useState<string[]>([]);
+  const [moving, setMoving] = useState(false);
+  const busy = useRef(false);
+  const target = mode === 'tomorrow' ? tomorrow : chosenDate;
+  let suggested = tomorrow;
+  while ([0, 6].includes(parseISODate(suggested).getDay())) suggested = addDays(suggested, 1);
   const steps = settings.ritual;
   const doneSteps = day ? steps.filter((s) => day.shutdown.steps[s.id]).length : 0;
   const isToday = date === today();
@@ -39,12 +49,18 @@ export function Shutdown({ date }: { date: string }) {
   const complete = (v: boolean) => update((d) => ({ ...d, shutdown: { ...d.shutdown, done: v, at: v ? new Date().toISOString() : null } }));
 
   async function moveTasks() {
-    if (!day || !next) return;
-    const result = await decideMoves(day.tasks.filter(t=>!t.done),T); if (!result) return;
-    const moving = result.moving;
-    if(result.back.length || result.deleted.length) await updateKey<InboxDoc>('inbox',emptyInbox,b=>({...b,items:[...b.items,...result.back],trash:[...(b.trash??[]),...result.deleted.map(item=>({item,deletedAt:new Date().toISOString()}))]}));
-    updateNext((n) => ({ ...n, tasks: [...n.tasks, ...moving.map((t) => ({ ...t, since: t.since ?? date }))] }));
-    update((d) => ({ ...d, tasks: d.tasks.filter((t) => t.done) }));
+    if (!day || !target || target <= date || busy.current) return;
+    busy.current = true; setMoving(true);
+    try {
+      const selected = day.tasks.filter(t => !t.done && !excluded.includes(t.id));
+      const result = await decideMoves(selected, T);
+      if (!result) return;
+      if (result.back.length || result.deleted.length) await updateKey<InboxDoc>('inbox', emptyInbox, b => ({ ...b,
+        items: [...b.items, ...result.back.filter(t => !b.items.some(x => x.id === t.id))],
+        trash: [...(b.trash ?? []), ...result.deleted.filter(t => !(b.trash ?? []).some(x => x.item.id === t.id)).map(item => ({ item, deletedAt: new Date().toISOString() }))],
+      }));
+      await handoffTasks(date, target, result.moving, selected.map(t => t.id));
+    } finally { busy.current = false; setMoving(false); }
   }
 
   return (
@@ -126,11 +142,22 @@ export function Shutdown({ date }: { date: string }) {
           <section className="panel" aria-labelledby="open-h">
             <header>
               <h2 id="open-h">{T.stillOpen}</h2>
-              {openTasks.length > 0 && next && <button type="button" className="card-link" onClick={moveTasks}>{T.moveTo(weekdayLong(tomorrow))}</button>}
+              {openTasks.length > 0 && <button type="button" className="card-link" disabled={moving || !target || target <= date || openTasks.every(t => excluded.includes(t.id))} onClick={moveTasks}>{T.moveTo(target ? longDate(target) : T.handoffDate)}</button>}
             </header>
             {!day ? <div className="skeleton" style={{ height: 88 }} /> : openTasks.length ? (
-              <div>{openTasks.slice(0, 6).map((t) => <div className="carry" key={t.id}><span>{t.text}</span></div>)}
-                {openTasks.length > 6 && <div className="list-foot">{T.andMoreOnDay(openTasks.length - 6)}</div>}
+              <div>
+                <div className="field">
+                  <Segmented aria-label={T.handoffTarget}>
+                    <button type="button" aria-pressed={mode === 'tomorrow'} onClick={() => setMode('tomorrow')}>{T.handoffTomorrow}</button>
+                    <button type="button" aria-pressed={mode === 'date'} onClick={() => setMode('date')}>{T.handoffDate}</button>
+                  </Segmented>
+                  {mode === 'date' && <input type="date" className="input num" aria-label={T.handoffTarget} min={tomorrow} value={chosenDate} onChange={e => setChosenDate(e.target.value)} />}
+                  {suggested !== tomorrow && <button type="button" className="card-link" onClick={() => { setChosenDate(suggested); setMode('date'); }}>{T.handoffSuggestion(longDate(suggested))}</button>}
+                </div>
+                {openTasks.map(t => <label className="carry" key={t.id}>
+                  <input type="checkbox" className="check" checked={!excluded.includes(t.id)} onChange={e => setExcluded(ids => e.target.checked ? ids.filter(id => id !== t.id) : [...ids, t.id])} />
+                  <span>{t.text}</span>
+                </label>)}
               </div>
             ) : <div className="empty">{T.allTasksDone}</div>}
           </section>
