@@ -119,6 +119,9 @@ export function davSync({ db, feedProblem, log = () => {} }) {
     const initialDoc = db.docs.get(userId, 'inbox')?.value;
     run.lists = [{ id: DEFAULT_LIST, name: inboxName(user) }, ...(initialDoc?.lists ?? [])].map(l => ({ id: l.id, name: l.name, received: 0, sent: 0, deleted: 0, skipped: 0 }));
     const state = { cals: {}, items: {}, ignored: [], ...row.state };
+    // Only acknowledged remote writes may survive a failed inbox commit. Pulled
+    // tasks must be compared again until their local document is actually saved.
+    const checkpoint = structuredClone(state);
     try {
       password = open(row.secret);
       const link = { url: row.url, auth: `Basic ${Buffer.from(`${row.username}:${password}`).toString('base64')}`, mayPrivate: !!user.is_admin };
@@ -172,6 +175,10 @@ export function davSync({ db, feedProblem, log = () => {} }) {
       }
 
       // tasks, list by list
+      const localLists = new Set([{ id: DEFAULT_LIST }, ...(cur.value?.lists ?? [])].map(l => l.id));
+      checkpoint.home = home;
+      checkpoint.cals = Object.fromEntries(Object.entries(state.cals).filter(([id]) => localLists.has(id)));
+      checkpoint.ignored = [...state.ignored];
       for (const l of lists()) if (!run.lists.some(x => x.id === l.id)) run.lists.push({ id: l.id, name: l.name, received: 0, sent: 0, deleted: 0, skipped: 0 });
       for (const [listId, href] of Object.entries(state.cals)) {
         current = run.lists.find(l => l.id === listId); title = '';
@@ -190,6 +197,7 @@ export function davSync({ db, feedProblem, log = () => {} }) {
               const put = await call(link, 'PUT', R.href, L.ics, { 'content-type': 'text/calendar; charset=utf-8', ...(R.etag ? { 'if-match': R.etag } : {}) });
               countSyncOperation(current, 'sent');
               state.items[uid] = { list: listId, href: R.href, etag: put.status < 300 ? put.etag : null, hash: L.etag };
+              checkpoint.items[uid] = { ...state.items[uid] };
             }
           } else if (L) {
             if (s && !lChanged) { doc = removeUid(doc, uid); countSyncOperation(current, 'deleted'); delete state.items[uid]; continue; } // deleted there
@@ -197,8 +205,9 @@ export function davSync({ db, feedProblem, log = () => {} }) {
             const put = await call(link, 'PUT', at, L.ics, { 'content-type': 'text/calendar; charset=utf-8', 'if-none-match': '*' });
             countSyncOperation(current, 'sent');
             state.items[uid] = { list: listId, href: at, etag: put.status < 300 ? put.etag : null, hash: L.etag };
+            checkpoint.items[uid] = { ...state.items[uid] };
           } else if (R) {
-            if (s && !rChanged) { await call(link, 'DELETE', R.href, undefined, R.etag ? { 'if-match': R.etag } : {}); countSyncOperation(current, 'deleted'); delete state.items[uid]; continue; } // deleted here
+            if (s && !rChanged) { await call(link, 'DELETE', R.href, undefined, R.etag ? { 'if-match': R.etag } : {}); countSyncOperation(current, 'deleted'); delete state.items[uid]; delete checkpoint.items[uid]; continue; } // deleted here
             pulls.push(R);
           } else delete state.items[uid];
         }
@@ -226,7 +235,11 @@ export function davSync({ db, feedProblem, log = () => {} }) {
 
       if (JSON.stringify(doc) !== JSON.stringify(cur.value ?? { items: [] })) {
         const res = db.docs.put(userId, 'inbox', doc, cur.version);
-        if (res.conflict) { run.error = 'busy'; schedule(userId); return { ok: false, error: 'busy' }; } // changed meanwhile: again soon
+        if (res.conflict) {
+          checkpoint.published = db.davLinks.get(userId)?.state.published;
+          db.davLinks.saveState(userId, checkpoint, 'busy');
+          run.error = 'busy'; schedule(userId); return { ok: false, error: 'busy' };
+        } // changed meanwhile: again soon
       }
       state.published = db.davLinks.get(userId)?.state.published;
       db.davLinks.saveState(userId, state, null);
@@ -236,8 +249,8 @@ export function davSync({ db, feedProblem, log = () => {} }) {
       run.error = e.code || 'failed';
       run.errors.push({ listId: current?.id ?? null, title, status: Number.isInteger(e.status) ? e.status : null, reason: run.error });
       log(`sync ${userId}: ${e.code || 'failed'}`);
-      state.published = db.davLinks.get(userId)?.state.published;
-      db.davLinks.saveState(userId, state, e.code || 'failed');
+      checkpoint.published = db.davLinks.get(userId)?.state.published;
+      db.davLinks.saveState(userId, checkpoint, e.code || 'failed');
       return { ok: false, error: e.code || 'failed' };
     } finally {
       const latest = db.davLinks.get(userId);
