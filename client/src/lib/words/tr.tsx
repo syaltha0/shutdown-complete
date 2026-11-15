@@ -550,6 +550,7 @@ serverStatus: { remedy: 'İlgili ayarı veya kurulum yönergesini aç',"title":"
   cdPassedMeta: 'İstediğinde temizle.', cdAgo: (n) => (n === 1 ? 'dün' : `${n} gün önce`),
   tomorrow: 'Yarın', toDayLabel: (t) => `“${t}” görevini bir güne koy`,
   fromInbox: 'Görevlerinden ekle', addToToday: (n) => (n ? `${n} tanesini bugüne ekle` : 'Bugüne ekle'),
+  experiment: { label: 'Gelecek hafta değiştireceğim tek şey (isteğe bağlı)', previous: 'Geçen haftanın deneyi', current: 'Bu haftanın deneyi', worked: 'İşe yaradı', change: 'Değiştir', drop: 'Bırak' },
   review: {
     focusNotes: 'Odak notları', focusBlocks: 'Blok / konu bazında odak',
     open: 'Haftanın özeti', home: 'Haftanın özeti', title: (n) => `${n}. haftanın özeti`, prev: 'Önceki hafta', next: 'Sonraki hafta', toWeek: 'Hafta',

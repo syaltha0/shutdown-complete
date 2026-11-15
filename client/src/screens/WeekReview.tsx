@@ -6,6 +6,9 @@ import { IconLeft, IconRight } from '../components/Icons';
 import { api, type WeekReviewData } from '../lib/api';
 import { addWeeks, duration, rangeLabel, weekdayShort, weekNumber, weekOf, today } from '../lib/dates';
 import { useT } from '../lib/i18n';
+import { emptyWeek, type WeekDoc } from '../lib/model';
+import { useDoc } from '../lib/useDoc';
+import { DocNotice, SaveStamp } from '../components/Common';
 import { onLinkClick } from '../lib/router';
 
 /** A change against last week, as "+1 h 20 m" / "−2", in the hue when it went up. */
@@ -23,6 +26,7 @@ function Delta({ now, before, fmt }: { now: number; before: number; fmt: (n: num
 export function WeekReview({ id }: { id: string }) {
   const T = useT(), W = T.review;
   const { settings, update } = useSettings();
+  const { value: week, update: updateWeek, status, error, retry } = useDoc<WeekDoc>(`week:${id}`, emptyWeek);
   const [r, setR] = useState<WeekReviewData | null>(null);
   const [failed, setFailed] = useState(false);
   const [tries, setTries] = useState(0);
@@ -88,6 +92,13 @@ export function WeekReview({ id }: { id: string }) {
             )}
           </section>
 
+          <section className="panel span-12 field">
+            <label htmlFor="week-experiment">{T.experiment.label}</label>
+            <input id="week-experiment" className="input" value={week?.experiment ?? ''} disabled={!week}
+              onChange={(e) => updateWeek((w) => ({ ...w, experiment: e.target.value }))} />
+            <SaveStamp status={status} />
+            <DocNotice status={status} error={error} retry={retry} />
+          </section>
           <WeekFocus id={id} />
 
           <section className="panel span-12 wr-mail">

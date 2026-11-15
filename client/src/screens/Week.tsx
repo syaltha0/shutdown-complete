@@ -1,4 +1,6 @@
 import { CalendarView } from '../components/CalendarView';
+import { useState } from 'react';
+import { Segmented } from '../components/Segmented';
 import { useSettings } from '../App';
 import { Checklist } from '../components/Checklist';
 import { DocNotice, SaveStamp } from '../components/Common';
@@ -20,6 +22,9 @@ export function Week({ id }: { id: string }) {
   const T = useT();
   const { settings } = useSettings();
   const { value: week, update, status, error, retry } = useDoc<WeekDoc>(`week:${id}`, emptyWeek);
+  const updateExperiment = update;
+  const [editingExperiment, setEditingExperiment] = useState(false);
+  const { value: prev, update: updatePrev } = useDoc<WeekDoc>(`week:${addWeeks(id, -1)}`, emptyWeek);
   const days = weekDays(id);
   const { docs: dayDocs, error: daysError, retry: retryDays } = useRange<DayDoc>(`day:${days[0]}`, `day:${days[6]}`);
   const q = quarterOf(days[3]);
@@ -68,6 +73,24 @@ export function Week({ id }: { id: string }) {
           </div>
         </div>
       </div>
+      {prev?.experiment?.trim() && <div className="week-experiment" data-testid="previous-experiment">
+                <span className="muted">{T.experiment.previous}: {prev.experiment}</span>
+                <Segmented role="group" aria-label={T.experiment.previous}>
+                  {(['worked', 'change', 'drop'] as const).map((result) => <button type="button" key={result}
+                    aria-pressed={prev.experimentResult === result} onClick={() => {
+                      updatePrev((w) => ({ ...w, experimentResult: result }));
+                      if (result === 'change') {
+                        updateExperiment((w) => ({ ...w, experiment: prev.experiment }));
+                        setEditingExperiment(true);
+                      } else setEditingExperiment(false);
+                    }}>{T.experiment[result]}</button>)}
+                </Segmented>
+              </div>}
+              {editingExperiment && <div className="field">
+                <label htmlFor="current-experiment">{T.experiment.current}</label>
+                <input autoFocus id="current-experiment" className="input" value={week?.experiment ?? ''}
+                  onChange={(e) => updateExperiment((w) => ({ ...w, experiment: e.target.value }))} />
+              </div>}
       <DocNotice status={status} error={error} retry={retry} />
       {id >= thisWeek && dayDocs && <CapacityNote scope="week" id={id} from={days[0]} thisOne={id === thisWeek}
         planned={days.reduce((n, d) => { const doc = dayDocs.get(`day:${d}`); return n + (doc ? minutesOfKind(doc, 'deep') : 0); }, 0)} />}

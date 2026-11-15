@@ -373,3 +373,7 @@ kbd { display: inline-grid; place-items: center; min-width: 26px; height: 24px; 
 .welcome-foot .btn.ready[aria-disabled="true"] { opacity: 1; cursor: default; }
 
 @media(max-width:600px) { .welcome-main { display:flex; flex-direction:column; } .welcome-main .welcome-foot { order:-1; padding:0 0 12px; margin-bottom:12px; border-top:0; border-bottom:1px solid var(--rule); } }
+
+.week-experiment { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 16px; margin-block: 12px; font-size: 13px; min-width: 0; }
+.week-experiment > span { overflow-wrap: anywhere; min-width: 0; }
+.week-experiment .segmented { max-width: 100%; flex-wrap: wrap; }

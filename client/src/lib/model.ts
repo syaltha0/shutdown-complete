@@ -222,6 +222,8 @@ export interface MonthDoc {
 export interface WeekDoc {
   items: Item[];
   notes: string;
+  experiment?: string;
+  experimentResult?: 'worked' | 'change' | 'drop';
   /** when the week was planned with the weekly planning steps */
   plannedAt?: string;
 }
