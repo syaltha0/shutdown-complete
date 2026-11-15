@@ -111,6 +111,12 @@ docker compose -f docker-compose.yml up -d --build
 > [!TIP]
 > The server keeps a daily backup in `data/backups`. Copy it somewhere else too.
 
+## Development and testing
+
+After `npm ci` and `npm run build`, run `npm run test:e2e` for the full parallel suite or `npm run test:e2e:quick` for ten core smoke files.
+Use `npm run test:e2e -- --jobs 2 --only signup,planner` to limit workers or select files; set `CHROME_PATH` to your Chromium executable.
+Per-file logs and timings are saved under `reports/tmp-e2e/`; CI runs the full parallel suite.
+
 ## Disclaimer
 
 Shutdown Complete is inspired by the time-blocking method and the end-of-day shutdown ritual that Cal Newport

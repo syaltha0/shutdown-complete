@@ -8,7 +8,7 @@ import { join } from 'node:path';
 const s = await startServer(), b = await launch();
 let passed = 0;
 const check = (n, ok) => { if (!ok) throw Error(n); console.log('PASS '+n); passed++; };
-const shotDir = process.env.TOGETHER_SHOTS || 'D:/newport/reports/focus-shots/together';
+const shotDir = process.env.TOGETHER_SHOTS || 'reports/focus-shots/together';
 const a = await demoAccount(client(s.url), {lang:'en'});
 const z = await demoAccount(client(s.url), {lang:'en',email:'guest@example.test'});
 const D = iso(new Date());
