@@ -2,22 +2,35 @@
 
 ## Run it with Docker
 
-You need Docker with Compose v2.24 or newer.
+You need Docker with Compose v2.24 or newer. The recommended path uses the prebuilt GHCR image, pinned to `0.8.4`.
 
 ```bash
 git clone https://github.com/syaltha0/shutdown-complete.git
 cd shutdown-complete
-cp .env.example .env        # optional: e-mail, public address, port
-docker compose up -d --build
+cp deploy/compose.ghcr.yml compose.yml
+cp .env.example .env
 ```
 
-Open `http://<server>:3000` (or the address your reverse proxy serves). The first visit shows a **setup screen**:
+Set `APP_URL` to your public HTTPS address. For a local HTTP trial, set `APP_URL=http://localhost:3000`
+and `COOKIE_SECURE=false`. Start with one command:
+
+```bash
+docker compose -f compose.yml up -d
+```
+
+Open `http://localhost:3000` on the host (or the HTTPS address your reverse proxy serves). The port is bound to loopback only. The first visit shows a **setup screen**:
 the account you create there is the owner of this installation. A new server takes only people you invite; each account has its own,
 separate planner. In *Settings → Server* you can choose between open
 sign-ups (optionally only some e-mail domains), sign-ups you approve, invite links only, or none, and make invite
 links to send.
 
 Data lives in `./data/planner.db` (SQLite). The server keeps a daily copy in `./data/backups` (see `BACKUP_HOUR`); copy that folder somewhere else too.
+
+### Build from source (alternative)
+
+After cloning and configuring `.env`, run `docker compose -f docker-compose.yml up -d --build`.
+Both Compose files use the same port, environment and data directory. For image deployments, use
+`docker compose -f compose.yml` wherever a command below starts with `docker compose`.
 
 ### HTTPS with nginx
 
@@ -70,10 +83,12 @@ docker compose exec planner node server/src/cli.mjs invite 1 7        # an invit
 ### Updating
 
 ```bash
-git pull && docker compose up -d --build
+docker compose -f compose.yml pull
+docker compose -f compose.yml up -d
 ```
 
-A ready-made image is also built by GitHub Actions on every push to `main` (`ghcr.io/syaltha0/shutdown-complete:latest`; a `v*` tag gives a versioned one).
+For an image upgrade, first change the pinned tag in `compose.yml` to the desired release, then run the commands above.
+For source builds, use `git pull` followed by `docker compose -f docker-compose.yml up -d --build`.
 
 ### Deploy behind a reverse proxy
 
@@ -177,6 +192,7 @@ weekends optional. An open page in front announces a phase end itself, so the se
 notification's button ("Start break" / "Start focus", only when the next phase does not start by itself) opens the
 app, where that phase starts. One account causes at most 240 pushes an hour. These need no new settings of the server.
 
+Offline access shows the last loaded plan from the service worker cache; it is not full offline editing.
 Edits are queued by account in IndexedDB (localStorage fallback), survive reloads, and retry when connectivity
 or window focus returns. The status line reports waiting changes. Concurrent edits retain the existing conflict
 behavior: a 409 loads the newer server copy instead of overwriting it. Home Screen shortcuts open Today, Focus,
