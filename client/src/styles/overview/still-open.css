@@ -1,4 +1,4 @@
-﻿.b-open { min-height: 0; overflow: auto; }
+.b-open { min-height: 0; overflow: auto; }
 .b-open .b-open-summary { margin: -2px 0 2px; color: var(--muted); font-size: 12px; }
 .b-open-body { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
 .b-open ul { list-style: none; margin: 0 0 4px; padding: 0; display: grid; gap: 6px; }
@@ -44,7 +44,7 @@
 .b-open .b-open-group { line-height:16px; margin-top:3px; }
 .b-open li label { min-height:24px; }
 
-.bento .b-open { align-self:start; max-height:100%; }
+.bento .b-open { max-height:100%; }
 .b-open .b-open-group { margin:0; line-height:16px; }
 .b-open li label { min-height:22px; }
 .b-open ul { gap:0; }

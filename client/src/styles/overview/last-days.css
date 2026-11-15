@@ -31,4 +31,4 @@
 
 .b-duration-small { display:none; } @media(max-width:600px) { .b-duration-wide { display:none; } .b-duration-small { display:inline; } }
 
-.bento .b-recent { align-self:start; min-height:0; }
+.bento .b-recent { min-height:0; }
