@@ -773,7 +773,7 @@ serverStatus: { remedy: 'İlgili ayarı veya kurulum yönergesini aç',"title":"
     openTaskGroup: 'Görevler',
     openMetricGroup: 'Ölçümler',
     openClosingGroup: 'Kapanış',
-    focusRemaining: 'Hedefe kalan',
+    focusRemaining: 'Hedefe kalan', focusReached: 'Ulaşıldı',
     focusLongest: 'En uzun',
     focusReady: 'İlk oturum için hazır',
     tasksProgress: (done: number, total: number) => `${done}/${total} tamamlandı`,

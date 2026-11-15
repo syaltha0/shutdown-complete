@@ -787,7 +787,7 @@ export const en = {
     openTaskGroup: 'Tasks',
     openMetricGroup: 'Measurements',
     openClosingGroup: 'Shutdown',
-    focusRemaining: 'To goal',
+    focusRemaining: 'To goal', focusReached: 'Reached',
     focusLongest: 'Longest',
     focusReady: 'Ready for your first session',
     tasksProgress: (done: number, total: number) => `${done}/${total} completed`,

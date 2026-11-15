@@ -28,7 +28,7 @@ export function FocusToday({ T, settings, day, B }: OverviewData) {
     <div className="b-rt-body">
       <dl className="b-figures">
         <div><dt>{B.focusSessionsLabel}</dt><dd className="num">{count}</dd></div>
-        <div><dt>{B.focusRemaining}</dt><dd className="num">{goal ? (focused >= goal ? "✓" : duration(goal - focused)) : "–"}</dd></div>
+        <div><dt>{B.focusRemaining}</dt><dd className="num">{goal ? (focused >= goal ? B.focusReached : duration(goal - focused)) : "–"}</dd></div>
         <div><dt>{B.focusLongest}</dt><dd className="num">{count ? duration(Math.max(...(day?.focus?.sessions ?? []).map(s => s.minutes))) : "–"}</dd></div>
       </dl>
       {active && <p className="b-rt-summary">{active ? `${T.phase[active.phase]} · ${B.left(B.focusMinutes(Math.ceil(secondsLeft(active, now) / 60)))}${active.pausedLeft != null ? ` · ${B.focusPaused}` : ""}` : [goal > 0 ? B.of(duration(goal)) : null, count > 0 ? B.focusSessions(count) : null].filter(Boolean).join(" · ") || B.noFocus}</p>}
