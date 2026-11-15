@@ -101,20 +101,8 @@ export function skipPlan(a: FocusActive, now = Date.now()) {
   return { ask: a.phase === 'focus' && ran > SKIP_FREE_SEC, elapsedMin: Math.max(1, Math.round(ran / 60)), fullMin: a.plannedMin, count: (a.phase === 'focus' && ran <= SKIP_FREE_SEC ? 'none' : 'elapsed') as SkipCount };
 }
 
-/** Writes (or clears) the short note on a logged session. */
-export const NOTE_MAX = 280, INTENT_MAX = 140;
-
-export function noteSession(id: string, note: string, key = dayKey()) {
-  const text = note.trim().slice(0, NOTE_MAX);
-  return updateKey<DayDoc>(key, emptyDay, (d) => {
-    if (!d.focus) return d;
-    return { ...d, focus: { ...d.focus, sessions: d.focus.sessions.map((x) => {
-      if (x.id !== id) return x;
-      const { note: _old, ...rest } = x;
-      return text ? { ...rest, note: text } : rest;
-    }) } };
-  });
-}
+/** The longest intent a session keeps. */
+export const INTENT_MAX = 140;
 
 /** Starts the cycle of rounds over: the next focus session is round one again. The logged sessions and totals stay. */
 export function resetCycle(key = dayKey()) {

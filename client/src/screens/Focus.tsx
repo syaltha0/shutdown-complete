@@ -187,7 +187,6 @@ export function Focus() {
   const phase: FocusPhase = a?.phase ?? 'focus';
   const minutes = f.focusMin;
   const begin = { blockId: chosen, label: chosenBlock?.label || T.freeFocus, minutes, breakMin: f.shortMin, phase: 'focus' as const };
-  // a note being typed is kept even when the break ends (or is skipped) before the field loses focus
   // A timer carried past midnight finishes in its original day's document.
   // The rounds count from where the cycle last began (the day's start, or "Reset cycle"), not from all of today's sessions
   const inCycle = cycleDone(a ? holder?.focus : day?.focus);
