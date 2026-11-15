@@ -25,7 +25,12 @@ try {
   await p.locator('.focus-setup').waitFor();
   check('the default length shows on the ring', (await ring()) === '25:00');
 
-  const initialHeight = await p.locator('.focus-panel').evaluate(el => el.getBoundingClientRect().height);
+  // the right column settles as its cards load: measure once the timer card has held one height for half a second
+  const initialHeight = await p.locator('.focus-panel').evaluate(async (el) => {
+    let last = -1, since = performance.now();
+    while (performance.now() - since < 500) { const h = el.getBoundingClientRect().height; if (h !== last) { last = h; since = performance.now(); } await new Promise((r) => requestAnimationFrame(r)); }
+    return last;
+  });
   await p.locator('.focus-config-anchor > button').click();
   check('settings preserve card height', Math.abs(initialHeight - await p.locator('.focus-panel').evaluate(el => el.getBoundingClientRect().height)) < 1);
   if (shots) await p.screenshot({path: shots + '/1440-idle.png', fullPage:true});
