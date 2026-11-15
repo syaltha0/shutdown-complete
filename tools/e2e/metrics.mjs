@@ -70,7 +70,8 @@ try {
   await metric('Read 20 pages').click();
   await page.locator('.daygrid').waitFor();
   check('a check metric shows a day grid, not bars', (await page.locator('.daygrid .dg-row[role="img"]').count()) >= 3 && (await page.locator('.chart svg').count()) === 0);
-  check('days still to come are left blank', (await page.locator('.daygrid .dg-row.cur i.future').count()) >= 1);
+  // the rest of this week (none on a Sunday) is left blank
+  check('days still to come are left blank', (await page.locator('.daygrid .dg-row.cur i.future').count()) === 6 - ((new Date().getDay() + 6) % 7));
   const toggle = page.locator('.te-check');
   const was = (await doc(`day:${D}`)).metrics.read === true;
   await toggle.click();
