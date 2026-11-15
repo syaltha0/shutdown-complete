@@ -26,7 +26,7 @@ try {
  await open(); assert.ok(await p.getByRole('link',{name:'Open task',exact:true}).isVisible());
  await p.getByRole('link',{name:'Open task',exact:true}).click();
  await p.locator('.tk-d-title').waitFor(); assert.equal(await p.locator('.tk-d-title').inputValue(),task.text);
- assert.ok(await p.getByText(/Planned:/).isVisible());
+ await p.getByText(/Planned:/).waitFor();
  await p.locator('.tk-d-title').fill('Renamed task'); await p.waitForTimeout(1000);
  await p.getByRole('link',{name:'Go to block',exact:true}).click();
  await p.waitForFunction(()=>document.querySelector('#be-label')?.value==='Renamed task');

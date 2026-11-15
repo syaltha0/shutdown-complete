@@ -32,8 +32,9 @@ try {
  await page.goto(srv.url+'/settings');
  await page.getByRole('button',{name:/^(Delete exception|İstisnayı sil): Holiday/}).click();
  await page.waitForTimeout(1200);
- await page.goto(srv.url+'/day/2099-11-16'); await page.waitForTimeout(1000);
- assert.ok((await api.get('day:2099-11-16')).value.columns.some(c=>c.blocks.some(b=>b.repeatId==='math')));
+ await page.goto(srv.url+'/day/2099-11-16');
+ let restored=false; for(let i=0;i<40&&!restored;i++){ restored=(await api.get('day:2099-11-16')).value?.columns?.some(c=>c.blocks.some(b=>b.repeatId==='math'))??false; if(!restored) await page.waitForTimeout(250); }
+ assert.ok(restored);
  await ctx.close();
  console.log(`PASS ${lang} ${width} ${theme}: preview, suppression, restore`);
  }
