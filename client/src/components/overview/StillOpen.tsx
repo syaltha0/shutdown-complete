@@ -11,6 +11,7 @@ export function StillOpen({ T, settings, t, day, update, tasks, B, now, plan }: 
   const inboxCount = featureOn(settings, "inbox") ? (inbox?.items.length ?? 0) : 0;
   const shutdown = !day?.shutdown.done;
   const ended = now >= 1080 || (plan.length > 0 && plan.every(b => b.end <= now));
+  const doneToday = day?.tasks.filter(x => x.done && x.text.trim()) ?? [];
   const remaining = tasks.length + metrics.length + Number(shutdown) + Number(inboxCount > 0);
   const link = (href: string, text: string, main = false) => <a className={`b-act${main ? " main" : ""}`} href={href} onClick={onLinkClick}><span>{text}</span><svg width="14" height="14" viewBox="0 0 16 16" aria-hidden="true"><path d="m6 4 4 4-4 4" fill="none" stroke="currentColor" strokeWidth="1.5" /></svg></a>;
   return <section className="panel b-open">
@@ -27,6 +28,8 @@ export function StillOpen({ T, settings, t, day, update, tasks, B, now, plan }: 
       {metrics.length > 0 && <div className="b-open-measure"><p className="b-open-group">{B.openMetricGroup}<span>{metrics.length}</span></p>{link(`/day/${t}`, B.openMetrics(metrics.length))}</div>}
       {shutdown && <div className={ended ? "b-open-closing due" : "b-open-closing"}><p className="b-open-group">{B.openClosingGroup}</p>{ended && <span className="b-open-hint">{B.openClose}</span>}{link(`/shutdown/${t}`, T.runShutdown, ended)}</div>}
       {inboxCount > 0 && link("/inbox", B.openInbox(inboxCount))}
+      {/* what is already done today, quietly, below what is left */}
+      {doneToday.length > 0 && <div className="b-open-done"><p className="b-open-group">{B.openDoneGroup}<span>{doneToday.length}</span></p><ul>{doneToday.slice(0, 3).map(x => <li key={x.id}><s>{x.text}</s></li>)}</ul></div>}
     </div>}
     <div className="b-open-capture"><label htmlFor="home-task">{T.captureTask}</label><input id="home-task" className="input b-capture" aria-label={T.captureTask} placeholder={B.openCapture} onKeyDown={e => {
       if (e.key !== "Enter" || e.nativeEvent.isComposing) return;

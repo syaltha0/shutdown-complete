@@ -50,3 +50,10 @@
 .b-open ul { gap:0; }
 .b-open-closing { margin-top:0; padding-top:0; }
 .b-open-body { gap:2px; }
+
+/* done today: muted, struck through, under what is left */
+.b-open-done { padding-top: 6px; border-top: 1px solid var(--rule); }
+.b-open-done ul { margin: 2px 0 0; padding: 0; list-style: none; display: grid; gap: 2px; }
+.b-open-done li { min-height: 20px; color: var(--muted); font-size: 12px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.b-open-done s { text-decoration-color: var(--control); }
+@media (max-height: 820px) and (min-width: 861px) { .b-open-done ul { display: none; } }
