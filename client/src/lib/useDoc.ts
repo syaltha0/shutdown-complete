@@ -6,6 +6,7 @@ import { clearDrafts, readDrafts, same, saveDraft, setDraftOwner } from './draft
 export type SaveStatus = 'loading' | 'saved' | 'saving' | 'unsaved' | 'error' | 'conflict' | 'offline';
 
 const DEBOUNCE = 600;
+const REFRESH_INTERVAL = 15_000;
 
 /**
  * One shared store of documents. Every screen, the focus timer and the habit grid read and write the same entry
@@ -25,6 +26,9 @@ interface Entry {
   sentAt?: number; // when the save in flight left
   timer?: number;
   loading?: Promise<void>;
+  edits?: number; // invalidates reads started before a local edit
+  lastRefresh?: number;
+  refreshQueued?: boolean;
   listeners: Set<() => void>;
   snap: { value: unknown; status: SaveStatus; error: string | null };
 }
@@ -35,6 +39,7 @@ export async function restorePending(user: string) {
   setDraftOwner(user);
   for (const doc of await openOutbox(user)) {
     const e = entry(doc.key);
+    e.edits = (e.edits ?? 0) + 1;
     e.value = e.pending = doc.value; e.version = doc.version; e.loaded = true; e.status = 'offline'; emit(e);
   }
   if (navigator.onLine) retryPending();
@@ -89,17 +94,25 @@ function emit(e: Entry) {
   e.listeners.forEach((l) => l());
 }
 
-function load(key: string, force = false): Promise<void> {
+function load(key: string, force = false, background = false): Promise<void> {
   const e = entry(key);
-  if (e.loading && !force) return e.loading;
-  if (e.loaded && !force) return Promise.resolve();
+  if (e.loading) return e.loading;
+  if (e.pending != null || e.inflight || (e.loaded && !force)) return Promise.resolve();
+  const edits = e.edits;
   e.loading = api.get(key).then((doc) => {
-    if (e.pending == null) { e.value = doc.value; e.version = doc.version; }
+    // A read may finish after an edit (even after its PUT). Never replace that edit or regress a version.
+    if (e.pending != null || e.inflight || e.edits !== edits || doc.version < e.version) return;
+    const changed = !e.loaded || doc.version > e.version;
+    if (changed) { e.value = doc.value; e.version = doc.version; }
     e.loaded = true;
-    e.status = e.pending == null ? 'saved' : e.status;
+    // Keep the conflict notice until the user acts or a newer server version arrives.
+    if (changed || e.status !== 'conflict') e.status = 'saved';
     e.error = null;
     emit(e);
   }).catch((err) => {
+    if (e.pending != null || e.inflight || e.edits !== edits) return;
+    // Background failures are silent; initial loads and explicit retries expose their error.
+    if (background) return;
     e.status = 'error';
     e.error = err instanceof Error ? err.message : 'Could not load';
     emit(e);
@@ -153,6 +166,7 @@ async function flush(key: string, keepalive = false) {
     judgeOutage();
     keepPending(e.pending == null ? null : { key, value: e.pending, version: e.version }, key);
     emit(e);
+    if (e.refreshQueued && e.pending == null && e.listeners.size) refreshKey(key, REFRESH_INTERVAL);
     if (e.pending != null && e.status !== 'error' && e.status !== 'offline') e.timer = window.setTimeout(() => flush(key), DEBOUNCE);
   }
 }
@@ -162,6 +176,7 @@ export async function updateKey<T>(key: string, fallback: () => T, fn: (v: T) =>
   const e = entry(key);
   if (!e.loaded) await load(key);
   const next = fn(((e.pending ?? e.value) as T | null) ?? fallback());
+  e.edits = (e.edits ?? 0) + 1;
   e.value = next;
   e.pending = next;
   keepPending({ key, value: next, version: e.version }, key);
@@ -175,16 +190,19 @@ export async function updateKey<T>(key: string, fallback: () => T, fn: (v: T) =>
  * Fetch a document again if nothing local is waiting to be saved (a shared document others edit too); listeners
  * hear of it only when its version moved.
  */
-export function refreshKey(key: string) {
+export function refreshKey(key: string, interval = REFRESH_INTERVAL) {
   const e = entry(key);
-  if (!e.loaded || e.pending != null || e.inflight || e.loading) return;
-  api.get(key).then((doc) => {
-    if (e.pending != null || e.inflight || doc.version === e.version) return;
-    e.value = doc.value;
-    e.version = doc.version;
-    if (e.status === 'conflict' || e.status === 'error') e.status = 'saved';
-    emit(e);
-  }).catch(() => { /* the next round tries again */ });
+  if (document.visibilityState !== 'visible' || !navigator.onLine) return;
+  if (e.pending != null || e.inflight) { e.refreshQueued = true; return; }
+  if (e.loading || (e.lastRefresh != null && Date.now() - e.lastRefresh < interval)) return;
+  e.refreshQueued = false;
+  e.lastRefresh = Date.now();
+  void load(key, true, true);
+}
+
+function refreshOpen() {
+  if (document.visibilityState !== 'visible' || !navigator.onLine) return;
+  entries.forEach((e, key) => { if (e.listeners.size) refreshKey(key, REFRESH_INTERVAL); });
 }
 
 /** Put a kept draft back as the document's next version (written over the server's, which the person confirmed). */
@@ -199,11 +217,13 @@ export function dropKey(key: string) { const e = entries.get(key); if (e && e.pe
 /** Save everything pending now (the page is being hidden or closed). */
 function flushAll() { entries.forEach((e, k) => { if (e.pending != null) flush(k, true); }); }
 if (typeof document !== 'undefined') {
-  document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'hidden') flushAll(); });
+  document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'hidden') flushAll(); else refreshOpen(); });
   window.addEventListener('pagehide', flushAll);
   // back online: send what could not be sent
-  window.addEventListener('online', retryPending);
-  window.addEventListener('focus', retryPending);
+  const resume = () => { retryPending(); refreshOpen(); };
+  window.addEventListener('online', resume);
+  window.addEventListener('focus', resume);
+  window.setInterval(refreshOpen, REFRESH_INTERVAL);
 }
 
 /** Whether any document is still waiting to be saved. */
