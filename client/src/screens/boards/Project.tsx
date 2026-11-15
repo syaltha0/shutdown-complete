@@ -37,8 +37,9 @@ export function TeamProject({ tid, bid, card }: { tid: string; bid?: string; car
   const team = teams?.find((t) => t.id === tid) ?? null;
   useEffect(() => { if (teams && !team) navigate('/boards', true); }, [teams, team]);
   useEffect(() => { markOpened(tid); }, [tid]);
+  // Keep fast collaboration polling; the common reader coalesces requests and protects local edits.
   useEffect(() => {
-    const t = window.setInterval(() => { if (document.visibilityState === 'visible') refreshKey(key); }, 4000);
+    const t = window.setInterval(() => { if (document.visibilityState === 'visible') refreshKey(key, 4000); }, 4000);
     return () => window.clearInterval(t);
   }, [key]);
   if (!value || !team || !value.name && !value.boards) return <><div className="title-row"><div><h1>{T.nav.boards}</h1></div></div><DocNotice status={status} error={error} retry={retry} /></>;

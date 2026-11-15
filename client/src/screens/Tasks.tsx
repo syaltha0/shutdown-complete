@@ -19,7 +19,7 @@ import {
 } from '../lib/tasks';
 import { insertAt, offerUndo } from '../lib/undo';
 import { DayChips } from './Templates';
-import { refreshKey, updateKey, useDoc } from '../lib/useDoc';
+import { updateKey, useDoc } from '../lib/useDoc';
 import { parseTaskDraft } from '../lib/taskQuickAdd';
 import { cleanTrash, trashTasks, restoreTasks } from '../lib/taskTrash';
 import { taskMatches } from '../lib/taskSearch';
@@ -102,13 +102,6 @@ function InboxTasks({ view: asked }: { view?: string }) {
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, []);
-  // changes from a phone's task app or a Nextcloud arrive on the server: looked for now and then, and on coming back
-  useEffect(() => {
-    const look = () => { if (document.visibilityState === 'visible') refreshKey('inbox'); };
-    const t = window.setInterval(look, 20_000);
-    window.addEventListener('focus', look);
-    return () => { window.clearInterval(t); window.removeEventListener('focus', look); };
   }, []);
 
   const set = async (id: string, p: Partial<Item>) => {
