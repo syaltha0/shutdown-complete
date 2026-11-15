@@ -8,6 +8,37 @@ import { readFile, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import { gunzipSync, gzipSync } from 'node:zlib';
 import { DatabaseSync } from 'node:sqlite';
+import { readFileSync } from 'node:fs';
+import { assertSchemaVersion, migrateFile } from './migrate-sql.mjs';
+const appVersion = JSON.parse(readFileSync(new URL('../../package.json', import.meta.url), 'utf8')).version;
+
+// Stored inside the snapshot so downloads remain a single portable .db.gz file.
+function writeManifest(file) {
+  const copy = new DatabaseSync(file);
+  try {
+    const manifest = { appVersion, schemaVersion: assertSchemaVersion(copy), createdAt: new Date().toISOString() };
+    copy.prepare("INSERT INTO meta (key, value) VALUES ('backup_manifest', ?) ON CONFLICT(key) DO UPDATE SET value=excluded.value").run(JSON.stringify(manifest));
+  } finally { copy.close(); }
+}
+function prepareRestore(file) {
+  if (!isPlannerDb(file)) throw new Error('Backup is damaged or has an unsupported schema.');
+  const before = new DatabaseSync(file, { readOnly: true });
+  let version;
+  try { version = assertSchemaVersion(before); } finally { before.close(); }
+  migrateFile(file);
+  // Preserve a manifest on same-version restores; update it only after an upgrade.
+  const after = new DatabaseSync(file);
+  try {
+    const schemaVersion = assertSchemaVersion(after);
+    if (version !== schemaVersion) {
+      const raw = after.prepare("SELECT value FROM meta WHERE key='backup_manifest'").get()?.value;
+      if (raw) {
+        const manifest = { ...JSON.parse(raw), sourceSchemaVersion: version, schemaVersion };
+        after.prepare("UPDATE meta SET value=? WHERE key='backup_manifest'").run(JSON.stringify(manifest));
+      }
+    }
+  } finally { after.close(); }
+}
 
 const NAME = /^planner-[\w-]+\.db\.gz$/;
 const pad = (n) => String(n).padStart(2, '0');
@@ -17,7 +48,7 @@ const stampOf = (d = new Date()) => `${d.getFullYear()}-${pad(d.getMonth() + 1)}
 export function applyPendingRestore(dataDir, log = console.log) {
   const pending = join(dataDir, 'restore-pending.db');
   if (!existsSync(pending)) return false;
-  if (!isPlannerDb(pending)) throw new Error('Pending restore is damaged or has an unsupported schema.');
+  prepareRestore(pending);
   const file = join(dataDir, 'planner.db');
   if (existsSync(file)) {
     const current = new DatabaseSync(file);
@@ -36,8 +67,12 @@ function isPlannerDb(file) {
   try {
     d = new DatabaseSync(file, { readOnly: true });
     if (d.prepare('PRAGMA integrity_check').get().integrity_check !== 'ok') return false;
-    // Existing releases use SQLite schema version zero; reject future formats rather than downgrade them.
-    if (d.prepare('PRAGMA user_version').get().user_version !== 0) return false;
+    const schemaVersion = assertSchemaVersion(d);
+    const rawManifest = d.prepare("SELECT value FROM meta WHERE key='backup_manifest'").get()?.value;
+    if (rawManifest) {
+      const manifest = JSON.parse(rawManifest);
+      if (manifest.schemaVersion !== schemaVersion || typeof manifest.appVersion !== 'string' || !Number.isFinite(Date.parse(manifest.createdAt))) return false;
+    }
     d.prepare('SELECT id, email, password FROM users LIMIT 0').all();
     d.prepare('SELECT user_id, key, value, version FROM user_docs LIMIT 0').all();
     d.prepare('SELECT key, value FROM meta LIMIT 0').all();
@@ -46,7 +81,7 @@ function isPlannerDb(file) {
       if (!/^[a-f0-9]{64}$/i.test(d.prepare("SELECT value FROM meta WHERE key='dav_key'").get()?.value || '')) return false;
     }
     return d.prepare('PRAGMA foreign_key_check').all().length === 0;
-  } catch { return false; } finally { try { d?.close(); } catch { /* not open */ } }
+  } catch (error) { if (error.message.startsWith('Unsupported database schema version')) throw error; return false; } finally { try { d?.close(); } catch { /* not open */ } }
 }
 const remove = (f) => { try { rmSync(f, { force: true }); } catch { /* held open a moment longer: left for the next tidy-up */ } };
 
@@ -58,7 +93,7 @@ export async function restoreInto(source, target) {
   try {
     const buf = await readFile(source);
     await writeFile(pending, buf[0] === 0x1f && buf[1] === 0x8b ? gunzipSync(buf) : buf, { flag: 'wx', mode: 0o600 });
-    if (!isPlannerDb(pending)) throw new Error('Backup is damaged or has an unsupported schema.');
+    prepareRestore(pending);
     renameSync(pending, join(target, 'planner.db'));
   } catch (e) { remove(pending); throw e; }
 }
@@ -80,6 +115,7 @@ export function backups({ db, dataDir, keep = Number(process.env.BACKUP_KEEP) ||
     const tmp = join(dir, `.tmp-${Date.now()}.db`);
     try {
       db.backupTo(tmp);
+      writeManifest(tmp);
       const name = `planner-${kind}-${stampOf()}.db.gz`;
       await writeFile(join(dir, name), gzipSync(await readFile(tmp), { level: 6 }));
       // the ones kept apart from the count: those made before a restore and uploaded ones
@@ -98,7 +134,7 @@ export function backups({ db, dataDir, keep = Number(process.env.BACKUP_KEEP) ||
     try {
       try { await writeFile(staged, gunzipSync(await readFile(join(dir, name))), { flag: 'wx', mode: 0o600 }); }
       catch { return { error: 'damaged' }; }
-      if (!isPlannerDb(staged)) return { error: 'damaged' };
+      try { prepareRestore(staged); } catch (error) { return { error: error.message.startsWith('Unsupported database schema version') ? error.message : 'damaged' }; }
       await make('before-restore');
       renameSync(staged, join(dataDir, 'restore-pending.db'));
       return { ok: true };
@@ -111,9 +147,12 @@ export function backups({ db, dataDir, keep = Number(process.env.BACKUP_KEEP) ||
     if (buf[0] === 0x1f && buf[1] === 0x8b) { try { data = gunzipSync(buf); } catch { return { error: 'damaged' }; } }
     const tmp = join(dir, `.up-${Date.now()}.db`);
     await writeFile(tmp, data);
-    const ok = isPlannerDb(tmp);
-    remove(tmp);
-    if (!ok) return { error: 'damaged' };
+    try {
+      prepareRestore(tmp);
+      writeManifest(tmp);
+      data = await readFile(tmp);
+    } catch (error) { return { error: error.message.startsWith('Unsupported database schema version') ? error.message : 'damaged' }; }
+    finally { remove(tmp); }
     const name = `planner-upload-${stampOf()}.db.gz`;
     await writeFile(join(dir, name), gzipSync(data));
     return { name };

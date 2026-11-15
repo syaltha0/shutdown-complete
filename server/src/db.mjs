@@ -1,3 +1,5 @@
+import { migrate, assertSchemaVersion } from './migrate-sql.mjs';
+import { upgradeDocument } from './migrate-docs.mjs';
 import { planningDay, dayStartOf } from './planday.mjs';
 import { rollOn } from './recur.mjs';
 import { DatabaseSync } from 'node:sqlite';
@@ -11,170 +13,11 @@ import { randomUUID } from 'node:crypto';
 export function openDb(file) {
   mkdirSync(dirname(file), { recursive: true });
   const db = new DatabaseSync(file);
-  db.exec(`
-    PRAGMA journal_mode = WAL;
-    PRAGMA busy_timeout = 3000;
-    PRAGMA foreign_keys = ON;
-    CREATE TABLE IF NOT EXISTS calendar_feeds (
-      user_id TEXT PRIMARY KEY REFERENCES users(id) ON DELETE CASCADE,
-      token_hash TEXT NOT NULL UNIQUE, timezone TEXT NOT NULL, tasks INTEGER NOT NULL DEFAULT 0
-    );
-    CREATE TABLE IF NOT EXISTS meta (key TEXT PRIMARY KEY, value TEXT NOT NULL);
-    CREATE TABLE IF NOT EXISTS users (
-      id TEXT PRIMARY KEY,
-      email TEXT NOT NULL UNIQUE COLLATE NOCASE,
-      name TEXT NOT NULL,
-      password TEXT NOT NULL,
-      is_admin INTEGER NOT NULL DEFAULT 0,
-      email_verified INTEGER NOT NULL DEFAULT 0,
-      totp_secret TEXT,
-      totp_enabled INTEGER NOT NULL DEFAULT 0,
-      totp_last_step INTEGER NOT NULL DEFAULT 0,
-      recovery TEXT NOT NULL DEFAULT '[]',
-      lang TEXT NOT NULL DEFAULT 'en',
-      created_at TEXT NOT NULL
-    );
-    CREATE TABLE IF NOT EXISTS user_sessions (
-      id TEXT PRIMARY KEY,
-      token_hash TEXT NOT NULL UNIQUE,
-      user_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-      created_at TEXT NOT NULL,
-      last_seen TEXT NOT NULL,
-      expires_at TEXT NOT NULL,
-      remember INTEGER NOT NULL DEFAULT 0,
-      ua TEXT NOT NULL DEFAULT '',
-      ip TEXT NOT NULL DEFAULT ''
-    );
-    CREATE TABLE IF NOT EXISTS tokens (
-      token_hash TEXT PRIMARY KEY,
-      kind TEXT NOT NULL,
-      user_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-      expires_at TEXT NOT NULL,
-      data TEXT NOT NULL DEFAULT '{}'
-    );
-    CREATE TABLE IF NOT EXISTS user_docs (
-      user_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-      key TEXT NOT NULL,
-      value TEXT NOT NULL,
-      version INTEGER NOT NULL,
-      updated_at TEXT NOT NULL,
-      PRIMARY KEY (user_id, key)
-    );
-    CREATE TABLE IF NOT EXISTS passkeys (
-      id TEXT PRIMARY KEY,
-      user_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-      public_key TEXT NOT NULL,
-      alg INTEGER NOT NULL,
-      sign_count INTEGER NOT NULL DEFAULT 0,
-      transports TEXT NOT NULL DEFAULT '[]',
-      name TEXT NOT NULL,
-      created_at TEXT NOT NULL,
-      last_used TEXT
-    );
-    CREATE TABLE IF NOT EXISTS invites (
-      id TEXT PRIMARY KEY,
-      token_hash TEXT NOT NULL UNIQUE,
-      created_by TEXT REFERENCES users(id) ON DELETE SET NULL,
-      created_at TEXT NOT NULL,
-      expires_at TEXT,
-      max_uses INTEGER,
-      uses INTEGER NOT NULL DEFAULT 0,
-      note TEXT NOT NULL DEFAULT ''
-    );
-    CREATE TABLE IF NOT EXISTS invite_requests (
-      id TEXT PRIMARY KEY,
-      email TEXT NOT NULL UNIQUE COLLATE NOCASE,
-      note TEXT NOT NULL DEFAULT '',
-      lang TEXT NOT NULL DEFAULT 'en',
-      created_at TEXT NOT NULL
-    );
-    DROP TABLE IF EXISTS sessions; -- the single-password sessions of the first version
-  `);
-
-  // invites made before they could name an address are for anyone
-  if (!db.prepare('PRAGMA table_info(invites)').all().some((c) => c.name === 'email')) db.exec("ALTER TABLE invites ADD COLUMN email TEXT NOT NULL DEFAULT ''");
-  // accounts made before sign-up approval existed are approved
-  if (!db.prepare('PRAGMA table_info(users)').all().some((c) => c.name === 'approved')) db.exec('ALTER TABLE users ADD COLUMN approved INTEGER NOT NULL DEFAULT 1');
-  // a new password before anything else: 1 = the password rules got stricter (a password that already meets them is
-  // accepted at the next sign-in), 2 = a temporary password from the command line
-  if (!db.prepare('PRAGMA table_info(users)').all().some((c) => c.name === 'must_change')) db.exec('ALTER TABLE users ADD COLUMN must_change INTEGER NOT NULL DEFAULT 0');
-  // focusing together (social.mjs): what a person lets friends see, friendships, who is focusing, shared sessions
-  if (!db.prepare('PRAGMA table_info(users)').all().some((c) => c.name === 'share_online')) db.exec('ALTER TABLE users ADD COLUMN share_online INTEGER NOT NULL DEFAULT 0');
-  if (!db.prepare('PRAGMA table_info(users)').all().some((c) => c.name === 'share_focus')) {
-    db.exec('ALTER TABLE users ADD COLUMN share_focus INTEGER NOT NULL DEFAULT 0');
-    db.exec('ALTER TABLE users ADD COLUMN share_label INTEGER NOT NULL DEFAULT 0');
-  }
-  db.exec(`
-    CREATE TABLE IF NOT EXISTS friends (
-      a TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-      b TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-      status TEXT NOT NULL,
-      requested_by TEXT NOT NULL,
-      created_at TEXT NOT NULL,
-      PRIMARY KEY (a, b)
-    );
-    CREATE TABLE IF NOT EXISTS presence (
-      user_id TEXT PRIMARY KEY REFERENCES users(id) ON DELETE CASCADE,
-      state TEXT NOT NULL,
-      label TEXT NOT NULL DEFAULT '',
-      ends_at TEXT,
-      room_id TEXT,
-      updated_at TEXT NOT NULL
-    );
-    CREATE TABLE IF NOT EXISTS rooms (
-      id TEXT PRIMARY KEY,
-      host TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-      minutes INTEGER NOT NULL,
-      starts_at TEXT NOT NULL,
-      label TEXT NOT NULL DEFAULT '',
-      created_at TEXT NOT NULL
-    );
-    CREATE TABLE IF NOT EXISTS social_online (user_id TEXT PRIMARY KEY REFERENCES users(id) ON DELETE CASCADE, seen INTEGER NOT NULL);
-    CREATE TABLE IF NOT EXISTS room_links (hash TEXT PRIMARY KEY, room_id TEXT NOT NULL REFERENCES rooms(id) ON DELETE CASCADE, expires INTEGER NOT NULL);
-    CREATE TABLE IF NOT EXISTS room_direct (room_id TEXT NOT NULL REFERENCES rooms(id) ON DELETE CASCADE, user_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE, PRIMARY KEY(room_id,user_id));
-    CREATE TABLE IF NOT EXISTS room_people (
-      room_id TEXT NOT NULL REFERENCES rooms(id) ON DELETE CASCADE,
-      user_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-      joined INTEGER NOT NULL DEFAULT 0,
-      PRIMARY KEY (room_id, user_id)
-    );
-    -- team projects (teams.mjs): one shared document per project, kept by its owner, edited by its members
-    CREATE TABLE IF NOT EXISTS teams (
-      id TEXT PRIMARY KEY,
-      owner TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-      value TEXT NOT NULL,
-      version INTEGER NOT NULL DEFAULT 1,
-      created_at TEXT NOT NULL,
-      updated_at TEXT NOT NULL
-    );
-    -- CalDAV (caldav.mjs): a password per device for apps that sign in with a name and a password (two-step sign-in
-    -- cannot be typed into them), only its sha256 kept; and the link to a Nextcloud whose task lists are kept in step
-    CREATE TABLE IF NOT EXISTS app_passwords (
-      id TEXT PRIMARY KEY,
-      user_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-      name TEXT NOT NULL,
-      hash TEXT NOT NULL UNIQUE,
-      created_at TEXT NOT NULL,
-      last_used TEXT
-    );
-    CREATE TABLE IF NOT EXISTS dav_links (
-      user_id TEXT PRIMARY KEY REFERENCES users(id) ON DELETE CASCADE,
-      url TEXT NOT NULL,
-      username TEXT NOT NULL,
-      secret TEXT NOT NULL,
-      state TEXT NOT NULL DEFAULT '{}',
-      last_sync TEXT,
-      last_error TEXT,
-      created_at TEXT NOT NULL
-    );
-    CREATE TABLE IF NOT EXISTS team_members (
-      team_id TEXT NOT NULL REFERENCES teams(id) ON DELETE CASCADE,
-      user_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-      role TEXT NOT NULL,
-      added_at TEXT NOT NULL,
-      PRIMARY KEY (team_id, user_id)
-    );
-  `);
+  try {
+    assertSchemaVersion(db);
+    db.exec('PRAGMA journal_mode = WAL; PRAGMA busy_timeout = 3000; PRAGMA foreign_keys = ON;');
+    migrate(db);
+  } catch (error) { db.close(); throw error; }
 
   const now = () => new Date().toISOString();
   const hasLegacy = !!db.prepare("SELECT name FROM sqlite_master WHERE type = 'table' AND name = 'docs'").get();
@@ -239,10 +82,10 @@ export function openDb(file) {
     rpGet: db.prepare('SELECT * FROM room_people WHERE room_id = ? AND user_id = ?'),
     rpJoin: db.prepare('UPDATE room_people SET joined = 1 WHERE room_id = ? AND user_id = ?'),
     rpDelete: db.prepare('DELETE FROM room_people WHERE room_id = ? AND user_id = ? AND joined = 0'),
-    teamInsert: db.prepare('INSERT INTO teams (id, owner, value, version, created_at, updated_at) VALUES (?, ?, ?, 1, ?, ?)'),
+    teamInsert: db.prepare('INSERT INTO teams (id, owner, value, version, created_at, updated_at, fmt) VALUES (?, ?, ?, 1, ?, ?, ?)'),
     teamGet: db.prepare('SELECT * FROM teams WHERE id = ?'),
     teamOf: db.prepare('SELECT t.*, m.role FROM teams t JOIN team_members m ON m.team_id = t.id WHERE m.user_id = ? ORDER BY t.created_at'),
-    teamUpdate: db.prepare('UPDATE teams SET value = ?, version = version + 1, updated_at = ? WHERE id = ? AND version = ?'),
+    teamUpdate: db.prepare('UPDATE teams SET value = ?, version = version + 1, updated_at = ?, fmt = ? WHERE id = ? AND version = ?'),
     teamDelete: db.prepare('DELETE FROM teams WHERE id = ?'),
     tmInsert: db.prepare('INSERT OR IGNORE INTO team_members (team_id, user_id, role, added_at) VALUES (?, ?, ?, ?)'),
     tmGet: db.prepare('SELECT role FROM team_members WHERE team_id = ? AND user_id = ?'),
@@ -260,25 +103,19 @@ export function openDb(file) {
       ON CONFLICT(user_id) DO UPDATE SET url = excluded.url, username = excluded.username, secret = excluded.secret, state = '{}', last_sync = NULL, last_error = NULL`),
     dlState: db.prepare('UPDATE dav_links SET state = ?, last_sync = ?, last_error = ? WHERE user_id = ?'),
     dlDelete: db.prepare('DELETE FROM dav_links WHERE user_id = ?'),
-    docGet: db.prepare('SELECT key, value, version, updated_at FROM user_docs WHERE user_id = ? AND key = ?'),
-    docRange: db.prepare('SELECT key, value, version, updated_at FROM user_docs WHERE user_id = ? AND key >= ? AND key <= ? ORDER BY key'),
-    docAll: db.prepare('SELECT key, value, version, updated_at FROM user_docs WHERE user_id = ? ORDER BY key'),
-    docInsert: db.prepare('INSERT INTO user_docs (user_id, key, value, version, updated_at) VALUES (?, ?, ?, 1, ?)'),
-    docUpdate: db.prepare('UPDATE user_docs SET value = ?, version = version + 1, updated_at = ? WHERE user_id = ? AND key = ? AND version = ?'),
-    docUpsert: db.prepare(`INSERT INTO user_docs (user_id, key, value, version, updated_at) VALUES (?, ?, ?, 1, ?)
-      ON CONFLICT(user_id, key) DO UPDATE SET value = excluded.value, version = user_docs.version + 1, updated_at = excluded.updated_at`),
+    docGet: db.prepare('SELECT key, value, version, updated_at, fmt FROM user_docs WHERE user_id = ? AND key = ?'),
+    docRange: db.prepare('SELECT key, value, version, updated_at, fmt FROM user_docs WHERE user_id = ? AND key >= ? AND key <= ? ORDER BY key'),
+    docAll: db.prepare('SELECT key, value, version, updated_at, fmt FROM user_docs WHERE user_id = ? ORDER BY key'),
+    docInsert: db.prepare('INSERT INTO user_docs (user_id, key, value, version, updated_at, fmt) VALUES (?, ?, ?, 1, ?, ?)'),
+    docUpdate: db.prepare('UPDATE user_docs SET value = ?, version = version + 1, updated_at = ?, fmt = ? WHERE user_id = ? AND key = ? AND version = ?'),
+    docUpsert: db.prepare(`INSERT INTO user_docs (user_id, key, value, version, updated_at, fmt) VALUES (?, ?, ?, 1, ?, ?)
+      ON CONFLICT(user_id, key) DO UPDATE SET value = excluded.value, version = user_docs.version + 1, updated_at = excluded.updated_at, fmt = excluded.fmt`),
   };
 
-  const row = (r) => (r ? { key: r.key, value: JSON.parse(r.value), version: r.version, updatedAt: r.updated_at } : null);
+  // Upgrades are pure reads: counters and timestamps change only on a user write.
+  const row = (r) => r ? { key: r.key, ...upgradeDocument(r.key, JSON.parse(r.value), r.fmt), version: r.version, updatedAt: r.updated_at } : null;
   const tx = (fn) => { db.exec('BEGIN'); try { const r = fn(); db.exec('COMMIT'); return r; } catch (e) { db.exec('ROLLBACK'); throw e; } };
 
-  db.exec(`CREATE TABLE IF NOT EXISTS push_subscriptions (
-    endpoint TEXT PRIMARY KEY, user_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-    keys TEXT NOT NULL, timezone TEXT NOT NULL, created TEXT NOT NULL
-  ); CREATE TABLE IF NOT EXISTS push_sent (
-    endpoint TEXT NOT NULL REFERENCES push_subscriptions(endpoint) ON DELETE CASCADE,
-    id TEXT NOT NULL, at INTEGER NOT NULL, PRIMARY KEY(endpoint, id)
-  )`);
   return {
     tx,
     feeds: {
@@ -412,17 +249,19 @@ export function openDb(file) {
     // a team project's document reads like a planner document (key team:<id>), for its members only
     teams: {
       create(owner, value) {
+        const upgraded = upgradeDocument('team', value);
         const id = randomUUID().replace(/-/g, '').slice(0, 16);
-        tx(() => { q.teamInsert.run(id, owner, JSON.stringify(value), now(), now()); q.tmInsert.run(id, owner, 'owner', now()); });
+        tx(() => { q.teamInsert.run(id, owner, JSON.stringify(upgraded.value), now(), now(), upgraded.fmt); q.tmInsert.run(id, owner, 'owner', now()); });
         return id;
       },
       get: (id) => q.teamGet.get(id) ?? null,
       of: (u) => q.teamOf.all(u),
       role: (id, u) => q.tmGet.get(id, u)?.role ?? null,
       members: (id) => q.tmOf.all(id),
-      doc(id) { const t = q.teamGet.get(id); return t ? { key: `team:${id}`, value: JSON.parse(t.value), version: t.version, updatedAt: t.updated_at } : null; },
-      put(id, value, version) {
-        if (q.teamUpdate.run(JSON.stringify(value), now(), id, version).changes === 0) return { conflict: this.doc(id) };
+      doc(id) { const t = q.teamGet.get(id); return t ? { key: `team:${id}`, ...upgradeDocument(`team:${id}`, JSON.parse(t.value), t.fmt), version: t.version, updatedAt: t.updated_at } : null; },
+      put(id, value, version, fmt = 1) {
+        ({ value, fmt } = upgradeDocument(`team:${id}`, value, fmt));
+        if (q.teamUpdate.run(JSON.stringify(value), now(), fmt, id, version).changes === 0) return { conflict: this.doc(id) };
         return { doc: this.doc(id) };
       },
       add: (id, u) => q.tmInsert.run(id, u, 'member', now()),
@@ -469,13 +308,14 @@ export function openDb(file) {
       range: (u, from, to) => q.docRange.all(u, from, to).map(row),
       all: (u) => q.docAll.all(u).map(row),
       // write only if the caller saw the latest version (0 = "I believe it does not exist yet")
-      put(u, key, value, version) {
+      put(u, key, value, version, fmt = 1) {
+        ({ value, fmt } = upgradeDocument(key, value, fmt));
         return tx(() => {
         const previous = key.startsWith('day:') ? row(q.docGet.get(u, key))?.value : null;
         const json = JSON.stringify(value);
         if (version === 0) {
-          try { q.docInsert.run(u, key, json, now()); } catch { return { conflict: row(q.docGet.get(u, key)) }; }
-        } else if (q.docUpdate.run(json, now(), u, key, version).changes === 0) {
+          try { q.docInsert.run(u, key, json, now(), fmt); } catch { return { conflict: row(q.docGet.get(u, key)) }; }
+        } else if (q.docUpdate.run(json, now(), fmt, u, key, version).changes === 0) {
           return { conflict: row(q.docGet.get(u, key)) };
         }
         if (key.startsWith('day:')) {
@@ -484,14 +324,14 @@ export function openDb(file) {
             const inbox = row(q.docGet.get(u, 'inbox'));
             if (inbox?.value) {
               const next = { ...inbox.value, items: inbox.value.items.map((t) => completed.some((c) => { const p = c.plannedRepeat; return t.repeat && p.id === t.id && p.due === t.due && p.start === t.start && p.doneCount === (t.doneCount ?? 0); }) ? { ...t, ...rollOn(t, planningDay(new Date(), dayStartOf(row(q.docGet.get(u, 'settings'))?.value))) } : t) };
-              q.docUpdate.run(JSON.stringify(next), now(), u, 'inbox', inbox.version);
+              q.docUpdate.run(JSON.stringify(next), now(), inbox.fmt, u, 'inbox', inbox.version);
             }
           }
         }
         return { doc: row(q.docGet.get(u, key)) };
         });
       },
-      importAll: (u, docs) => tx(() => { for (const d of docs) q.docUpsert.run(u, d.key, JSON.stringify(d.value), now()); }),
+      importAll: (u, docs) => tx(() => { for (const d of docs) { const upgraded = upgradeDocument(d.key, d.value, d.fmt); q.docUpsert.run(u, d.key, JSON.stringify(upgraded.value), now(), upgraded.fmt); } }),
     },
     /** A consistent copy of the whole database into a new file, while it is in use. */
     backupTo: (file) => db.exec(`VACUUM INTO '${String(file).replace(/'/g, "''")}'`),

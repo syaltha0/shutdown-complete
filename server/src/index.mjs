@@ -1,3 +1,4 @@
+import { upgradeDocument } from './migrate-docs.mjs';
 import { releaseChecker, storage, warnings } from './server-status.mjs';
 import { feedStatus } from './calendar.mjs';
 import { plannerIcs } from './publication.mjs';
@@ -846,14 +847,16 @@ app.put('/api/doc/:key', async (c) => {
   if (!team && !KEY.test(key)) return fail(c, 'Unknown key');
   const b = await c.req.json().catch(() => null);
   if (!b || typeof b.value !== 'object' || b.value === null || !Number.isInteger(b.version)) return fail(c, 'Expected { value, version }');
+  try { const upgraded = upgradeDocument(key, b.value, b.fmt); b.value = upgraded.value; b.fmt = upgraded.fmt; }
+  catch (error) { return fail(c, error.message); }
   if (JSON.stringify(b.value).length > 512 * 1024) return fail(c, 'Document too large', 413);
   if (team) {
     if (!db.teams.role(team[1], uid(c))) return fail(c, 'not-a-member', 404);
-    const res = db.teams.put(team[1], b.value, b.version);
+    const res = db.teams.put(team[1], b.value, b.version, b.fmt);
     if (res.conflict) return c.json({ error: 'Changed by someone else', current: res.conflict }, 409);
     return c.json(res.doc);
   }
-  const res = db.docs.put(uid(c), key, b.value, b.version);
+  const res = db.docs.put(uid(c), key, b.value, b.version, b.fmt);
   if (res.conflict) return c.json({ error: 'Changed on another device', current: res.conflict }, 409);
   if (key === 'inbox') syncer.schedule(uid(c));
   // a focus timer or the notification choices changed: send what is due and plan the push for the new end time
