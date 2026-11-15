@@ -268,8 +268,9 @@ export interface DayTemplate {
 }
 
 /** The parts of the planner one can turn off (Settings -> Features); the day, its scales, focus and shutdown stay. */
-export type Feature = 'inbox' | 'boards' | 'countdown' | 'habits' | 'metrics' | 'friends' | 'exams';
-export const FEATURES: Feature[] = ['inbox', 'boards', 'countdown', 'habits', 'metrics', 'friends', 'exams'];
+export type Feature = 'inbox' | 'boards' | 'countdown' | 'habits' | 'metrics' | 'friends' | 'exams' | 'longTerm';
+export const FEATURES: Feature[] = ['inbox', 'boards', 'countdown', 'habits', 'metrics', 'friends', 'exams', 'longTerm'];
+export const dailyFeatures = () => Object.fromEntries(FEATURES.map(f => [f, f === 'inbox'])) as Record<Feature, boolean>;
 /** Whether a part is on: everything is, unless it was turned off. */
 export const featureOn = (s: { features?: Partial<Record<Feature, boolean>> }, f: Feature) => s.features?.[f] !== false;
 
