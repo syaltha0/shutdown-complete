@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { featureOn } from "../lib/model";
 import { longDate } from "../lib/dates";
 import { useOverviewData } from "../components/overview/data";
@@ -13,6 +14,7 @@ import { Ahead } from "../components/overview/Ahead";
 import { LastDays } from "../components/overview/LastDays";
 import { Weeks } from "../components/overview/Weeks";
 export function Home() {
+  const [historyOpen, setHistoryOpen] = useState(() => { try { return localStorage.getItem('sc-home-history') === 'true'; } catch { return false; } });
   const data = useOverviewData();
   const { settings } = data;
   return (
@@ -25,16 +27,21 @@ export function Home() {
         className={`home overview bento${featureOn(settings, "habits") ? "" : " no-habits"}`}
       >
         <Hello {...data} />
-        {featureOn(settings, "habits") && <Habits {...data} />}
-        <Streak {...data} />
         <Timeline {...data} />
+        <TasksToday {...data} />
         <StillOpen {...data} />
         <FocusToday {...data} />
-        <TasksToday {...data} />
-        <Ahead {...data} />
-        <LastDays {...data} />
-        <Weeks {...data} />
+        {featureOn(settings, "longTerm") && <Ahead {...data} />}
       </div>
+      <details className="home-history" open={historyOpen} onToggle={e => { const open = e.currentTarget.open; setHistoryOpen(open); try { localStorage.setItem('sc-home-history', String(open)); } catch { /* unavailable storage */ } }}>
+        <summary>{data.T.historyTitle}</summary>
+        <div className="home overview bento history-grid">
+          {featureOn(settings, "habits") && <Habits {...data} />}
+          <Streak {...data} />
+          <LastDays {...data} />
+          {featureOn(settings, "longTerm") && <Weeks {...data} />}
+        </div>
+      </details>
     </>
   );
 }
