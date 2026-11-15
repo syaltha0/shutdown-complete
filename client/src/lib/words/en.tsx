@@ -567,6 +567,7 @@ export const en = {
   cdPassedMeta: 'Clear them away when you like.', cdAgo: (n: number) => (n === 1 ? 'yesterday' : `${n} days ago`),
   tomorrow: 'Tomorrow', toDayLabel: (t: string) => `Put “${t}” on a day`,
   fromInbox: 'Add from your tasks', addToToday: (n: number) => (n ? `Add ${n} to today` : 'Add to today'),
+  experiment: { label: 'The one thing I will change next week (optional)', previous: 'Last week’s experiment', current: 'This week’s experiment', worked: 'It worked', change: 'Change', drop: 'Drop' },
   review: {
     focusNotes: 'Focus notes', focusBlocks: 'Focus by block / subject',
     open: 'Week in review', home: 'Your week in review', title: (n: number) => `Week ${n} in review`, prev: 'The week before', next: 'The week after', toWeek: 'The week',

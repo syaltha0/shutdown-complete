@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
+import { Segmented } from '../components/Segmented';
 import { useSettings } from '../App';
 import { Checklist } from '../components/Checklist';
 import { TaskMeta } from '../components/TaskMeta';
@@ -18,8 +19,8 @@ import { DayChips } from './Templates';
 export function WeekPlan({ id }: { id: string }) {
   const T = useT(), P = T.weekPlan;
   const days = weekDays(id), prevId = addWeeks(id, -1), prevDays = weekDays(prevId);
-  const { value: week } = useDoc<WeekDoc>(`week:${id}`, emptyWeek);
-  const { value: prev } = useDoc<WeekDoc>(`week:${prevId}`, emptyWeek);
+  const { value: week, update: updateExperiment } = useDoc<WeekDoc>(`week:${id}`, emptyWeek);
+  const { value: prev, update: updatePrev } = useDoc<WeekDoc>(`week:${prevId}`, emptyWeek);
   const { docs: prevDocs } = useRange<DayDoc>(`day:${prevDays[0]}`, `day:${prevDays[6]}`);
   const { value: monthA } = useDoc<MonthDoc>(`month:${monthOf(days[0])}`, emptyMonth);
   const { value: monthB } = useDoc<MonthDoc>(`month:${monthOf(days[6])}`, emptyMonth);
@@ -27,6 +28,7 @@ export function WeekPlan({ id }: { id: string }) {
   const cal = useCalendar(days[0], days[6]);
   const { settings } = useSettings();
   const { docs: dayDocs } = useRange<DayDoc>(`day:${days[0]}`, `day:${days[6]}`);
+  const [editingExperiment, setEditingExperiment] = useState(false);
   const [step, setStep] = useState(0);
   const [carry, setCarry] = useState<Set<string> | null>(null);
   const [items, setItems] = useState<Item[] | null>(null);
@@ -99,6 +101,24 @@ export function WeekPlan({ id }: { id: string }) {
           {step === 0 && (
             <>
               <p className="welcome-body">{P.lookBackBody}</p>
+              {prev?.experiment?.trim() && <div className="week-experiment" data-testid="previous-experiment">
+                <span className="muted">{T.experiment.previous}: {prev.experiment}</span>
+                <Segmented role="group" aria-label={T.experiment.previous}>
+                  {(['worked', 'change', 'drop'] as const).map((result) => <button type="button" key={result}
+                    aria-pressed={prev.experimentResult === result} onClick={() => {
+                      updatePrev((w) => ({ ...w, experimentResult: result }));
+                      if (result === 'change') {
+                        updateExperiment((w) => ({ ...w, experiment: prev.experiment }));
+                        setEditingExperiment(true);
+                      } else setEditingExperiment(false);
+                    }}>{T.experiment[result]}</button>)}
+                </Segmented>
+              </div>}
+              {editingExperiment && <div className="field">
+                <label htmlFor="current-experiment">{T.experiment.current}</label>
+                <input autoFocus id="current-experiment" className="input" value={week?.experiment ?? ''}
+                  onChange={(e) => updateExperiment((w) => ({ ...w, experiment: e.target.value }))} />
+              </div>}
               <div className="pw-stats num">
                 <div><b>{prevAll ? `${prevDone}/${prevAll}` : '—'}</b><span>{P.statPlan}</span></div>
                 <div><b>{prevDocs ? shutdowns : '—'}</b><span>{P.statShutdowns}</span></div>
