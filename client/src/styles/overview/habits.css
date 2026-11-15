@@ -33,3 +33,4 @@
 .b-habits-count:hover > span { text-decoration: underline; text-underline-offset: 3px; }
 
 .b-habits-summary { color: var(--muted); font-size: 12px; } .b-habits.is-sparse .b-habit-list { flex: 0 1 auto; } .b-habits.is-sparse .b-habit-row { flex-wrap: wrap; padding: 5px 0; gap: 5px; } .b-habits.is-sparse .b-chip { flex-basis: 100%; } .b-habits.is-sparse .b-habit-week { margin-left: 23px; gap: 7px; } .b-habits.is-sparse .b-habit-week > span { width: 12px; height: 12px; border-radius: 3px; }
+.b-habits-count { white-space: nowrap; flex-shrink: 0; }

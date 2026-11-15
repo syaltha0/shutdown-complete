@@ -32,3 +32,22 @@
 .b-duration-small { display:none; } @media(max-width:600px) { .b-duration-wide { display:none; } .b-duration-small { display:inline; } }
 
 .bento .b-recent { min-height:0; }
+
+/* each day is a small card that takes the tile's height: the value large, the line and the tasks below (2026-11-15) */
+.bento .b-recent .b-recent-chart { flex: 1 1 auto; min-height: 0; max-height: none; display: flex; margin: 2px 0 0; }
+.bento .b-recent .b-bars { flex: 1 1 auto; align-items: stretch; gap: 8px; height: auto; }
+.bento .b-recent .b-bars > a { display: flex; flex-direction: column; justify-content: space-between; align-items: stretch; gap: 4px; padding: 8px 10px; border-radius: 8px; background: var(--ground); color: var(--text); text-decoration: none; }
+.bento .b-recent .b-bars > a:hover { background: var(--raised); }
+.bento .b-recent .b-bars > a[aria-current="date"] { box-shadow: inset 0 0 0 1.5px var(--hue); color: var(--text); }
+.bento .b-recent .b-recent-day { position: static; order: -1; color: var(--muted); font-size: 11px; }
+.bento .b-recent .b-recent-value { font-size: 15px; font-weight: 500; }
+.bento .b-recent .b-recent-track { max-width: none; height: 4px; border: 0; border-radius: 2px; background: var(--rule); }
+.bento .b-recent .b-bars small { position: static; display: block; font-size: 10px; color: var(--muted); }
+.bento .b-recent-summary p { font-size: 11px; }
+@media (max-height: 820px) and (min-width: 861px) { .bento .b-recent .b-bars > a { padding: 6px 8px; } .bento .b-recent .b-recent-value { font-size: 13px; } }
+.bento .b-recent .b-recent-value { font-size: 14px; white-space: nowrap; letter-spacing: -0.01em; }
+@media (max-width: 600px) {
+  .bento .b-recent .b-bars { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 6px; }
+  .bento .b-recent .b-bars > a { padding: 6px 8px; }
+  .bento .b-recent { height: auto; }
+}

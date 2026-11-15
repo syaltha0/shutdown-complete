@@ -685,6 +685,7 @@ serverStatus: { remedy: 'İlgili ayarı veya kurulum yönergesini aç',"title":"
   overviewSummary: (done: number, total: number, focus: string, tasks: number, all: number) => `${total} bloktan ${done} bitti · ${focus} odak · ${all} görevden ${tasks} bitti`,
   overviewWeek: (focus: string, streak: number) => `Bu hafta: ${focus} odak · ${streak} günlük kapanış serisi`,
   bento: {
+    focusSessionsLabel: 'Oturum',
     helloThisWeek: 'Bu hafta',
     helloWeekPlanned: 'Planlanan gün',
     helloWeekFocus: 'Odak',
@@ -769,7 +770,7 @@ serverStatus: { remedy: 'İlgili ayarı veya kurulum yönergesini aç',"title":"
     openMetricGroup: 'Ölçümler',
     openClosingGroup: 'Kapanış',
     focusRemaining: 'Hedefe kalan',
-    focusLongest: 'En uzun oturum',
+    focusLongest: 'En uzun',
     focusReady: 'İlk oturum için hazır',
     tasksProgress: (done: number, total: number) => `${done}/${total} tamamlandı`,
     tasksReady: 'Bugüne küçük bir adımla başla.',

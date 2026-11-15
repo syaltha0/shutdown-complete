@@ -699,6 +699,7 @@ export const en = {
   overviewSummary: (done: number, total: number, focus: string, tasks: number, all: number) => `${done} of ${total} blocks · ${focus} focused · ${tasks} of ${all} tasks`,
   overviewWeek: (focus: string, streak: number) => `This week: ${focus} focused · ${streak} day shutdown streak`,
   bento: {
+    focusSessionsLabel: 'Sessions',
     helloThisWeek: 'This week',
     helloWeekPlanned: 'Days planned',
     helloWeekFocus: 'Focus',
@@ -783,7 +784,7 @@ export const en = {
     openMetricGroup: 'Measurements',
     openClosingGroup: 'Shutdown',
     focusRemaining: 'To goal',
-    focusLongest: 'Longest session',
+    focusLongest: 'Longest',
     focusReady: 'Ready for your first session',
     tasksProgress: (done: number, total: number) => `${done}/${total} completed`,
     tasksReady: 'Start today with one small step.',
