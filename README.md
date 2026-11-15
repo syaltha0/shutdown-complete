@@ -2,7 +2,7 @@
   <img src="docs/banner-light.png" alt="Shutdown Complete — Plan with intention. Finish with peace of mind." width="900">
 </p>
 
-<h3 align="center">A self-hosted time-block planner. Give every hour a job, focus on it, and end the day on purpose.</h3>
+<h3 align="center">Plan by the hour, revise when the day breaks, and close the day with a shutdown ritual, on your own server.</h3>
 
 <p align="center">
   <a href="#quick-start"><b>Quick start</b></a> •
@@ -71,19 +71,42 @@ every day's focus in one heatmap.
 
 Everything else is listed in [docs/features.md](docs/features.md).
 
+| On your device | Support and requirements |
+| --- | --- |
+| Install as a PWA | Android: Chrome ? Install app. iPhone: Safari ? Share ? Add to Home Screen. Use HTTPS. |
+| Offline | View the last loaded plan; pending changes are queued and retried when connected. This is not full offline editing. |
+| Push reminders | HTTPS, browser permission and VAPID keys are required. Keys are generated and stored by the server; set `VAPID_SUBJECT` to a contact URI and `APP_URL` to your public HTTPS address in `.env`. On iPhone, install on the Home Screen first. |
+
 ## Quick start
 
-Docker with Compose v2.24 or newer:
+### 1. Run the prebuilt image (recommended)
+
+You need Docker with Compose v2.24 or newer. The supplied [GHCR Compose file](deploy/compose.ghcr.yml) pins version `0.8.4`:
 
 ```bash
 git clone https://github.com/syaltha0/shutdown-complete.git
 cd shutdown-complete
+cp deploy/compose.ghcr.yml compose.yml
 cp .env.example .env
-docker compose up -d --build
+```
+
+Set `APP_URL` to your public HTTPS address. For a local HTTP trial, set `APP_URL=http://localhost:3000`
+and `COOKIE_SECURE=false`. Start with one command:
+
+```bash
+docker compose -f compose.yml up -d
 ```
 
 Open `http://localhost:3000` and create the owner account on the setup screen. HTTPS, e-mail, CalDAV, backups and
 every setting are in the [self-hosting guide](docs/self-hosting.md).
+
+### 2. Build from source
+
+After cloning and configuring `.env` as above, use the repository build instead:
+
+```bash
+docker compose -f docker-compose.yml up -d --build
+```
 
 > [!TIP]
 > The server keeps a daily backup in `data/backups`. Copy it somewhere else too.
