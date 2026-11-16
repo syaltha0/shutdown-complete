@@ -2,6 +2,7 @@
 import type { Words } from './en';
 
 export const tr: Words = {
+  quickCapture: { title: "Görev ekle", add: "Ekle", preference: "Alt çubukta Hafta yerine Ekle", placeholder: "yarın 10:00 Rapor" },
  planActualHelp: "Planlanan bloklar ve gerçek odak: ince şerit odaklandığınız zamanı gösterir. Ayrıntılar için dokunun.",
  sectionNav: "Bölümler", backSections: "Bölümlere dön",
  uiux: {"yearScroll":"Ocak–Aralık · Yılı incelemek için yana kaydırın. Ayrıntılar için bir gün seçin.","advanced":"Diğer görev seçenekleri","scroll":"Diğer ayarlar için kaydırın","attention":"İlgilenilmeli"},

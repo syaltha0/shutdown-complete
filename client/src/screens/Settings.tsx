@@ -26,6 +26,7 @@ import { insertAt, offerUndo } from '../lib/undo';
 export function SettingsScreen() {
   const T = useT();
   const { settings, update } = useSettings();
+  const captureWords = useT().quickCapture;
   const [importing, setImporting] = useState(false);
   const [imported, setImported] = useState<string | null>(null);
   const [theme, setTheme] = useState<ThemePref>(getThemePref());
@@ -123,6 +124,7 @@ export function SettingsScreen() {
           </div>
           <div className="set-panel">
             <div className="field">
+              <label><input type="checkbox" checked={settings.phoneQuickCapture !== false} onChange={e => update(s => ({ ...s, phoneQuickCapture: e.target.checked }))} />{captureWords.preference}</label>
               <span className="label" id="s-colour">{T.themeLabel}</span>
               <Segmented role="group" aria-labelledby="s-colour">
                 {(['light', 'dark', 'system'] as ThemePref[]).map((p) => (

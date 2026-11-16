@@ -4,6 +4,7 @@ import type { ReactNode } from 'react';
 const s = (n: number, one: string, many: string) => (n === 1 ? one : many);
 
 export const en = {
+  quickCapture: { title: "Add task", add: "Add", preference: "Show Add instead of Week in the bottom bar", placeholder: "Report tomorrow 10am" },
  planActualHelp: "Planned blocks and actual focus: the narrow strip shows when you focused. Tap it for details.",
  sectionNav: "Sections", backSections: "Back to sections",
  uiux: {"yearScroll":"January–December · Scroll sideways to explore the year. Select a day to open its details.","advanced":"More task options","scroll":"Scroll for more settings","attention":"Needs attention"},

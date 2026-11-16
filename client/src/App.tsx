@@ -8,7 +8,7 @@ import { defaultSettings, type Settings } from './lib/model';
 import { dict, getLang, setLang, useT } from './lib/i18n';
 import { monthOf, quarterOf, setDayStart, today, weekOf } from './lib/dates';
 import {
-  IconBoard, IconDay, IconFocus, IconHome, IconHourglass, IconInbox, IconHabits, IconMetrics, IconMonth, IconMore, IconQuarter, IconYear, IconSettings, IconShutdown, IconWeek, IconX, Mark,
+  IconPlus, IconBoard, IconDay, IconFocus, IconHome, IconHourglass, IconInbox, IconHabits, IconMetrics, IconMonth, IconMore, IconQuarter, IconYear, IconSettings, IconShutdown, IconWeek, IconX, Mark,
 } from './components/Icons';
 import { FocusRunner } from './components/FocusTimer';
 import { BlockReminders } from './components/Reminders';
@@ -22,6 +22,7 @@ import { Home } from './screens/Home';
 import { Tasks } from './screens/Tasks';
 import { Countdowns } from './screens/Countdown';
 import { emptyInbox, featureOn, type Feature, type InboxDoc } from './lib/model';
+import { QuickCapture } from './components/QuickCapture';
 import { inView } from './lib/tasks';
 
 // The day and the overview come with the app; every other screen is its own file, fetched the first time it opens
@@ -212,6 +213,9 @@ function Shell() {
   const r = route(path);
   const T = useT();
   const [palette, setPalette] = useState(false);
+  const [capture, setCapture] = useState(false);
+  const [captured, setCaptured] = useState(false);
+  useEffect(() => { if (captured) { const timer = window.setTimeout(() => setCaptured(false), 2500); return () => window.clearTimeout(timer); } }, [captured]);
   const [more, setMore] = useState(false);
   const { settings } = useSettings();
   const on = (id: string) => !(FEATURE_OF[id] && !featureOn(settings, FEATURE_OF[id]!));
@@ -261,9 +265,9 @@ function Shell() {
   );
 
   // the phone's bottom bar: four destinations and More
-  const phoneMain = [home, plan[0], plan[1], work[0]];
+  const phoneMain = [home, plan[0], ...(settings.phoneQuickCapture === false ? [plan[1]] : []), work[0]];
   const agenda: NavItem = {id: 'agenda', href: '/agenda', label: T.calendarViews.agenda, icon: <IconDay />};
-  const phoneMore = [agenda, boards, countdown, inbox, plan[2], plan[3], work[1], work[2], work[3], settingsItem].filter((x) => on(x.id));
+  const phoneMore = [...(settings.phoneQuickCapture === false ? [] : [plan[1]]), agenda, boards, countdown, inbox, plan[2], plan[3], work[1], work[2], work[3], settingsItem].filter((x) => on(x.id));
   const moreActive = phoneMore.some((x) => x.id === r?.nav);
 
   return (
@@ -281,6 +285,7 @@ function Shell() {
 
       <nav className="tabbar" aria-label="Shutdown Complete">
         {phoneMain.map((x) => link(x, 'tab-item'))}
+        {settings.phoneQuickCapture !== false && <button type="button" className="tab-item" aria-label={T.quickCapture.title} onClick={() => setCapture(true)}><IconPlus /><span className="label">{T.quickCapture.add}</span></button>}
         <button type="button" className="tab-item" aria-expanded={more} aria-current={moreActive ? 'page' : undefined} onClick={() => setMore(true)}>
           <IconMore />{attention > 0 && <span className="attn" aria-label={T.needsAttention(attention)} />}<span className="label">{T.nav.more}</span>
         </button>
@@ -308,6 +313,8 @@ function Shell() {
       <BlockReminders />
       <FriendsWatcher />
       <Shortcuts />
+      {capture && <QuickCapture onClose={() => setCapture(false)} onSaved={() => { setCaptured(true); setCapture(false); }} />}
+      <span className="capture-stamp" role="status">{captured ? T.save.saved : ''}</span>
       {palette && <Suspense fallback={null}><CommandPalette onClose={() => setPalette(false)} /></Suspense>}
       {r?.nav === 'day' && <Tour />}
     </div>

@@ -290,6 +290,7 @@ export interface NotifyChoices {
 
 export interface ScheduleException { id: string; from: string; to: string; label: string; applies: 'all' | string[] }
 export interface Settings {
+  phoneQuickCapture?: boolean;
   exceptions?: ScheduleException[];
   /** the week in review by e-mail every Sunday (when the server sends e-mail) */
   weeklyMail?: boolean;
