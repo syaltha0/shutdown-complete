@@ -202,6 +202,7 @@ export interface FocusSession {
 
 export interface DayDoc {
   columns: Column[];
+  keyTaskId?: string;
   tasks: Item[];
   notes: string;
   metrics: Record<string, number | boolean | null>;

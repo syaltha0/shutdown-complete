@@ -35,7 +35,7 @@ export function Home() {
       </div>
       <details className="home-history" open={historyOpen} onToggle={e => { const open = e.currentTarget.open; setHistoryOpen(open); try { localStorage.setItem('sc-home-history', String(open)); } catch { /* unavailable storage */ } }}>
         <summary>{data.T.historyTitle}</summary>
-        <div className="home overview bento history-grid">
+        <div className="home bento history-grid">
           {featureOn(settings, "habits") && <Habits {...data} />}
           <Streak {...data} />
           <LastDays {...data} />

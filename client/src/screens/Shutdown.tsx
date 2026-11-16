@@ -41,7 +41,7 @@ export function Shutdown({ date }: { date: string }) {
   const doneSteps = day ? steps.filter((s) => day.shutdown.steps[s.id]).length : 0;
   const isToday = date === today();
   const at = day?.shutdown.at ? new Date(day.shutdown.at) : null;
-  const openTasks = day?.tasks.filter((t) => !t.done) ?? [];
+  const openTasks = day?.tasks.filter((t) => !t.done).sort((a, b) => Number(b.id === day.keyTaskId) - Number(a.id === day.keyTaskId)) ?? [];
   const openWeek = week?.items.filter((i) => !i.done) ?? [];
   const nextBlocks = next ? activeColumn(next).blocks : [];
 
@@ -154,7 +154,7 @@ export function Shutdown({ date }: { date: string }) {
                   {mode === 'date' && <input type="date" className="input num" aria-label={T.handoffTarget} min={tomorrow} value={chosenDate} onChange={e => setChosenDate(e.target.value)} />}
                   {suggested !== tomorrow && <button type="button" className="card-link" onClick={() => { setChosenDate(suggested); setMode('date'); }}>{T.handoffSuggestion(longDate(suggested))}</button>}
                 </div>
-                {openTasks.map(t => <label className="carry" key={t.id}>
+                {openTasks.map(t => <label className={`carry${t.id === day.keyTaskId ? " key-task-selected" : ""}`} title={t.id === day.keyTaskId ? T.keyTask : undefined} key={t.id}>
                   <input type="checkbox" className="check" checked={!excluded.includes(t.id)} onChange={e => setExcluded(ids => e.target.checked ? ids.filter(id => id !== t.id) : [...ids, t.id])} />
                   <span>{t.text}</span>
                 </label>)}

@@ -242,10 +242,9 @@ export function Welcome() {
           </nav>
 
           <section className={`welcome-step ${dir}`} key={step}
-            onPointerOver={(e) =>
- hover(spotOf(e.target))} onPointerLeave={() => hover(null)}
+            onPointerOver={(e) => hover(spotOf(e.target))} onPointerLeave={() => hover(null)}
             onFocus={(e) => setKeyed(e.target.matches(':focus-visible') ? spotOf(e.target) : null)} onBlur={() => setKeyed(null)}>
-            {step === 2 && !again && <fieldset className="field"><legend>{T.profileChoice}</legend>{[true, false].map(value => <label key={String(value)}><input type="radio" name="daily-profile" checked={daily === value} onChange={() => setDaily(value)} /> {value ? T.dailyProfile : T.allProfile}</label>)}</fieldset>}
+
             {step === 0 && (
               <>
                 {/* the name rises into the greeting once there is one (not on every key) */}
@@ -306,7 +305,7 @@ export function Welcome() {
             {step === 2 && (
               <>
                 <h1>{W.trackTitle}</h1>
-                <p className="welcome-body">{W.trackBody}</p>
+                <div className="profile-intro"><p className="welcome-body">{W.trackBody}</p>{!again && <label className="profile-choice">{T.profileChoice} <select aria-label={T.profileChoice} value={daily ? 'daily' : 'all'} onChange={e => setDaily(e.target.value === 'daily')}><option value="daily">{T.dailyProfile}</option><option value="all">{T.allProfile}</option></select></label>}</div>
                 <div className="pick-group" role="group" aria-labelledby="w-numbers">
                   <span className="label" id="w-numbers">{W.numbers}</span>
                   <div className="wtiles">{NUMBERS.map(metricTile)}</div>

@@ -109,7 +109,6 @@
 .cd-card.near .cd-line i { background: var(--hue); }
 .inbox-field .input { font-size: 15px; }
 
-
 /* ======================= countdowns, the second pass ======================= */
 .cd-lead { margin-bottom: var(--gap); }
 .cd-lead .cd-card { padding: 4px 4px 2px; border: 0; background: transparent; animation: none; }
@@ -171,5 +170,14 @@ dialog.sheet .kb-dlg form { padding: 0; }
 .home.overview.bento > .b-tasks { grid-column:1/-1; }
 .home-history { margin-top:16px; }
 .home-history summary { cursor:pointer; padding:12px 0; }
-.home.overview.history-grid { grid-template-columns:repeat(2,minmax(0,1fr)); }
+.home.history-grid { display:grid; gap:12px; grid-template-columns:repeat(2,minmax(0,1fr)); }
 @media(max-width:600px) { .home.overview.bento { grid-template-columns:minmax(0,1fr); } }
+
+.key-task-selected, .key-task[aria-pressed="true"] { border-inline-start:2px solid #1d5fbf; padding-inline-start:6px; }
+.key-task { max-width:100%; white-space:normal; min-width:24px; min-height:24px; }
+
+.profile-intro { display:grid; gap:4px; }
+.profile-choice { display:flex; flex-wrap:wrap; gap:8px; align-items:center; font-size:12px; }
+
+.welcome-step:has(.profile-intro) { gap:6px; }
+.welcome-step h1 + .profile-intro { margin-top:-10px; }
