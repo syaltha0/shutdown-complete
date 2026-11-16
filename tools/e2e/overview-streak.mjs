@@ -9,7 +9,7 @@ mkdirSync(dir, { recursive: true });
 try {
  const time = new Date(); time.setHours(20,0,0,0);
  const api = await demoAccount(client(s.url), { lang: 'en' });
- const ctx = await b.newContext({ reducedMotion: 'reduce' });
+ const ctx = await b.newContext({ reducedMotion: 'reduce' });await ctx.addInitScript(()=>{try{localStorage.setItem('sc-home-history','true')}catch{}}); // these cards live in the History disclosure
  await ctx.addCookies([{name:'sc_session',value:api.cookie.split('=')[1],url:s.url}]);
  const p = await ctx.newPage(); await p.clock.install({time});
  const date = i => { const d = new Date(time); d.setDate(d.getDate()-i); return iso(d); };

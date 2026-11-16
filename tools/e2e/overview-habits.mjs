@@ -7,7 +7,7 @@ const s=await startServer(), b=await launch();
 mkdirSync('reports/shots/overview-habits',{recursive:true});
 try {
  const api=await demoAccount(client(s.url)), settings=(await api.get('settings')).value;
- const context=await b.newContext({reducedMotion:'reduce'});
+ const context=await b.newContext({reducedMotion:'reduce'});await context.addInitScript(()=>{try{localStorage.setItem('sc-home-history','true')}catch{}}); // these cards live in the History disclosure
  await context.addCookies([{name:'sc_session',value:api.cookie.split('=')[1],url:s.url}]);
  const p=await context.newPage(); const noon=new Date();noon.setHours(12,0,0,0);await p.clock.install({time:noon});
  const dates=Array.from({length:7},(_,i)=>{const d=new Date(noon);d.setDate(d.getDate()-6+i);return iso(d);});

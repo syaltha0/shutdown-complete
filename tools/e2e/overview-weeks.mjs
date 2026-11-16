@@ -8,7 +8,7 @@ mkdirSync('reports/shots/overview-weeks',{recursive:true});
 try {
  const api=await demoAccount(client(s.url),{lang:'tr',today:new Date('2026-11-14T12:00:00')}),settings=(await api.get('settings')).value;
  await api.put('settings',{...settings,schedule:[],lang:'tr'});
- const context=await b.newContext({reducedMotion:'reduce'});
+ const context=await b.newContext({reducedMotion:'reduce'});await context.addInitScript(()=>{try{localStorage.setItem('sc-home-history','true')}catch{}}); // these cards live in the History disclosure
  await context.addCookies([{name:'sc_session',value:api.cookie.split('=')[1],url:s.url}]);
  const p=await context.newPage();p.on('pageerror',e=>console.log('PAGEERROR',e.message));await p.clock.install({time:new Date('2026-11-14T12:00:00')});
  for(const state of ['empty','sparse','dense']) {

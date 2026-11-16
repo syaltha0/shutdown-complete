@@ -8,7 +8,7 @@ const out='reports/shots/overview-recent';mkdirSync(out,{recursive:true});
 try {
  const api=await demoAccount(client(s.url));const settings=(await api.get('settings')).value;
  await api.put('settings',{...settings,schedule:[],metrics:settings.metrics.map(m=>m.id===(settings.focus?.metricId??'deep')?{...m,target:3}:m)});
- const ctx=await b.newContext({reducedMotion:'reduce'});await ctx.addCookies([{name:'sc_session',value:api.cookie.split('=')[1],url:s.url}]);const p=await ctx.newPage();
+ const ctx=await b.newContext({reducedMotion:'reduce'});await ctx.addInitScript(()=>{try{localStorage.setItem('sc-home-history','true')}catch{}}); /* these cards live in the History disclosure */ await ctx.addCookies([{name:'sc_session',value:api.cookie.split('=')[1],url:s.url}]);const p=await ctx.newPage();
  const now=new Date();now.setHours(12,0,0,0);await p.clock.install({time:now});
  const date=i=>{const d=new Date(now);d.setDate(d.getDate()-i);return iso(d)};
  const base=(await api.get('day:'+date(0))).value;
