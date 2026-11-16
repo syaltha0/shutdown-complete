@@ -66,3 +66,10 @@
 .switch-row { display: flex; align-items: center; gap: 10px; cursor: pointer; }
 
 @media (max-width:600px) { .month-cal .cal-day,.month-cal .wk { min-height:44px; } .hweek .hcell { width:100%; min-width:44px; height:44px; } .hweek .hrow { gap:0; } .tk-detail .btn.icon,.tk-detail .tk-tag button,.habit-add .btn,.hweek-nav .btn { min-width:44px; min-height:44px; } .month-cal ~ * { min-width:0; } }
+
+.quick-capture { position: fixed; inset: auto 0 0; margin: 0 auto; width: min(100%, 540px); max-width: 100%; max-height: 90dvh; overflow: auto; padding: 16px 16px calc(16px + env(safe-area-inset-bottom)); border: 1px solid var(--border); border-radius: 16px 16px 0 0; background: var(--surface); color: var(--text); }
+.quick-capture::backdrop { background: rgb(0 0 0 / 30%); }
+.quick-capture input { width: 100%; min-height: 44px; font-size: 16px; }
+.quick-capture button { min-height: 44px; min-width: 44px; }
+.capture-stamp { position: fixed; bottom: calc(76px + env(safe-area-inset-bottom)); left: 50%; transform: translateX(-50%); background: var(--surface); color: var(--text); z-index: 25; }
+.capture-stamp:not(:empty) { padding: 6px 12px; border: 1px solid var(--border); border-radius: 6px; }
