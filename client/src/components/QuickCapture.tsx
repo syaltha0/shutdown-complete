@@ -1,4 +1,4 @@
-﻿import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useT } from '../lib/i18n';
 import { today } from '../lib/dates';
 import { emptyInbox, uid, type InboxDoc } from '../lib/model';
