@@ -1,13 +1,16 @@
-﻿import { launch } from '../lib/browser.mjs';
+import { launch } from '../lib/browser.mjs';
 import { startServer, client } from '../lib/server.mjs';
-import { demoAccount, iso } from '../lib/demo.mjs';
+import { demoAccount, iso, weekOf } from '../lib/demo.mjs';
 import { mkdirSync } from 'node:fs';
-const s = await startServer(), api = await demoAccount(client(s.url), { lang: 'en' }), b = await launch();
+const now = process.env.E2E_DATE ? new Date(process.env.E2E_DATE+'T12:00:00') : new Date();
+now.setHours(12,0,0,0);
+const s = await startServer(), api = await demoAccount(client(s.url), { lang: 'en', today: now }), b = await launch();
 const check = (ok, text) => { if (!ok) throw Error(text); console.log('PASS ' + text); };
 const wait = async (fn) => { for (let i=0;i<80;i++) { if(await fn()) return; await new Promise(r=>setTimeout(r,100)); } throw Error('Timed out'); };
 const contexts = await Promise.all([0,1].map(async () => { const c=await b.newContext({viewport:{width:1440,height:1000}, reducedMotion:'reduce'}); await c.addCookies([{name:'sc_session',value:api.cookie.split('=')[1],url:s.url}]); return c; }));
 const [a,p] = await Promise.all(contexts.map(c=>c.newPage()));
-const key='day:'+iso(new Date()), path='/day/'+iso(new Date());
+await Promise.all([a,p].map(page=>page.clock.install({time:now})));
+const key='day:'+iso(now), path='/day/'+iso(now);
 try {
   await Promise.all([a,p].map(page=>page.goto(s.url+path)));
   await Promise.all([a,p].map(page=>page.locator('.notes-area').waitFor()));
@@ -46,7 +49,7 @@ try {
   await p.locator('.draft').waitFor(); await p.getByRole('button',{name:'Show my changes'}).click();
   check(await p.locator('.draft-cols').textContent().then(t=>t.includes('Remote task')&&t.includes('Local task')), 'inbox conflict shows task texts');
   await p.getByRole('button',{name:'Ignore',exact:true}).click();
-  for (const [path,key,selector] of [['/week/2026-W46','week:2026-W46','#wk-notes'],['/month/2026-11','month:2026-11','#m-notes'],['/quarter/2026-Q4','quarter:2026-Q4','#q-notes']]) {
+  for (const [path,key,selector] of [['/week/'+weekOf(iso(now)),'week:'+weekOf(iso(now)),'#wk-notes'],['/month/'+iso(now).slice(0,7),'month:'+iso(now).slice(0,7),'#m-notes'],['/quarter/'+now.getFullYear()+'-Q'+(Math.floor(now.getMonth()/3)+1),'quarter:'+now.getFullYear()+'-Q'+(Math.floor(now.getMonth()/3)+1),'#q-notes']]) {
     await p.goto(s.url+path); await p.locator(selector).waitFor();
     await api.put(key,{...(await api.get(key)).value,notes:'Remote period notes'});
     await p.locator(selector).fill('My period notes'); await p.locator('.draft').waitFor();
