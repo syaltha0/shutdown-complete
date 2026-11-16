@@ -4,7 +4,7 @@
 import { mkdirSync } from 'node:fs';
 import { launch } from '../lib/browser.mjs';
 import { client, startServer } from '../lib/server.mjs';
-import { demoAccount, iso } from '../lib/demo.mjs';
+import { demoAccount, iso, weekOf } from '../lib/demo.mjs';
 
 const shotsAt = process.argv.includes('--shots') ? process.argv[process.argv.indexOf('--shots') + 1] : null;
 if (shotsAt) mkdirSync(shotsAt, { recursive: true });
@@ -13,8 +13,15 @@ const check = (name, ok, extra = '') => { results.push(!!ok); console.log(`${ok 
 const wait = (ms) => new Promise((ok) => setTimeout(ok, ms));
 
 const srv = await startServer();
-const api = await demoAccount(client(srv.url), { lang: 'en' });
-const D = iso(new Date());
+const now = process.env.E2E_DATE ? new Date(`${process.env.E2E_DATE}T12:00:00`) : new Date();
+now.setHours(12, 0, 0, 0);
+const api = await demoAccount(client(srv.url), { lang: 'en', today: now });
+const D = iso(now);
+const loggedWeeks = new Set([weekOf(D)]);
+for (let k = 1; k <= 40; k++) {
+  const d = new Date(now); d.setDate(d.getDate() - k);
+  if ((await api.get(`day:${iso(d)}`)).value?.metrics?.deep != null) loggedWeeks.add(weekOf(iso(d)));
+}
 const doc = async (key) => (await api.get(key)).value;
 const browser = await launch();
 const cookie = [{ name: 'sc_session', value: api.cookie.split('=')[1], url: srv.url }];
@@ -22,6 +29,7 @@ const open = async (opts) => {
   const ctx = await browser.newContext({ locale: 'en-GB', reducedMotion: 'reduce', ...opts });
   await ctx.addCookies(cookie);
   const page = await ctx.newPage();
+  await page.clock.install({ time: now });
   page.on('pageerror', (e) => console.log('page error:', e.message));
   await page.goto(`${srv.url}/metrics`);
   await page.locator('.kpis').waitFor();
@@ -39,7 +47,7 @@ try {
   const lead = await page.locator('.kpi.lead .delta').textContent();
   check('this week is compared with last week', /vs same days last week/.test(lead), lead);
   const weeksShown = await page.locator('.byweek tbody tr').count();
-  check('the weeks start at the first logged one (no empty lead-in)', weeksShown === 6, `${weeksShown} weeks`);
+  check('the weeks start at the first logged one (no empty lead-in)', weeksShown === loggedWeeks.size, `${weeksShown} weeks, expected ${loggedWeeks.size}`);
   const best = await page.locator('.wd-best').textContent();
   check('the weekday strip shows seven days and names the best one', (await page.locator('.wd-strip li').count()) === 7 && /strongest/.test(best), best);
   check('the empty "by subject" is a line, not a card', (await page.locator('.empty-line').count()) === 1 && (await page.locator('#subj-h').count()) === 0);
@@ -71,7 +79,7 @@ try {
   await page.locator('.daygrid').waitFor();
   check('a check metric shows a day grid, not bars', (await page.locator('.daygrid .dg-row[role="img"]').count()) >= 3 && (await page.locator('.chart svg').count()) === 0);
   // the rest of this week (none on a Sunday) is left blank
-  check('days still to come are left blank', (await page.locator('.daygrid .dg-row.cur i.future').count()) === 6 - ((new Date().getDay() + 6) % 7));
+  check('days still to come are left blank', (await page.locator('.daygrid .dg-row.cur i.future').count()) === 6 - ((now.getDay() + 6) % 7));
   const toggle = page.locator('.te-check');
   const was = (await doc(`day:${D}`)).metrics.read === true;
   await toggle.click();

@@ -6,14 +6,15 @@ import { demoAccount } from '../lib/demo.mjs';
 const s=await startServer(), b=await launch();
 mkdirSync('reports/shots/home-v6',{recursive:true});
 try {
- const api=await demoAccount(client(s.url));
+ const dateNow=process.env.E2E_DATE?new Date(process.env.E2E_DATE+'T12:00:00'):new Date();
+ const api=await demoAccount(client(s.url),{today:dateNow});
  const context=await b.newContext({reducedMotion:'reduce'});
  await context.addCookies([{name:'sc_session',value:api.cookie.split('=')[1],url:s.url}]);
  const p=await context.newPage();
  const settings=(await api.get('settings')).value;
  // Hello's five day states use a fixed local noon, independent of test run time.
  const {iso}=await import('../lib/demo.mjs');
- const noon=new Date();noon.setHours(12,0,0,0);
+ const noon=new Date(dateNow);noon.setHours(12,0,0,0);
  await p.clock.install({time:noon});
  const key='day:'+iso(noon), original=(await api.get(key)).value;
  await api.put('settings',{...settings,schedule:[]});
@@ -68,7 +69,7 @@ try {
  for(const empty of [false,true]) {
   if(empty) {
    // Clear known demo keys through the same API used to seed the account.
-   const date=new Date();
+   const date=new Date(dateNow);
    const iso=d=>`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
    for(let i=-90;i<=14;i++){const d=new Date(date);d.setDate(d.getDate()+i);await api.put(`day:${iso(d)}`,{columns:[{id:'empty',blocks:[]}],tasks:[],notes:'',metrics:{},shutdown:{done:false,at:null,steps:{}}});}
    const today=iso(date);const {weekOf}=await import('../lib/demo.mjs');
@@ -94,7 +95,7 @@ try {
    }
   }
  }
- const date=iso(new Date()), base=(await api.get('day:'+date)).value;
+ const date=iso(dateNow), base=(await api.get('day:'+date)).value;
  const tlBlock=(id,start,end,kind)=>({id,start,end,kind,label:`Timeline ${id}`,note:''});
  const full=[tlBlock('deep',540,660,'deep'),tlBlock('shallow',690,750,'shallow'),tlBlock('meeting',780,840,'meeting'),tlBlock('overflow',870,930,'overflow'),tlBlock('personal',960,1020,'personal')];
  mkdirSync('reports/shots/overview-timeline',{recursive:true});
