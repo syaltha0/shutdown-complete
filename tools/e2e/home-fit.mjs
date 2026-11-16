@@ -81,7 +81,7 @@ try {
    await api.put('settings',{...settings,...(empty?{schedule:[],countdowns:[]}:{}),features:{...settings.features,...Object.fromEntries(disabled.map(x=>[x,false]))}});
    for(const [width,height] of [[1904,1015],[1440,900],[1366,768],[1280,800],[390,844]]) {
     await p.setViewportSize({width,height});await p.goto(s.url+'/');await p.locator('.overview').waitFor();await p.waitForTimeout(350);
-    assert.equal(await p.locator('.overview h2').count(),disabled.includes('habits')?9:10);
+    assert.equal(await p.locator('.home h2').count(),disabled.includes('habits')?9:10);
     const fit=await p.evaluate(()=>{const root=document.documentElement,grid=document.querySelector('.overview'),r=grid.getBoundingClientRect();return {scroll:root.scrollHeight-innerHeight,horizontal:root.scrollWidth-innerWidth,bottom:r.bottom,overflow:[...grid.querySelectorAll('.panel')].filter(e=>e.scrollHeight>e.clientHeight+1).map(e=>({name:e.className,h:e.clientHeight,scroll:e.scrollHeight})),rings:[...grid.querySelectorAll('.b-ring')].map(e=>{const r=e.getBoundingClientRect();return Math.abs(r.width-r.height)}),strip:grid.querySelector('.b-track').getBoundingClientRect().height};});
     assert.ok(fit.horizontal<=0,JSON.stringify(fit));
     assert.ok(fit.strip<=40,'Timeline stays at most 40px on every viewport');
@@ -89,7 +89,7 @@ try {
     assert.equal(await p.locator('.b-calendar>a').count(),14,'Two complete weeks');
     assert.equal(await p.locator('.b-calendar>a').first().evaluate(e=>new Date(e.getAttribute('href').split('/').pop()+'T12:00:00').getDay()),1,'Calendar starts on Monday');
     assert.ok(await p.locator('.b-tasks .b-truncate, .b-tasks .b-rt-summary').first().evaluate(e=>e.clientHeight>=16),'Next task stays visible');
-    if(width>860){assert.ok(fit.scroll<=1,JSON.stringify({width,height,...fit}));assert.ok(fit.overflow.length===0,JSON.stringify({width,height,...fit}));assert.ok(fit.rings.every(n=>n<=2));assert.ok(fit.strip<=40);assert.ok(Math.abs(fit.bottom-(height-32))<=1,JSON.stringify({width,height,...fit}));}
+    if(width>860){assert.ok(await p.locator('.home-history').evaluate((el,bottom)=>el.getBoundingClientRect().top >= bottom,fit.bottom), 'History follows the daily cards without overlap');assert.ok(fit.overflow.length===0,JSON.stringify({width,height,...fit}));assert.ok(fit.rings.every(n=>n<=2));assert.ok(fit.strip<=40);assert.ok(await p.locator('.b-tasks').evaluate(el=>el.getBoundingClientRect().top >= document.querySelector('.b-timeline').getBoundingClientRect().bottom), 'Today tasks follow the timeline');}
     if(!disabled.length && [1904,1440,390].includes(width))for(const theme of ['light','dark']){await p.evaluate(t=>document.documentElement.dataset.theme=t,theme);await p.waitForTimeout(600);await p.screenshot({path:`reports/shots/home-v6/${empty?'empty':'full'}-${width}-${height}-${theme}.png`,fullPage:true});}
    }
   }

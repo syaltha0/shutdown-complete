@@ -66,6 +66,7 @@ export const en = {
   serverDown: (n: number) => `Can’t reach the server · ${n} ${s(n, 'change', 'changes')} waiting`,
   offlinePending: (n: number) => `Offline · ${n} ${s(n, 'change', 'changes')} waiting`,
   locale: 'en-GB',
+  dailyProfile: 'Daily flow', allProfile: 'Everything', profileChoice: 'Choose your features', historyTitle: 'History', keyTask: 'Today’s key task',
   featuresTitle: 'Features',
   stepsChip: (d: number, n: number) => `${d} of ${n} ${s(n, 'step', 'steps')} done`, stepsOf: (t: string) => `Steps of ${t}`,
   stepPh: 'A smaller step', addStepTo: (t: string) => `Add a step to ${t}`,
@@ -77,6 +78,7 @@ export const en = {
   kbPlannedOn: (d: string) => `on ${d}`,
   featuresAbout: 'Turn off what you do not use: it leaves the menu, the shortcuts and the overview. Nothing is deleted; turned back on, it is all there.',
   featureNames: {
+    longTerm: ['Long-term plans', 'Month, quarter and year.'],
     inbox: ['Tasks', 'Lists of things to do: due dates, priorities, subtasks, tasks that repeat.'],
     boards: ['Boards', 'Projects and kanban boards, your own and shared ones.'],
     countdown: ['Countdown', 'The days left to the dates that matter.'],

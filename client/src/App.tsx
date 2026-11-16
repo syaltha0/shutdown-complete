@@ -193,7 +193,7 @@ function route(path: string) {
 }
 
 /** The screens that belong to a part one can turn off. */
-const FEATURE_OF: Record<string, Feature | undefined> = { inbox: 'inbox', boards: 'boards', countdown: 'countdown', habits: 'habits', metrics: 'metrics' };
+const FEATURE_OF: Record<string, Feature | undefined> = { month: 'longTerm', quarter: 'longTerm', year: 'longTerm', inbox: 'inbox', boards: 'boards', countdown: 'countdown', habits: 'habits', metrics: 'metrics' };
 
 interface NavItem { id: string; href: string; label: string; icon: React.ReactNode; tour?: string }
 

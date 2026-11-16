@@ -5,6 +5,7 @@ import { api } from '../lib/api';
 import { Mark } from '../components/Icons';
 import { clock, longDate, today } from '../lib/dates';
 import { getLang, useT } from '../lib/i18n';
+import { dailyFeatures, FEATURES } from '../lib/model';
 import type { MetricDef } from '../lib/model';
 import { reducedMotion } from '../lib/theme';
 import { navigate } from '../lib/router';
@@ -45,7 +46,7 @@ const nameFromEmail = (email: string, lang: string) => {
 const PART = ['all', 'hours', 'metrics'] as const;
 // the answers kept for the tab; the name changes when what a draft means changes, so an old one is not read
 const DRAFT = 'sc-welcome-2';
-type Draft = Partial<{ step: number; reached: number; person: string; start: number; end: number; whole: boolean; picked: string[]; uses: string[] }>;
+type Draft = Partial<{ step: number; reached: number; person: string; start: number; end: number; whole: boolean; picked: string[]; uses: string[]; daily: boolean }>;
 const readDraft = (): Draft => { try { return JSON.parse(sessionStorage.getItem(DRAFT) || '{}') as Draft; } catch { return {}; } };
 const dropDraft = () => { try { sessionStorage.removeItem(DRAFT); } catch { /* private window */ } };
 
@@ -57,6 +58,7 @@ export function Welcome() {
   const [d] = useState(readDraft);
   // run again from Settings: the current settings are the answers, nothing is changed by itself, and leaving changes nothing
   const again = !!settings.setupAgain;
+  const [daily, setDaily] = useState(d.daily ?? !again);
   // a sign-up gives only an address; until a name is given, its first part stands in
   const [person, setPerson] = useState(d.person ?? (user.name === user.email.split('@')[0] ? '' : user.name));
   const [step, setStep] = useState(d.step ?? 0);
@@ -71,9 +73,9 @@ export function Welcome() {
   const [picked, setPicked] = useState(() => new Set(d.picked ?? (settings.setupAgain ? settings.metrics.map((m) => m.id) : [])));
   const [uses, setUses] = useState<string[]>(d.uses ?? settings.profile?.uses ?? []);
   useEffect(() => {
-    const draft: Draft = { step, reached, person, start, end, whole, picked: [...picked], uses };
+    const draft: Draft = { step, reached, person, start, end, whole, picked: [...picked], uses, daily };
     try { sessionStorage.setItem(DRAFT, JSON.stringify(draft)); } catch { /* private window */ }
-  }, [step, reached, person, start, end, whole, picked, uses]);
+  }, [step, reached, person, start, end, whole, picked, uses, daily]);
   const acts = [...new Set(uses.flatMap((u) => ACTS_FOR[u] ?? []))];
   const [firstPicked] = useState(picked);
   // the answers to the first question bring their metrics (until the metrics step is reached) and the sketch's
@@ -133,7 +135,7 @@ export function Welcome() {
     const focusMetric = metrics.find((m) => m.id === 'deep') ?? metrics.find((m) => m.kind === 'number');
     return {
       // the language is the one the screens are in (the browser's, or one chosen before); Settings can change it
-      ...s, lang: getLang(), startHour: start, endHour: end, wholeDay: whole, metrics,
+      ...s, ...(!again ? { features: daily ? dailyFeatures() : Object.fromEntries(FEATURES.map(f => [f, true])) } : {}), lang: getLang(), startHour: start, endHour: end, wholeDay: whole, metrics,
       focus: s.focus ? { ...s.focus, metricId: focusMetric?.id ?? '' } : s.focus,
       profile: { uses, activities: acts, together: s.profile?.together ?? true },
     };
@@ -242,6 +244,7 @@ export function Welcome() {
           <section className={`welcome-step ${dir}`} key={step}
             onPointerOver={(e) => hover(spotOf(e.target))} onPointerLeave={() => hover(null)}
             onFocus={(e) => setKeyed(e.target.matches(':focus-visible') ? spotOf(e.target) : null)} onBlur={() => setKeyed(null)}>
+
             {step === 0 && (
               <>
                 {/* the name rises into the greeting once there is one (not on every key) */}
@@ -302,7 +305,7 @@ export function Welcome() {
             {step === 2 && (
               <>
                 <h1>{W.trackTitle}</h1>
-                <p className="welcome-body">{W.trackBody}</p>
+                <div className="profile-intro"><p className="welcome-body">{W.trackBody}</p>{!again && <label className="profile-choice">{T.profileChoice} <select aria-label={T.profileChoice} value={daily ? 'daily' : 'all'} onChange={e => setDaily(e.target.value === 'daily')}><option value="daily">{T.dailyProfile}</option><option value="all">{T.allProfile}</option></select></label>}</div>
                 <div className="pick-group" role="group" aria-labelledby="w-numbers">
                   <span className="label" id="w-numbers">{W.numbers}</span>
                   <div className="wtiles">{NUMBERS.map(metricTile)}</div>

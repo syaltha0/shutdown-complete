@@ -338,6 +338,7 @@ export function Day({ date }: { date: string }) {
                   {it.card && <CardChip link={it.card} />}
                 </>}
                 tools={(it, change) => <>
+                  <button type="button" className="card-link key-task" title={T.keyTask} aria-label={`${T.keyTask}: ${it.text}`} aria-pressed={day.keyTaskId === it.id} onClick={() => update(d => ({ ...d, keyTaskId: d.keyTaskId === it.id ? undefined : it.id }))}>1</button>
                   {!it.due && !it.estimate && <TaskMeta item={it} onChange={change} />}
                   <PartOf up={it.up} choices={weekChoices} onChange={(up) => change({ up })} level={T.levels.week} place="tool" />
                 </>}

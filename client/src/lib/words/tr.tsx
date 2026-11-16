@@ -63,6 +63,7 @@ serverStatus: { remedy: 'İlgili ayarı veya kurulum yönergesini aç',"title":"
   serverDown: (n) => `Sunucuya ulaşılamıyor · ${n} değişiklik bekliyor`,
   offlinePending: (n) => `Çevrimdışı · ${n} değişiklik bekliyor`,
   locale: 'tr-TR',
+  dailyProfile: 'Günlük akış', allProfile: 'Hepsi', profileChoice: 'Özelliklerini seç', historyTitle: 'Geçmiş', keyTask: 'Bugünün temel işi',
   featuresTitle: 'Özellikler',
   stepsChip: (d, n) => `${n} adımın ${d} tanesi bitti`, stepsOf: (t) => `${t} adımları`,
   stepPh: 'Daha küçük bir adım', addStepTo: (t) => `${t} için adım ekle`,
@@ -74,6 +75,7 @@ serverStatus: { remedy: 'İlgili ayarı veya kurulum yönergesini aç',"title":"
   kbPlannedOn: (d) => `${d} gününde`,
   featuresAbout: 'Kullanmadığını kapat: menüden, kısayollardan ve genel bakıştan kalkar. Hiçbir şey silinmez; yeniden açınca hepsi yerinde.',
   featureNames: {
+    longTerm: ['Uzun dönem planları', 'Ay, çeyrek ve yıl.'],
     inbox: ['Görevler', 'Yapılacak işlerin listeleri: teslim tarihleri, öncelikler, alt görevler, tekrarlanan görevler.'],
     boards: ['Panolar', 'Projeler ve kanban panoları, kendi ve paylaşılan.'],
     countdown: ['Geri sayım', 'Önemli tarihlere kalan günler.'],
