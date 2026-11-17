@@ -63,6 +63,8 @@ serverStatus: { remedy: 'İlgili ayarı veya kurulum yönergesini aç',"title":"
   pushUnavailable: 'Bu tarayıcıda push bildirimleri kullanılamıyor. iPhone’da önce uygulamayı ana ekrana ekle.',
   pushError: 'Bildirim ayarı değiştirilemedi. İzni ve bağlantını kontrol edip yeniden dene.',
   serverDown: (n) => `Sunucuya ulaşılamıyor · ${n} değişiklik bekliyor`,
+  lastSavedAt: (t: string) => `son kayıt ${t}`,
+  offlineKept: 'Bağlantı gelince kaydedilir.',
   offlinePending: (n) => `Çevrimdışı · ${n} değişiklik bekliyor`,
   locale: 'tr-TR',
   dailyProfile: 'Günlük akış', allProfile: 'Hepsi', profileChoice: 'Özelliklerini seç', keyTask: 'Bugünün temel işi',

@@ -68,7 +68,13 @@ function judgeOutage() {
   if (next !== stuck) { stuck = next; outageListeners.forEach((l) => l()); }
 }
 function saveFailed() { outage = outage ?? { since: Date.now(), fails: 0 }; outage.fails++; judgeOutage(); }
-function saveWorked() { if (outage) { outage = null; judgeOutage(); } }
+let lastSaved: number | null = null;
+const savedListeners = new Set<() => void>();
+function saveWorked() { lastSaved = Date.now(); savedListeners.forEach((l) => l()); if (outage) { outage = null; judgeOutage(); } }
+/** When the server last took a change from this tab (ms), or null before the first save. */
+export function useLastSaved() {
+  return useSyncExternalStore((l) => { savedListeners.add(l); return () => { savedListeners.delete(l); }; }, () => lastSaved);
+}
 /** Whether saves have been failing long enough to say so. */
 export function useOutage() {
   return useSyncExternalStore((l) => { outageListeners.add(l); return () => { outageListeners.delete(l); }; }, () => stuck);

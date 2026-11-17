@@ -66,6 +66,8 @@ export const en = {
   pushUnavailable: 'Push is unavailable here. On iPhone, add the app to your Home Screen first.',
   pushError: 'Could not change notifications. Check permission and your connection, then try again.',
   serverDown: (n: number) => `Can’t reach the server · ${n} ${s(n, 'change', 'changes')} waiting`,
+  lastSavedAt: (t: string) => `last saved ${t}`,
+  offlineKept: 'Saved when the connection is back.',
   offlinePending: (n: number) => `Offline · ${n} ${s(n, 'change', 'changes')} waiting`,
   locale: 'en-GB',
   dailyProfile: 'Daily flow', allProfile: 'Everything', profileChoice: 'Choose your features', keyTask: 'Today’s key task',
