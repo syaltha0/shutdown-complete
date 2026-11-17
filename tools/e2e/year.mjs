@@ -1,4 +1,4 @@
-﻿import assert from 'node:assert/strict';
+import assert from 'node:assert/strict';
 import { mkdirSync } from 'node:fs';
 import { launch } from '../lib/browser.mjs';
 import { startServer, client } from '../lib/server.mjs';
@@ -17,7 +17,7 @@ try {
  await p.waitForFunction(()=>document.querySelector('[data-date="2026-03-12"]')?.getAttribute('data-minutes')==='130');
  await p.locator('#year-good').fill('A steady year');await p.locator('#year-change').fill('More rest');await p.waitForTimeout(1500);await p.reload();await p.locator('#year-good').waitFor();assert.equal(await p.locator('#year-good').inputValue(),'A steady year');
  for(const width of [1440,390]) for(const theme of ['light','dark']) {await p.setViewportSize({width,height:1000});await p.evaluate(t=>document.documentElement.dataset.theme=t,theme);assert.ok(await p.evaluate(()=>document.documentElement.scrollWidth<=innerWidth));await p.screenshot({path:`reports/shots/year/${lang}-${width}-${theme}.png`,fullPage:true});}
- await p.locator('[data-date="2026-03-12"]').click();await p.waitForURL('**/day/2026-03-12');await p.setViewportSize({width:1440,height:1000});await p.locator('.rail').waitFor();await p.evaluate(()=>{if(document.activeElement instanceof HTMLElement)document.activeElement.blur();});await p.keyboard.press('y');await p.waitForURL('**/year/*');await p.goto(s.url+'/year/2026');await p.locator('a[href="/year/2027"]').click();await p.waitForURL('**/year/2027');await c.close();
+ await p.locator('.year-mobile-month[href="/month/2026-03"]').click();await p.waitForURL('**/month/2026-03');await p.goto(s.url+'/year/2026');await p.setViewportSize({width:1440,height:1000});await p.locator('[data-date="2026-03-12"]').click();await p.waitForURL('**/day/2026-03-12');await p.setViewportSize({width:1440,height:1000});await p.locator('.rail').waitFor();await p.evaluate(()=>{if(document.activeElement instanceof HTMLElement)document.activeElement.blur();});await p.keyboard.press('y');await p.waitForURL('**/year/*');await p.goto(s.url+'/year/2026');await p.locator('a[href="/year/2027"]').click();await p.waitForURL('**/year/2027');await c.close();
  }
  console.log('PASS year: cells, minutes, quarters, review persistence, navigation, keyboard, responsive screenshots');
 } finally {await b.close();await s.stop();}
