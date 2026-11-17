@@ -887,6 +887,7 @@ export const en = {
   toggleAria: (name: string, date: string, done: boolean) => `${name}, ${date}: ${done ? 'done' : 'not done'}`,
   habitWeeks: (n: number) => `${n} weeks`,
   unknownTaskList: (name: string) => `#${name} list does not exist — will be added to inbox`,
+  habitCellLabel: (name: string, date: string, state: string) => `${name}, ${date}: ${state === "done" ? "done" : state === "skipped" ? "skipped" : "not yet"}`,
   habitName: 'Name', habitDelete: 'Delete for good',
   habitDeleteConfirm: (name: string) => `Delete "${name}" for good? Its ticks stay in your days but the habit and its history view go away.`,
   habitRemind: 'Reminder', habitRemindNone: 'No reminder', habitRemindOff: 'Clear',

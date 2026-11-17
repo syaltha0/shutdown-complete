@@ -871,6 +871,7 @@ serverStatus: { remedy: 'İlgili ayarı veya kurulum yönergesini aç',"title":"
   toggleAria: (name, date, done) => `${name}, ${date}: ${done ? 'yapıldı' : 'yapılmadı'}`,
   habitWeeks: (n: number) => `${n} hafta`,
   unknownTaskList: (name: string) => `#${name} listesi yok — gelen kutusuna eklenecek`,
+  habitCellLabel: (name: string, date: string, state: string) => `${name}, ${date}: ${state === "done" ? "yapıldı" : state === "skipped" ? "atlandı" : "henüz değil"}`,
   habitName: 'Ad', habitDelete: 'Kalıcı olarak sil',
   habitDeleteConfirm: (name: string) => `"${name}" kalıcı olarak silinsin mi? Günlerindeki işaretler kalır ama alışkanlık ve geçmiş görünümü kaybolur.`,
   habitRemind: 'Hatırlatma', habitRemindNone: 'Hatırlatma yok', habitRemindOff: 'Kaldır',
