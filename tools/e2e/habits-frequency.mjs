@@ -9,6 +9,7 @@ try {
   const ctx=await b.newContext({locale:lang,viewport:{width:1440,height:1000}});
   await ctx.addCookies([{name:'sc_session',value:api.cookie.split('=')[1],url:s.url}]);
   const p=await ctx.newPage();await p.goto(s.url+'/habits');
+  await p.locator('.hv-name').first().click();
   const frequency=p.locator('section[aria-label] select');await frequency.first().waitFor();
   const firstName=await p.locator('.hgrid .hrow:not(.head) .hname').first().innerText();
   await frequency.first().selectOption('weekly');
@@ -18,7 +19,7 @@ try {
   for(let i=0;i<3 && (await cell.getAttribute('aria-pressed')==='true'||(await cell.innerText()).trim());i++)await cell.click();
   await cell.click();assert.equal(await cell.getAttribute('aria-pressed'),'true');
   await cell.click();assert.equal((await cell.innerText()).trim(),'/');
-  await p.waitForTimeout(600);await p.reload();await p.locator('.hgrid').waitFor();
+  await p.waitForTimeout(600);await p.reload();await p.locator('.hgrid').waitFor();await p.locator('.hv-name').first().click();
   assert.equal(await p.locator('section[aria-label] select').first().inputValue(),'weekly');
   assert.equal(await p.locator('section[aria-label] input[type=number]').inputValue(),'2');
   assert.equal((await p.locator('.hgrid .hrow:not(.head)').first().locator('.is-today').innerText()).trim(),'/');
@@ -29,12 +30,12 @@ try {
   assert.equal(await p.locator('.hgrid .hname').filter({hasText:firstName}).count(),0);
   await p.locator('details').last().locator('summary').click();
   await p.getByRole('button',{name:firstName+' / '+word.restore,exact:true}).click();
-  await p.waitForTimeout(600);await p.reload();await p.locator('.hgrid').waitFor();
+  await p.waitForTimeout(600);await p.reload();await p.locator('.hgrid').waitFor();await p.locator('.hv-name').first().click();
   assert.ok(await p.locator('.hgrid .hname').filter({hasText:firstName}).count());
   assert.notEqual(await p.locator('.hgrid .hrow:not(.head) .hname').first().innerText(),firstName);
   await p.locator('section[aria-label] select').first().selectOption('days');
   const checks=p.locator('section[aria-label] input[type=checkbox]');await checks.first().uncheck();
-  await p.waitForTimeout(600);await p.reload();await p.locator('.hgrid').waitFor();
+  await p.waitForTimeout(600);await p.reload();await p.locator('.hgrid').waitFor();await p.locator('.hv-name').first().click();
   assert.equal(await p.locator('section[aria-label] select').first().inputValue(),'days');
   assert.equal(await p.locator('section[aria-label] input[type=checkbox]').first().isChecked(),false);
   console.log('PASS '+lang+' habit frequency, cycle, archive, restore, order and persistence');await ctx.close();

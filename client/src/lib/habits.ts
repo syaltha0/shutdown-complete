@@ -35,3 +35,33 @@ export function habitStats(h: MetricDef, dates: string[], get: (date: string) =>
   }
   return { done, total, streak, rate: total ? done / total : 0 };
 }
+
+/** Exactly 52 Monday-first weeks ending in the reference date's week.
+ * Binary completions use full ink; the weekly completion fraction supplies four tones.
+ * Skipped and unplanned dates never receive a completion tone. */
+export function habitHeatmap(h: MetricDef, get: (date: string) => DayDoc | null | undefined, end: string) {
+  const start = shift(monday(end), -51 * 7);
+  return Array.from({ length: 364 }, (_, i) => {
+    const date = shift(start, i), state = habitState(h, get(date));
+    const week = Math.floor(i / 7), day = i % 7;
+    const fraction = h.frequency?.mode === 'weekly'
+      ? habitStats(h, Array.from({length: 7}, (_, j) => shift(monday(date), j)), get, end).rate : 1;
+    const level = date <= end && planned(h, date) && state === 'done' ? Math.max(1, Math.ceil(fraction * 4)) : 0;
+    return { date, week, day, state, level };
+  });
+}
+
+/** The longest run in the supplied history, using the same units and skip rules as current runs. */
+export function habitLongest(h: MetricDef, dates: string[], get: (date: string) => DayDoc | null | undefined, today: string) {
+  const weekly = h.frequency?.mode === 'weekly';
+  const units = [...new Set(dates.filter(d => d <= today && planned(h, d)).map(d => weekly ? monday(d) : d))].sort();
+  let longest = 0, run = 0;
+  for (const date of units) {
+    const ds = weekly ? Array.from({length: 7}, (_, i) => shift(date, i)) : [date];
+    const s = habitStats(h, ds, get, today);
+    if (!s.total) continue;
+    if (s.done >= s.total) longest = Math.max(longest, ++run);
+    else if (weekly ? shift(date, 6) < today : date < today) run = 0;
+  }
+  return longest;
+}
