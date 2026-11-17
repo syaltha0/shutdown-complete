@@ -174,7 +174,7 @@ function AutoText({ value, readOnly, label, refFn, onChange, onBlur, onKeyDown }
     return () => ro.disconnect();
   }, [value]);
   return (
-    <textarea
+    <textarea title={value}
       className="text" rows={1} value={value} readOnly={readOnly} aria-label={label}
       ref={(t) => { el.current = t; refFn(t); }}
       onChange={onChange} onBlur={onBlur} onKeyDown={onKeyDown}

@@ -325,7 +325,7 @@ export function Day({ date }: { date: string }) {
         <div className="page-left">
           <MetricsBox day={day} date={date} defs={settings.metrics} update={update} />
           <section className="panel capture" data-tour="capture" data-anim>
-            <section aria-labelledby="tasks-h">
+            <section className="day-tasks" aria-labelledby="tasks-h">
               <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
                 <h2 id="tasks-h">{T.tasks}</h2>
                 <span className="meta num">{day.tasks.length ? T.tasksDone(day.tasks.filter((x) => x.done).length, day.tasks.length) : ''}</span>
