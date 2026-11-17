@@ -119,6 +119,7 @@ export function SettingsScreen() {
             <p>{T.featuresAbout}</p>
           </div>
           <div className="set-panel features">
+            <small className="muted" data-testid="feature-note">{T.featureOffNote}</small>
             {FEATURES.map((f) => (
               <label key={f} className="switch-row feature-row">
                 <input type="checkbox" className="switch" checked={featureOn(settings, f)}

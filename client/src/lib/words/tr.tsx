@@ -75,6 +75,7 @@ serverStatus: { remedy: 'İlgili ayarı veya kurulum yönergesini aç',"title":"
   linkBreak: 'Bir alt ölçeğe böl', linkAddTo: (w) => `${w} planına ekle`, linkCard: 'Pano kartı',
   levels: { quarter: 'çeyrek hedefi', month: 'ay hedefi', week: 'hafta işi' },
   kbPlannedOn: (d) => `${d} gününde`,
+  featureOffNote: 'Kapatmak veriyi silmez; açınca her şey yerinde.',
   featuresAbout: 'Kullanmadığını kapat: menüden, kısayollardan ve genel bakıştan kalkar. Hiçbir şey silinmez; yeniden açınca hepsi yerinde.',
   featureNames: {
     longTerm: ['Uzun dönem planları', 'Ay, çeyrek ve yıl.'],

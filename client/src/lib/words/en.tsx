@@ -78,6 +78,7 @@ export const en = {
   linkBreak: 'Break it down one scale below', linkAddTo: (w: string) => `Add it to ${w}`, linkCard: 'Board card',
   levels: { quarter: 'a season goal', month: 'a month goal', week: 'an item of the week' } as Record<string, string>,
   kbPlannedOn: (d: string) => `on ${d}`,
+  featureOffNote: 'Turning off keeps your data; everything is there when you turn it back on.',
   featuresAbout: 'Turn off what you do not use: it leaves the menu, the shortcuts and the overview. Nothing is deleted; turned back on, it is all there.',
   featureNames: {
     longTerm: ['Long-term plans', 'Month, quarter and year.'],
