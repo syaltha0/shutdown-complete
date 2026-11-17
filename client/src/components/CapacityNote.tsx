@@ -1,4 +1,4 @@
-﻿import { useSettings } from '../App';
+import { useSettings } from '../App';
 import { useState } from 'react';
 import { overCapacity, useBaseline } from '../lib/capacity';
 import { duration, today } from '../lib/dates';
@@ -26,7 +26,7 @@ export function CapacityNote({ scope, id, from, planned, thisOne }: { scope: 'da
   const text = scope === 'day' ? T.capacity.day(duration(planned), duration(usual), thisOne) : T.capacity.week(duration(planned), duration(usual), thisOne);
   return (
     <p className="capacity-note" role="note" data-capacity={scope}>
-      <span>{text} ﾂｷ {T.workBudget(String(settings.startHour).padStart(2, '0') + ':00', String(settings.endHour).padStart(2, '0') + ':00')}</span>
+      <span>{text} · {T.workBudget(String(settings.startHour).padStart(2, '0') + ':00', String(settings.endHour).padStart(2, '0') + ':00')}</span>
       <button type="button" className="card-link quiet" onClick={() => { try { localStorage.setItem(key, 'off'); } catch { /* private mode */ } setOff(true); }}>{T.capacity.dismiss}</button>
     </p>
   );
