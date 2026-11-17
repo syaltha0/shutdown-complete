@@ -275,6 +275,11 @@ export function SettingsScreen() {
                 <div className="field"><label htmlFor={`t-${m.id}`}>{T.dailyTarget}</label>
                   <input id={`t-${m.id}`} className="input num" type="number" min={0} step="any" disabled={m.kind === 'check'} placeholder="—"
                     value={m.target ?? ''} onChange={(e) => setMetric(m.id, { target: e.target.value === '' ? null : Number(e.target.value) })} /></div>
+                {m.kind === 'check' && [-1, 1].map(offset => <button key={offset} className="btn" type="button" aria-label={`${m.name} / ${offset < 0 ? T.habitUp : T.habitDown}`} disabled={settings.metrics.indexOf(m) + offset < 0 || settings.metrics.indexOf(m) + offset >= settings.metrics.length} onClick={() => update(s => {
+                  const metrics = [...s.metrics], at = metrics.findIndex(x => x.id === m.id), to = at + offset;
+                  if (to >= 0 && to < metrics.length) [metrics[at], metrics[to]] = [metrics[to], metrics[at]];
+                  return {...s, metrics};
+                })}>{offset < 0 ? T.habitUp : T.habitDown}</button>)}
                 <button type="button" className="btn ghost icon" aria-label={T.remove(m.name)}
                   onClick={() => {
                     const at = settings.metrics.findIndex((x) => x.id === m.id);

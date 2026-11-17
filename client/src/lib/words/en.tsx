@@ -868,6 +868,17 @@ export const en = {
   habitPh: 'Read 20 pages, walk, no phone after 21:00',
   noHabits: 'No habits yet. Add the first one below; it also appears in the daily metrics box.',
   toggleAria: (name: string, date: string, done: boolean) => `${name}, ${date}: ${done ? 'done' : 'not done'}`,
+  habitWeeks: (n: number) => `${n} weeks`,
+  habitArchived: 'Archive',
+  habitFrequency: 'Frequency',
+  habitDaily: 'Every day',
+  habitSelected: 'Selected weekdays',
+  habitWeekly: 'Times per week',
+  habitSkipped: 'Skipped / day off',
+  habitArchive: 'Archive',
+  habitRestore: 'Restore',
+  habitUp: 'Move up',
+  habitDown: 'Move down',
   habitsHint: 'A habit is a yes-or-no daily metric: a tick here and a tick on the day are the same tick.',
 
   // more sheet, tour
