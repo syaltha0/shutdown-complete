@@ -39,7 +39,7 @@ export function Countdowns() {
   const [prepare, setPrepare] = useState<{ name: string; date: string } | null>(null);
   const t = today();
   const own = settings.countdowns ?? [];
-  const planned = settings.exams ?? [];
+  const planned = featureOn(settings, 'exams') ? settings.exams ?? [] : [];
   const rows: Row[] = [
     ...own.map((c) => ({ ...c, exam: false, next: nextDate(c, t) })),
     ...planned.filter((x) => !own.some((c) => c.date === x.date && c.name === x.name))

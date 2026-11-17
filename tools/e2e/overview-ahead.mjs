@@ -30,5 +30,12 @@ try {
   }
   const href=await p.locator('.b-calendar>a').first().getAttribute('href');await p.locator('.b-calendar>a').first().click();await p.waitForURL('**'+href);
  }
+ for (const enabled of [true,false]) {
+  await api.put('settings',{...settings,features:{...settings.features,exams:enabled},exams:[{id:'qa-exam',name:'QA visibility exam',date:'2026-11-29',subject:'QA',topics:[],daily:30,session:30,days:[0],from:540,to:1020,review:0}]});
+  await p.goto(s.url+'/');await p.locator('.b-ahead').waitFor();
+  assert.equal(await p.locator('.b-ahead').getByText('QA visibility exam',{exact:true}).count(),enabled?1:0);
+  await p.goto(s.url+'/countdown');await p.locator('h1').waitFor();
+  assert.equal(await p.getByText('QA visibility exam',{exact:true}).count(),enabled?1:0);
+ }
  console.log('PASS Ahead: 24 screenshots, four datasets, responsive fit and day routes');
 } finally {await b.close();s.stop();}

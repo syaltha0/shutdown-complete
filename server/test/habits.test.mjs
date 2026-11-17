@@ -1,6 +1,6 @@
 ﻿import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { habitStats, cycleHabit, shift } from '../../client/src/lib/habits.ts';
+import { habitStats, cycleHabit, shift, planned } from '../../client/src/lib/habits.ts';
 const h = {id:'h',name:'Habit',kind:'check',unit:'',target:null};
 const days = Array.from({length:14},(_,i)=>shift('2026-11-02',i));
 const doc = (done=false,skip=false)=>({metrics:{h:done},skippedHabits:skip?['h']:[]});
@@ -56,4 +56,16 @@ test('longest run survives skips and separates completed daily and weekly runs',
  assert.equal(habitLongest(h,days,d=>doc(!['2026-11-05','2026-11-10'].includes(d),d==='2026-11-05'),days.at(-1)),7);
  assert.equal(habitLongest({...h,frequency:{mode:'weekly',count:2}},days,()=>doc(true),days.at(-1)),2);
  assert.equal(habitLongest(h,days,()=>doc(false,true),days.at(-1)),0);
+});
+
+test('since excludes past days from totals, streaks and heatmaps',()=>{
+ const fresh={...h,since:'2026-11-14'};
+ assert.equal(habitStats(fresh,days,()=>doc(),days.at(-1)).total,2);
+ assert.equal(habitStats(h,days,()=>doc(),days.at(-1)).total,14);
+ assert.equal(planned(fresh,'2026-11-13'),false);
+ assert.equal(habitLongest(fresh,days,()=>doc(true),days.at(-1)),2);
+ assert.ok(habitHeatmap(fresh,()=>doc(true),days.at(-1)).filter(c=>c.date<fresh.since).every(c=>c.level===0 && c.state==='unavailable'));
+ for(const n of [30,90]) assert.equal(habitStats({...h,since:days.at(-1)},Array.from({length:n},(_,i)=>shift(days.at(-1),i-n+1)),()=>doc(),days.at(-1)).total,1);
+ const weekly={...fresh,frequency:{mode:'weekly',count:7}};
+ assert.equal(habitStats(weekly,days,()=>doc(true),days.at(-1)).total,2);
 });
