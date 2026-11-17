@@ -13,6 +13,7 @@ try {
    const c = await b.newContext({viewport:{width,height}, hasTouch:width<=1180, isMobile:width<860, reducedMotion:'reduce'});
    await c.addCookies([{name:'sc_session',value:api.cookie.split('=')[1],url:s.url}]);
    const p = await c.newPage();
+   p.on('pageerror', error => console.error('pageerror', lang, width, height, error.stack));
    for (const state of ['idle','running','settings','room']) {
     const key='day:'+iso(new Date()), d=(await api.get(key)).value;
     d.focus={...d.focus,active: state==='idle'?null:{blockId:null,label:'',phase:'focus',plannedMin:25,startedAt:new Date().toISOString(),endsAt:new Date(Date.now()+1500000).toISOString(),pausedLeft:null}};

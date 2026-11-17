@@ -213,6 +213,7 @@ try {
 
   // ---------- dragging ----------
   const dragTo = async (from, to, dy = 0) => {
+    await from.scrollIntoViewIfNeeded();
     const a = await from.boundingBox(), b = await to.boundingBox();
     await page.mouse.move(a.x + a.width / 2, a.y + a.height / 2);
     await page.mouse.down();

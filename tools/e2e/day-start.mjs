@@ -72,6 +72,10 @@ try {
   check((await doc('day:' + prev)).focus.sessions.length === 1, 'finished focus is logged on the original day');
   await p.goto(s.url + '/shutdown');
   await p.getByRole('button', { name: 'Schedule shutdown, complete', exact: true }).click();
+  const confirmation = p.locator('dialog[open]');
+  await confirmation.waitFor();
+  check(!(await doc('day:' + prev)).shutdown.done, 'shutdown waits for confirmation when ritual steps remain');
+  await confirmation.getByRole('button', { name: 'Close', exact: true }).click();
   await p.clock.runFor(2000);
   await until(async () => (await doc('day:' + prev)).shutdown.done);
   check(!(await doc('day:' + next)).shutdown.done, 'shutdown completes the previous planning day');
