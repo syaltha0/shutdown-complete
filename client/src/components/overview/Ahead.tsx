@@ -49,7 +49,7 @@ export function Ahead({ settings, t, B, monday }: OverviewData) {
     .sort((a, b) => a.date.localeCompare(b.date));
   const calendar = Array.from({ length: 14 }, (_, i) => addDays(monday, i));
   return (
-    <section className={`panel b-ahead${!ahead.length && !tomorrow.length ? " is-empty" : ""}`}>
+    <section className="panel b-ahead">
       <h2>{B.ahead}</h2>
       <div className="b-ahead-range">{fmtDay(monday, { month: "short", day: "numeric" })} – {fmtDay(addDays(monday, 13), { month: "short", day: "numeric" })}</div>
       <div className="b-calendar">

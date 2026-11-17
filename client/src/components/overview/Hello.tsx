@@ -47,7 +47,7 @@ export function Hello({ T, settings, t, now, plan, B, day, docs, docOf, monday }
   // this week so far, Monday to today: days with a plan, minutes focused, days closed
   const weekDays = Array.from({ length: Math.round((Date.parse(t + "T12:00:00") - Date.parse(monday + "T12:00:00")) / 864e5) + 1 }, (_, i) => addDays(monday, i));
   const sofar = weekDays.reduce((w, d) => { const doc = docOf(d); return { days: w.days, planned: w.planned + (doc && doc.columns.some(c => c.blocks.length) ? 1 : 0), focus: w.focus + (doc?.focus?.sessions ?? []).reduce((n, x) => n + x.minutes, 0), closed: w.closed + (doc?.shutdown?.done ? 1 : 0) }; }, { days: weekDays.length, planned: 0, focus: 0, closed: 0 });
-  return <section className={`panel b-hello has-side${!plan.length && !closed ? " is-empty" : ""}`}>
+  return <section className={`panel b-hello has-side`}>
     <div className="b-hello-main">
     <h2>{B.greeting(Math.floor(now / 60), user.name.trim())}</h2>
     <div className="b-now" title={closed ? T.shutdownComplete : cur ? label : undefined}>

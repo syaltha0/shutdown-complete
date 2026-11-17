@@ -14,7 +14,7 @@ export function LastDays({ settings, t, docOf, recent, deep, B }: OverviewData) 
   const previous = recent.reduce((n, d) => n + deep(docOf(addDays(d, -7))), 0);
   const delta = total - previous;
   const hasData = days.some(d => d.minutes || d.tasks || d.closed);
-  return <section className={`panel b-recent${!hasData ? " is-empty" : ""}`}>
+  return <section className="panel b-recent">
     <header><h2>{B.recent}</h2><a className="b-act" href="/focus" onClick={onLinkClick}><span>{B.recentFocus}</span><span aria-hidden="true">›</span></a></header>
     <div className="b-recent-chart">
       <div className="b-bars">{days.map(d => <a key={d.date} aria-current={d.date === t ? "date" : undefined} href={`/day/${d.date}`} onClick={onLinkClick} aria-label={`${longDate(d.date)} · ${duration(d.minutes)} · ${B.recentTasks(d.tasks)} · ${d.closed ? B.streakClosed : B.streakPending}`} title={`${longDate(d.date)} · ${duration(d.minutes)} · ${B.recentTasks(d.tasks)} · ${d.closed ? B.streakClosed : B.streakPending}`}>

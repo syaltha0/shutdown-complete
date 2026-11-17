@@ -8,7 +8,7 @@ export function Weeks({ t, docOf, deep, B, T, monday }: OverviewData) {
   const minutes = days.map(d => d > t ? 0 : deep(docOf(d)));
   const totals = Array.from({ length: 12 }, (_, w) => minutes.slice(w * 7, w * 7 + 7).reduce((a, b) => a + b, 0));
   const total = totals.reduce((a, b) => a + b, 0);
-  return <section className={`panel b-heat${!total ? " is-empty" : ""}`}>
+  return <section className="panel b-heat">
     <header className="b-heat-head"><h2>{B.weeks}</h2><div className="b-heat-legend" aria-label={T.year.heat}>{T.year.legend.map((label, i) => <span key={label} title={label}><i className={`heat-${i}`} aria-hidden="true"/><span>{label}</span></span>)}</div></header>
     <div className="b-heat-months">{totals.map((_, w) => <span key={w}>{w === 0 || monthOf(days[w * 7]) !== monthOf(days[(w - 1) * 7]) ? fmtDay(days[w * 7], { month: "short" }) : ""}</span>)}</div>
     <div className="b-heat-body">
