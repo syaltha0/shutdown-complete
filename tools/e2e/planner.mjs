@@ -508,9 +508,11 @@ try {
     await first.locator('.kb-add-card').click();
     await first.locator('.kb-composer textarea').fill('Read ten papers');
     await first.locator('.kb-composer textarea').press('Enter');
+    check('one add-card action remains after creating a card', await first.locator('.kb-add-card').count() === 1 && await first.locator('.kb-composer').count() === 0);
+    await first.locator('.kb-add-card').click();
     await first.locator('.kb-composer textarea').fill('Write the survey');
     await first.locator('.kb-composer textarea').press('Enter');
-    await first.locator('.kb-composer textarea').press('Escape');
+    await first.locator('.kb-add-card').waitFor();
     await wait(800);
     check('cards are added from the foot of a list, one after another', (await first.locator('.kb-card').count()) === 2 && !(await first.locator('.kb-composer').count()));
     // a list added in the last column, then dragged by its header to the front
