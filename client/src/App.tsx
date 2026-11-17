@@ -261,7 +261,7 @@ function Shell() {
   ];
   const work: NavItem[] = [
     { id: 'focus', href: '/focus', label: T.nav.focus, icon: <IconFocus />, tour: 'nav-focus' },
-    { id: 'habits', href: `/habits/${monthOf(t)}`, label: T.nav.habits, icon: <IconHabits />, tour: 'nav-habits' },
+    { id: 'habits', href: '/habits', label: T.nav.habits, icon: <IconHabits />, tour: 'nav-habits' },
     { id: 'metrics', href: '/metrics', label: T.nav.metrics, icon: <IconMetrics /> },
     { id: 'shutdown', href: `/shutdown/${t}`, label: T.nav.shutdown, icon: <IconShutdown />, tour: 'nav-shutdown' },
   ];

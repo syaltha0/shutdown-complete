@@ -789,7 +789,7 @@ export const en = {
     streakTonight: 'Close the day tonight',
     recentFocus: 'Focus details',
     recentGoal: (s: string) => `Goal ${s}`,
-    recentTasks: (n: number) => `${n} tasks`,
+    recentTasks: (n: number) => `${n} ${n === 1 ? 'task' : 'tasks'}`,
     recentTotal: (total: string, average: string, closed: number) => `${total} · ${average}/day · ${closed}/7 closed`,
     recentDelta: (s: string) => `${s} vs previous 7 days`,
     recentEmpty: 'No activity yet. Your daily details will appear here.',

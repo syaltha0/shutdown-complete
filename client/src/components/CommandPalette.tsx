@@ -46,7 +46,7 @@ export default function CommandPalette({ onClose }: { onClose: () => void }) {
   const t = today();
   const locked = !!settingsFocus(settings).strict && active?.phase === 'focus';
   const destinations: [keyof typeof T.nav, string, string?, Feature?][] = [
-    ['year',`/year/${t.slice(0,4)}`,'Y'],['home','/'],['today',`/day/${t}`,'T'],['week',`/week/${weekOf(t)}`,'W'],['month',`/month/${monthOf(t)}`,'M'],['quarter',`/quarter/${quarterOf(t)}`,'Q'],['focus','/focus','F'],['inbox','/tasks','I','inbox'],['habits',`/habits/${monthOf(t)}`,'H','habits'],['metrics','/metrics',undefined,'metrics'],['boards','/boards',undefined,'boards'],['countdown','/countdown',undefined,'countdown'],['shutdown',`/shutdown/${t}`,'S'],['settings','/settings'],
+    ['year',`/year/${t.slice(0,4)}`,'Y'],['home','/'],['today',`/day/${t}`,'T'],['week',`/week/${weekOf(t)}`,'W'],['month',`/month/${monthOf(t)}`,'M'],['quarter',`/quarter/${quarterOf(t)}`,'Q'],['focus','/focus','F'],['inbox','/tasks','I','inbox'],['habits','/habits','H','habits'],['metrics','/metrics',undefined,'metrics'],['boards','/boards',undefined,'boards'],['countdown','/countdown',undefined,'countdown'],['shutdown',`/shutdown/${t}`,'S'],['settings','/settings'],
   ];
   const { user } = useAccount();
   const commands: Command[] = destinations.filter(([, , , f]) => !f || featureOn(settings,f)).map(([id,path,shortcut]) => ({id, label:id === 'year' ? T.year.go : T.nav[id], keywords:`${dict('en').nav[id]} ${dict('tr').nav[id]}`,shortcut,run:()=>navigate(path)}));
