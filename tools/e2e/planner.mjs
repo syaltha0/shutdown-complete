@@ -581,17 +581,8 @@ try {
     await page.locator('.kb-pop .kb-bg', { hasText: 'Ocean' }).click();
     await wait(800);
     check('a project takes a colour for its tile, its pages keep the planner’s ground', (await thesis()).background === 'ocean' && !(await page.locator('.kb-board.has-bg').count()));
-    await page.locator('.kb-pop .kb-bg.own').click();
-    check('its own colour opens a picker in place: a field, a hue strip and a code', await page.locator('.kb-pop .cp-field').isVisible() && await page.locator('.kb-pop .cp-hue').isVisible() && await page.locator('.kb-pop .kb-bg-hex input').isVisible());
-    const fb = await page.locator('.kb-pop .cp-field').boundingBox();
-    await page.mouse.move(fb.x + fb.width * 0.8, fb.y + fb.height * 0.2); await page.mouse.down();
-    await page.mouse.move(fb.x + fb.width * 0.6, fb.y + fb.height * 0.3, { steps: 4 }); await page.mouse.up();
-    await wait(900);
-    const picked = (await thesis()).background;
-    check('dragging in the field picks the colour, and it is kept among the latest', /^#[0-9a-f]{6}$/.test(picked) && await page.locator(`.kb-pop .cp-recent[aria-label="${picked}"]`).isVisible());
-    await page.locator('.kb-pop .kb-bg-hex input').fill('#f2d16b');
-    await wait(900);
-    check('or a colour code', (await thesis()).background === '#f2d16b');
+    // the palette is black, white, grey and blue: no colour of one's own, and only grey and blue tones on offer
+    check('only palette tones are offered, with no colour field or hue strip', !(await page.locator('.kb-pop .cp-field, .kb-pop .cp-hue, .kb-pop .kb-bg.own').count()) && (await page.locator('.kb-pop .kb-bg').count()) === 7);
     await page.locator('.kb-pop .kb-bg', { hasText: 'Ocean' }).click();
     await wait(900);
     await page.goto(`${srv.url}/boards`);

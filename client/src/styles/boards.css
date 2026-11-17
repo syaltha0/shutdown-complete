@@ -6,9 +6,10 @@ button.lbl { cursor: pointer; height: 26px; font-size: 12px; opacity: 0.55; tran
 button.lbl[aria-pressed="true"] { opacity: 1; outline: 1.5px solid currentColor; outline-offset: -1.5px; }
 .lb-grey { background: var(--pill-neutral-bg); color: var(--pill-neutral-ink); }
 .lb-blue { background: color-mix(in srgb, var(--hue) 16%, var(--surface)); color: var(--hue); }
-.lb-green { background: var(--pill-positive-bg); color: var(--pill-positive-ink); }
-.lb-amber { background: var(--pill-warning-bg); color: var(--pill-warning-ink); }
-.lb-red { background: var(--pill-negative-bg); color: var(--pill-negative-ink); }
+/* labels stay in the palette: told apart by fill and line, not by hue (user, 2026-11-17) */
+.lb-green { background: var(--text); color: var(--surface); }
+.lb-amber { background: transparent; color: var(--text); outline: 1px solid var(--line-strong); outline-offset: -1px; }
+.lb-red { background: transparent; color: var(--text); outline: 1px dashed var(--line-strong); outline-offset: -1px; }
 .kb-sheet { width: min(620px, calc(100vw - 32px)); }
 .kb-sheet form { display: grid; gap: 14px; }
 
@@ -32,8 +33,8 @@ button.lbl[aria-pressed="true"] { opacity: 1; outline: 1.5px solid currentColor;
 /* a board fills the canvas, edge to edge, on its background */
 .kb-board { --kb-on: var(--text); --kb-on-muted: var(--muted); --kb-tab-on: var(--raised); --kb-ghost: var(--ghost);
   display: flex; flex-direction: column; min-height: 100dvh; margin: -20px calc(-1 * var(--pad)) -32px; padding: 10px var(--pad) 20px; background: var(--ground); }
-.bg-ocean { --kb-bg: #2b5a86; } .bg-forest { --kb-bg: #2e6a4d; } .bg-plum { --kb-bg: #66466f; }
-.bg-slate { --kb-bg: #46525e; } .bg-rust { --kb-bg: #8a4a2e; } .bg-ink { --kb-bg: #232323; }
+.bg-ocean { --kb-bg: #2b5a86; } .bg-forest { --kb-bg: #303234; } .bg-plum { --kb-bg: #55585c; }
+.bg-slate { --kb-bg: #46525e; } .bg-rust { --kb-bg: #1d5fbf; } .bg-ink { --kb-bg: #232323; }
 .kb-board.has-bg { --kb-on: #ffffff; --kb-on-muted: rgba(255, 255, 255, 0.78); --kb-tab-on: rgba(0, 0, 0, 0.26); --kb-ghost: rgba(255, 255, 255, 0.16);
   background: color-mix(in srgb, var(--kb-bg), #000 var(--kb-dim)); color: var(--kb-on); }
 @media (max-width: 860px) { .kb-board { margin: 0 -16px -24px; padding: 8px 16px 16px; min-height: calc(100dvh - 120px); } }
@@ -233,7 +234,7 @@ dialog.kb-card-sheet { width: min(820px, calc(100vw - 32px)); max-height: calc(1
 .kb-tile { grid-template-rows: auto 1fr auto; min-height: 140px; }
 .kb-tile h3 { margin: 0; font-size: 17px; line-height: 24px; font-weight: 500; overflow-wrap: anywhere; }
 .kb-tile-link { padding-right: 64px; }
-.kb-tile-desc { position: relative; margin: 0; color: var(--muted); font-size: 13px; line-height: 19px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; pointer-events: none; }
+.kb-tile-desc { position: relative; margin: 0; max-height: 38px; color: var(--muted); font-size: 13px; line-height: 19px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; pointer-events: none; }
 .kb-tile.has-bg .kb-tile-desc { color: rgba(255, 255, 255, 0.82); }
 .kb-tile-foot { position: relative; pointer-events: none; }
 .kb-tile-tools { position: absolute; top: 8px; right: 8px; z-index: 2; display: flex; align-items: center; gap: 2px; }
@@ -264,7 +265,11 @@ dialog.kb-card-sheet { width: min(820px, calc(100vw - 32px)); max-height: calc(1
 .kb-proj-name { display: flex; align-items: baseline; flex-wrap: wrap; gap: 4px 12px; flex: 1 1 280px; min-width: 0; }
 .kb-proj-name h1 { margin: 0; font-size: 22px; line-height: 30px; font-weight: 500; color: var(--kb-on); overflow-wrap: anywhere; }
 .kb-team-tag { display: inline-flex; align-items: center; height: 20px; padding: 0 8px; border-radius: 999px; background: var(--kb-tab-on); color: var(--kb-on); font-size: 11px; font-weight: 500; }
-.kb-proj-desc { flex-basis: 100%; margin: 0; color: var(--kb-on-muted); font-size: 13px; line-height: 19px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 72ch; }
+.kb-proj-desc-wrap { flex-basis: 100%; max-width: 72ch; display: grid; justify-items: start; gap: 2px; }
+.kb-proj-desc { margin: 0; color: var(--kb-on-muted); font-size: 13px; line-height: 19px; white-space: pre-line; overflow-wrap: anywhere; }
+.kb-proj-desc[data-open="false"] { display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; line-clamp: 2; overflow: hidden; }
+.kb-proj-more { padding: 0; border: 0; background: none; color: var(--kb-on); font: inherit; font-size: 12px; font-weight: 500; cursor: pointer; }
+.kb-proj-more:hover { text-decoration: underline; text-underline-offset: 3px; }
 .kb-proj-end { display: flex; align-items: center; gap: 8px; margin-left: auto; }
 .kb-members-btn { gap: 8px; }
 .kb-members-btn .kb-faces i { width: 22px; height: 22px; border-color: var(--surface); }
@@ -403,24 +408,8 @@ dialog.kt-sheet { width: min(960px, calc(100vw - 32px)); max-height: calc(100dvh
 
 /* ======================= the background colour picker ======================= */
 .cp { display: grid; gap: 8px; }
-.cp-panel { display: grid; gap: 10px; margin-top: 4px; padding-top: 10px; border-top: 1px solid var(--border); animation: fade-in 180ms ease both; }
-:root[data-motion="reduce"] .cp-panel { animation: none; }
-.cp-field { position: relative; height: 136px; border-radius: 10px; cursor: crosshair; touch-action: none;
-  background: linear-gradient(to top, #000, transparent), linear-gradient(to right, #fff, hsl(var(--cp-h) 100% 50%)); } /* taste-skill-ignore: a colour field shows the colours it picks */
-.cp-thumb { position: absolute; width: 18px; height: 18px; margin: -9px 0 0 -9px; border: 2.5px solid #ffffff; border-radius: 50%; box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.28), 0 2px 6px rgba(0, 0, 0, 0.25); pointer-events: none; } /* taste-skill-ignore: a thumb must read on any colour */
-.cp-hue { position: relative; height: 14px; border-radius: 999px; cursor: pointer; touch-action: none;
-  background: linear-gradient(to right, #f00, #ff0 17%, #0f0 33%, #0ff 50%, #00f 67%, #f0f 83%, #f00); } /* taste-skill-ignore: the strip of hues is the control */
-.cp-hue-thumb { position: absolute; top: 50%; width: 18px; height: 18px; margin: -9px 0 0 -9px; border: 2.5px solid #ffffff; border-radius: 50%; background: hsl(var(--cp-h) 100% 50%); box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.28), 0 2px 6px rgba(0, 0, 0, 0.25); pointer-events: none; } /* taste-skill-ignore: a thumb must read on any colour */
-.cp-code { display: flex; align-items: center; gap: 10px; }
-.cp-now { flex: none; width: 32px; height: 32px; border-radius: 8px; outline: 1px solid rgba(0, 0, 0, 0.08); outline-offset: -1px; }
-.cp-code .kb-bg-hex { position: relative; flex: 1; display: flex; }
-.cp-hash { position: absolute; left: 10px; top: 50%; transform: translateY(-50%); color: var(--muted); font-size: 13px; pointer-events: none; }
-.cp-code .kb-bg-hex .input { width: 100%; height: 32px; padding-left: 22px; font-size: 13px; letter-spacing: 0.02em; text-transform: lowercase; }
-.cp-sets { display: grid; gap: 6px; }
 
 .kb-bg.own.has-bg { background: color-mix(in srgb, var(--kb-bg), #000 var(--kb-dim)); }
-.kb-bg.cp-recent { border: 1px solid rgba(0, 0, 0, 0.35); background: color-mix(in srgb, var(--kb-bg), #000 var(--kb-dim)); }
-.kb-bg.cp-recent[aria-pressed="true"] { border: 2px solid var(--text); }
 /* a tile's menu sits beside the tile, as wide as it (placed by Pop `beside`) */
 .kb-pop.kb-tile-pop { z-index: 40; }
 .kb-bg-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); }

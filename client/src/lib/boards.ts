@@ -73,6 +73,13 @@ function luminance(hex: string, k = 1) {
   return 0.2126 * lin(r) + 0.7152 * lin(g) + 0.0722 * lin(b);
 }
 
+/** The grey with the same luminance as a colour. */
+function toGrey(hex: string) {
+  const l = luminance(hex), v = l <= 0.0031308 ? 12.92 * l : 1.055 * l ** (1 / 2.4) - 0.055;
+  const c = Math.round(Math.min(1, Math.max(0, v)) * 255).toString(16).padStart(2, '0');
+  return `#${c}${c}${c}`;
+}
+
 /** Dark words read better than white ones on this colour. */
 const wantsDarkInk = (hex: string, k = 1) => { const l = luminance(hex, k); return (l + 0.05) / 0.057 > 1.05 / (l + 0.05); };
 
@@ -83,9 +90,11 @@ const wantsDarkInk = (hex: string, k = 1) => { const l = luminance(hex, k); retu
 export function bgLook(bg?: Background): { className: string; style?: CSSProperties } {
   if (!bg) return { className: '' };
   if (!HEX.test(bg)) return { className: ` has-bg bg-${bg}` };
+  // a colour picked before the palette was narrowed shows as the grey of the same lightness (user, 2026-11-17)
+  const grey = toGrey(bg);
   return {
-    className: ` has-bg bg-own${wantsDarkInk(bg) ? ' ink-l' : ''}${wantsDarkInk(bg, 0.62) ? ' ink-d' : ''}`,
-    style: { '--kb-bg': bg } as CSSProperties,
+    className: ` has-bg bg-own${wantsDarkInk(grey) ? ' ink-l' : ''}${wantsDarkInk(grey, 0.62) ? ' ink-d' : ''}`,
+    style: { '--kb-bg': grey } as CSSProperties,
   };
 }
 

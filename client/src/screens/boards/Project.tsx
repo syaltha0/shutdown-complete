@@ -78,7 +78,7 @@ function ProjectView({ data, set, base, bid, card, status, error, retry, team }:
         <div className="kb-proj-name">
           <h1>{data.name || T.kbUntitled}</h1>
           {team && <span className="kb-team-tag">{T.kbTeam}</span>}
-          {data.description && <p className="kb-proj-desc" title={data.description}>{data.description}</p>}
+          {data.description && <ProjectDescription text={data.description} />}
         </div>
         <div className="kb-proj-end">
           {team && (
@@ -190,4 +190,15 @@ export function LegacyBoard({ id, card }: { id: string; card?: string }) {
     navigate(p ? `/project/${p.id}/${id}${card ? `/${card}` : ''}` : '/boards', true);
   }, [doc]); // eslint-disable-line react-hooks/exhaustive-deps
   return null;
+}
+
+/** A project's description: two lines, and the rest a tap away (no hover needed on a phone). */
+function ProjectDescription({ text }: { text: string }) {
+  const T = useT();
+  const [open, setOpen] = useState(false);
+  const long = text.length > 140 || /\n/.test(text);
+  return <div className="kb-proj-desc-wrap">
+    <p className="kb-proj-desc" data-open={open || !long}>{text}</p>
+    {long && <button type="button" className="kb-proj-more" aria-expanded={open} onClick={() => setOpen(!open)}>{open ? T.kbLess : T.kbMore}</button>}
+  </div>;
 }
