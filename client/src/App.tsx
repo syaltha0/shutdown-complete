@@ -6,7 +6,7 @@ import { OfflineQueue } from './components/OfflineQueue';
 import { ConflictDraft } from './components/ConflictDraft';
 import { defaultSettings, type Settings } from './lib/model';
 import { dict, getLang, setLang, useT } from './lib/i18n';
-import { monthOf, quarterOf, setDayStart, today, weekOf } from './lib/dates';
+import { canonicalDateId, monthOf, quarterOf, setDayStart, today, weekOf } from './lib/dates';
 import {
   IconPlus, IconBoard, IconDay, IconFocus, IconHome, IconHourglass, IconInbox, IconHabits, IconMetrics, IconMonth, IconMore, IconQuarter, IconYear, IconSettings, IconShutdown, IconWeek, IconX, Mark,
 } from './components/Icons';
@@ -159,8 +159,21 @@ function Planner() {
 
 const DATE = /^\d{4}-\d{2}-\d{2}$/, MONTH = /^\d{4}-\d{2}$/;
 
+function DateRedirect({ to }: { to: string }) {
+  useEffect(() => {
+    let active = true;
+    queueMicrotask(() => { if (active) navigate(to, true); });
+    return () => { active = false; };
+  }, [to]);
+  return null;
+}
+
 function route(path: string) {
   const [, section, arg] = path.split('/');
+  if (['day', 'week', 'month', 'year', 'quarter', 'plan', 'review', 'habits', 'agenda', 'shutdown'].includes(section) && (arg || !['habits', 'agenda', 'shutdown'].includes(section))) {
+    const canonical = canonicalDateId(section, arg ?? '', today());
+    if (canonical !== arg) return { nav: section, el: <DateRedirect to={`/${section}/${canonical}`} /> };
+  }
   switch (section) {
     case '': return { nav: 'home', el: <Home /> };
     case 'day': if (DATE.test(arg)) return { nav: 'day', el: <Day date={arg} key={arg} /> }; break;

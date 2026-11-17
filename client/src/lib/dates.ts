@@ -164,3 +164,19 @@ export const quarterMonths = (q: string) => {
 };
 
 export const fmtDateTime = (s: string) => new Date(s).toLocaleString(T().locale, {year:'numeric',month:'long',day:'numeric',hour:'2-digit',minute:'2-digit',second:'2-digit',timeZoneName:'short'});
+
+/** Validate route identifiers before dated screens can access documents. */
+export function canonicalDateId(section: string, id: string, now: string): string {
+ const y = Number(id.slice(0,4)), validYear = y >= 1000 && y <= 9999;
+ if (['day', 'agenda', 'shutdown'].includes(section)) {
+  if (validYear && /^\d{4}-\d{2}-\d{2}$/.test(id)) {
+   const [,m,d] = id.split('-').map(Number);
+   if (m >= 1 && m <= 12 && d >= 1 && d <= 31) return toISODate(parseISODate(id));
+  }
+  return now;
+ }
+ if (section === 'month' || section === 'habits') return validYear && /^\d{4}-(0[1-9]|1[0-2])$/.test(id) ? id : monthOf(now);
+ if (section === 'year') return /^[1-9]\d{3}$/.test(id) ? id : now.slice(0,4);
+ if (section === 'quarter') return validYear && /^\d{4}-Q[1-4]$/.test(id) ? id : quarterOf(now);
+ return validYear && /^\d{4}-W\d{2}$/.test(id) && weekOf(weekStart(id)) === id ? id : weekOf(now);
+}
