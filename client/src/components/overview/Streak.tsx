@@ -15,7 +15,7 @@ export function Streak({ T, day, t, docOf, B, now, plan }: OverviewData) {
   const closed = !!day?.shutdown.done;
   const at = day?.shutdown.at ? new Date(day.shutdown.at) : null;
   const nearEnd = now >= (plan.length ? Math.max(...plan.map(b => b.end)) - 30 : 17 * 60);
-  return <section className="panel b-streak">
+  return <section className={`panel b-streak${!best && !closed ? " is-empty" : ""}`}>
     <h2>{T.streak}</h2>
     <div className="b-streak-summary"><strong className="b-streak-number">{streak}</strong><span>{B.streakUnit(streak)}</span><small title={B.streakWindow}>{B.streakBest(best)}</small></div>
     <div className="b-streak-days" aria-label={B.streakRecent}>

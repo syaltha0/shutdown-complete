@@ -15,7 +15,7 @@ export function TasksToday({ T, t, day, tasks, B, update, settings }: OverviewDa
       void update(d => ({ ...d, tasks: d.tasks.map(x => x.id === id ? { ...x, done: false } : x) }));
     });
   };
-  return <section className={`panel b-tasks${complete ? ' is-complete' : ''}`}>
+  return <section className={`panel b-tasks${complete ? ' is-complete' : ''}${!total ? ' is-empty' : ''}`}>
     <h2>{B.tasks}</h2>
     <div className="b-tasks-ring" role="progressbar" aria-label={B.tasks} aria-valuemin={0} aria-valuemax={total || 1} aria-valuenow={done} aria-valuetext={total ? T.tasksDone(done, total) : T.overviewTasksEmpty}>
       <svg viewBox="0 0 100 100" aria-hidden="true">
