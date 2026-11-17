@@ -198,6 +198,7 @@ serverStatus: { remedy: 'İlgili ayarı veya kurulum yönergesini aç',"title":"
     none: 'Günün kalanı baştan çizilir.',
   },
   shiftPreview: (moved, left) => `${moved} blok kayar${left ? `, ${left} blok güne sığmaz ve görevlere eklenir` : ''}.`,
+  saveBlock: 'Kaydet',
   cancel: 'Vazgeç',
   reviseFrom: (t) => `${t} itibarıyla revize et`,
   subject: 'Konu', subjectPh: 'Matematik, Fizik, Proje',

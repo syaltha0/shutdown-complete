@@ -207,6 +207,7 @@ export const en = {
     none: 'The rest of the day is drawn anew.',
   } as Record<string, string>,
   shiftPreview: (moved: number, left: number) => `${moved} ${s(moved, 'block moves', 'blocks move')}${left ? `, ${left} ${s(left, 'no longer fits', 'no longer fit')} and ${s(left, 'goes', 'go')} to the tasks` : ''}.`,
+  saveBlock: 'Save',
   cancel: 'Cancel',
   reviseFrom: (t: string) => `Revise from ${t}`,
   subject: 'Subject', subjectPh: 'Maths, Physics, Project',
