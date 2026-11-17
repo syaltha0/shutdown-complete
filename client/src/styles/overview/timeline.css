@@ -151,3 +151,4 @@
 .b-track b { z-index: 1; }
 .b-track b > span { z-index: 7; }
 .b-timeline-block { z-index: 2; }
+.b-empty-plan[style] { position: absolute; top: 0; transform: translateX(-50%); margin: 0; white-space: nowrap; }

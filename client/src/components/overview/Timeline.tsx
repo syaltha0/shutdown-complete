@@ -14,7 +14,8 @@ export function Timeline({ T, settings, t, now, day, plan, B }: OverviewData) {
       <h2>{B.timeline}{(day?.columns.length ?? 0) > 1 && <small className="b-revision">{B.timelineRevision(day!.columns.length - 1)}</small>}</h2>
       <div className={`b-track${plan.length ? "" : " is-empty"}`} role="group" aria-label={B.timeline}>
         {Array.from({ length: Math.floor(to / tick) - Math.ceil(from / tick) + 1 }, (_, i) => (Math.ceil(from / tick) + i) * tick).map(n => <span key={n} className="b-time-grid" aria-hidden="true" style={{ left: `${at(n)}%` }} />)}
-        {!plan.length && <a className="b-empty-plan" href={`/day/${t}`} onClick={onLinkClick}>{B.timelineEmpty}</a>}
+        {/* the empty message sits in the wider stretch beside the now line, so the two never meet */}
+        {!plan.length && <a className="b-empty-plan" href={`/day/${t}`} onClick={onLinkClick} style={now >= from && now <= to ? { left: `${at(now) < 50 ? (at(now) + 100) / 2 : at(now) / 2}%` } : undefined}>{B.timelineEmpty}</a>}
         {plan.map((b) => {
           const minutes = (day?.focus?.sessions ?? []).filter(s => s.blockId === b.id).reduce((sum, s) => sum + s.minutes, 0);
           const description = B.timelineBlock(b.label || T.untitledBlock, clock(b.start), clock(b.end), minutes);
