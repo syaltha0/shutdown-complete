@@ -102,7 +102,7 @@ export function habitsDue(settings, date, minute, dayOf) {
   const wd = (new Date(`${date}T12:00:00Z`).getUTCDay() + 6) % 7, day = dayOf(date);
   const done = (doc, id) => doc?.metrics?.[id] === true;
   return (settings?.metrics ?? []).filter((h) => {
-    if (h?.kind !== 'check' || h.archived || typeof h.remindAt !== 'string' || !TIME.test(h.remindAt)) return false;
+    if ((h?.since && date < h.since) || h?.kind !== 'check' || h.archived || typeof h.remindAt !== 'string' || !TIME.test(h.remindAt)) return false;
     const d = minute - minutes(h.remindAt);
     if (d < 0 || d >= DAILY_WINDOW || done(day, h.id) || day?.skippedHabits?.includes?.(h.id)) return false;
     const f = h.frequency ?? {};
@@ -110,7 +110,7 @@ export function habitsDue(settings, date, minute, dayOf) {
     if (f.mode === 'weekly') {
       const count = Math.max(1, Math.min(7, Number(f.count) || 1));
       let n = 0;
-      for (let i = 1; i <= wd; i++) if (done(dayOf(addDays(date, -i)), h.id)) n++;
+      for (let i = 1; i <= wd; i++) if ((!h.since || addDays(date, -i) >= h.since) && done(dayOf(addDays(date, -i)), h.id)) n++;
       return n < count;
     }
     return true;

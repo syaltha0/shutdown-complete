@@ -31,3 +31,9 @@ test('a weekly quota stops reminding once the week has enough', () => {
   assert.equal(habitsDue(settings, date, at, days({ '2026-11-16': { metrics: { walk: true } }, '2026-11-17': { metrics: { walk: true } } })).length, 0, 'quota met');
   assert.equal(habitsDue(settings, date, at, days({ '2026-11-15': { metrics: { walk: true } }, '2026-11-14': { metrics: { walk: true } } })).length, 1, 'last week does not count');
 });
+
+test('since suppresses reminders before the creation day',()=>{
+ const settings={metrics:[habit('new',{since:date})]};
+ assert.equal(habitsDue(settings,'2026-01-01',at,days({})).length,0);
+ assert.equal(habitsDue(settings,date,at,days({})).length,1);
+});

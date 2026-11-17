@@ -236,6 +236,7 @@ export interface QuarterDoc {
 }
 
 export interface MetricDef {
+  since?: string; // First eligible planning day, YYYY-MM-DD.
   frequency?: { mode: "daily" | "days" | "weekly"; days?: number[]; count?: number };
   archived?: boolean;
   /** a habit's own reminder, "HH:MM" local time: a push when it is due that day and not yet done or skipped */
