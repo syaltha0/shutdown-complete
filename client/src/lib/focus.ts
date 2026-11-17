@@ -11,9 +11,9 @@ import { showNotification } from './pwa';
 export const focusMinutes = (d: DayDoc) => (d.focus?.sessions ?? []).reduce((s, x) => s + x.minutes, 0);
 /** A manual metric overrides the measured total, including an explicit zero. */
 export function dayFocus(day: DayDoc | null | undefined, settings: Settings) {
-  const value = day?.metrics[settings.focus?.metricId ?? 'deep'];
+  const value = day?.metrics?.[settings.focus?.metricId ?? 'deep'];
   const manual = typeof value === 'number' && Number.isFinite(value);
-  return { minutes: manual ? Math.max(0, Math.round(value * 60)) : day ? focusMinutes(day) : 0, sessions: day?.focus?.sessions.length ?? 0, manual };
+  return { minutes: manual ? Math.max(0, Math.round(value * 60)) : day ? focusMinutes(day) : 0, sessions: day?.focus?.sessions?.length ?? 0, manual };
 }
 export const focusCount = (d: DayDoc) => (d.focus?.sessions ?? []).length;
 
