@@ -55,7 +55,7 @@ export function FocusWidgets({ day }: { day: DayDoc | null }) {
         <div><dt>{T.fwDayLeft}</dt><dd className="num">{duration(dayLeft)}</dd></div>
       </dl>
     </div>
-    <a className="fw-next" href={`/day/${today()}`} onClick={onLinkClick}>
+    <a className="fw-next" data-empty={!blocks.length} href={`/day/${today()}`} onClick={onLinkClick}>
       <span className="fw-next-copy">{current && <span className="fw-caption">{T.fwEnds(clock(current.end))}</span>}<span>{nextText}</span>{!next && !current && <span className="fw-caption">{T.fwPlanDay}</span>}</span>
       <svg className="fw-arrow" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" aria-hidden="true"><path d="m9 5 7 7-7 7" /></svg>
     </a>

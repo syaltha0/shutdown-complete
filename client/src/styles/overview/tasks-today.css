@@ -24,3 +24,18 @@
 
 .b-tasks .b-rt-list { gap:0; } .b-tasks .b-rt-list li,.b-tasks .b-tasks-next { min-height:18px; line-height:18px; }
 .b-tasks .b-rt-body { gap:0; }
+
+/* Empty task cards keep a clear action within the fixed bento row. */
+.b-tasks .b-rt-body:not(:has(.b-rt-list)) .b-act.main {
+  justify-content: space-between;
+  min-height: 36px;
+  padding: 0 12px;
+  margin-top: 6px;
+  border: 1px solid var(--control);
+  border-radius: 6px;
+  background: var(--ground);
+}
+.b-tasks .b-rt-body:not(:has(.b-rt-list)) .b-rt-summary { line-height: 1.4; }
+@media (min-width: 861px) and (max-height: 820px) {
+  .b-tasks .b-rt-body:not(:has(.b-rt-list)) .b-act.main { min-height: 28px; margin-top: 2px; }
+}
