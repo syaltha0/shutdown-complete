@@ -886,6 +886,7 @@ export const en = {
   noHabits: 'No habits yet. Add the first one below; it also appears in the daily metrics box.',
   toggleAria: (name: string, date: string, done: boolean) => `${name}, ${date}: ${done ? 'done' : 'not done'}`,
   habitWeeks: (n: number) => `${n} weeks`,
+  unknownTaskList: (name: string) => `#${name} list does not exist — will be added to inbox`,
   habitName: 'Name', habitDelete: 'Delete for good',
   habitDeleteConfirm: (name: string) => `Delete "${name}" for good? Its ticks stay in your days but the habit and its history view go away.`,
   habitRemind: 'Reminder', habitRemindNone: 'No reminder', habitRemindOff: 'Clear',

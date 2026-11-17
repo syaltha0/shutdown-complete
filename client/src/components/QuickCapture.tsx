@@ -3,7 +3,7 @@ import { useT } from '../lib/i18n';
 import { today } from '../lib/dates';
 import { emptyInbox, uid, type InboxDoc } from '../lib/model';
 import { useDoc, updateKey } from '../lib/useDoc';
-import { parseTaskDraft } from '../lib/taskQuickAdd';
+import { parseTaskDraft, unknownTaskLists } from '../lib/taskQuickAdd';
 import { IconX } from './Icons';
 
 export function QuickCapture({ onClose, onSaved }: { onClose: () => void; onSaved: () => void }) {
@@ -33,7 +33,7 @@ export function QuickCapture({ onClose, onSaved }: { onClose: () => void; onSave
     <form onSubmit={e => { e.preventDefault(); void save(); }}>
       <div className="more-head"><b>{T.quickCapture.title}</b><button type="button" className="btn ghost icon" disabled={busy} aria-label={T.close} onClick={onClose}><IconX /></button></div>
       <input ref={input} aria-label={T.quickCapture.title} placeholder={T.quickCapture.placeholder} value={text} onChange={e => setText(e.target.value)} readOnly={busy} onKeyDown={e => { if (e.key === 'Enter' && e.nativeEvent.isComposing) e.preventDefault(); }} />
-      <p className="hint">{draft.text} {draft.due} {draft.dueTime}</p>
+      <p className="hint">{unknownTaskLists(text, inbox?.lists ?? []).map(name => <span key={name}>{T.unknownTaskList(name)} </span>)}{draft.text} {draft.due} {draft.dueTime}</p>
       {error && <p role="alert">{T.palette.error}</p>}
       <button type="submit" className="btn" disabled={busy || !inbox || !draft.text}>{busy ? T.save.saving : T.quickCapture.add}</button>
     </form>
