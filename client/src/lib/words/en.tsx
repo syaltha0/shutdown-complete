@@ -883,6 +883,8 @@ export const en = {
   habitRemindHint: 'Turn on notifications in Settings to receive it.',
   habitCellHelp: 'Click a day: done, then skipped, then empty again.',
   habitEmptyDay: 'Not yet',
+  habitKpiToday: 'Today', habitKpiWeek: 'This week', habitKpiBest: 'Best streak now', habitKpiMonth: 'This month',
+  habitKpiOpen: (n: number) => n === 1 ? '1 still open' : `${n} still open`, habitKpiAllDone: 'All done for today', habitKpiNone: 'Nothing due today',
   habitArchived: 'Archive',
   habitBegin: 'Make room for a small daily ritual.',
   habitIntro: 'Choose something you want to return to. Mark your days, take a day off, and watch your rhythm develop.',

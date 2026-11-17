@@ -128,3 +128,24 @@
 .hv-archived { display: flex; align-items: center; gap: 8px; padding: 8px 0; }
 .hv-archived > span { flex: 1; min-width: 0; }
 .hv-controls label.hv-field { display: grid; padding: 0; font-size: 13px; }
+
+/* one look with the rest of the app (user, 2026-11-17): the Metrics figure strip on top, blue done days, no heavy black */
+.hv-kpis { margin-bottom: 16px; }
+.hv-kpis .delta { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.habits-v2 .hv-days { grid-template-columns: repeat(14, 32px); justify-content: end; gap: 6px; }
+.habits-v2 .hcell { width: 32px; height: 32px; min-width: 32px; border: 1px solid var(--line-soft); border-radius: 8px; background: transparent; color: var(--muted); font-size: 12px; }
+.habits-v2 .hcell.on { background: var(--hue); border-color: var(--hue); }
+.habits-v2 .hcell:not(:disabled):hover { border-color: var(--line-strong); transform: none; }
+.habits-v2 .hcell.on:not(:disabled):hover { border-color: var(--hue); filter: brightness(1.08); }
+.habits-v2 .hcell:disabled { opacity: .35; }
+.hv-bar-track i { background: color-mix(in srgb, var(--text) 68%, var(--surface)); border-radius: 3px 3px 0 0; }
+.hv-bar-track i.is-current { background: var(--hue); }
+@media (max-width: 860px) {
+  .habits-v2 .hv-days { grid-template-columns: repeat(7, minmax(32px, 1fr)); justify-content: stretch; }
+  .habits-v2 .hcell { width: 100%; height: 36px; }
+  .hv-kpis { grid-auto-flow: row; grid-template-columns: 1fr 1fr; }
+  .hv-kpis .kpi:nth-child(3) { border-left: 0; }
+  .hv-kpis .kpi:nth-child(n+3) { border-top: 1px solid var(--border); }
+}
+@media (max-width: 1100px) and (min-width: 861px) { .habits-v2 .hv-days { grid-template-columns: repeat(7, 32px); } }
+.habits-v2 .hrow:not(.head) { padding-block: 14px; }

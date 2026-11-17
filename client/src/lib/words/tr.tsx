@@ -867,6 +867,8 @@ serverStatus: { remedy: 'İlgili ayarı veya kurulum yönergesini aç',"title":"
   habitRemindHint: 'Almak için Ayarlar’dan bildirimleri aç.',
   habitCellHelp: 'Bir güne tıkla: yapıldı, sonra atlandı, sonra yeniden boş.',
   habitEmptyDay: 'Henüz değil',
+  habitKpiToday: 'Bugün', habitKpiWeek: 'Bu hafta', habitKpiBest: 'En iyi seri', habitKpiMonth: 'Bu ay',
+  habitKpiOpen: (n: number) => `${n} tanesi açık`, habitKpiAllDone: 'Bugünlük hepsi tamam', habitKpiNone: 'Bugün yapılacak yok',
   habitArchived: 'Arşiv',
   habitBegin: 'Küçük bir günlük ritüele yer açın.',
   habitIntro: 'Sürdürmek istediğiniz bir şey seçin. Günlerinizi işaretleyin, ara verin ve ritminizin gelişimini izleyin.',

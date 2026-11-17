@@ -32,6 +32,13 @@ export function Habits({ id }: { id: string }) {
   const recent = Array.from({length: 14}, (_, i) => shift(end, i - 13));
   const elapsed = monthDays(id).filter(d => d <= t);
   const totalDone = habits.reduce((n, h) => n + stats(h, elapsed).done, 0);
+  const totalPossible = habits.reduce((n, h) => n + stats(h, elapsed).total, 0);
+  // the four figures at the top, in the same strip the Metrics screen uses
+  const due = habits.filter(h => planned(h, t) && habitState(h, get(t)) !== 'skipped');
+  const doneToday = due.filter(h => habitState(h, get(t)) === 'done').length;
+  const week = weekDays(weekOf(t)).filter(d => d <= t);
+  const weekStats = habits.map(h => stats(h, week)).reduce((a, s) => ({done: a.done + s.done, total: a.total + s.total}), {done: 0, total: 0});
+  const best = habits.map(h => ({h, n: stats(h, history).streak})).sort((a, b) => b.n - a.n)[0];
   const addForm = (hero: boolean) => <form className={`habit-add${hero ? ' hv-add-hero' : ''}`} onSubmit={e => {e.preventDefault();addHabit();}}>
     <input id="habit-name" className="input" aria-label={T.addHabit} placeholder={T.habitPh} value={name} onChange={e => setName(e.target.value)} />
     <button className={`btn${hero ? ' primary hv-start' : ''}`} type="submit" disabled={!name.trim()}><IconPlus />{T.addHabit}</button>
@@ -58,9 +65,15 @@ export function Habits({ id }: { id: string }) {
     return <button key={d} className={`hcell${done ? ' on' : ''}${d === t ? ' is-today' : ''}${i < 7 ? ' hv-older' : ''}`} disabled={d > t || !docs || !planned(h, d)} aria-pressed={done} aria-label={`${T.toggleAria(h.name, longDate(d), done)} / ${state === 'skipped' ? T.habitSkipped : ''}`} title={longDate(d)} onClick={() => updateKey<DayDoc>(`day:${d}`, emptyDay, x => cycleHabit(h, x))}>{state === 'skipped' ? '/' : ''}</button>;
   };
   return <div className="habits-v2">
-    <div className="title-row"><div><h1>{T.habitsTitle}</h1><p className="sub">{docs ? T.habitsFinding(totalDone, habits.reduce((n,h) => n + stats(h, elapsed).total, 0)) : T.habitLoading}</p></div>
+    <div className="title-row"><div><h1>{T.habitsTitle}</h1><p className="sub">{docs ? T.habitsFinding(totalDone, totalPossible) : T.habitLoading}</p></div>
       <div className="stepper"><a className="btn icon" href={`/habits/${addMonths(id,-1)}`} onClick={onLinkClick} aria-label={T.prevMonth}><IconLeft /></a><a className="btn" href={`/habits/${monthOf(t)}`} onClick={onLinkClick}>{monthTitle(id)}</a><a className="btn icon" href={`/habits/${addMonths(id,1)}`} onClick={onLinkClick} aria-label={T.nextMonth}><IconRight /></a></div>
     </div>
+    {habits.length > 0 && <div className="kpis metric-kpis hv-kpis" aria-label={T.habitsTitle}>
+      <div className="kpi lead"><div className="kpi-label">{T.habitKpiToday}</div><div className="kpi-value num">{docs ? <>{doneToday}<small>/ {due.length}</small></> : '—'}</div><div className="delta">{docs ? (!due.length ? T.habitKpiNone : doneToday === due.length ? T.habitKpiAllDone : T.habitKpiOpen(due.length - doneToday)) : ''}</div></div>
+      <div className="kpi"><div className="kpi-label">{T.habitKpiWeek}</div><div className="kpi-value num">{docs && weekStats.total ? <>{Math.round(weekStats.done / weekStats.total * 100)}<small>%</small></> : '—'}</div><div className="delta">{docs ? T.of(weekStats.done, weekStats.total) : ''}</div></div>
+      <div className="kpi"><div className="kpi-label">{T.habitKpiBest}</div><div className="kpi-value num">{docs && best ? units(best.h, best.n) : '—'}</div><div className="delta">{best?.h.name}</div></div>
+      <div className="kpi"><div className="kpi-label">{T.habitKpiMonth}</div><div className="kpi-value num">{docs ? <>{totalDone}<small>/ {totalPossible}</small></> : '—'}</div><div className="delta">{monthTitle(id)}</div></div>
+    </div>}
     {error && <div className="notice error">{T.couldntLoadDays} <button className="btn" onClick={retry}>{T.retry}</button></div>}
     <section className="hv-ledger" aria-label={T.habitsTitle} aria-busy={!docs}>
     {!habits.length && <div className="hv-empty"><h2>{T.habitBegin}</h2><p>{T.habitIntro}</p>{addForm(true)}<div className="hv-suggestions">{T.habitSuggestions.map(n => <button key={n} className="btn" onClick={() => addHabit(n)}>{n}</button>)}</div></div>}
@@ -77,7 +90,7 @@ export function Habits({ id }: { id: string }) {
             <div className="hv-heatmap" aria-label={T.habitYear}>{Array.from({length:4},(_,part) => <div className="hv-quarter" key={part}><span className="meta hv-quarter-label">{fmtDay(heatmap[part*91].date,{month:'short'})} – {fmtDay(heatmap[part*91+90].date,{month:'short'})}</span><div className="hv-map-grid">{heatmap.slice(part*91,part*91+91).map(c => <span key={c.date} className="hv-map-cell" data-level={c.level} data-state={c.state} data-future={c.date > end} title={`${longDate(c.date)}: ${c.state === 'skipped' ? T.habitSkipped : T.toggleAria(h.name,longDate(c.date),c.state === 'done')}`} aria-label={`${longDate(c.date)}, ${c.state === 'skipped' ? T.habitSkipped : T.toggleAria(h.name,longDate(c.date),c.state === 'done')}`}>{c.state === 'skipped' ? '/' : ''}</span>)}</div></div>)}</div>
             <p className="hv-legend meta"><span><i className="hv-map-cell" data-level="4" />{T.habitCompleted}</span><span><i className="hv-map-cell">/</i>{T.habitSkipped}</span><span>{T.habitMapHint}</span></p>
             <dl className="hv-stats"><div><dt>{T.streakCol}</dt><dd>{units(h,current)}</dd></div><div><dt>{T.habitLongest}</dt><dd>{units(h,habitLongest(h,history,get,end))}</dd></div>{[30,90].map(n => {const s=stats(h,history.slice(-n)); return <div key={n}><dt>{T.habitWindow(n)}</dt><dd>{s.total ? Math.round(s.rate*100)+'%' : '—'}</dd><small>{T.of(s.done,s.total)}</small></div>;})}</dl>
-            <div className="hv-monthly"><h3>{T.habitMonthly}</h3><div className="hv-month-bars">{Array.from({length:6},(_,i) => addMonths(monthOf(end),i-5)).map(m => {const s=stats(h,monthDays(m));return <div className="hv-month" key={m}><span className="num">{s.total ? Math.round(s.rate*100)+'%' : '—'}</span><div className="hv-bar-track"><i style={{height: s.rate*100+'%'}} /></div><span>{fmtDay(m+'-01',{month:'short'})}</span></div>;})}</div></div>
+            <div className="hv-monthly"><h3>{T.habitMonthly}</h3><div className="hv-month-bars">{Array.from({length:6},(_,i) => addMonths(monthOf(end),i-5)).map(m => {const s=stats(h,monthDays(m));return <div className="hv-month" key={m}><span className="num">{s.total ? Math.round(s.rate*100)+'%' : '—'}</span><div className="hv-bar-track"><i className={m === monthOf(end) ? 'is-current' : undefined} style={{height: s.rate*100+'%'}} /></div><span>{fmtDay(m+'-01',{month:'short'})}</span></div>;})}</div></div>
             </>}
             <section className="hv-controls" aria-label={T.habitFrequency}>
           <label className="hv-field"><span>{T.habitName}</span><input className="input" defaultValue={h.name} aria-label={`${h.name} / ${T.habitName}`} onKeyDown={e => { if (e.key === 'Enter') e.currentTarget.blur(); }} onBlur={e => { const v = e.currentTarget.value.trim(); if (v && v !== h.name) patch(h, {name: v}); else e.currentTarget.value = h.name; }} /></label>
