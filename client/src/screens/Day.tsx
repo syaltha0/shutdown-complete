@@ -539,7 +539,7 @@ function MetricsBox({ day, date, defs, update }: { day: DayDoc; date: string; de
             </div>
           );
         })}
-        {dayFocus(day, settings).minutes > 0 && (
+        {(dayFocus(day, settings).manual || dayFocus(day, settings).minutes > 0) && (
           <div className="metric-row">
             <span className="name">{T.focusMetric}</span>
             <a className="card-link num" style={{ fontWeight: 400 }} href="/focus" onClick={onLinkClick}>{T.focusRow(focusCount(day), duration(dayFocus(day, settings).minutes))}{dayFocus(day, settings).manual && <small>{T.focusManual}</small>}</a>
