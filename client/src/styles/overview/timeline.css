@@ -139,13 +139,13 @@
 .b-track { border-radius: 8px; overflow: hidden; }
 .b-track a > i, .b-track i { border-radius: 6px; }
 
-.b-track { height: 28px; border-radius: 4px; overflow: visible; } .bento .b-timeline { grid-template-rows: 28px 12px; } .b-track .b-timeline-block i { inset: 0 1px; border-radius: 4px; text-align: left; } .b-track .personal i { background: var(--ground); background-image: none; } .b-track.is-empty { border: 0; } .b-time-grid { position: absolute; top: 0; bottom: -4px; width: 1px; background: var(--rule); pointer-events: none; } .b-track b { width: 1px; z-index: 6; } .b-track b > span { position: absolute; bottom: 100%; left: 0; transform: translateX(-50%); color: var(--hue); background: var(--surface); font-size: 9px; font-weight: 400; white-space: nowrap; } @media(max-width:860px) { .bento .b-timeline { grid-template-rows: auto 28px 12px; } }
+.b-track { height: 28px; border-radius: 4px; overflow: visible; } .bento .b-timeline { grid-template-rows: 28px 12px; } .b-track .b-timeline-block i { inset: 0 1px; border-radius: 4px; text-align: left; } .b-track .personal i { background: var(--ground); background-image: none; } .b-track.is-empty { border: 0; } .b-time-grid { position: absolute; top: 0; bottom: -4px; width: 1px; background: var(--rule); pointer-events: none; } .b-track b { width: 1px; z-index: 6; } .b-track b > span { position: absolute; bottom: 100%; left: 0; transform: translateX(-50%); color: var(--hue); background: none; font-size: 9px; font-weight: 400; white-space: nowrap; } @media(max-width:860px) { .bento .b-timeline { grid-template-rows: auto 28px 12px; } }
 
 /* the track: unplanned time is a dashed outline, so an empty day reads as room to fill (user, 2026-11-17) */
 .b-track { background: transparent; border: 1px dashed var(--line-soft); border-radius: 6px; box-sizing: border-box; }
 .b-track.is-empty { border: 1px dashed var(--line-mid); }
 .b-track .b-time-grid { top: 4px; bottom: 4px; }
-.b-empty-plan { position: relative; z-index: 3; width: max-content; margin-inline: auto; padding-inline: 10px; background: var(--surface); color: var(--muted); }
+.b-empty-plan { position: relative; z-index: 3; width: max-content; margin-inline: auto; padding-inline: 10px; background: none; color: var(--muted); }
 .b-empty-plan:hover { color: var(--text); }
 /* the now line runs behind the blocks, so a label is never cut through; its time stays above the track */
 .b-track b { z-index: 1; }
