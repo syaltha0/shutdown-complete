@@ -149,3 +149,5 @@
 }
 @media (max-width: 1100px) and (min-width: 861px) { .habits-v2 .hv-days { grid-template-columns: repeat(7, 32px); } }
 .habits-v2 .hrow:not(.head) { padding-block: 14px; }
+/* touch targets on the phone: at least 44px (tools/e2e/uiux-pass.mjs) */
+@media (max-width: 860px) { .habits-v2 .hcell { height: 44px; } .habits-v2 .hv-days { gap: 2px; } .habits-v2 .hrow:not(.head) { padding-inline: 12px; } }
