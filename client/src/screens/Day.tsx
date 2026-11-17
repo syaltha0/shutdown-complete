@@ -53,6 +53,7 @@ export function Day({ date }: { date: string }) {
   const [pickInbox, setPickInbox] = useState(false);
   const isToday = date === today();
   const now = useNow(isToday);
+  const [draftDays, setDraftDays] = useState<number[]>([]);
   const [draft, setDraft] = useState<Block | null>(null);
   const [openId, setOpenId] = useState<string | null>(new URLSearchParams(location.search).get('block'));
   useEffect(() => { const on = () => setOpenId(new URLSearchParams(location.search).get('block')); window.addEventListener('popstate', on); return () => window.removeEventListener('popstate', on); }, []);
@@ -194,6 +195,7 @@ export function Day({ date }: { date: string }) {
   }
   // a new subject is remembered for the next block once the dialog closes
   function closeEditor() {
+    setDraft(null);
     const subj = openBlock?.subject?.trim();
     if (subj && !(settings.subjects ?? []).includes(subj)) updateSettings((s) => ({ ...s, subjects: [...(s.subjects ?? []), subj].slice(-40) }));
     setOpenId(null);
@@ -206,6 +208,7 @@ export function Day({ date }: { date: string }) {
     for (const b of [...col.blocks].sort((a, z) => a.start - z.start)) if (b.start < s + 30 && b.end > s) s = b.end;
     if (s + 30 > r1) s = Math.max(floor, r1 - 30);
     const b: Block = { id: uid(), start: s, end: Math.min(r1, s + 60), label: '', note: '', kind: 'deep' };
+    setDraftDays([]);
     setDraft(b);
     setOpenId(b.id);
   }
@@ -415,12 +418,12 @@ export function Day({ date }: { date: string }) {
 
       <BlockEditor
         date={date} day={day} sessions={day.focus?.sessions} block={openBlock} min={floor} max={r1}
-        subjects={settings.subjects} repeatDays={repeatOf?.days ?? []} onRepeat={!draft && date >= t ? setRepeat : undefined}
+        subjects={settings.subjects} repeatDays={draft ? draftDays : repeatOf?.days ?? []} onRepeat={date >= t ? (draft ? setDraftDays : setRepeat) : undefined}
         repeatEvery={repeatOf?.every ?? 1}
         onRepeatEvery={repeatOf ? (n) => updateSettings((s) => ({ ...s, schedule: (s.schedule ?? []).map((r) => (r.id === repeatOf.id ? { ...r, every: n, since: date } : r)) })) : undefined}
         estimate={openBlock && history ? estimateFor(insights(history.values()), openBlock) : null}
         onChange={(p) => draft ? setDraft({ ...draft, ...p }) : openBlock && patchBlock(openBlock.id, p)}
-        onSave={draft ? () => { setCols((cols) => cols.map((c, i) => i === cols.length - 1 ? { ...c, blocks: [...c.blocks, draft] } : c)); closeEditor(); } : undefined}
+        onSave={draft ? () => { if (draftDays.length) { const rule = repeatFromBlock(draft, draftDays, date); draft.repeatId = rule.id; updateSettings(s => ({ ...s, schedule: [...(s.schedule ?? []), rule] })); update(d => ({ ...d, repeats: [...(d.repeats ?? []), rule.id] })); } setCols((cols) => cols.map((c, i) => i === cols.length - 1 ? { ...c, blocks: [...c.blocks, draft] } : c)); closeEditor(); } : undefined}
         drift={openDrift} onDrift={driftAct}
         onDelete={() => {
           if (openBlock && !draft) deleteBlock(openBlock);
