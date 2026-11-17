@@ -22,7 +22,7 @@ export function Ahead({ settings, t, B, monday }: OverviewData) {
     emptyMonth,
   );
   const ahead = [
-    ...(settings.exams ?? []).map((x) => ({
+    ...(featureOn(settings, "exams") ? settings.exams ?? [] : []).map((x) => ({
       id: `e${x.id}`,
       date: x.date,
       text: x.name,
