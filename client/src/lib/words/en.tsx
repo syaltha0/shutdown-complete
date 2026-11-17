@@ -424,6 +424,7 @@ export const en = {
   },
   sessionCount: (n: number, total: string) => `${n} sessions · ${total}`,
   sessionsToday: 'Today’s sessions',
+  planNext: 'Up next in your plan',
   noSessionsHint: 'Each focus round you finish is listed here with its time and length.',
   noSessions: 'No focus sessions yet today',
   focusSummary: (n: number, d: string) => `${n} ${s(n, 'session', 'sessions')} · ${d} of focus today`,

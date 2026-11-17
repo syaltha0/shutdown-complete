@@ -409,6 +409,7 @@ serverStatus: { remedy: 'İlgili ayarı veya kurulum yönergesini aç',"title":"
   },
   sessionCount: (n: number, total: string) => `${n} oturum · ${total}`,
   sessionsToday: 'Bugünkü oturumlar',
+  planNext: 'Planında sıradakiler',
   noSessionsHint: 'Bitirdiğin her odak turu saati ve süresiyle burada listelenir.',
   noSessions: 'Bugün henüz odak oturumu yok',
   focusSummary: (n, d) => `bugün ${n} oturum · ${d} odak`,

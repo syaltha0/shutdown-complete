@@ -132,6 +132,8 @@ export function Focus() {
   useWatch(nowMinutes);
   const blocks = day ? activeColumn(day).blocks : [];
   const now = nowMinutes();
+  // with no sessions yet, the card shows what is left in today's plan instead of empty rows
+  const upcoming = [...blocks].filter((b) => b.end > now).sort((a, b) => a.start - b.start).slice(0, 3);
   // the block to focus on: the one running now, unless it is lunch or a walk; then the next deep block
   const running = blocks.find((b) => now >= b.start && now < b.end && b.kind !== 'personal');
   const current = running ?? blocks.find((b) => b.start > now && b.kind === 'deep') ?? blocks.find((b) => b.start > now && b.kind !== 'personal') ?? null;
@@ -385,8 +387,14 @@ export function Focus() {
             onChoose={(id) => { const sid = linking; setLinking(null); void linkSession(settings, sid, id, T.freeFocus, key); }} onClose={() => setLinking(null)} />}
           {sessions.length === 0 ? <div className="empty fs-empty">
             <div className="fs-empty-copy"><b>{T.noSessions}</b><span>{T.noSessionsHint}</span></div>
-            {/* a faint outline of the rows that will come, so the empty card reads as the list it will become */}
-            <div className="fs-ghost" aria-hidden="true">{[0.8, 0.55, 0.7].map((w, i) => <div className="fs-ghost-row" key={i}><i style={{ width: 44 }} /><i style={{ width: `${w * 100}%` }} /><i style={{ width: 32 }} /></div>)}</div>
+            {upcoming.length > 0 && <div className="fs-plan" aria-label={T.planNext}>
+              <small>{T.planNext}</small>
+              {upcoming.map((b) => <div className="session" key={b.id}>
+                <span className="t num">{clock(b.start)}–{clock(b.end)}</span>
+                <span className="l" title={b.label}>{b.label || T.freeFocus}</span>
+                <span className="n num">{duration(b.end - b.start)}</span>
+              </div>)}
+            </div>}
           </div> : (
             <div className="sessions">
               <div className="session-scroll" ref={listRef} tabIndex={-1} role="region" aria-label={T.sessionsToday}>
