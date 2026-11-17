@@ -1,8 +1,9 @@
-﻿import assert from 'node:assert/strict';
+import assert from 'node:assert/strict';
 import { launch } from '../lib/browser.mjs';
 import { startServer, client } from '../lib/server.mjs';
 import { demoAccount } from '../lib/demo.mjs';
 const s=await startServer(), b=await launch();
+const assertEventually=async(fn,ms=5000)=>{const end=Date.now()+ms;for(;;){try{return await fn();}catch(e){if(Date.now()>end)throw e;await new Promise(r=>setTimeout(r,150));}}};
 try {
  for (const lang of ['en','tr']) {
   const api=await demoAccount(client(s.url),{lang});
@@ -34,10 +35,29 @@ try {
   assert.ok(await p.locator('.hgrid .hname').filter({hasText:firstName}).count());
   assert.notEqual(await p.locator('.hgrid .hrow:not(.head) .hname').first().innerText(),firstName);
   await p.locator('section[aria-label] select').first().selectOption('days');
-  const checks=p.locator('section[aria-label] input[type=checkbox]');await checks.first().uncheck();
+  const wd=p.locator('.hv-controls .hv-wd');await wd.first().click();
   await p.waitForTimeout(600);await p.reload();await p.locator('.hgrid').waitFor();await p.locator('.hv-name').first().click();
   assert.equal(await p.locator('section[aria-label] select').first().inputValue(),'days');
-  assert.equal(await p.locator('section[aria-label] input[type=checkbox]').first().isChecked(),false);
-  console.log('PASS '+lang+' habit frequency, cycle, archive, restore, order and persistence');await ctx.close();
+  assert.equal(await p.locator('.hv-controls .hv-wd').first().getAttribute('aria-pressed'),'false');
+  // the last chosen weekday cannot be taken away
+  for(const i of [1,2,3])await p.locator('.hv-controls .hv-wd').nth(i).click();
+  assert.ok(await p.locator('.hv-controls .hv-wd').nth(4).isDisabled(),'last weekday stays chosen');
+  // rename from the detail
+  const named=p.locator('.hv-controls .hv-field input:not([type])').first();const renamed='Renamed habit '+lang;
+  await named.fill(renamed);await named.press('Enter');
+  await assertEventually(async()=>assert.ok((await api.get('settings')).value.metrics.some(m=>m.name===renamed)));
+  // add with a frequency chosen up front: the new habit opens with it
+  await p.locator('#habit-name').fill('Weekly swim '+lang);
+  await p.locator('.habit-add .hv-freq select').selectOption('weekly');
+  await p.locator('.habit-add button[type=submit]').click();
+  await assertEventually(async()=>{const m=(await api.get('settings')).value.metrics.find(m=>m.name==='Weekly swim '+lang);assert.equal(m?.frequency?.mode,'weekly');});
+  assert.equal(await p.locator('.hv-habit.is-new .hv-name').getAttribute('aria-expanded'),'true');
+  // archive, then delete for good after a confirmation
+  await p.getByRole('button',{name:'Weekly swim '+lang+' / '+word.archive,exact:true}).click();
+  await p.locator('details').last().locator('summary').click();
+  p.once('dialog',d=>d.accept());
+  await p.getByRole('button',{name:'Weekly swim '+lang+' / '+(lang==='en'?'Delete for good':'Kalıcı olarak sil'),exact:true}).click();
+  await assertEventually(async()=>assert.ok(!(await api.get('settings')).value.metrics.some(m=>m.name==='Weekly swim '+lang)));
+  console.log('PASS '+lang+' habit frequency, cycle, archive, restore, order, persistence, weekday minimum, rename, add with frequency, delete');await ctx.close();
  }
 }finally{await b.close();await s.stop();}

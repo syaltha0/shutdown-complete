@@ -11,6 +11,7 @@ export function pushWords(T: Words) {
     'break-end': { title: p.breakTitle, body: p.breakBody, action: p.breakAction },
     morning: { title: p.morningTitle, body: p.morningBody, bodyOne: p.morningOne, bodyMany: p.morningMany },
     evening: { title: p.eveningTitle, body: p.eveningBody },
+    habit: { title: p.habitTitle, body: p.habitBody, bodyOne: p.habitOne, bodyMany: p.habitMany },
   };
 }
 export async function sendPushWords(T: Words) {

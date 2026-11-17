@@ -96,6 +96,27 @@ function planningLocal(ms, timeZone, settings) {
 }
 const addDays = (date, n) => new Date(Date.parse(`${date}T12:00:00Z`) + n * 86400_000).toISOString().slice(0, 10);
 
+/** Habits to remind of now: a check habit with its own time, due on this day, not yet done or skipped (pure; unit tested).
+ *  Weekday 0 is Monday. A "days" habit is due on its days; a weekly quota is due every day until the week's count is met. */
+export function habitsDue(settings, date, minute, dayOf) {
+  const wd = (new Date(`${date}T12:00:00Z`).getUTCDay() + 6) % 7, day = dayOf(date);
+  const done = (doc, id) => doc?.metrics?.[id] === true;
+  return (settings?.metrics ?? []).filter((h) => {
+    if (h?.kind !== 'check' || h.archived || typeof h.remindAt !== 'string' || !TIME.test(h.remindAt)) return false;
+    const d = minute - minutes(h.remindAt);
+    if (d < 0 || d >= DAILY_WINDOW || done(day, h.id) || day?.skippedHabits?.includes?.(h.id)) return false;
+    const f = h.frequency ?? {};
+    if (f.mode === 'days') return Array.isArray(f.days) && f.days.includes(wd);
+    if (f.mode === 'weekly') {
+      const count = Math.max(1, Math.min(7, Number(f.count) || 1));
+      let n = 0;
+      for (let i = 1; i <= wd; i++) if (done(dayOf(addDays(date, -i)), h.id)) n++;
+      return n < count;
+    }
+    return true;
+  });
+}
+
 export function pushService(db, { subject = process.env.VAPID_SUBJECT || 'mailto:admin@example.com', send = fetch, clock = Date.now, timers = true } = {}) {
   let keys = db.meta.get('vapid');
   if (!keys) { keys = JSON.stringify(vapidKeys()); db.meta.set('vapid', keys); }
@@ -159,6 +180,13 @@ export function pushService(db, { subject = process.env.VAPID_SUBJECT || 'mailto
     if (n.evening && due(n.eveningAt) && !day?.shutdown?.done) await deliver(sub, `evening:${local.date}`, { type: 'evening' }, 1800, at);
   }
 
+  /** A habit's own reminder goes out on every day it is due, weekends included: one push per reminder time, only the count leaves the server. */
+  async function habits(sub, settings, local, at) {
+    const groups = new Map();
+    for (const h of habitsDue(settings, local.date, local.minute, (d) => dayDoc(sub.user_id, d))) groups.set(h.remindAt, (groups.get(h.remindAt) ?? 0) + 1);
+    for (const [time, count] of groups) await deliver(sub, `habit:${local.date}:${time}`, { type: 'habit', n: Math.min(count, 99) }, 1800, at);
+  }
+
   async function check(sub, at) {
     try {
       const settings = db.docs.get(sub.user_id, 'settings')?.value;
@@ -166,6 +194,7 @@ export function pushService(db, { subject = process.env.VAPID_SUBJECT || 'mailto
       await blocks(sub, settings, local, at);
       await focus(sub, settings, local, at);
       await daily(sub, settings, local, at);
+      await habits(sub, settings, local, at);
     } catch { /* one malformed document must not stop reminders for other accounts */ }
   }
 

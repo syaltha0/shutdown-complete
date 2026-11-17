@@ -1,4 +1,4 @@
-﻿import assert from 'node:assert/strict';
+import assert from 'node:assert/strict';
 import { mkdirSync } from 'node:fs';
 import { launch } from '../lib/browser.mjs';
 import { startServer, client } from '../lib/server.mjs';
@@ -23,7 +23,7 @@ try {
    const fits=()=>p.evaluate(()=>document.documentElement.scrollWidth<=innerWidth);
    assert.ok(await fits(),state+' page overflow '+width);
    assert.equal(await p.locator('.hv-habit').count(),count);
-   for(const cell of await p.locator('.hcell:visible').all()) {const r=await cell.boundingBox();assert.ok(r.width>=32&&r.height>=32,'touch cell '+JSON.stringify(r));}
+   for(const cell of await p.locator('.hv-days .hcell:visible').all()) {const r=await cell.boundingBox();assert.ok(r.width>=32&&r.height>=32,'touch cell '+JSON.stringify(r));}
    await p.screenshot({path:`reports/habits-v2/${state}-${width}-${theme}.png`,fullPage:true});
    if(count) {
     await p.locator('.hv-name').first().click();await p.locator('.hv-map-cell').first().waitFor();

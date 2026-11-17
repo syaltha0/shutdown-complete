@@ -238,6 +238,8 @@ export interface QuarterDoc {
 export interface MetricDef {
   frequency?: { mode: "daily" | "days" | "weekly"; days?: number[]; count?: number };
   archived?: boolean;
+  /** a habit's own reminder, "HH:MM" local time: a push when it is due that day and not yet done or skipped */
+  remindAt?: string;
   id: string;
   name: string;
   kind: 'number' | 'check';

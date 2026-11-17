@@ -72,13 +72,14 @@ self.addEventListener('message', (e) => {
   if (e.data?.type === 'push-words') e.waitUntil(caches.open(DATA).then((c) => c.put('/push-words', new Response(JSON.stringify(e.data.words || { block: { title: e.data.title, body: e.data.body } })))));
 });
 
-// What each push is for. The server sends only a short encrypted type (and a count for the morning plan).
+// What each push is for. The server sends only a short encrypted type (and a count for the morning plan and habits).
 const KINDS = {
   block: { tag: 'block', url: (date) => `/day/${date}` },
   'focus-end': { tag: 'focus', url: () => '/focus', go: 'break', quiet: true },
   'break-end': { tag: 'focus', url: () => '/focus', go: 'focus', quiet: true },
   morning: { tag: 'plan', url: (date) => `/day/${date}` },
   evening: { tag: 'plan', url: (date) => `/shutdown/${date}` },
+  habit: { tag: 'habit', url: () => '/habits' },
 };
 
 self.addEventListener('push', (e) => {
