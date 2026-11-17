@@ -14,14 +14,9 @@ try {
   await ctx.addCookies([{name:'sc_session',value:api.cookie.split('=')[1],url:srv.url}]);
   const page = await ctx.newPage();
   await page.goto(srv.url);
-  await page.locator('.home-history').waitFor();
-  assert.equal(await page.locator('.home-history').getAttribute('open'),null);
-  await page.locator('.home-history summary').click();
-  await page.waitForFunction(()=>localStorage.getItem('sc-home-history') === 'true');
-  await page.reload();
-  await page.locator('.home-history[open]').waitFor();
+  await page.locator('.b-hello').waitFor();
   assert(await page.evaluate(()=>document.documentElement.scrollWidth <= innerWidth));
-  console.log('PASS '+lang+' history persists and fits 390px');
+  console.log('PASS '+lang+' home fits 390px');
   assert.deepEqual((await api.get('settings')).value, settings);
   for (const route of ['boards','metrics']) assert(await page.locator(`nav a[href="/${route}"]`).count() > 0);
   await page.goto(srv.url+'/focus');

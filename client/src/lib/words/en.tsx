@@ -67,7 +67,7 @@ export const en = {
   serverDown: (n: number) => `Can’t reach the server · ${n} ${s(n, 'change', 'changes')} waiting`,
   offlinePending: (n: number) => `Offline · ${n} ${s(n, 'change', 'changes')} waiting`,
   locale: 'en-GB',
-  dailyProfile: 'Daily flow', allProfile: 'Everything', profileChoice: 'Choose your features', historyTitle: 'History', keyTask: 'Today’s key task',
+  dailyProfile: 'Daily flow', allProfile: 'Everything', profileChoice: 'Choose your features', keyTask: 'Today’s key task',
   featuresTitle: 'Features',
   stepsChip: (d: number, n: number) => `${d} of ${n} ${s(n, 'step', 'steps')} done`, stepsOf: (t: string) => `Steps of ${t}`,
   stepPh: 'A smaller step', addStepTo: (t: string) => `Add a step to ${t}`,

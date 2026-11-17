@@ -64,7 +64,7 @@ serverStatus: { remedy: 'İlgili ayarı veya kurulum yönergesini aç',"title":"
   serverDown: (n) => `Sunucuya ulaşılamıyor · ${n} değişiklik bekliyor`,
   offlinePending: (n) => `Çevrimdışı · ${n} değişiklik bekliyor`,
   locale: 'tr-TR',
-  dailyProfile: 'Günlük akış', allProfile: 'Hepsi', profileChoice: 'Özelliklerini seç', historyTitle: 'Geçmiş', keyTask: 'Bugünün temel işi',
+  dailyProfile: 'Günlük akış', allProfile: 'Hepsi', profileChoice: 'Özelliklerini seç', keyTask: 'Bugünün temel işi',
   featuresTitle: 'Özellikler',
   stepsChip: (d, n) => `${n} adımın ${d} tanesi bitti`, stepsOf: (t) => `${t} adımları`,
   stepPh: 'Daha küçük bir adım', addStepTo: (t) => `${t} için adım ekle`,
