@@ -94,3 +94,6 @@
 @media (max-width: 860px) {
  .hv-phone-dates { display: grid; grid-column: 1 / -1; grid-template-columns: repeat(7,minmax(32px,1fr)); gap: 6px; text-align: center; font-size: 11px; color: var(--muted); margin-bottom: -8px; }
 }
+/* the empty screen carries the only add field: a larger one in the intro */
+.habits-v2 .habit-add.hv-add-hero { padding: 0; border-top: 0; max-width: 560px; }
+.habits-v2 .hv-add-hero .input { min-height: 48px; font-size: 15px; }

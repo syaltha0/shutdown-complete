@@ -21,6 +21,7 @@ export function Habits({ id }: { id: string }) {
   const recent = Array.from({length: 14}, (_, i) => shift(end, i - 13));
   const elapsed = monthDays(id).filter(d => d <= t);
   const totalDone = habits.reduce((n, h) => n + stats(h, elapsed).done, 0);
+  const addForm = (hero: boolean) => <form className={`habit-add${hero ? ' hv-add-hero' : ''}`} onSubmit={e => {e.preventDefault();addHabit();}}><input id="habit-name" className="input" aria-label={T.addHabit} placeholder={T.habitPh} value={name} onChange={e => setName(e.target.value)} /><button className={`btn${hero ? ' primary hv-start' : ''}`} type="submit" disabled={!name.trim()}><IconPlus />{T.addHabit}</button></form>;
   function addHabit(value = name) {
     const n = value.trim(); if (!n) return;
     update(s => ({...s, metrics: [...s.metrics, {id: uid(), name: n, kind: 'check', unit: '', target: null}]})); setName('');
@@ -44,7 +45,7 @@ export function Habits({ id }: { id: string }) {
     </div>
     {error && <div className="notice error">{T.couldntLoadDays} <button className="btn" onClick={retry}>{T.retry}</button></div>}
     <section className="hv-ledger" aria-label={T.habitsTitle} aria-busy={!docs}>
-    {!habits.length && <div className="hv-empty"><h2>{T.habitBegin}</h2><p>{T.habitIntro}</p><button className="btn hv-start" onClick={() => document.getElementById('habit-name')?.focus()}><IconPlus />{T.addHabit}</button><div className="hv-suggestions">{T.habitSuggestions.map(n => <button key={n} className="btn" onClick={() => addHabit(n)}>{n}</button>)}</div></div>}
+    {!habits.length && <div className="hv-empty"><h2>{T.habitBegin}</h2><p>{T.habitIntro}</p>{addForm(true)}<div className="hv-suggestions">{T.habitSuggestions.map(n => <button key={n} className="btn" onClick={() => addHabit(n)}>{n}</button>)}</div></div>}
     <div className="hgrid">
       {habits.length > 0 && <div className="hrow head"><span>{T.habitCol}</span><div className="hv-days">{recent.map((d,i) => <span key={d} className={i < 7 ? 'hv-older' : ''}>{fmtDay(d,{day:'numeric'})}</span>)}</div><span>{T.streakCol}</span></div>}
       {habits.map((h,index) => {
@@ -74,10 +75,10 @@ export function Habits({ id }: { id: string }) {
         </article>;
       })}
     </div>
-    <form className="habit-add" onSubmit={e => {e.preventDefault();addHabit();}}><input id="habit-name" className="input" aria-label={T.addHabit} placeholder={T.habitPh} value={name} onChange={e => setName(e.target.value)} /><button className="btn" type="submit" disabled={!name.trim()}><IconPlus />{T.addHabit}</button></form>
+    {habits.length > 0 && addForm(false)}
     </section>
-      <details className="panel"><summary>{T.habitArchived} ({settings.metrics.filter(m => m.kind === 'check' && m.archived).length})</summary>
+      {settings.metrics.some(m => m.kind === 'check' && m.archived) && <details className="panel"><summary>{T.habitArchived} ({settings.metrics.filter(m => m.kind === 'check' && m.archived).length})</summary>
         {settings.metrics.filter(m => m.kind === 'check' && m.archived).map(h => <div key={h.id}>{h.name} <button className="btn" aria-label={`${h.name} / ${T.habitRestore}`} onClick={() => patch(h, {archived: false})}>{T.habitRestore}</button></div>)}
-      </details>
+      </details>}
   </div>;
 }
