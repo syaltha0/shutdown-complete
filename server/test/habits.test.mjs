@@ -30,3 +30,30 @@ test('partial rates and weekly skips preserve completed quotas',()=>{
  assert.equal(habitStats(weekly,firstWeek,d=>doc(['02','04'].includes(d.slice(-2)),d.endsWith('03')),firstWeek.at(-1)).streak,1);
  assert.equal(habitStats(h,firstWeek,d=>doc(d.endsWith('02')),firstWeek.at(-1)).rate,1/7);
 });
+import { habitHeatmap, habitLongest } from '../../client/src/lib/habits.ts';
+
+test('annual heatmap maps Mondays into exactly 52 columns and seven rows', () => {
+ const cells=habitHeatmap(h,()=>doc(),'2026-11-17');
+ assert.equal(cells.length,364);assert.equal(cells[0].date,'2025-11-24');
+ assert.deepEqual([cells[0].week,cells[0].day],[0,0]);
+ const today=cells.find(c=>c.date==='2026-11-17');assert.deepEqual([today.week,today.day],[51,1]);
+ assert.deepEqual([cells.at(-1).week,cells.at(-1).day],[51,6]);
+});
+test('annual tones encode weekly progress, skips and future dates remain neutral', () => {
+ const weekly={...h,frequency:{mode:'weekly',count:4}};
+ for (let count=1;count<=4;count++) {
+  const cells=habitHeatmap(weekly,d=>doc(d>='2026-11-09'&&d<shift('2026-11-09',count),d==='2026-11-13'),'2026-11-15');
+  assert.equal(cells.find(c=>c.date==='2026-11-09').level,count);
+  const skipped=cells.find(c=>c.date==='2026-11-13');assert.equal(skipped.level,0);assert.equal(skipped.state,'skipped');
+ }
+ const cells=habitHeatmap(h,()=>doc(true),'2026-11-17');
+ assert.equal(cells.find(c=>c.date==='2026-11-18').level,0);
+ assert.equal(cells.find(c=>c.date==='2026-11-17').level,4);
+ const selected=habitHeatmap({...h,frequency:{mode:'days',days:[0]}},()=>doc(true),'2026-11-17');
+ assert.equal(selected.find(c=>c.date==='2026-11-17').level,0);
+});
+test('longest run survives skips and separates completed daily and weekly runs', () => {
+ assert.equal(habitLongest(h,days,d=>doc(!['2026-11-05','2026-11-10'].includes(d),d==='2026-11-05'),days.at(-1)),7);
+ assert.equal(habitLongest({...h,frequency:{mode:'weekly',count:2}},days,()=>doc(true),days.at(-1)),2);
+ assert.equal(habitLongest(h,days,()=>doc(false,true),days.at(-1)),0);
+});
