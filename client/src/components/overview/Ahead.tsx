@@ -50,7 +50,7 @@ export function Ahead({ settings, t, B, monday }: OverviewData) {
   const calendar = Array.from({ length: 14 }, (_, i) => addDays(monday, i));
   return (
     <section className="panel b-ahead">
-      <h2>{B.ahead}</h2>
+      <header className="b-ahead-head"><h2>{B.ahead}</h2><a className="b-round-mini" href={`/month/${monthOf(t)}`} onClick={onLinkClick} aria-label={B.aheadAdd} title={B.aheadAdd}><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" aria-hidden="true"><path d="M12 6v12M6 12h12" /></svg></a></header>
       <div className="b-ahead-range">{fmtDay(monday, { month: "short", day: "numeric" })} – {fmtDay(addDays(monday, 13), { month: "short", day: "numeric" })}</div>
       <div className="b-calendar">
         {calendar.slice(0, 7).map((d) => (
@@ -80,7 +80,6 @@ export function Ahead({ settings, t, B, monday }: OverviewData) {
             <small>{B.aheadWhen(Math.round((Date.parse(x.date) - Date.parse(t)) / 86400000))}</small>
           </a>
         ))}
-        {!ahead.length && <div className="b-ahead-empty"><p>{B.aheadEmpty}</p>{link(`/month/${monthOf(t)}`, B.aheadAdd)}</div>}
       </div>
       {ahead.length > 4 && link(`/month/${monthOf(t)}`, B.aheadMore(ahead.length - 4))}
     </section>

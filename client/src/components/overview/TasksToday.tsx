@@ -2,9 +2,12 @@ import { emptyInbox, featureOn, type InboxDoc } from "../../lib/model";
 import { useDoc } from "../../lib/useDoc";
 import { onLinkClick } from "../../lib/router";
 import { offerUndo } from "../../lib/undo";
+import { useState } from "react";
+import { AddTodayDialog, RoundAction } from "./RoundAction";
 import type { OverviewData } from "./data";
 export function TasksToday({ T, t, day, tasks, B, update, settings }: OverviewData) {
   const { value: inbox } = useDoc<InboxDoc>("inbox", emptyInbox);
+  const [adding, setAdding] = useState(false);
   const total = day?.tasks.filter(x => x.text.trim()).length ?? 0;
   const done = total - tasks.length;
   const complete = total > 0 && done === total;
@@ -15,6 +18,12 @@ export function TasksToday({ T, t, day, tasks, B, update, settings }: OverviewDa
       void update(d => ({ ...d, tasks: d.tasks.map(x => x.id === id ? { ...x, done: false } : x) }));
     });
   };
+  const add = (text: string) => update(d => ({ ...d, tasks: [...d.tasks, { id: crypto.randomUUID(), text, done: false }] }));
+  if (!total) return <section className="panel b-tasks is-empty">
+    <h2>{B.tasks}</h2>
+    <RoundAction onClick={() => setAdding(true)} title={T.overviewTasksAdd} hint={B.roundTasks} />
+    {adding && <AddTodayDialog onAdd={add} onClose={() => setAdding(false)} />}
+  </section>;
   return <section className={`panel b-tasks${complete ? ' is-complete' : ''}`}>
     <h2>{B.tasks}</h2>
     <div className="b-tasks-ring" role="progressbar" aria-label={B.tasks} aria-valuemin={0} aria-valuemax={total || 1} aria-valuenow={done} aria-valuetext={total ? T.tasksDone(done, total) : T.overviewTasksEmpty}>

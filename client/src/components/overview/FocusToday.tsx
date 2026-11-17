@@ -3,6 +3,7 @@ import { clock, duration } from "../../lib/dates";
 import { focusMinutes, secondsLeft, useFocusDay } from "../../lib/focus";
 import { onLinkClick } from "../../lib/router";
 import { OverviewRing } from "./Ring";
+import { RoundAction } from "./RoundAction";
 import type { OverviewData } from "./data";
 
 export function FocusToday({ T, settings, day, B }: OverviewData) {
@@ -22,6 +23,11 @@ export function FocusToday({ T, settings, day, B }: OverviewData) {
   const complete = goal > 0 && focused >= goal;
   // the latest sessions, newest first, beside the ring
   const recent = [...(day?.focus?.sessions ?? [])].reverse().slice(0, 1);
+  // nothing yet today: one round action instead of a ring of dashes
+  if (!active && !count && !focused) return <section className="panel b-focus is-empty" aria-labelledby="overview-focus-title" data-complete={false}>
+    <h2 id="overview-focus-title">{B.focus}</h2>
+    <RoundAction href="/focus" icon="play" title={T.startFocus} hint={B.roundFocus} />
+  </section>;
   return <section className="panel b-focus" aria-labelledby="overview-focus-title" data-complete={complete}>
     <h2 id="overview-focus-title">{B.focus}</h2>
     <OverviewRing value={focused} total={goal} label={B.focus} text={focused ? duration(focused) : "–"} complete={complete} />

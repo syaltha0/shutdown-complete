@@ -1,4 +1,4 @@
-﻿import assert from 'node:assert/strict';
+import assert from 'node:assert/strict';
 import { mkdirSync } from 'node:fs';
 import { launch } from '../lib/browser.mjs';
 import { startServer, client } from '../lib/server.mjs';
@@ -30,7 +30,7 @@ try {
    await p.screenshot({path:`reports/shots/overview-habits/${state}-${width}-${theme}.png`,fullPage:true});
   }
   if(count){const button=p.locator('.b-habits button').first();await button.click();await p.waitForTimeout(700);assert.equal((await api.get('day:'+dates[6])).value.metrics['habit-0'],false);await button.click();await p.waitForTimeout(700);assert.equal((await api.get('day:'+dates[6])).value.metrics['habit-0'],true);await p.reload();await p.locator('.b-habits button[aria-pressed=true]').first().waitFor();}
-  await p.locator('.b-habits .b-act, .b-habits .b-habits-count').first().click();await p.waitForURL('**/habits');
+  await p.locator('.b-habits .b-round-action, .b-habits .b-habits-count').first().click();await p.waitForURL('**/habits');
  }
  console.log('PASS habits: 16 screenshots, fit, real seven-day history, persisted toggle both ways, habits route');
 } finally {await b.close();await s.stop();}

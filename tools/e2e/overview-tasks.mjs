@@ -16,12 +16,22 @@ try {
   for (const [width,height] of [[1440,900],[390,844]]) for (const theme of ['light','dark']) {
    await p.setViewportSize({width,height}); await p.goto(s.url); const tile=p.locator('.b-tasks'); await tile.waitFor();
    await p.evaluate(t=>document.documentElement.dataset.theme=t,theme); await p.evaluate(()=>document.fonts.ready);
+   if (count) {
    await p.waitForFunction(expected => document.querySelector('.b-tasks [role=progressbar]')?.getAttribute('aria-valuenow') === String(expected), done);
    assert.equal(await tile.locator('input[type=checkbox]').count(),Math.min(3,count-done));
    assert.equal(await tile.locator('[role=progressbar]').getAttribute('aria-valuenow'),String(done));
+   } else assert.ok(await tile.locator('.b-round-action').isVisible(),'Empty tile offers one round add action');
    assert.ok(await tile.evaluate(e=>e.scrollHeight<=e.clientHeight+1 && e.scrollWidth<=e.clientWidth+1),'Tile fits '+state+' '+width);
    assert.ok(await p.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),'No horizontal overflow');
    await p.screenshot({path:`reports/shots/overview-tasks/${state}-${width}-${theme}.png`,fullPage:true});
+  }
+  if(state==='empty') {
+   // the round action opens a small dialog that adds straight onto today's list
+   await p.locator('.b-tasks .b-round-action').click();
+   await p.locator('dialog.quick-capture input').fill('Round action task');
+   await p.locator('dialog.quick-capture input').press('Enter');
+   await assertEventually(async()=>assert.deepEqual((await api.get(key)).value.tasks.map(x=>x.text),['Round action task']));
+   await api.put(key,{...base,tasks:[]});
   }
   if(state==='partial') {
    await p.locator('.b-tasks input').first().click();

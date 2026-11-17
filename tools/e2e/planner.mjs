@@ -357,8 +357,9 @@ try {
     check('the overview opens at /', await page.getByRole('heading', { name: 'Overview', level: 1 }).waitFor({ timeout: 6000 }).then(() => true, () => false));
     check('it draws today\'s plan as a line through the hours', (await page.locator('.b-track i').count()) > 0);
     check('it shows the week day by day', (await page.locator('.b-calendar a').count()) === 14 && (await page.locator('.b-calendar .today').count()) === 1);
-    await page.locator('#home-task').fill('Buy a notebook');
-    await page.locator('#home-task').press('Enter');
+    await page.locator('.b-open .b-round-action').click();
+    await page.locator('dialog.quick-capture input').fill('Buy a notebook');
+    await page.locator('dialog.quick-capture input').press('Enter');
     await wait(1200);
     check('a task can be written from the overview', (await doc(`day:${D}`)).tasks.some((x) => x.text === 'Buy a notebook'));
     check('coming up lists the exam with its countdown', await page.locator('.b-events a', { hasText: 'Physics final' }).isVisible());

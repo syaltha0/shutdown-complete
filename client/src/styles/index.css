@@ -23,6 +23,7 @@
 @import './overview/last-days.css';
 @import './overview/weeks.css';
 @import './overview/ring.css';
+@import './overview/round.css';
 @import './boards.css';
 @import './links.css';
 @import './tasks.css';

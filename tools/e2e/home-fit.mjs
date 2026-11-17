@@ -50,7 +50,7 @@ try {
    await p.setViewportSize({width,height});await p.goto(s.url+'/');const tile=p.locator('.b-focus');await tile.waitFor();await p.waitForTimeout(250);
    await p.evaluate(t=>document.documentElement.dataset.theme=t,theme);
    assert.ok(await tile.evaluate(e=>e.scrollHeight<=e.clientHeight+1&&e.scrollWidth<=e.clientWidth+1),'Focus fits '+state+' '+width);
-   const ring=await tile.locator('.b-ring').boundingBox();assert.ok(Math.abs(ring.width-ring.height)<1,'Focus ring is square');
+   const ring=await tile.locator(state==='empty'?'.b-round':'.b-ring').boundingBox();assert.ok(Math.abs(ring.width-ring.height)<1,'Focus ring is square');
    assert.equal(await tile.getAttribute('data-complete'),String(state==='complete'));
    await p.screenshot({path:`reports/shots/overview-focus/${state}-${width}-${theme}.png`,fullPage:true});
   }
@@ -60,7 +60,7 @@ try {
    assert.equal(mutations,0,'Overview focus stays unchanged between minute ticks');
    await p.clock.runFor(60000);assert.match(await p.locator('.b-focus .b-rt-summary').innerText(),/24/,'Remaining minutes update');
   }
-  await p.locator('.b-focus .b-act').click();await p.waitForURL('**/focus');
+  await p.locator('.b-focus a[href="/focus"]').click();await p.waitForURL('**/focus');
  }
  console.log('PASS Focus today: five states, 20 screenshots, square ring, minute timer, action route');
  await api.put(key,original);await api.put('settings',settings);
@@ -89,7 +89,7 @@ try {
     assert.equal(await p.locator('.b-calendar>small').count(),7,'One weekday header');
     assert.equal(await p.locator('.b-calendar>a').count(),14,'Two complete weeks');
     assert.equal(await p.locator('.b-calendar>a').first().evaluate(e=>new Date(e.getAttribute('href').split('/').pop()+'T12:00:00').getDay()),1,'Calendar starts on Monday');
-    assert.ok(await p.locator('.b-tasks .b-truncate, .b-tasks .b-rt-summary').first().evaluate(e=>e.clientHeight>=16),'Next task stays visible');
+    assert.ok(await p.locator('.b-tasks .b-truncate, .b-tasks .b-rt-summary, .b-tasks .b-round-text').first().evaluate(e=>e.clientHeight>=16),'Next task stays visible');
     if(width>860){assert.ok(fit.scroll<=1,JSON.stringify({width,height,...fit}));assert.ok(fit.overflow.length===0,JSON.stringify({width,height,...fit}));assert.ok(fit.rings.every(n=>n<=2));assert.ok(fit.strip<=40);assert.ok(Math.abs(fit.bottom-(height-32))<=1,JSON.stringify({width,height,...fit}));}
     if(!disabled.length && [1904,1440,390].includes(width))for(const theme of ['light','dark']){await p.evaluate(t=>document.documentElement.dataset.theme=t,theme);await p.waitForTimeout(600);await p.screenshot({path:`reports/shots/home-v6/${empty?'empty':'full'}-${width}-${height}-${theme}.png`,fullPage:true});}
    }

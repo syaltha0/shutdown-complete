@@ -1,4 +1,4 @@
-﻿import assert from 'node:assert/strict';
+import assert from 'node:assert/strict';
 import { mkdirSync } from 'node:fs';
 import { launch } from '../lib/browser.mjs';
 import { startServer, client } from '../lib/server.mjs';
@@ -35,7 +35,7 @@ try {
    await p.locator('.b-open input.check').first().click();
    await p.getByRole('button',{name:'Undo',exact:true}).click();
    assert.equal(await p.locator('.b-open input.check').count(),3);
-   await p.locator('#home-task').fill('Captured from overview'); await p.locator('#home-task').press('Enter');
+   await p.locator('.b-open .b-round-action').click(); await p.locator('dialog.quick-capture input').fill('Captured from overview'); await p.locator('dialog.quick-capture input').press('Enter');
    await p.clock.runFor(1500); await p.waitForTimeout(400);
    assert.ok((await api.get(key)).value.tasks.some(x=>x.text==='Captured from overview'));
    await p.locator('.b-open input.check').first().click(); await p.clock.runFor(1500); await p.waitForTimeout(400);

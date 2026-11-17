@@ -2,6 +2,7 @@ import { habitStats, planned, habitState } from '../../lib/habits';
 import { featureOn } from "../../lib/model";
 import { longDate } from "../../lib/dates";
 import { onLinkClick } from "../../lib/router";
+import { RoundAction } from "./RoundAction";
 import type { OverviewData } from "./data";
 export function Habits({ T, settings, day, update, B, recent, docOf, t }: OverviewData) {
   const habits = settings.metrics.filter((m) => m.kind === "check" && !m.archived && featureOn(settings, "habits"));
@@ -9,7 +10,7 @@ export function Habits({ T, settings, day, update, B, recent, docOf, t }: Overvi
   const done = due.filter(m => day?.metrics[m.id] === true).length;
   const stats = habits.map(h => habitStats(h, recent, docOf, t));
   return (
-    <section className={`panel b-habits${habits.length <= 2 ? " is-sparse" : ""}`}>
+    <section className={`panel b-habits${habits.length <= 2 ? " is-sparse" : ""}${habits.length ? "" : " is-empty"}`}>
       <header><h2>{T.nav.habits}</h2>{habits.length > 0 && <a className="b-habits-count num" href="/habits" onClick={onLinkClick} aria-label={`${B.habitsToday(done, due.length)} · ${B.habitsOpen}`}><span aria-live="polite">{B.habitsToday(done, due.length)}</span><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" aria-hidden="true"><path d="m9 5 7 7-7 7" /></svg></a>}</header>
       {habits.length > 0 ? <>
         <div className="b-habit-list" role="group" aria-label={T.nav.habits} tabIndex={0}>
@@ -32,8 +33,7 @@ export function Habits({ T, settings, day, update, B, recent, docOf, t }: Overvi
         </div>
         <small className="b-habits-summary">{B.habitsRecentSummary(stats.reduce((n,s) => n+s.done, 0), stats.reduce((n,s) => n+s.total, 0))}</small>
         {due.length > 0 && done === due.length && <small className="b-habits-complete">{B.habitsComplete}</small>}
-      </> : <p>{B.noHabits}</p>}
-      {habits.length === 0 && <a className="b-act" href="/habits" onClick={onLinkClick}><span>{B.habitsAdd}</span><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" aria-hidden="true"><path d="m9 5 7 7-7 7" /></svg></a>}
+      </> : <RoundAction href="/habits" title={B.habitsAdd} hint={B.roundHabits} />}
     </section>
   );
 }

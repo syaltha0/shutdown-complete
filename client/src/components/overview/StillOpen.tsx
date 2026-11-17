@@ -1,12 +1,15 @@
-﻿import { emptyInbox, featureOn, type InboxDoc } from "../../lib/model";
+import { emptyInbox, featureOn, type InboxDoc } from "../../lib/model";
 import { onLinkClick } from "../../lib/router";
 import { useDoc } from "../../lib/useDoc";
 import { cardDone } from "../../lib/links";
 import { offerUndo } from "../../lib/undo";
+import { useState } from "react";
+import { AddTodayDialog, RoundAction } from "./RoundAction";
 import type { OverviewData } from "./data";
 
 export function StillOpen({ T, settings, t, day, update, tasks, B, now, plan }: OverviewData) {
   const { value: inbox } = useDoc<InboxDoc>("inbox", emptyInbox);
+  const [adding, setAdding] = useState(false);
   const metrics = settings.metrics.filter(m => m.kind === "number" && featureOn(settings, "metrics") && day?.metrics[m.id] == null);
   const inboxCount = featureOn(settings, "inbox") ? (inbox?.items.length ?? 0) : 0;
   const shutdown = !day?.shutdown.done;
@@ -31,12 +34,7 @@ export function StillOpen({ T, settings, t, day, update, tasks, B, now, plan }: 
       {/* what is already done today, quietly, below what is left */}
       {doneToday.length > 0 && <div className="b-open-done"><p className="b-open-group">{B.openDoneGroup}<span>{doneToday.length}</span></p><ul>{doneToday.slice(0, 3).map(x => <li key={x.id}><s>{x.text}</s></li>)}</ul></div>}
     </div>}
-    <div className="b-open-capture"><label htmlFor="home-task">{T.captureTask}</label><input id="home-task" className="input b-capture" aria-label={T.captureTask} placeholder={B.openCapture} onKeyDown={e => {
-      if (e.key !== "Enter" || e.nativeEvent.isComposing) return;
-      const text = e.currentTarget.value.trim();
-      if (!text) return;
-      update(d => ({ ...d, tasks: [...d.tasks, { id: crypto.randomUUID(), text, done: false }] }));
-      e.currentTarget.value = "";
-    }} /></div>
+    <RoundAction layout={!remaining || tasks.length + doneToday.length > 2 ? "row" : "stack"} onClick={() => setAdding(true)} title={T.overviewTasksAdd} hint={B.roundOpen} />
+    {adding && <AddTodayDialog onAdd={text => update(d => ({ ...d, tasks: [...d.tasks, { id: crypto.randomUUID(), text, done: false }] }))} onClose={() => setAdding(false)} />}
   </section>;
 }
