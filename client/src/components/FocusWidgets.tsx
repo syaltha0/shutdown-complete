@@ -3,7 +3,7 @@ import { useSettings } from '../App';
 import { useT } from '../lib/i18n';
 import { activeColumn, emptyInbox, featureOn, uid, type DayDoc, type InboxDoc } from '../lib/model';
 import { clock, duration, nowMinutes, today } from '../lib/dates';
-import { focusMinutes } from '../lib/focus';
+import { dayFocus } from '../lib/focus';
 import { updateKey } from '../lib/useDoc';
 import { offerUndo } from '../lib/undo';
 import { onLinkClick } from '../lib/router';
@@ -18,8 +18,7 @@ export function FocusWidgets({ day }: { day: DayDoc | null }) {
   useEffect(() => { const timer = window.setInterval(() => setNow(nowMinutes()), 1000); return () => window.clearInterval(timer); }, []);
   const id = settings.focus?.metricId ?? 'deep';
   const metric = settings.metrics.find((m) => m.id === id);
-  const stored = day?.metrics[id];
-  const minutes = typeof stored === 'number' ? Math.max(0, Math.round(stored * 60)) : day ? focusMinutes(day) : 0;
+  const { minutes: minutes, manual } = dayFocus(day, settings);
   const target = metric?.target != null && metric.target > 0 ? metric.target * 60 : null;
   const ratio = target ? Math.min(1, minutes / target) : 0;
   const blocks = day ? [...activeColumn(day).blocks].sort((a, b) => a.start - b.start) : [];
@@ -36,7 +35,7 @@ export function FocusWidgets({ day }: { day: DayDoc | null }) {
   const dayLeft = Math.max(0, to - now);
   return <section className="panel focus-widgets" aria-labelledby="fw-heading">
     <header><h2 id="fw-heading">{T.nav.today}</h2></header>
-    <div className="fw-goal">
+    <div className="fw-goal">{manual && <small>{T.focusManual}</small>}
       {target && <svg width="56" height="56" viewBox="0 0 36 36" role="progressbar" aria-label={T.fwGoal} aria-valuemin={0} aria-valuemax={target} aria-valuenow={Math.min(minutes, target)} aria-valuetext={`${duration(minutes)} / ${duration(target)}`}>
         <circle cx="18" cy="18" r="15" fill="none" stroke="var(--border)" strokeWidth="3" />
         <circle className={ratio >= 1 ? 'complete' : ''} cx="18" cy="18" r="15" fill="none" strokeWidth="3" pathLength="1" strokeDasharray={`${ratio} 1`} transform="rotate(-90 18 18)" />

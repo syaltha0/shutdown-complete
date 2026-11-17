@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useAccount } from "../../App";
 import { clock, duration } from "../../lib/dates";
-import { settingsFocus, startFocus, useFocusDay } from "../../lib/focus";
+import { dayFocus, settingsFocus, startFocus, useFocusDay } from "../../lib/focus";
 import { navigate, onLinkClick } from "../../lib/router";
 import type { OverviewData } from "./data";
 import { activeColumn } from "../../lib/model";
@@ -27,7 +27,7 @@ export function Hello({ T, settings, t, now, plan, B, day, docs, docOf, monday }
   const progress = cur ? Math.min(100, Math.max(0, (now - cur.start) / (cur.end - cur.start) * 100)) : 0;
   const at = day?.shutdown.at ? new Date(day.shutdown.at) : null;
   // the day in a line: the time it closed, the tasks done and, when there was any, the focus
-  const focusedMin = (day?.focus?.sessions ?? []).reduce((sum, s) => sum + s.minutes, 0);
+  const focusedMin = dayFocus(day, settings).minutes;
   const tasksDone = day?.tasks.filter(x => x.done).length ?? 0;
   const summary = focusedMin > 0 ? T.helloSummary(tasksDone, duration(focusedMin)) : T.helloTasksDone(tasksDone);
   // beside the greeting: the blocks still to come today, or the first ones of tomorrow once today is through
@@ -46,7 +46,7 @@ export function Hello({ T, settings, t, now, plan, B, day, docs, docOf, monday }
   }
   // this week so far, Monday to today: days with a plan, minutes focused, days closed
   const weekDays = Array.from({ length: Math.round((Date.parse(t + "T12:00:00") - Date.parse(monday + "T12:00:00")) / 864e5) + 1 }, (_, i) => addDays(monday, i));
-  const sofar = weekDays.reduce((w, d) => { const doc = docOf(d); return { days: w.days, planned: w.planned + (doc && doc.columns.some(c => c.blocks.length) ? 1 : 0), focus: w.focus + (doc?.focus?.sessions ?? []).reduce((n, x) => n + x.minutes, 0), closed: w.closed + (doc?.shutdown?.done ? 1 : 0) }; }, { days: weekDays.length, planned: 0, focus: 0, closed: 0 });
+  const sofar = weekDays.reduce((w, d) => { const doc = docOf(d); return { days: w.days, planned: w.planned + (doc && doc.columns.some(c => c.blocks.length) ? 1 : 0), focus: w.focus + dayFocus(doc, settings).minutes, closed: w.closed + (doc?.shutdown?.done ? 1 : 0) }; }, { days: weekDays.length, planned: 0, focus: 0, closed: 0 });
   return <section className={`panel b-hello has-side`}>
     <div className="b-hello-main">
     <h2>{B.greeting(Math.floor(now / 60), user.name.trim())}</h2>

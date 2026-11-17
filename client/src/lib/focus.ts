@@ -9,6 +9,12 @@ import { refreshKey, updateKey, useDoc } from './useDoc';
 import { showNotification } from './pwa';
 
 export const focusMinutes = (d: DayDoc) => (d.focus?.sessions ?? []).reduce((s, x) => s + x.minutes, 0);
+/** A manual metric overrides the measured total, including an explicit zero. */
+export function dayFocus(day: DayDoc | null | undefined, settings: Settings) {
+  const value = day?.metrics[settings.focus?.metricId ?? 'deep'];
+  const manual = typeof value === 'number' && Number.isFinite(value);
+  return { minutes: manual ? Math.max(0, Math.round(value * 60)) : day ? focusMinutes(day) : 0, sessions: day?.focus?.sessions.length ?? 0, manual };
+}
 export const focusCount = (d: DayDoc) => (d.focus?.sessions ?? []).length;
 
 /** The sessions of the cycle now under way: those logged since the cycle last began (the day's start, or "Reset cycle"). A long break follows every `longEvery` of them. */
@@ -113,8 +119,7 @@ export function resetCycle(key = dayKey()) {
  * Ties a logged session to one of the day's blocks afterwards (or back to no block, with `blockId` null): its name and
  * kind follow the block, and the focus metric gains or gives back its minutes as it moves in or out of deep work.
  */
-export function linkSession(settings: Settings, sessionId: string, blockId: string | null, freeLabel: string, key = dayKey()) {
-  const f = settingsFocus(settings);
+export function linkSession(_settings: Settings, sessionId: string, blockId: string | null, freeLabel: string, key = dayKey()) {
   return updateKey<DayDoc>(key, emptyDay, (d) => {
     const x = withFocus(d);
     const old = x.focus.sessions.find((s) => s.id === sessionId);
@@ -125,12 +130,6 @@ export function linkSession(settings: Settings, sessionId: string, blockId: stri
     const next: FocusSession = { ...old, blockId: block?.id ?? null, label: block ? block.label || old.label : freeLabel, kind, subject: block?.subject };
     if (!block) delete next.subject;
     let metrics = x.metrics;
-    const def = settings.metrics.find((m) => m.id === f.metricId && m.kind === 'number');
-    const change = (kind === 'deep' ? old.minutes : 0) - (old.kind === 'deep' ? old.minutes : 0);
-    if (def && change) {
-      const prev = typeof metrics[def.id] === 'number' ? (metrics[def.id] as number) : 0;
-      metrics = { ...metrics, [def.id]: Math.max(0, Math.round((prev + change / 60) * 100) / 100) };
-    }
     return { ...x, metrics, focus: { ...x.focus, sessions: x.focus.sessions.map((s) => (s.id === sessionId ? next : s)) } };
   });
 }

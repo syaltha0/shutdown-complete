@@ -201,6 +201,7 @@ serverStatus: { remedy: 'İlgili ayarı veya kurulum yönergesini aç',"title":"
   shutdownAsk: (n: number) => `${n} ad?m a??k. Yine de kapat?`,
   shutdownYes: 'Kapat',
   shutdownBack: 'Geri d?n',
+  focusManual: 'elle girildi',
   saveBlock: 'Kaydet',
   cancel: 'Vazgeç',
   reviseFrom: (t) => `${t} itibarıyla revize et`,

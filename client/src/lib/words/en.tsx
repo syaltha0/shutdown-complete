@@ -210,6 +210,7 @@ export const en = {
   shutdownAsk: (n: number) => `${n} steps open. Close anyway?`,
   shutdownYes: 'Close',
   shutdownBack: 'Go back',
+  focusManual: 'manually entered',
   saveBlock: 'Save',
   cancel: 'Cancel',
   reviseFrom: (t: string) => `Revise from ${t}`,

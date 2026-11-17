@@ -14,7 +14,7 @@ import { activeColumn, effectivePlan, emptyDay, emptyWeek, minutesOfKind, type B
 import { onLinkClick } from '../lib/router';
 import { useDoc } from '../lib/useDoc';
 import { placeRepeats } from '../lib/repeat';
-import { focusMinutes } from '../lib/focus';
+import { dayFocus } from '../lib/focus';
 import { duration } from '../lib/dates';
 
 /** The shutdown: close every open loop, then say it — "Schedule shutdown, complete". */
@@ -175,11 +175,12 @@ export function Shutdown({ date }: { date: string }) {
 
           {day && (
             <section className="panel" aria-labelledby="fo-h">
+              {dayFocus(day, settings).manual && <small>{T.focusManual}</small>}
               <header><h2 id="fo-h">{T.focusMetric}</h2><a className="card-link" style={{ fontWeight: 400 }} href="/focus" onClick={onLinkClick}>{T.openFocus}</a></header>
               {(day.focus?.sessions.length ?? 0) === 0 ? <div className="empty">{T.noSessions}</div> : (
-                <><FocusLog sessions={day.focus?.sessions} /><p className="focus-line num"><b>{duration(focusMinutes(day))}</b> · {T.focusRow(day.focus!.sessions.length, duration(focusMinutes(day)))}</p></>
+                <><FocusLog sessions={day.focus?.sessions} /><p className="focus-line num"><b>{duration(dayFocus(day, settings).minutes)}</b> · {T.focusRow(day.focus!.sessions.length, duration(dayFocus(day, settings).minutes))}</p></>
               )}
-              {(minutesOfKind(day, 'deep') > 0 || focusMinutes(day) > 0) && <p className="focus-plan muted num">{T.planVsActual(duration(minutesOfKind(day, 'deep')), duration(focusMinutes(day)))}</p>}
+              {(minutesOfKind(day, 'deep') > 0 || dayFocus(day, settings).minutes > 0) && <p className="focus-plan muted num">{T.planVsActual(duration(minutesOfKind(day, 'deep')), duration(dayFocus(day, settings).minutes))}</p>}
             </section>
           )}
 
@@ -234,7 +235,7 @@ function DayCard({ date, day, settings }: { date: string; day: DayDoc; settings:
       title: longDate(date), brand: 'Shutdown Complete', clock,
       blocks: effectivePlan(day).map((b) => ({ start: b.start, end: b.end, label: b.label || T.untitledBlock, kind: b.kind })),
       stats: [
-        { label: T.focusMetric, value: duration(focusMinutes(day)) },
+        { label: T.focusMetric, value: duration(dayFocus(day, settings).minutes) },
         { label: T.kinds.deep.name, value: duration(minutesOfKind(day, 'deep')) },
         { label: T.tasks, value: T.of(day.tasks.filter((x) => x.done).length, day.tasks.length) },
       ],

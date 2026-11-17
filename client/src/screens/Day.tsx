@@ -20,7 +20,7 @@ import { useSwipeNav } from '../lib/swipe';
 import { updateKey, useDoc, useRange } from '../lib/useDoc';
 import { isExcepted, placeRepeats, repeatFromBlock } from '../lib/repeat';
 import { estimateFor, insights } from '../lib/insights';
-import { focusCount, focusMinutes, settingsFocus, startFocus } from '../lib/focus';
+import { dayFocus, focusCount, settingsFocus, startFocus } from '../lib/focus';
 import { CapacityNote } from '../components/CapacityNote';
 import { BlockEditor, ReviseDialog } from './BlockDialogs';
 import { kindSwatch, PPM, revise, TimeGrid, undoRevision, useNow } from './TimeGrid';
@@ -503,6 +503,7 @@ function Finding({ day, isToday, now, past }: { day: DayDoc; isToday: boolean; n
 
 function MetricsBox({ day, date, defs, update }: { day: DayDoc; date: string; defs: MetricDef[]; update: (fn: (d: DayDoc) => DayDoc) => void }) {
   const T = useT();
+  const { settings } = useSettings();
   const deepPlanned = minutesOfKind(day, 'deep');
   const setMetric = (id: string, v: number | boolean | null) => update((d) => ({ ...d, metrics: { ...d.metrics, [id]: v } }));
   const at = day.shutdown.at ? new Date(day.shutdown.at) : null;
@@ -535,10 +536,10 @@ function MetricsBox({ day, date, defs, update }: { day: DayDoc; date: string; de
             </div>
           );
         })}
-        {(day.focus?.sessions.length ?? 0) > 0 && (
+        {dayFocus(day, settings).minutes > 0 && (
           <div className="metric-row">
             <span className="name">{T.focusMetric}</span>
-            <a className="card-link num" style={{ fontWeight: 400 }} href="/focus" onClick={onLinkClick}>{T.focusRow(focusCount(day), duration(focusMinutes(day)))}</a>
+            <a className="card-link num" style={{ fontWeight: 400 }} href="/focus" onClick={onLinkClick}>{T.focusRow(focusCount(day), duration(dayFocus(day, settings).minutes))}{dayFocus(day, settings).manual && <small>{T.focusManual}</small>}</a>
           </div>
         )}
       </div>
