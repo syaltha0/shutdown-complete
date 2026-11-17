@@ -17,7 +17,7 @@ try {
   const metrics=Array.from({length:count},(_,i)=>({id:'visual-'+i,name:['Read 20 pages','Go for a walk','Practice the piano','Stretch for 5 minutes','Write a journal entry','An evening without screens and a very long habit name'][i],kind:'check',unit:'',target:null,...(i===1?{frequency:{mode:'weekly',count:3}}:i===2?{frequency:{mode:'days',days:[0,2,4]}}:{})}));
   await api.put('settings',{...settings,metrics,features:{...settings.features,habits:true}});
   for(let i=0;i<90;i++)await api.put('day:'+dates[i],{...base,metrics:Object.fromEntries(metrics.map((m,n)=>[m.id,state==='full'||(i+n)%5<3])),skippedHabits:state==='full'?[]:metrics.filter((_,n)=>(i+n)%5===3).map(m=>m.id)});
-  for(const [width,height,theme] of [[1440,900,'light'],[1440,900,'dark'],[390,844,'light']]) {
+  for(const [width,height,theme] of [[1440,900,'light'],[1440,900,'dark'],[1904,1015,'light'],[390,844,'light']]) {
    await p.setViewportSize({width,height});await p.goto(s.url+'/habits');await p.locator('.hv-ledger[aria-busy=false]').waitFor();
    await p.evaluate(()=>document.fonts.ready);await p.waitForTimeout(350);await p.evaluate(t=>document.documentElement.dataset.theme=t,theme);await p.waitForTimeout(350);
    const fits=()=>p.evaluate(()=>document.documentElement.scrollWidth<=innerWidth);

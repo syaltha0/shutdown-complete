@@ -1,6 +1,6 @@
 ﻿/* Habit ledger: identity + fourteen 32px days + run; phone uses seven days.
    The annual grid is 4 x 13 weeks; phone stacks these blocks, retaining all 364 days. */
-.habits-v2 { max-width: 1280px; margin: 0 auto; }
+.habits-v2 { min-width: 0; }
 .hv-ledger { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; overflow: hidden; }
 .habits-v2 .hgrid { display: block; padding: 0; overflow: visible; }
 .habits-v2 .hrow { display: grid; grid-template-columns: minmax(160px,1fr) minmax(0, 560px) 110px; gap: 24px; padding: 20px 24px; align-items: center; }
