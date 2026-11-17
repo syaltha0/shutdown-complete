@@ -29,6 +29,9 @@ export function SettingsScreen() {
   const captureWords = useT().quickCapture;
   const [importing, setImporting] = useState(false);
   const [imported, setImported] = useState<string | null>(null);
+  const [preview, setPreview] = useState<{ data: unknown; count: number; dates: string[]; kinds: string[] } | null>(null);
+  const [restoreBusy, setRestoreBusy] = useState(false);
+  const [importError, setImportError] = useState(false);
   const [theme, setTheme] = useState<ThemePref>(getThemePref());
   const [motion, setMotion] = useState<MotionPref>(getMotionPref());
   const inst = useInstall();
@@ -50,15 +53,24 @@ export function SettingsScreen() {
   }
 
   async function doImport(f: File) {
-    setImported(null);
+    setImported(null); setPreview(null); setImportError(false);
     try {
       const data = JSON.parse(await f.text());
-      const res = await api.import(data);
-      setImported(T.imported(res.count));
+      const docs = data?.docs;
+      if (!Array.isArray(docs) || !docs.every((d) => d && typeof d.key === 'string' && /^(day:\d{4}-\d{2}-\d{2}|week:\d{4}-W\d{2}|month:\d{4}-\d{2}|quarter:\d{4}-Q[1-4]|year:\d{4}|settings|inbox|boards)$/.test(d.key) && d.value && typeof d.value === 'object')) throw new Error();
+      setPreview({ data, count: docs.length, dates: docs.filter((d) => d.key.startsWith('day:')).map((d) => d.key.slice(4)).sort(), kinds: [...new Set<string>(docs.map((d) => d.key.split(':')[0]))] });
+    } catch { setImportError(true); }
+  }
+
+  async function confirmImport() {
+    if (!preview || restoreBusy) return;
+    setRestoreBusy(true);
+    try {
+      const res = await api.import(preview.data);
+      setImported(T.imported(res.count)); setPreview(null);
       setTimeout(() => location.reload(), 900);
-    } catch (e) {
-      setImported(T.importFailed(e instanceof Error ? e.message : '?'));
-    }
+    } catch { setImportError(true); }
+    finally { setRestoreBusy(false); }
   }
 
 
@@ -107,6 +119,7 @@ export function SettingsScreen() {
             <p>{T.featuresAbout}</p>
           </div>
           <div className="set-panel features">
+            <small className="muted" data-testid="feature-note">{T.featureOffNote}</small>
             {FEATURES.map((f) => (
               <label key={f} className="switch-row feature-row">
                 <input type="checkbox" className="switch" checked={featureOn(settings, f)}
@@ -444,9 +457,19 @@ export function SettingsScreen() {
             <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
               <a className="btn" href="/api/export" download>{T.download}</a>
               <ExportDownloads />
-              <button type="button" className="btn" onClick={() => file.current?.click()}>{T.importBackup}</button>
+              <button type="button" className="btn" disabled={restoreBusy} onClick={() => file.current?.click()}>{T.importBackup}</button>
               <input ref={file} type="file" accept="application/json,.json" hidden onChange={(e) => { const f = e.target.files?.[0]; if (f) doImport(f); e.target.value = ''; }} />
             </div>
+            {preview && <div className="panel" data-testid="restore-preview" aria-busy={restoreBusy}>
+              <h3>{T.restorePreview}</h3>
+              <p>{T.restoreCount(preview.count)}</p>
+              <p>{T.restoreDates}: {preview.dates.length ? `${preview.dates[0]} ? ${preview.dates[preview.dates.length - 1]}` : T.restoreNoDays}</p>
+              <p>{T.restoreKinds}: {preview.kinds.map((k) => T.restoreKindNames[k]).join(', ') || T.restoreNoDays}</p>
+              <p className="notice">{T.restoreWarning}</p>
+              <button type="button" className="btn primary" disabled={restoreBusy} onClick={() => void confirmImport()}>{T.restoreConfirm}</button>{' '}
+              <button type="button" className="btn" disabled={restoreBusy} onClick={() => { setPreview(null); setImportError(false); }}>{T.cancel}</button>
+            </div>}
+            {importError && <p className="notice" role="alert">{T.restoreError}</p>}
             {imported && <span className="muted" role="status">{imported}</span>}
           </div>
         </section>

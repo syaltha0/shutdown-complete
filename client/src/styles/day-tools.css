@@ -64,7 +64,10 @@
 .exam-preview p { margin: 0; }
 .exam-list { margin: 10px 0 0; padding: 0; list-style: none; display: grid; gap: 4px; max-height: 220px; overflow: auto; font-size: var(--fs-small); }
 .exam-list li { display: grid; grid-template-columns: 170px minmax(0, 1fr); gap: 10px; }
-.exam-row .row-actions { display: inline-flex; align-items: center; gap: 6px; }
+.exam-row { display: flex; flex-wrap: wrap; }
+.exam-row > span:nth-child(2) { flex: 1 1 140px; min-width: 0; overflow-wrap: anywhere; }
+.exam-row .row-actions { display: inline-flex; flex-wrap: wrap; align-items: center; gap: 6px; margin-left: auto; max-width: 100%; }
+@media (max-width: 600px) { .exam-row .row-actions { flex-basis: 100%; justify-content: flex-end; } }
 
 /* ======================= focusing together ======================= */
 .friends { display: grid; gap: 12px; }
