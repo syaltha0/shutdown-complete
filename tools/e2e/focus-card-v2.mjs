@@ -202,7 +202,7 @@ try {
   await p.locator('.focus-sessions .bp-sheet').getByRole('option', { name: /Alpha now/ }).click();
   const linked = await until(async () => { const x = await doc(); return x.focus.sessions[0]?.blockId === 'pa' ? x : null; });
   check('an unplanned session can be linked to a block later: its name and kind follow the block', linked && linked.focus.sessions[0].label === 'Alpha now' && linked.focus.sessions[0].kind === 'deep');
-  check('linking it to a deep block adds its minutes to the deep focus metric', linked && Math.abs((linked.metrics?.deep ?? 0) - m0 - 0.5) < 0.01);
+  check('linking a session preserves the manual focus metric and the recorded minutes', linked && linked.metrics?.deep === m0 && linked.focus.sessions[0].minutes === 30);
   check('a linked session no longer offers the link', await p.locator('.session-link').count() === 0);
 
   // ---------- 3. the running controls ----------
