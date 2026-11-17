@@ -23,3 +23,10 @@ test('cycle done, skipped, empty preserves unrelated data',()=>{
  d=cycleHabit(h,d);assert.deepEqual(d.skippedHabits,['h']);
  d=cycleHabit(h,d);assert.deepEqual(d.skippedHabits,[]);assert.equal(d.metrics.h,false);assert.equal(d.metrics.other,3);
 });
+test('partial rates and weekly skips preserve completed quotas',()=>{
+ const weekly={...h,frequency:{mode:'weekly',count:2}};
+ assert.equal(habitStats(weekly,days,d=>doc(d.endsWith('02'),d.endsWith('03')),days.at(-1)).rate,.25);
+ const firstWeek=days.slice(0,7);
+ assert.equal(habitStats(weekly,firstWeek,d=>doc(['02','04'].includes(d.slice(-2)),d.endsWith('03')),firstWeek.at(-1)).streak,1);
+ assert.equal(habitStats(h,firstWeek,d=>doc(d.endsWith('02')),firstWeek.at(-1)).rate,1/7);
+});
