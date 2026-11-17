@@ -294,7 +294,7 @@ function Shell() {
         <div className="rail-group">{link(work[0])}{on('boards') && link(boards)}{on('countdown') && link(countdown)}{work.slice(1).filter((x) => on(x.id)).map((x) => link(x))}</div>
         <div className="bottom">
           {/* the keyboard shortcuts, one click away for those who never press ? (user, 2026-11-17) */}
-          <button type="button" className="rail-item" onClick={() => window.dispatchEvent(new CustomEvent('sc:help'))} aria-label={`${T.keys.title} (?)`}><IconKeyboard /><span className="tip" aria-hidden="true">{T.keys.title} · ?</span></button>
+          <button type="button" className="rail-item rail-keys" onClick={() => window.dispatchEvent(new CustomEvent('sc:help'))} aria-label={`${T.keys.title} (?)`}><IconKeyboard /><span className="tip" aria-hidden="true">{T.keys.title} · ?</span></button>
           {link(settingsItem)}
         </div>
       </nav>

@@ -29,17 +29,17 @@ try {
   await setActive(run(25, 0.2), []);
   await open();
   await btn('Skip').click();
-  const quick = await until(async () => { const x = await doc(); return x.focus.active?.phase === 'short' ? x : null; });
-  check('skipping within the first 30 seconds asks nothing and counts nothing', quick && quick.focus.sessions.length === 0 && await p.locator('.skip-choice').count() === 0);
-  check('the break after an uncounted skip is a short one', quick.focus.active.plannedMin === 5 && !quick.focus.active.sessionId);
-  check('an uncounted skip still moves the round on (Session 1/4 is done)', quick.focus.skippedRounds === 1 && await until(async () => /1\/4|Session 1|Oturum 1/.test(await p.locator('.focus-cycle-summary').innerText()) && await p.locator('.focus-rounds .done').count() === 1));
+  // a round skipped within its first minute is called off: no session, no round moved on, no break (user, 2026-11-17)
+  const quick = await until(async () => { const x = await doc(); return x.focus.active == null ? x : null; });
+  check('skipping within the first minute asks nothing and counts nothing', quick && quick.focus.sessions.length === 0 && await p.locator('.skip-choice').count() === 0);
+  check('and does not move the round on or start a break', !(quick.focus.skippedRounds > 0) && quick.focus.active == null);
 
   await setActive(run(25, 10), []);
   await open();
   await btn('Skip').click();
   await p.locator('.skip-choice').waitFor();
   const text = await p.locator('.skip-choice').innerText();
-  check('after 30 seconds, skipping asks what to count, with both durations', /Skip this focus\?/.test(text) && /so far \(10 min\)/.test(text) && /whole session \(25 min\)/.test(text) && /Keep going/.test(text));
+  check('after a minute, skipping asks what to count, with both durations', /Skip this focus\?/.test(text) && /so far \(10 min\)/.test(text) && /whole session \(25 min\)/.test(text) && /Keep going/.test(text));
   check('keyboard focus moves into the choice', await p.evaluate(() => document.querySelector('.skip-choice').contains(document.activeElement)));
   await p.keyboard.press('Escape');
   await p.locator('.skip-choice').waitFor({ state: 'detached' });

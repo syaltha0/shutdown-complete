@@ -52,9 +52,3 @@
 .row-line .task-meta { margin-left: 0; }
 .row-tools .task-meta { margin: 0 2px 0 0; }
 .row-tools .est-select { opacity: 1 !important; }
-
-/* Keep the day task title above its inline controls in a narrow column. */
-.day-tasks .check-row { flex-wrap: wrap; }
-.day-tasks .check-row > .row-main { flex-basis: calc(100% - 90px); }
-.day-tasks .check-row .row-main .text { white-space: nowrap; text-overflow: ellipsis; overflow: hidden; }
-.day-tasks .check-row > .row-tools { position: static; margin-left: 30px; opacity: 1; pointer-events: auto; }

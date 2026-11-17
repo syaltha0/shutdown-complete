@@ -7,7 +7,7 @@ import type { FocusActive } from '../lib/model';
 
 /**
  * Skipping the running phase, the same on the Focus card, the mini timer and the focus room. A break goes at once; a
- * focus phase that ran 30 seconds or less goes at once too and counts for nothing; a longer one asks what to count.
+ * focus phase that ran a minute or less is called off at once: no session, no round, no break; a longer one asks what to count.
  * Strict mode keeps a focus phase from being skipped.
  */
 export function useSkip(a: FocusActive | null, key: string) {

@@ -50,7 +50,7 @@ try {
   await p.getByRole('button', { name: 'Add a block', exact: true }).click();
   await p.locator('#be-label').fill('Night work');
   check(await p.locator('#be-start').inputValue() === '1560', 'new night block starts at minute 1560');
-  await p.getByRole('button', { name: 'Done', exact: true }).click();
+  await p.getByRole('button', { name: 'Save', exact: true }).click();
   await p.clock.runFor(2000);
   await until(async () => (await doc('day:' + prev)).columns[0].blocks.some(x => x.start === 1560 && x.end > 1440));
   check(true, 'night block persists beyond 24:00');

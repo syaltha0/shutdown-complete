@@ -47,7 +47,7 @@ try {
     const count = await page.locator('.rail a').count();
     await preference.check();
     assert.equal(await page.locator('.rail a').count(), count);
-    assert.equal(await page.locator('.rail button').count(), 0);
+    assert.equal(await page.locator('.rail button:not(.rail-keys)').count(), 0);
     console.log(`PASS quick capture ${lang} ${theme} ${width}; desktop rail unchanged`);
     await ctx.close();
   }
