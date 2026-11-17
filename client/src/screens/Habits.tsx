@@ -1,3 +1,5 @@
+import { offerUndo } from '../lib/undo';
+import { confirmAction } from '../components/ConfirmDialog';
 import { cycleHabit, habitState, habitStats, habitHeatmap, habitLongest, planned, shift } from '../lib/habits';
 import { useEffect, useState } from 'react';
 import { usePush } from '../lib/push';
@@ -50,7 +52,7 @@ export function Habits({ id }: { id: string }) {
     update(s => ({...s, metrics: [...s.metrics, {id, since: today(), name: n, kind: 'check', unit: '', target: null, ...(frequency && frequency.mode !== 'daily' ? {frequency} : {})}]}));
     setName(''); setAddFreq(undefined); setOpened(id); setFresh(id);
   }
-  const remove = (h: MetricDef) => { if (window.confirm(T.habitDeleteConfirm(h.name))) update(s => ({...s, metrics: s.metrics.filter(m => m.id !== h.id)})); };
+  const remove = async (h: MetricDef) => { if (await confirmAction(T.habitDelete, T.habitDeleteConfirm(h.name), T.habitDelete, T.cancel)) update(s => ({...s, metrics: s.metrics.filter(m => m.id !== h.id)})); };
   const patch = (h: MetricDef, value: Partial<MetricDef>) => update(s => ({...s, metrics: s.metrics.map(m => m.id === h.id ? {...m, ...value} : m)}));
   const move = (h: MetricDef, offset: number) => update(s => {
     const metrics = [...s.metrics], at = metrics.findIndex(m => m.id === h.id);
@@ -99,7 +101,7 @@ export function Habits({ id }: { id: string }) {
           <div className="hv-actions">
           <button className="btn" aria-label={`${h.name} / ${T.habitUp}`} disabled={index === 0} onClick={() => move(h, -1)}>{T.habitUp}</button>
           <button className="btn" aria-label={`${h.name} / ${T.habitDown}`} disabled={index === habits.length - 1} onClick={() => move(h, 1)}>{T.habitDown}</button>
-          <button className="btn" aria-label={`${h.name} / ${T.habitArchive}`} onClick={() => patch(h, {archived: true})}>{T.habitArchive}</button>
+          <button className="btn" aria-label={`${h.name} / ${T.habitArchive}`} onClick={() => { patch(h, {archived: true}); offerUndo(T.habitArchive, () => patch(h, {archived: false})); }}>{T.habitArchive}</button>
           </div>
             </section>
           </div>}
