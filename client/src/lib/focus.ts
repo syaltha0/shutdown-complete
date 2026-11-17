@@ -158,6 +158,7 @@ export async function finishPhase(settings: Settings, early = false, opts: { key
     if (!early && left > 0) return d; // not finished yet (another device may have resumed or extended it)
     if (a.phase !== 'focus') { result = 'break-over'; return { ...x, focus: { ...x.focus, active: !early && f.autoFocus ? { phase: 'focus', startedAt: new Date().toISOString(), plannedMin: f.focusMin, pausedLeft: null, blockId: a.blockId, label: a.label, ...(a.task ? { task: a.task } : {}) } : null } }; }
     // what counts: the time run so far (default), the whole planned session, or nothing (a skip within the first seconds)
+    if (early && a.plannedMin * 60 - left < 60) { result = 'skipped'; return { ...x, focus: { ...x.focus, active: null } }; }
     const count = opts.count ?? 'elapsed';
     const minutes = count === 'none' ? 0 : count === 'full' ? a.plannedMin : Math.round((a.plannedMin * 60 - left) / 60);
     if (minutes < 1 && count !== 'none') return { ...x, focus: { ...x.focus, active: null } };
