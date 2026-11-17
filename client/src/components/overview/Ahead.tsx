@@ -65,7 +65,7 @@ export function Ahead({ settings, t, B, monday }: OverviewData) {
             onClick={onLinkClick}
             aria-label={`${fmtDay(d, { weekday: "long", month: "long", day: "numeric" })} · ${B.aheadBlocks(blocks(d).length)}${ahead.filter(x => x.date === d).map(x => ` · ${x.text}`).join("")}`}
             title={`${B.aheadBlocks(blocks(d).length)}${ahead.filter(x => x.date === d).map(x => ` · ${x.text}`).join("")}`}
-            className={d === t ? "today" : d < t ? "past" : ""}
+            className={[d === t ? "today" : d < t ? "past" : "", [0, 6].includes(new Date(`${d}T12:00:00`).getDay()) ? "weekend" : ""].filter(Boolean).join(" ")}
           >
             <span>{Number(d.slice(-2))}</span>
             <i className={ahead.some((x) => x.date === d) ? "on" : ""} />
