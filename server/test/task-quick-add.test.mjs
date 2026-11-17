@@ -24,7 +24,7 @@ for (const input of ['Oku her pazartesi', 'Oku every monday']) test(`weekly rule
   assert.deepEqual(parseTodo(taskIcs({ id: 'weekly', ...parsed })).repeat, { every: 1, unit: 'week', days: [0] });
 });
 test('unsupported and invalid input stays literal; metadata alone keeps a title', () => {
-  for (const input of ['Read 9 pages', 'Rapor 2026-02-30', 'Rapor yarın 25', 'Rapor #unknown !3', 'yarın 9 !1']) {
+  for (const input of ['Read 9 pages', 'Rapor 2026-02-30', 'Rapor yarın 25', 'yarın 9 !1']) {
     assert.deepEqual(parseTaskDraft(input, lists, '2026-11-13'), { text: input });
   }
   assert.equal(parseTaskDraft('Read tomorrow', lists, '2026-12-31').due, '2027-01-01');
@@ -35,4 +35,8 @@ test('a date beside a weekly rule moves to the rule\'s next weekday', () => {
   assert.equal(p.due, '2026-11-20');
   assert.deepEqual(p.repeat, { every: 1, unit: 'week', days: [4] });
   assert.equal(parseTaskDraft('Oku her pazartesi 2026-11-16', lists, '2026-11-13').due, '2026-11-16');
+});
+
+test('unknown list is removed and a date with a bare hour is parsed', () => {
+ assert.deepEqual(parseTaskDraft('QA görevi yarın 9 #?? !1 @inceleme', [], '2026-11-17'), {text:'QA görevi', due:'2026-11-18', dueTime:'09:00', priority:1, tags:['inceleme']});
 });

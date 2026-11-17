@@ -55,8 +55,8 @@ try {
   // archive, then delete for good after a confirmation
   await p.getByRole('button',{name:'Weekly swim '+lang+' / '+word.archive,exact:true}).click();
   await p.locator('details').last().locator('summary').click();
-  p.once('dialog',d=>d.accept());
   await p.getByRole('button',{name:'Weekly swim '+lang+' / '+(lang==='en'?'Delete for good':'Kalıcı olarak sil'),exact:true}).click();
+  await p.getByRole('dialog').getByRole('button').last().click();
   await assertEventually(async()=>assert.ok(!(await api.get('settings')).value.metrics.some(m=>m.name==='Weekly swim '+lang)));
   console.log('PASS '+lang+' habit frequency, cycle, archive, restore, order, persistence, weekday minimum, rename, add with frequency, delete');await ctx.close();
  }

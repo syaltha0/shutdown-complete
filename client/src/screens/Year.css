@@ -15,10 +15,18 @@
 .year-view input[type="checkbox"] { accent-color: #777; pointer-events:none; }
 
 .year-scroll-hint { display:none; }
-@media(max-width:600px) { .year-scroll-hint { display:block; } .year-months { min-width:1300px; } .year-heat { min-width:1300px; grid-template-rows:repeat(7,22px); gap:4px; } .year-scroll { border-bottom:1px solid var(--border); } }
-
 .year-legend { display:flex; flex-wrap:wrap; gap:16px; margin-top:12px; font-size:12px; }
 .year-legend span { display:flex; align-items:center; gap:6px; }
 .year-legend i { width:10px; height:10px; }
 
 .year-cell.year-future { background:transparent; border:1px dashed var(--line, #8886); opacity:.5; }
+
+.year-mobile-months { display:none; }
+@media(max-width:600px) {
+ .year-view .panel { min-width:0; }
+ .year-scroll, .year-scroll-hint { display:none; }
+ .year-mobile-months { display:grid; grid-template-columns:minmax(0,1fr); gap:16px; }
+ .year-mobile-month { display:block; padding:12px; border:1px solid var(--line); border-radius:8px; color:inherit; }
+ .year-mobile-days { display:grid; grid-template-columns:repeat(7,minmax(0,1fr)); gap:4px; margin-top:8px; }
+ .year-mobile-days .year-cell { text-align:center; padding:6px 0; font-size:12px; }
+}

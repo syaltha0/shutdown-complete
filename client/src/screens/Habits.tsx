@@ -1,3 +1,5 @@
+import { offerUndo } from '../lib/undo';
+import { confirmAction } from '../components/ConfirmDialog';
 import { cycleHabit, habitState, habitStats, habitHeatmap, habitLongest, planned, shift } from '../lib/habits';
 import { useEffect, useState } from 'react';
 import { usePush } from '../lib/push';
@@ -50,7 +52,7 @@ export function Habits({ id }: { id: string }) {
     update(s => ({...s, metrics: [...s.metrics, {id, since: today(), name: n, kind: 'check', unit: '', target: null, ...(frequency && frequency.mode !== 'daily' ? {frequency} : {})}]}));
     setName(''); setAddFreq(undefined); setOpened(id); setFresh(id);
   }
-  const remove = (h: MetricDef) => { if (window.confirm(T.habitDeleteConfirm(h.name))) update(s => ({...s, metrics: s.metrics.filter(m => m.id !== h.id)})); };
+  const remove = async (h: MetricDef) => { if (await confirmAction(T.habitDelete, T.habitDeleteConfirm(h.name), T.habitDelete, T.cancel)) update(s => ({...s, metrics: s.metrics.filter(m => m.id !== h.id)})); };
   const patch = (h: MetricDef, value: Partial<MetricDef>) => update(s => ({...s, metrics: s.metrics.map(m => m.id === h.id ? {...m, ...value} : m)}));
   const move = (h: MetricDef, offset: number) => update(s => {
     const metrics = [...s.metrics], at = metrics.findIndex(m => m.id === h.id);
@@ -62,17 +64,17 @@ export function Habits({ id }: { id: string }) {
   const units = (h: MetricDef, n: number) => h.frequency?.mode === 'weekly' ? T.habitWeeks(n) : T.daysN(n);
   const cell = (h: MetricDef, d: string, i: number) => {
     const state = habitState(h, get(d)), done = state === 'done';
-    return <button key={d} className={`hcell${done ? ' on' : ''}${d === t ? ' is-today' : ''}${i < 7 ? ' hv-older' : ''}`} disabled={d > t || !docs || !planned(h, d)} aria-pressed={done} aria-label={`${T.toggleAria(h.name, longDate(d), done)} / ${state === 'skipped' ? T.habitSkipped : ''}`} title={longDate(d)} onClick={() => updateKey<DayDoc>(`day:${d}`, emptyDay, x => cycleHabit(h, x))}>{state === 'skipped' ? '/' : ''}</button>;
+    return <button key={d} className={`hcell${done ? ' on' : ''}${d === t ? ' is-today' : ''}${i < 7 ? ' hv-older' : ''}`} disabled={d > t || !docs || !planned(h, d)} aria-pressed={done} aria-label={T.habitCellLabel(h.name, longDate(d), state)} title={longDate(d)} onClick={() => updateKey<DayDoc>(`day:${d}`, emptyDay, x => cycleHabit(h, x))}>{state === 'skipped' ? '/' : ''}</button>;
   };
   return <div className="habits-v2">
     <div className="title-row"><div><h1>{T.habitsTitle}</h1><p className="sub">{docs ? T.habitsFinding(totalDone, totalPossible) : T.habitLoading}</p></div>
       <div className="stepper"><a className="btn icon" href={`/habits/${addMonths(id,-1)}`} onClick={onLinkClick} aria-label={T.prevMonth}><IconLeft /></a><a className="btn" href={`/habits/${monthOf(t)}`} onClick={onLinkClick}>{monthTitle(id)}</a><a className="btn icon" href={`/habits/${addMonths(id,1)}`} onClick={onLinkClick} aria-label={T.nextMonth}><IconRight /></a></div>
     </div>
     {habits.length > 0 && <div className="kpis metric-kpis hv-kpis" aria-label={T.habitsTitle}>
-      <div className="kpi lead"><div className="kpi-label">{T.habitKpiToday}</div><div className="kpi-value num">{docs ? <>{doneToday}<small>/ {due.length}</small></> : '—'}</div><div className="delta">{docs ? (!due.length ? T.habitKpiNone : doneToday === due.length ? T.habitKpiAllDone : T.habitKpiOpen(due.length - doneToday)) : ''}</div></div>
+      <div className="kpi lead"><div className="kpi-label">{T.habitKpiToday}</div><div className="kpi-value num">{docs ? <>{doneToday}<small>/{due.length}</small></> : '—'}</div><div className="delta">{docs ? (!due.length ? T.habitKpiNone : doneToday === due.length ? T.habitKpiAllDone : T.habitKpiOpen(due.length - doneToday)) : ''}</div></div>
       <div className="kpi"><div className="kpi-label">{T.habitKpiWeek}</div><div className="kpi-value num">{docs && weekStats.total ? <>{Math.round(weekStats.done / weekStats.total * 100)}<small>%</small></> : '—'}</div><div className="delta">{docs ? T.of(weekStats.done, weekStats.total) : ''}</div></div>
       <div className="kpi"><div className="kpi-label">{T.habitKpiBest}</div><div className="kpi-value num">{docs && best ? units(best.h, best.n) : '—'}</div><div className="delta">{best?.h.name}</div></div>
-      <div className="kpi"><div className="kpi-label">{T.habitKpiMonth}</div><div className="kpi-value num">{docs ? <>{totalDone}<small>/ {totalPossible}</small></> : '—'}</div><div className="delta">{monthTitle(id)}</div></div>
+      <div className="kpi"><div className="kpi-label">{T.habitKpiMonth}</div><div className="kpi-value num">{docs ? <>{totalDone}<small>/{totalPossible}</small></> : '—'}</div><div className="delta">{monthTitle(id)}</div></div>
     </div>}
     {error && <div className="notice error">{T.couldntLoadDays} <button className="btn" onClick={retry}>{T.retry}</button></div>}
     <section className="hv-ledger" aria-label={T.habitsTitle} aria-busy={!docs}>
@@ -99,7 +101,7 @@ export function Habits({ id }: { id: string }) {
           <div className="hv-actions">
           <button className="btn" aria-label={`${h.name} / ${T.habitUp}`} disabled={index === 0} onClick={() => move(h, -1)}>{T.habitUp}</button>
           <button className="btn" aria-label={`${h.name} / ${T.habitDown}`} disabled={index === habits.length - 1} onClick={() => move(h, 1)}>{T.habitDown}</button>
-          <button className="btn" aria-label={`${h.name} / ${T.habitArchive}`} onClick={() => patch(h, {archived: true})}>{T.habitArchive}</button>
+          <button className="btn" aria-label={`${h.name} / ${T.habitArchive}`} onClick={() => { patch(h, {archived: true}); offerUndo(T.habitArchive, () => patch(h, {archived: false})); }}>{T.habitArchive}</button>
           </div>
             </section>
           </div>}

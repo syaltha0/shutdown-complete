@@ -19,7 +19,7 @@ export function parseTaskDraft(input: string, lists: TaskList[], base: string): 
   };
   take(/(?:^|\s)#([^\s#@]+)/gu, (m) => {
     const list = lists.find((l) => fold(l.name) === fold(m[1]));
-    if (!list) return false;
+    if (!list) return;
     result.list = list.id;
   });
   take(/(?:^|\s)@([^\s#@]+)/gu, (m) => { result.tags = [...new Set([...(result.tags ?? []), m[1]])]; });
@@ -56,4 +56,9 @@ export function parseTaskDraft(input: string, lists: TaskList[], base: string): 
   const title = text.replace(/\s+/g, ' ').trim();
   // A title is mandatory: never turn a metadata-only entry into an unnamed task.
   return title ? { ...result, text: title } : { text: input.trim() };
+}
+
+/** Unknown list references are previewed, never persisted as task metadata. */
+export function unknownTaskLists(input: string, lists: TaskList[]): string[] {
+ return [...input.matchAll(/(?:^|\s)#([^\s#@]+)/gu)].map(m => m[1]).filter(name => !lists.some(l => fold(l.name) === fold(name)));
 }

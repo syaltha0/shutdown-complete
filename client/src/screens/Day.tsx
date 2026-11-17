@@ -1,3 +1,4 @@
+import { confirmAction } from '../components/ConfirmDialog';
 import { emptyInbox, type InboxDoc } from '../lib/model';
 import { decideMoves } from '../lib/taskDeferral';
 import { FocusLog } from '../components/FocusLog';
@@ -281,7 +282,7 @@ export function Day({ date }: { date: string }) {
       const slot = slotAt(ev.clientX, ev.clientY);
       setDrag(null);
       if (!slot) return;
-      if (item.waiting && !window.confirm(T.waitingBlockConfirm)) return;
+      if (item.waiting && !await confirmAction(T.addBlock, T.waitingBlockConfirm, T.addBlock, T.cancel)) return;
       const taskId = from ? (await toDay([from], date))[0] : item.id;
       const b: Block = { id: uid(), start: slot.start, end: slot.end, label: item.text, taskLabel: item.text, task: { id: taskId, list: 'day', day: date }, note: '', kind: 'shallow' };
       setCols((cols) => cols.map((c, i) => (i === cols.length - 1 ? { ...c, blocks: [...c.blocks, b].sort((a, z) => a.start - z.start) } : c)));
@@ -322,7 +323,7 @@ export function Day({ date }: { date: string }) {
       )}
       <div className="spread">
         <div className="page-left">
-          <MetricsBox day={day} date={date} defs={settings.metrics} update={update} />
+          <MetricsBox day={day} date={date} defs={settings.metrics.filter(m => !m.archived)} update={update} />
           <section className="panel capture" data-tour="capture" data-anim>
             <section aria-labelledby="tasks-h">
               <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>

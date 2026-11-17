@@ -1,3 +1,4 @@
+import { confirmAction } from '../components/ConfirmDialog';
 import { decideMoves, postponed } from '../lib/taskDeferral';
 import { PlannedBlocks } from '../components/TaskBlockLink';
 import './TasksExtras.css';
@@ -20,7 +21,7 @@ import {
 import { insertAt, offerUndo } from '../lib/undo';
 import { DayChips } from './Templates';
 import { updateKey, useDoc } from '../lib/useDoc';
-import { parseTaskDraft } from '../lib/taskQuickAdd';
+import { parseTaskDraft, unknownTaskLists } from '../lib/taskQuickAdd';
 import { cleanTrash, trashTasks, restoreTasks } from '../lib/taskTrash';
 import { taskMatches } from '../lib/taskSearch';
 
@@ -349,7 +350,7 @@ function InboxTasks({ view: asked }: { view?: string }) {
           )}
           {view !== 'trash' && view !== 'completed' && <div id="tk-add-help" className="muted tk-quick-help">
             {draft.trim() ? <>
-              <span role="status">{T.tkDetected}: {parsedDraft.text} · {[parsedDraft.due, parsedDraft.dueTime, parsedDraft.list && lists.find((l) => l.id === parsedDraft.list)?.name, parsedDraft.priority && `${T.tkPriority} ${parsedDraft.priority}`, parsedDraft.tags?.map((g) => `@${g}`).join(' '), parsedDraft.repeat && recurWords(T, parsedDraft.repeat)].filter(Boolean).join(' · ')}</span>{' '}
+              {unknownTaskLists(draft, lists).map(name => <small key={name}>{T.unknownTaskList(name)}</small>)}<span role="status">{T.tkDetected}: {parsedDraft.text} · {[parsedDraft.due, parsedDraft.dueTime, parsedDraft.list && lists.find((l) => l.id === parsedDraft.list)?.name, parsedDraft.priority && `${T.tkPriority} ${parsedDraft.priority}`, parsedDraft.tags?.map((g) => `@${g}`).join(' '), parsedDraft.repeat && recurWords(T, parsedDraft.repeat)].filter(Boolean).join(' · ')}</span>{' '}
               <button type="button" className="card-link quiet" onClick={() => setSmartAdd(false)}>{T.tkLiteral}</button>
             </> : <span>{T.tkQuickHelp}</span>}
           </div>}
@@ -377,7 +378,7 @@ function InboxTasks({ view: asked }: { view?: string }) {
             {editingFilter.date === 'range' && <>{(['from','to'] as const).map((key) => <label key={key}>{T.tkFilterRange}<input type="date" className="input" value={editingFilter[key] ?? ''} onChange={(e) => setEditingFilter({ ...editingFilter, [key]: e.target.value })} /></label>)}</>}
             <button className="btn" type="submit">{T.tkFilterSave}</button><button className="btn ghost" type="button" onClick={() => setEditingFilter(null)}>{T.tkClose}</button>
           </form>}
-          {view === 'trash' && <><p className="muted">{T.tkTrashHelp}</p><button className="btn ghost" onClick={() => { if (window.confirm(T.tkPurgeConfirm)) update((b) => ({ ...b, trash: [] })); }}>{T.tkEmptyTrash}</button><ul className="tk-list">{doc?.trash?.map(({ item: t }) => <li key={t.id} className="tk-row"><span className="tk-title">{t.text}</span><button className="btn ghost" onClick={() => update((b) => restoreTasks(b, [t.id]))}>{T.tkRestore}</button><button className="btn ghost" onClick={() => { if (window.confirm(T.tkPurgeConfirm)) update((b) => ({ ...b, trash: b.trash?.filter((x) => x.item.id !== t.id) })); }}>{T.tkPurge}</button></li>)}</ul></>}
+          {view === 'trash' && <><p className="muted">{T.tkTrashHelp}</p><button className="btn ghost" onClick={async () => { if (await confirmAction(T.tkPurge, T.tkPurgeConfirm, T.tkPurge, T.cancel)) update((b) => ({ ...b, trash: [] })); }}>{T.tkEmptyTrash}</button><ul className="tk-list">{doc?.trash?.map(({ item: t }) => <li key={t.id} className="tk-row"><span className="tk-title">{t.text}</span><button className="btn ghost" onClick={() => update((b) => restoreTasks(b, [t.id]))}>{T.tkRestore}</button><button className="btn ghost" onClick={async () => { if (await confirmAction(T.tkPurge, T.tkPurgeConfirm, T.tkPurge, T.cancel)) update((b) => ({ ...b, trash: b.trash?.filter((x) => x.item.id !== t.id) })); }}>{T.tkPurge}</button></li>)}</ul></>}
           {shown.length > 0 && <ul className="tk-list">{shown.map(row)}</ul>}
           {view !== 'trash' && doc && shown.length === 0 && <p className="muted tk-empty">{q.trim() ? T.tkNoMatch : T.tkEmpty[view as keyof typeof T.tkEmpty] ?? T.tkEmpty.list}</p>}
           {(doneHere.length > 0 || (view === 'completed' && shown.length > 0)) && (

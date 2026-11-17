@@ -56,7 +56,7 @@ export function Shortcuts() {
         case 'y': go(`/year/${t.slice(0,4)}`); break;
         case 'q': go(`/quarter/${quarterOf(t)}`); break;
         case 'f': go('/focus'); break;
-        case 'h': if (featureOn(settingsRef.current, 'habits')) go(`/habits/${monthOf(t)}`); break;
+        case 'h': if (featureOn(settingsRef.current, 'habits')) go('/habits'); break;
         case 'i': if (featureOn(settingsRef.current, 'inbox')) go('/tasks'); break;
         case 's': go(`/shutdown/${t}`); break;
         case 'p': go(`/plan/${weekOf(t)}`); break;

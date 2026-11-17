@@ -58,6 +58,7 @@ export function BoardView({ board, setBoard, onDelete, card, status, error, retr
     if (!title) return;
     setList(listId, (l) => ({ ...l, cards: [...l.cards, { id: uid(), title, description: '', labels: [], checklist: [], created: today() }] }));
     setDraft('');
+    setComposer(null);
   }
   function addList() {
     const name = listDraft.trim();

@@ -22,7 +22,7 @@ export function Metrics() {
   const { settings } = useSettings();
   // completed focus sessions are a metric of their own, counted from the day's sessions
   const focusDef: MetricDef = { id: FOCUS_ID, name: T.focusMetric, kind: 'number', unit: T.mUnit, target: null };
-  const defs = [...settings.metrics, focusDef];
+  const defs = [...settings.metrics.filter(m => !m.archived), focusDef];
   const [metricId, setMetricId] = useState(defs[0]?.id ?? '');
   const [span, setSpan] = useState<Span>('8w');
   const nf1 = new Intl.NumberFormat(T.locale, { maximumFractionDigits: 1 });
@@ -113,7 +113,7 @@ export function Metrics() {
         <div className="kpis metric-kpis" aria-label={`${m.name}, ${T.thisWeekKpi}`}>
           <div className="kpi lead">
             <div className="kpi-label">{isCheck ? T.daysThisWeek : T.thisWeekKpi}</div>
-            <div className="kpi-value num">{docs ? (isCheck ? <span data-count={total}>{total}<small>/ {thisWeekDays.length}</small></span> : <span data-count={total}>{nf1.format(total)}<small>{m.unit}</small></span>) : <span className="skeleton" style={{ display: 'inline-block', width: 80, height: 28 }} />}</div>
+            <div className="kpi-value num">{docs ? (isCheck ? <span data-count={total}>{total}<small>/{thisWeekDays.length}</small></span> : <span data-count={total}>{nf1.format(total)}<small>{m.unit}</small></span>) : <span className="skeleton" style={{ display: 'inline-block', width: 80, height: 28 }} />}</div>
             <div className="delta">{docs && (versus(total, before.sum, fmtSum) ?? (m.kind === 'number' && m.target != null ? T.againstFive(fmtVal(m.target * 7, m)) : rangeLabel(weekDays(cur)[0], weekDays(cur)[6])))}</div>
           </div>
           <div className="kpi">
@@ -123,7 +123,7 @@ export function Metrics() {
           </div>
           <div className="kpi">
             <div className="kpi-label">{T.daysOnTarget}</div>
-            <div className="kpi-value num">{now.hit != null ? <>{now.hit}<small>/ {now.n}</small></> : <span className="muted">—</span>}</div>
+            <div className="kpi-value num">{now.hit != null ? <>{now.hit}<small>/{now.n}</small></> : <span className="muted">—</span>}</div>
             <div className="delta">{m.target != null ? (versus(now.hit, before.hit, fmtDays) ?? T.targetADay(fmtVal(m.target, m))) : T.noTarget}</div>
           </div>
           <div className="kpi">
