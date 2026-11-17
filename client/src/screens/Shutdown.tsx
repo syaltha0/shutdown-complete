@@ -29,6 +29,9 @@ export function Shutdown({ date }: { date: string }) {
   useEffect(() => {
     if (next && placeRepeats(next, tomorrow, settings.schedule, settings.exceptions)) updateNext((n) => placeRepeats(n, tomorrow, settings.schedule, settings.exceptions) ?? n);
   }, [next != null, tomorrow, settings.schedule, settings.exceptions]); // eslint-disable-line react-hooks/exhaustive-deps
+  const [confirmClose, setConfirmClose] = useState(false);
+  const confirmRef = useRef<HTMLDialogElement>(null);
+  useEffect(() => { if (confirmClose) confirmRef.current?.showModal(); else confirmRef.current?.close(); }, [confirmClose]);
   const [mode, setMode] = useState('tomorrow');
   const [chosenDate, setChosenDate] = useState('');
   const [excluded, setExcluded] = useState<string[]>([]);
@@ -65,6 +68,7 @@ export function Shutdown({ date }: { date: string }) {
 
   return (
     <>
+      <dialog ref={confirmRef} className="sheet" onClose={() => setConfirmClose(false)} aria-labelledby="shutdown-confirm-title"><h2 id="shutdown-confirm-title">{T.shutdownAsk(steps.length - doneSteps)}</h2><div className="foot"><button type="button" className="btn" onClick={() => setConfirmClose(false)}>{T.shutdownBack}</button><button type="button" className="btn primary" onClick={() => { complete(true); setConfirmClose(false); }}>{T.shutdownYes}</button></div></dialog>
       <div className="title-row">
         <div>
           <h1>{T.shutdownTitle(isToday ? null : longDate(date))}</h1>
@@ -128,7 +132,7 @@ export function Shutdown({ date }: { date: string }) {
                 ) : (
                   <>
                     <span className="muted">{doneSteps < steps.length ? T.stepsLeft(steps.length - doneSteps) : T.allClosed}</span>
-                    <button type="button" className="btn primary" onClick={() => complete(true)}>{T.scheduleShutdown}</button>
+                    <button type="button" className="btn primary" onClick={() => steps.length > doneSteps ? setConfirmClose(true) : complete(true)}>{T.scheduleShutdown}</button>
                   </>
                 )}
               </div>
