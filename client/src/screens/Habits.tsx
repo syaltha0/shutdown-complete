@@ -1,3 +1,4 @@
+import { cycleHabit, habitState, habitStats, planned } from '../lib/habits';
 import { useState } from 'react';
 import { useSettings } from '../App';
 import { IconLeft, IconPlus, IconRight } from '../components/Icons';
@@ -14,7 +15,7 @@ import { updateKey, useRange } from '../lib/useDoc';
 export function Habits({ id }: { id: string }) {
   const T = useT();
   const { settings, update } = useSettings();
-  const habits = settings.metrics.filter((m) => m.kind === 'check');
+  const habits = settings.metrics.filter((m) => m.kind === 'check' && !m.archived);
   const t = today();
   const [from, to] = monthRange(id);
   // load two months back too, so a streak that began last month is counted whole
@@ -23,18 +24,14 @@ export function Habits({ id }: { id: string }) {
   const [weekId, setWeekId] = useState(() => (monthOf(t) === id ? weekOf(t) : weekOf(from)));
   const [name, setName] = useState('');
 
-  const isDone = (h: MetricDef, d: string) => docs?.get(`day:${d}`)?.metrics[h.id] === true;
   const toggle = (h: MetricDef, d: string) => {
     if (d > t) return;
-    updateKey<DayDoc>(`day:${d}`, emptyDay, (x) => ({ ...x, metrics: { ...x.metrics, [h.id]: x.metrics[h.id] !== true } }));
+    updateKey<DayDoc>(`day:${d}`, emptyDay, x => cycleHabit(h, x));
   };
-  const streak = (h: MetricDef) => {
-    let d = isDone(h, t) ? t : addDays(t, -1), n = 0;
-    while (isDone(h, d)) { n++; d = addDays(d, -1); }
-    return n;
-  };
+  const stats = (h: MetricDef, dates: string[]) => habitStats(h, dates, d => docs?.get(`day:${d}`), t);
+  const streak = (h: MetricDef) => stats(h, Array.from({length: 94}, (_, i) => addDays(t, i - 93))).streak;
   const elapsed = days.filter((d) => d <= t);
-  const doneDays = (h: MetricDef) => elapsed.filter((d) => isDone(h, d)).length;
+  const doneDays = (h: MetricDef) => stats(h, elapsed).done;
   const totalDone = habits.reduce((s, h) => s + doneDays(h), 0);
   const best = habits.map((h) => ({ h, n: streak(h) })).sort((a, b) => b.n - a.n)[0];
 
@@ -46,14 +43,21 @@ export function Habits({ id }: { id: string }) {
   }
 
   const cell = (h: MetricDef, d: string) => {
-    const done = isDone(h, d);
+    const done = habitState(h, docs?.get(`day:${d}`)) === "done";
     return (
       <button key={d} type="button" className={`hcell${done ? ' on' : ''}${d === t ? ' is-today' : ''}`}
-        disabled={d > t || !docs} aria-pressed={done} aria-label={T.toggleAria(h.name, longDate(d), done)}
-        onClick={() => toggle(h, d)} />
+        disabled={d > t || !docs || !planned(h, d)} aria-pressed={done} aria-label={`${T.toggleAria(h.name, longDate(d), done)} / ${habitState(h, docs?.get(`day:${d}`)) === "skipped" ? T.habitSkipped : ""}`}
+        onClick={() => toggle(h, d)}>{habitState(h, docs?.get(`day:${d}`)) === "skipped" ? "/" : ""}</button>
     );
   };
 
+  const patch = (h: MetricDef, value: Partial<MetricDef>) => update(s => ({...s, metrics: s.metrics.map(m => m.id === h.id ? {...m, ...value} : m)}));
+  const move = (h: MetricDef, offset: number) => update(s => {
+    const metrics = [...s.metrics], at = metrics.findIndex(m => m.id === h.id);
+    const other = habits[habits.findIndex(m => m.id === h.id) + offset];
+    if (other) { const to = metrics.findIndex(m => m.id === other.id); [metrics[at], metrics[to]] = [metrics[to], metrics[at]]; }
+    return {...s, metrics};
+  });
   const wdays = weekDays(weekId);
 
   return (
@@ -62,7 +66,7 @@ export function Habits({ id }: { id: string }) {
         <div>
           <h1>{T.habitsTitle} · {monthTitle(id)}</h1>
           <p className="sub num">
-            {docs && habits.length ? <>{T.habitsFinding(totalDone, habits.length * elapsed.length)}{best && best.n > 0 ? T.bestStreak(best.h.name, best.n) : ''}</> : ' '}
+            {docs && habits.length ? <>{T.habitsFinding(totalDone, habits.reduce((n,h) => n + stats(h, elapsed).total, 0))}{best && best.n > 0 ? T.bestStreak(best.h.name, best.n) : ''}</> : ' '}
           </p>
         </div>
         <div className="title-actions">
@@ -95,8 +99,8 @@ export function Habits({ id }: { id: string }) {
                 <div className="hrow" key={h.id}>
                   <span className="hname">{h.name}</span>
                   {days.map((d) => cell(h, d))}
-                  <span className="n num streak" key={streak(h)}>{T.daysN(streak(h))}</span>
-                  <span className="n num">{T.of(doneDays(h), elapsed.length)}</span>
+                  <span className="n num streak" key={streak(h)}>{(h.frequency?.mode === "weekly" ? T.habitWeeks(streak(h)) : T.daysN(streak(h)))}</span>
+                  <span className="n num">{T.of(doneDays(h), stats(h, elapsed).total)}</span>
                 </div>
               ))}
             </div>
@@ -113,7 +117,7 @@ export function Habits({ id }: { id: string }) {
               </div>
               {habits.map((h) => (
                 <div key={h.id} className="hweek-habit">
-                  <div className="hweek-name"><span>{h.name}</span><span className="muted num">{T.daysN(streak(h))}</span></div>
+                  <div className="hweek-name"><span>{h.name}</span><span className="muted num">{(h.frequency?.mode === "weekly" ? T.habitWeeks(streak(h)) : T.daysN(streak(h)))}</span></div>
                   <div className="hrow">{wdays.map((d) => cell(h, d))}</div>
                 </div>
               ))}
@@ -127,18 +131,34 @@ export function Habits({ id }: { id: string }) {
         </form>
       </section>
 
+      <section className="panel" aria-label={T.habitFrequency}>
+        {habits.map((h, index) => <div key={h.id} className="habit-add" style={{flexWrap: "wrap"}}>
+          <span>{h.name}</span>
+          <select className="input" aria-label={`${h.name} / ${T.habitFrequency}`} value={h.frequency?.mode ?? 'daily'} onChange={e => patch(h, {frequency: {mode: e.target.value as 'daily' | 'days' | 'weekly', days: [0,1,2,3,4], count: 3}})}>
+            <option value="daily">{T.habitDaily}</option><option value="days">{T.habitSelected}</option><option value="weekly">{T.habitWeekly}</option>
+          </select>
+          {h.frequency?.mode === 'weekly' && <input className="input" type="number" min={1} max={7} aria-label={`${h.name} / ${T.habitWeekly}`} value={h.frequency.count ?? 3} onChange={e => patch(h, {frequency: {...h.frequency!, count: Math.max(1, Math.min(7, Number(e.target.value)))}})} />}
+          {h.frequency?.mode === 'days' && weekDays(weekOf(t)).map((d, i) => <label key={d}><input type="checkbox" checked={h.frequency?.days?.includes(i) ?? false} onChange={e => patch(h, {frequency: {...h.frequency!, days: e.target.checked ? [...h.frequency!.days ?? [], i] : h.frequency!.days?.filter(n => n !== i)}})} />{fmtDay(d, {weekday: 'short'})}</label>)}
+          <button className="btn" aria-label={`${h.name} / ${T.habitUp}`} disabled={index === 0} onClick={() => move(h, -1)}>{T.habitUp}</button>
+          <button className="btn" aria-label={`${h.name} / ${T.habitDown}`} disabled={index === habits.length - 1} onClick={() => move(h, 1)}>{T.habitDown}</button>
+          <button className="btn" aria-label={`${h.name} / ${T.habitArchive}`} onClick={() => patch(h, {archived: true})}>{T.habitArchive}</button>
+        </div>)}
+      </section>
+      <details className="panel"><summary>{T.habitArchived} ({settings.metrics.filter(m => m.kind === 'check' && m.archived).length})</summary>
+        {settings.metrics.filter(m => m.kind === 'check' && m.archived).map(h => <div key={h.id}>{h.name} <button className="btn" aria-label={`${h.name} / ${T.habitRestore}`} onClick={() => patch(h, {archived: false})}>{T.habitRestore}</button></div>)}
+      </details>
       {habits.length > 0 && docs && (
         <div className="grid" style={{ marginTop: 'var(--gap)' }}>
           <section className="panel span-5" aria-labelledby="hr-h" data-anim>
             <header><h2 id="hr-h">{T.habitRates}</h2><span className="meta">{monthTitle(id)}</span></header>
             <div className="rates">
               {habits.map((h) => {
-                const n = doneDays(h), p = elapsed.length ? n / elapsed.length : 0;
+                const n = doneDays(h), p = stats(h, elapsed).rate;
                 return (
                   <div className="rate" key={h.id}>
                     <div className="bb-top"><span className="l">{h.name}</span><span className="num">{Math.round(p * 100)}%</span></div>
                     <div className="bb-track"><i style={{ transform: `scaleX(${p})` }} /></div>
-                    <div className="rate-sub muted num">{T.currentRun(T.daysN(streak(h)))} · {T.of(n, elapsed.length)}</div>
+                    <div className="rate-sub muted num">{T.currentRun((h.frequency?.mode === "weekly" ? T.habitWeeks(streak(h)) : T.daysN(streak(h))))} · {T.of(n, stats(h, elapsed).total)}</div>
                   </div>
                 );
               })}
@@ -149,11 +169,11 @@ export function Habits({ id }: { id: string }) {
               <h2 id="hw-h" style={{ fontSize: 16, fontWeight: 500 }}>{T.allDoneDays}</h2>
               <span className="meta">{T.thisWeekInBlue}</span>
             </div>
-            <Chart label={T.allDoneDays} deps={[docs, habits.length, T.locale]} draw={(el, C) => {
+            <Chart label={T.allDoneDays} deps={[docs, settings.metrics, T.locale]} draw={(el, C) => {
               const ws = Array.from({ length: 8 }, (_, i) => addWeeks(weekOf(t), i - 7));
               C.bars(el, {
                 labels: ws.map((w) => fmtDay(weekDays(w)[0], { day: 'numeric', month: 'short' })),
-                values: ws.map((w) => weekDays(w).filter((d) => d <= t && habits.every((h) => isDone(h, d))).length),
+                values: ws.map((w) => weekDays(w).filter((d) => d <= t && habits.some(h => planned(h, d) && habitState(h, docs.get(`day:${d}`)) !== "skipped") && habits.every(h => !planned(h, d) || habitState(h, docs.get(`day:${d}`)) !== "empty")).length),
                 highlight: 7, colour: themeColor('--hue'), mutedColour: themeColor('--chart-1'), height: 180,
                 format: (v: number) => T.daysN(v), tickFormat: (v: number) => (Number.isInteger(v) ? String(v) : ''),
               });

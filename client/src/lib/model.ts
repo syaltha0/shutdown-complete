@@ -205,6 +205,7 @@ export interface DayDoc {
   keyTaskId?: string;
   tasks: Item[];
   notes: string;
+  skippedHabits?: string[];
   metrics: Record<string, number | boolean | null>;
   shutdown: { done: boolean; at: string | null; steps: Record<string, boolean> };
   /** `cycleFrom`: how many of the day's sessions were logged before the current cycle of rounds began ("Reset cycle"); the dots, "Session n/N" and the long break count from there */
@@ -235,6 +236,8 @@ export interface QuarterDoc {
 }
 
 export interface MetricDef {
+  frequency?: { mode: "daily" | "days" | "weekly"; days?: number[]; count?: number };
+  archived?: boolean;
   id: string;
   name: string;
   kind: 'number' | 'check';
