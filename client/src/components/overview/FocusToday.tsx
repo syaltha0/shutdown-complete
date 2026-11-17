@@ -24,13 +24,13 @@ export function FocusToday({ T, settings, day, B }: OverviewData) {
   const recent = [...(day?.focus?.sessions ?? [])].reverse().slice(0, 1);
   // nothing yet today: one round action instead of a ring of dashes
   if (!active && !count && !focused) return <section className="panel b-focus is-empty" aria-labelledby="overview-focus-title" data-complete={false}>
-    <h2 id="overview-focus-title">{B.focus}</h2>
+    <h2 id="overview-focus-title">{B.focus}{manual && <small> ? {T.focusManual}</small>}</h2>
     <RoundAction href="/focus" icon="play" title={T.startFocus} hint={B.roundFocus} />
   </section>;
   return <section className="panel b-focus" aria-labelledby="overview-focus-title" data-complete={complete}>
     <h2 id="overview-focus-title">{B.focus}</h2>
     <OverviewRing value={focused} total={goal} label={B.focus} text={focused ? duration(focused) : "–"} complete={complete} />
-    <div className="b-rt-body">{manual && <small>{T.focusManual}</small>}
+    <div className="b-rt-body">
       <dl className="b-figures">
         <div><dt>{B.focusSessionsLabel}</dt><dd className="num">{count}</dd></div>
         <div><dt>{B.focusRemaining}</dt><dd className="num">{goal ? (focused >= goal ? B.focusReached : duration(goal - focused)) : "–"}</dd></div>

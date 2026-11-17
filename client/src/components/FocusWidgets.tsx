@@ -35,12 +35,12 @@ export function FocusWidgets({ day }: { day: DayDoc | null }) {
   const dayLeft = Math.max(0, to - now);
   return <section className="panel focus-widgets" aria-labelledby="fw-heading">
     <header><h2 id="fw-heading">{T.nav.today}</h2></header>
-    <div className="fw-goal">{manual && <small>{T.focusManual}</small>}
+    <div className="fw-goal">
       {target && <svg width="56" height="56" viewBox="0 0 36 36" role="progressbar" aria-label={T.fwGoal} aria-valuemin={0} aria-valuemax={target} aria-valuenow={Math.min(minutes, target)} aria-valuetext={`${duration(minutes)} / ${duration(target)}`}>
         <circle cx="18" cy="18" r="15" fill="none" stroke="var(--border)" strokeWidth="3" />
         <circle className={ratio >= 1 ? 'complete' : ''} cx="18" cy="18" r="15" fill="none" strokeWidth="3" pathLength="1" strokeDasharray={`${ratio} 1`} transform="rotate(-90 18 18)" />
       </svg>}
-      <div className="fw-goal-copy"><span className="fw-caption">{T.fwGoal}</span><span className="fw-value num">{duration(minutes)}{target && <span className="fw-target"> / {duration(target)}</span>}</span>{target && <span className="fw-caption fw-left">{minutes >= target ? T.fwGoalMet : T.fwGoalLeft(duration(target - minutes))}</span>}</div>
+      <div className="fw-goal-copy"><span className="fw-caption">{T.fwGoal}{manual && <small> ? {T.focusManual}</small>}</span><span className="fw-value num">{duration(minutes)}{target && <span className="fw-target"> / {duration(target)}</span>}</span>{target && <span className="fw-caption fw-left">{minutes >= target ? T.fwGoalMet : T.fwGoalLeft(duration(target - minutes))}</span>}</div>
     </div>
     <div className="fw-day">
       <div className="fw-strip" role="img" aria-label={T.fwStrip(clock(from), clock(to), blocks.length)}>
