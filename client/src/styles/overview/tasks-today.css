@@ -4,7 +4,7 @@
 .b-tasks-ring svg { display: block; width: 100%; height: 100%; }
 .b-tasks-ring strong { position: absolute; inset: 0; display: grid; place-items: center; font-size: 17px; font-weight: 500; font-variant-numeric: tabular-nums; }
 .b-tasks-fill { stroke: var(--hue); transition: stroke-dasharray .2s ease; }
-.b-tasks.is-complete .b-tasks-fill { stroke: var(--positive); }
+.b-tasks.is-complete .b-tasks-fill { stroke: var(--hue); }
 .b-tasks-next { display: flex; align-items: center; gap: 7px; max-width: 100%; min-width: 0; cursor: pointer; min-height: 28px; }
 .b-tasks-next input { flex: none; width: 14px; height: 14px; margin: 0; accent-color: var(--hue); cursor: pointer; }
 .b-tasks .b-truncate { display: block; max-width: 100%; min-width: 0; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; line-height: 16px; }

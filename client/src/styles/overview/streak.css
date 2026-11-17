@@ -6,8 +6,7 @@
 .b-streak-days { display: grid; grid-template-columns: repeat(14, minmax(0, 1fr)); gap: 4px; padding: 2px; }
 .b-streak-days a { display: block; height: 12px; border: 1px solid var(--control); border-radius: 2px; }
 .b-streak-days a.on { background: var(--hue); border-color: var(--hue); }
-.b-streak-days a.today { outline: 1px solid var(--muted); outline-offset: 2px; }
-.b-streak-days a.today:not(.on) { border-style: dashed; }
+.b-streak-days a.today { outline: 1px solid var(--today-ring); outline-offset: 2px; }
 .b-streak-days a:hover { outline: 1px solid var(--text); outline-offset: 2px; }
 .b-streak-days a:focus-visible, .b-streak .b-act:focus-visible { outline: 2px solid var(--focus-ring); outline-offset: 3px; }
 .b-streak .b-act { display: inline-flex; align-items: center; gap: 2px; min-width: 0; min-height: 22px; padding: 0; border: 0; background: none; color: var(--muted); font: inherit; font-size: 11px; cursor: pointer; text-decoration: none; }

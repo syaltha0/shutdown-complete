@@ -5,7 +5,7 @@
 .b-focus-summary { color: var(--muted); }
 .b-focus-dots { display: flex; gap: 4px; min-height: 4px; }
 .b-focus-dots i { width: 4px; height: 4px; border-radius: 50%; background: var(--hue); }
-.b-focus[data-complete="true"] .b-focus-dots i { background: var(--positive); }
+.b-focus[data-complete="true"] .b-focus-dots i { background: var(--hue); }
 .b-focus .b-ring strong { font-size: 14px; }
 
 .b-focus .b-ring { width: 64px; }

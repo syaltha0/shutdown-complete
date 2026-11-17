@@ -1,4 +1,4 @@
-﻿.bento .b-heat { gap: 6px; }
+.bento .b-heat { gap: 6px; }
 .b-heat-head, .b-heat-foot { display: flex; align-items: center; justify-content: space-between; gap: 12px; min-width: 0; }
 .b-heat-head { flex-shrink: 0; }
 .b-heat-legend { display: flex; gap: 8px; color: var(--muted); font-size: 10px; }
@@ -16,7 +16,7 @@
 .b-heat .heat-3 { background: color-mix(in srgb,var(--hue) 75%,transparent); }
 .b-heat .heat-4 { background: var(--hue); }
 .b-heat .b-heat-future { background: transparent; border: 1px dashed var(--rule); opacity: .4; }
-.b-heat-today { outline: 1px solid var(--text); outline-offset: 1px; }
+.b-heat-today { outline: 1px solid var(--today-ring); outline-offset: 1px; }
 .b-heatmap a:hover, .b-heatmap a:focus-visible { outline: 2px solid var(--text); outline-offset: 1px; }
 .b-heat-foot { flex-shrink: 0; }
 .b-heat-foot p { font-size: 11px; line-height: 1.3; }

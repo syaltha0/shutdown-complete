@@ -11,7 +11,7 @@
 .b-habit-week { display: flex; gap: 4px; flex: none; padding: 2px; }
 .b-habit-week > span { width: 5px; height: 5px; border: 1px solid var(--control); border-radius: 50%; }
 .b-habit-week .done { background: var(--muted); border-color: var(--muted); }
-.b-habit-week .today { outline: 1px solid var(--control); outline-offset: 2px; margin-left: 2px; }
+.b-habit-week .today { outline: 1px solid var(--today-ring); outline-offset: 2px; margin-left: 2px; }
 .b-habit-week .today.done { background: var(--hue); border-color: var(--hue); }
 .b-habits .b-habits-complete { font-size: 11px; color: var(--muted); flex-shrink: 0; }
 .b-habits .b-act { display: inline-flex; align-items: center; gap: 2px; min-height: 28px; padding: 0; border: 0; background: none; color: var(--muted); font: inherit; font-size: 13px; text-decoration: none; flex-shrink: 0; }

@@ -1,3 +1,6 @@
+/* every "today" marker on the overview: one thin line in a softened data blue (user, 2026-11-17) */
+:root { --today-ring: color-mix(in srgb, var(--hue) 70%, transparent); }
+
 /* An empty card's one action: a thin circle (the size of the rings it stands in for) with a title and a line of help.
    Wide cards put the circle on the left; square cards centre it above the words. */
 .b-round-action { display: flex; align-items: center; gap: 16px; width: 100%; min-width: 0; margin: 0; padding: 0; border: 0; background: none; color: var(--text); font: inherit; text-align: left; text-decoration: none; cursor: pointer; border-radius: 12px; }

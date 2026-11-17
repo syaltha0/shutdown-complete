@@ -12,7 +12,7 @@ export function OverviewRing({
   complete?: boolean;
 }) {
   return (
-    <div className="b-ring">
+    <div className="b-ring" data-complete={complete}>
       <svg viewBox="0 0 100 100" role="img" aria-label={`${label}: ${text}`}>
         <circle
           cx="50"
@@ -27,7 +27,7 @@ export function OverviewRing({
           cy="50"
           r="43"
           fill="none"
-          stroke={complete ? "var(--positive)" : "var(--hue)"}
+          stroke="var(--hue)"
           opacity={value > 0 && total > 0 ? 1 : 0}
           strokeWidth="5"
           pathLength="100"
