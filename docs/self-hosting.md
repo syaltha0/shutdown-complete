@@ -2,7 +2,7 @@
 
 ## Run it with Docker
 
-You need Docker with Compose v2.24 or newer. The recommended path uses the prebuilt GHCR image, pinned to `0.8.4`.
+You need Docker with Compose v2.24 or newer. The recommended path uses the prebuilt GHCR image, pinned to `0.8.5`.
 
 ```bash
 git clone https://github.com/syaltha0/shutdown-complete.git

@@ -81,7 +81,7 @@ Everything else is listed in [docs/features.md](docs/features.md).
 
 ### 1. Run the prebuilt image (recommended)
 
-You need Docker with Compose v2.24 or newer. The supplied [GHCR Compose file](deploy/compose.ghcr.yml) pins version `0.8.4`:
+You need Docker with Compose v2.24 or newer. The supplied [GHCR Compose file](deploy/compose.ghcr.yml) pins version `0.8.5`:
 
 ```bash
 git clone https://github.com/syaltha0/shutdown-complete.git
