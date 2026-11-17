@@ -702,7 +702,3 @@ button.bp-chip:hover { background: var(--raised); }
 .fs-plan { grid-auto-rows: max-content; }
 .fs-plan .session { align-items: center; }
 @media (min-width: 1000px) and (max-height: 960px) { .fs-plan .session:nth-child(n+4) { display: none; } }
-
-/* Keep the primary data blue and the planning action neutral. */
-.focus-panel .btn.primary { background: var(--text); border-color: var(--text); color: var(--surface); }
-.focus-widgets .fw-next[data-empty="true"] { margin-block: 4px; padding: 10px 12px; border: 1px solid var(--control); border-radius: 6px; background: var(--ground); }
