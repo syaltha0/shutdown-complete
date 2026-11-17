@@ -140,3 +140,15 @@
 .b-track a > i, .b-track i { border-radius: 6px; }
 
 .b-track { height: 28px; border-radius: 4px; overflow: visible; } .bento .b-timeline { grid-template-rows: 28px 12px; } .b-track .b-timeline-block i { inset: 0 1px; border-radius: 4px; text-align: left; } .b-track .personal i { background: var(--ground); background-image: none; } .b-track.is-empty { border: 0; } .b-time-grid { position: absolute; top: 0; bottom: -4px; width: 1px; background: var(--rule); pointer-events: none; } .b-track b { width: 1px; z-index: 6; } .b-track b > span { position: absolute; bottom: 100%; left: 0; transform: translateX(-50%); color: var(--hue); background: var(--surface); font-size: 9px; font-weight: 400; white-space: nowrap; } @media(max-width:860px) { .bento .b-timeline { grid-template-rows: auto 28px 12px; } }
+
+/* The empty strip is a planning action, rather than a placeholder bar. */
+.b-track.is-empty { background: transparent; }
+.b-track.is-empty .b-time-grid { display: none; }
+.b-track.is-empty .b-empty-plan { border: 1px solid var(--control); border-radius: 6px; color: var(--text); font-weight: 500; background: var(--surface); }
+
+.bento .b-timeline.is-empty { grid-template-columns:auto auto minmax(0,1fr); grid-template-rows:1fr; align-items:center; gap:18px; }
+.b-timeline.is-empty .b-ticks { display:none; }
+.b-timeline.is-empty .b-track { height:40px; }
+.b-timeline.is-empty .b-empty-plan { padding:0 20px; font-size:13px; }
+.bento .b-timeline.is-empty .b-timeline-hint { grid-column:3; }
+@media(max-width:860px) { .bento .b-timeline.is-empty { grid-template-columns:1fr; justify-items:center; gap:8px; } .bento .b-timeline.is-empty .b-timeline-hint { grid-column:1; } }

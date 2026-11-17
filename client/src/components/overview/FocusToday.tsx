@@ -22,7 +22,7 @@ export function FocusToday({ T, settings, day, B }: OverviewData) {
   const complete = goal > 0 && focused >= goal;
   // the latest sessions, newest first, beside the ring
   const recent = [...(day?.focus?.sessions ?? [])].reverse().slice(0, 1);
-  return <section className="panel b-focus" aria-labelledby="overview-focus-title" data-complete={complete}>
+  return <section className={`panel b-focus${!focused && !active ? " is-empty" : ""}`} aria-labelledby="overview-focus-title" data-complete={complete}>
     <h2 id="overview-focus-title">{B.focus}</h2>
     <OverviewRing value={focused} total={goal} label={B.focus} text={focused ? duration(focused) : "–"} complete={complete} />
     <div className="b-rt-body">
@@ -31,6 +31,7 @@ export function FocusToday({ T, settings, day, B }: OverviewData) {
         <div><dt>{B.focusRemaining}</dt><dd className="num">{goal ? (focused >= goal ? B.focusReached : duration(goal - focused)) : "–"}</dd></div>
         <div><dt>{B.focusLongest}</dt><dd className="num">{count ? duration(Math.max(...(day?.focus?.sessions ?? []).map(s => s.minutes))) : "–"}</dd></div>
       </dl>
+      {!focused && !active && <p className="b-rt-summary">{B.noFocus}</p>}
       {active && <p className="b-rt-summary">{active ? `${T.phase[active.phase]} · ${B.left(B.focusMinutes(Math.ceil(secondsLeft(active, now) / 60)))}${active.pausedLeft != null ? ` · ${B.focusPaused}` : ""}` : [goal > 0 ? B.of(duration(goal)) : null, count > 0 ? B.focusSessions(count) : null].filter(Boolean).join(" · ") || B.noFocus}</p>}
       {recent.length > 0 && <ul className="b-rt-list">{recent.map(s => { const at = new Date(s.start); return <li key={s.id}><span className="num">{clock(at.getHours() * 60 + at.getMinutes())}</span><span className="b-truncate" title={s.label}>{s.label || T.freeFocus}</span><span className="num">{duration(s.minutes)}</span></li>; })}</ul>}
       <a className="b-act main" href="/focus" onClick={onLinkClick}><span>{active ? B.focusOpen : T.startFocus}</span><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" aria-hidden="true"><path d="m9 5 7 7-7 7" /></svg></a>

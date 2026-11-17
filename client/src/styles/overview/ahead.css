@@ -42,3 +42,8 @@
 .bento .b-ahead .b-calendar i { top: 8px; right: 8px; width: 6px; height: 6px; }
 .bento .b-ahead .b-calendar em { margin-top: 0; height: 3px; border-radius: 2px; }
 @media (max-width: 860px) { .bento .b-ahead .b-calendar a { padding: 4px 6px; } .bento .b-ahead .b-calendar span { font-size: 13px; } }
+
+.b-ahead-empty { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding-top: 6px; }
+.b-ahead-empty p { margin: 0; min-width: 0; }
+.b-ahead-empty .b-act { display: inline-flex; flex-shrink: 0; align-items: center; gap: 12px; min-height: 36px; padding: 0 12px; border: 1px solid var(--control); border-radius: 6px; background: var(--ground); }
+@media (max-width: 860px) { .b-ahead-empty { flex-wrap: wrap; } }

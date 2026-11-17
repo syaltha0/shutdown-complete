@@ -57,3 +57,6 @@
 .b-open-done li { min-height: 20px; color: var(--muted); font-size: 12px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .b-open-done s { text-decoration-color: var(--control); }
 @media (max-height: 820px) and (min-width: 861px) { .b-open-done ul { display: none; } }
+
+/* A short list stays together; the capture field anchors the remaining space. */
+.b-open .b-open-capture { margin-top: auto; }

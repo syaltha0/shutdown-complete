@@ -10,11 +10,11 @@ export function Timeline({ T, settings, t, now, day, plan, B }: OverviewData) {
   const tick =
     [60, 120, 180, 240, 360].find((m) => (to - from) / m <= 4) ?? 360;
   return (
-    <section className="panel b-timeline">
+    <section className={`panel b-timeline${!plan.length ? " is-empty" : ""}`}>
       <h2>{B.timeline}{(day?.columns.length ?? 0) > 1 && <small className="b-revision">{B.timelineRevision(day!.columns.length - 1)}</small>}</h2>
       <div className={`b-track${plan.length ? "" : " is-empty"}`} role="group" aria-label={B.timeline}>
         {Array.from({ length: Math.floor(to / tick) - Math.ceil(from / tick) + 1 }, (_, i) => (Math.ceil(from / tick) + i) * tick).map(n => <span key={n} className="b-time-grid" aria-hidden="true" style={{ left: `${at(n)}%` }} />)}
-        {!plan.length && <a className="b-empty-plan" href={`/day/${t}`} onClick={onLinkClick}>{B.timelineEmpty}</a>}
+        {!plan.length && <a className="b-empty-plan" href={`/day/${t}`} onClick={onLinkClick}>{T.helloPlan}</a>}
         {plan.map((b) => {
           const minutes = (day?.focus?.sessions ?? []).filter(s => s.blockId === b.id).reduce((sum, s) => sum + s.minutes, 0);
           const description = B.timelineBlock(b.label || T.untitledBlock, clock(b.start), clock(b.end), minutes);
@@ -39,6 +39,7 @@ export function Timeline({ T, settings, t, now, day, plan, B }: OverviewData) {
           ) : null;
         })}
       </div>
+      {!plan.length && <p className="b-timeline-hint">{T.helloMakeRoom}</p>}
       <div className="b-ticks">
         {Array.from(
           { length: Math.floor(to / tick) - Math.ceil(from / tick) + 1 },
