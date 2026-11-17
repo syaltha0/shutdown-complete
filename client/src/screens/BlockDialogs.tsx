@@ -28,8 +28,9 @@ function useModal(open: boolean) {
 
 /** Edits one block of the active column. Every change applies at once; Done closes. */
 export function BlockEditor({
-  date, day, sessions, block, min, max, onChange, onDelete, onClose, subjects = [], repeatDays = [], onRepeat, estimate, repeatEvery = 1, onRepeatEvery, drift, onDrift,
+  onSave, date, day, sessions, block, min, max, onChange, onDelete, onClose, subjects = [], repeatDays = [], onRepeat, estimate, repeatEvery = 1, onRepeatEvery, drift, onDrift,
 }: {
+  onSave?: () => void;
   date?: string;
   day?: DayDoc;
   sessions?: FocusSession[];
@@ -57,8 +58,8 @@ export function BlockEditor({
   const ref = useModal(!!block);
   const kind = block ? T.kinds[block.kind] : null;
   return (
-    <dialog ref={ref} className="sheet" onClose={onClose} aria-labelledby="be-title">
-      {block && kind && <form method="dialog" onSubmit={onClose}>
+    <dialog ref={ref} className="sheet" onClose={onClose} onClick={(e) => { if (e.target === e.currentTarget) onClose(); }} aria-labelledby="be-title">
+      {block && kind && <form method="dialog" onSubmit={() => (onSave ?? onClose)()}>
         <h2 id="be-title">{block.label ? T.editBlock : T.newBlock}</h2>
         {drift && onDrift && <DriftNote drift={drift} onAct={onDrift} />}
         <FocusLog sessions={sessions} block={block} />
@@ -129,7 +130,7 @@ export function BlockEditor({
         </div>
         <div className="foot">
           <button type="button" className="btn danger" onClick={onDelete}>{T.deleteBlock}</button>
-          <div className="right"><button type="submit" className="btn primary">{T.done}</button></div>
+          <div className="right">{onSave && <button type="button" className="btn" onClick={onClose}>{T.cancel}</button>}<button type="submit" className="btn primary">{onSave ? T.saveBlock : T.done}</button></div>
         </div>
       </form>}
     </dialog>

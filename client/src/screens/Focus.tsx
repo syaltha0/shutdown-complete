@@ -10,7 +10,7 @@ import { BlockChip, BlockSheet } from '../components/BlockPicker';
 import { addDays, clock, duration, nowMinutes, shortDate, today } from '../lib/dates';
 import { Chart, themeColor } from '../components/Chart';
 import {
-  cancelFocus, cycleDone, linkSession, extendFocus, focusMinutes, MAX_PLANNED, mmss,  pauseFocus, resumeFocus, secondsLeft,
+  dayFocus, cancelFocus, cycleDone, linkSession, extendFocus, MAX_PLANNED, mmss,  pauseFocus, resumeFocus, secondsLeft,
   resetCycle, settingsFocus, startFocus, resetFocus, useFocusDay,
 } from '../lib/focus';
 import { useT } from '../lib/i18n';
@@ -173,7 +173,7 @@ export function Focus() {
   const shownBlock = a ? blocks.find((b) => b.id === a.blockId) ?? null : chosenBlock;
   useEffect(() => { if (a) setPicking(false); }, [a]);
   const sessions = day?.focus?.sessions ?? [];
-  const total = day ? focusMinutes(day) : 0;
+  const total = day ? dayFocus(day, settings).minutes : 0;
   const deepDef = settings.metrics.find((m) => m.id === f.metricId);
   const untilLong = f.longEvery - (cycleDone(day?.focus) % f.longEvery);
   const from28 = addDays(today(), -27);
@@ -181,7 +181,7 @@ export function Focus() {
   const days28 = Array.from({ length: 28 }, (_, i) => addDays(from28, i));
   // the minutes focused on each of the 28 days; the chart draws again only when these change (the range hands out a new Map on every render)
   const goalMin = deepDef?.target != null && deepDef.target > 0 ? Math.round(deepDef.target * 60) : 0;
-  const vals = past ? days28.map((d) => (d === today() && day ? focusMinutes(day) : (past.get(`day:${d}`) ? focusMinutes(past.get(`day:${d}`)!) : null))) : [];
+  const vals = past ? days28.map((d) => (d === today() && day ? dayFocus(day, settings).minutes : (past.get(`day:${d}`) ? dayFocus(past.get(`day:${d}`)!, settings).minutes : null))) : [];
   const workBlocks = blocks.filter((b) => b.kind !== 'personal');
   // a revision gives a block a new id, so a session also counts for a block of the same name
   const byBlock = (b: { id: string; label: string }) => sessions.filter((x) => x.blockId === b.id || (!!b.label && x.label === b.label)).reduce((n, x) => n + x.minutes, 0);
@@ -278,7 +278,7 @@ export function Focus() {
       <div className="title-row focus-title">
         <div>
           <h1>{T.focusTitle}</h1>
-          <p className="sub num">{day ? <>{T.focusSummary(sessions.length, duration(total))}{a ? null : <> · {T.nextLong(untilLong)}</>}</> : ' '}</p>
+          <p className="sub num">{day ? <>{T.focusSummary(sessions.length, duration(total))}{dayFocus(day, settings).manual && <small>{T.focusManual}</small>}{a ? null : <> · {T.nextLong(untilLong)}</>}</> : ' '}</p>
         </div>
         <div className="title-actions"><SaveStamp status={status} /></div>
       </div>

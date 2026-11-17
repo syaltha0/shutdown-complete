@@ -1,0 +1,16 @@
+import {test} from 'node:test';
+import assert from 'node:assert/strict';
+import {readFileSync} from 'node:fs';
+import ts from 'typescript';
+const source=ts.createSourceFile('focus.ts',readFileSync('client/src/lib/focus.ts','utf8'),ts.ScriptTarget.Latest,true);
+const names=['focusMinutes','dayFocus'];
+const picked=source.statements.filter(n=>names.some(name=>n.name?.text===name || n.declarationList?.declarations.some(d=>d.name.text===name))).map(n=>n.getText(source)).join('\n');
+const code=ts.transpileModule(picked,{compilerOptions:{module:ts.ModuleKind.ESNext}}).outputText;
+const {dayFocus}=await import('data:text/javascript;base64,'+Buffer.from(code).toString('base64'));
+const settings={focus:{metricId:'custom'}};
+const day=(value)=>({metrics:value,focus:{sessions:[{minutes:25},{minutes:10}]}});
+test('measured sessions supply the total without a manual value',()=>assert.deepEqual(dayFocus(day({}),settings),{minutes:35,sessions:2,manual:false}));
+test('manual hours replace measured minutes',()=>assert.deepEqual(dayFocus(day({custom:1}),settings),{minutes:60,sessions:2,manual:true}));
+test('explicit zero overrides sessions',()=>assert.deepEqual(dayFocus(day({custom:0}),settings),{minutes:0,sessions:2,manual:true}));
+test('null and invalid values fall back to sessions',()=>{for(const custom of [null,NaN,Infinity])assert.equal(dayFocus(day({custom}),settings).minutes,35)});
+test('missing day and default metric',()=>{assert.equal(dayFocus(null,settings).minutes,0);assert.equal(dayFocus(day({deep:1.5}),{}).minutes,90)});

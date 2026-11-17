@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { clock, duration } from "../../lib/dates";
-import { focusMinutes, secondsLeft, useFocusDay } from "../../lib/focus";
+import { dayFocus, secondsLeft, useFocusDay } from "../../lib/focus";
 import { onLinkClick } from "../../lib/router";
 import { OverviewRing } from "./Ring";
 import { RoundAction } from "./RoundAction";
@@ -17,19 +17,18 @@ export function FocusToday({ T, settings, day, B }: OverviewData) {
   }, [active]);
   const metricId = settings.focus?.metricId ?? "deep";
   const goal = Math.max(0, (settings.metrics.find((m) => m.id === metricId)?.target ?? 0) * 60);
-  const stored = day?.metrics[metricId];
-  const focused = typeof stored === "number" ? Math.max(0, Math.round(stored * 60)) : day ? focusMinutes(day) : 0;
+  const { minutes: focused, manual } = dayFocus(day, settings);
   const count = day?.focus?.sessions.length ?? 0;
   const complete = goal > 0 && focused >= goal;
   // the latest sessions, newest first, beside the ring
   const recent = [...(day?.focus?.sessions ?? [])].reverse().slice(0, 1);
   // nothing yet today: one round action instead of a ring of dashes
   if (!active && !count && !focused) return <section className="panel b-focus is-empty" aria-labelledby="overview-focus-title" data-complete={false}>
-    <h2 id="overview-focus-title">{B.focus}</h2>
+    <h2 id="overview-focus-title">{B.focus}{manual && <small>{T.focusManual}</small>}</h2>
     <RoundAction href="/focus" icon="play" title={T.startFocus} hint={B.roundFocus} />
   </section>;
   return <section className="panel b-focus" aria-labelledby="overview-focus-title" data-complete={complete}>
-    <h2 id="overview-focus-title">{B.focus}</h2>
+    <h2 id="overview-focus-title">{B.focus}{manual && <small>{T.focusManual}</small>}</h2>
     <OverviewRing value={focused} total={goal} label={B.focus} text={focused ? duration(focused) : "–"} complete={complete} />
     <div className="b-rt-body">
       <dl className="b-figures">

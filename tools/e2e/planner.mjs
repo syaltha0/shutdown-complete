@@ -174,7 +174,7 @@ try {
     await page.locator('#be-subject').fill('Maths');
     await page.locator('dialog.sheet[open] .day-chips button').nth(wd).click();
     await wait(400);
-    await page.getByRole('button', { name: 'Done' }).click();
+    await page.getByRole('button', { name: 'Save', exact: true }).click();
     await wait(1200);
     const sched = (await doc('settings')).schedule ?? [];
     check('a block can repeat every week', sched.length === 1 && sched[0].days.includes(wd) && sched[0].subject === 'Maths', JSON.stringify(sched));

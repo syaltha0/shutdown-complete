@@ -14,7 +14,7 @@ import { activeColumn, effectivePlan, emptyDay, emptyWeek, minutesOfKind, type B
 import { onLinkClick } from '../lib/router';
 import { useDoc } from '../lib/useDoc';
 import { placeRepeats } from '../lib/repeat';
-import { focusMinutes } from '../lib/focus';
+import { dayFocus } from '../lib/focus';
 import { duration } from '../lib/dates';
 
 /** The shutdown: close every open loop, then say it — "Schedule shutdown, complete". */
@@ -29,6 +29,9 @@ export function Shutdown({ date }: { date: string }) {
   useEffect(() => {
     if (next && placeRepeats(next, tomorrow, settings.schedule, settings.exceptions)) updateNext((n) => placeRepeats(n, tomorrow, settings.schedule, settings.exceptions) ?? n);
   }, [next != null, tomorrow, settings.schedule, settings.exceptions]); // eslint-disable-line react-hooks/exhaustive-deps
+  const [confirmClose, setConfirmClose] = useState(false);
+  const confirmRef = useRef<HTMLDialogElement>(null);
+  useEffect(() => { if (confirmClose) confirmRef.current?.showModal(); else confirmRef.current?.close(); }, [confirmClose]);
   const [mode, setMode] = useState('tomorrow');
   const [chosenDate, setChosenDate] = useState('');
   const [excluded, setExcluded] = useState<string[]>([]);
@@ -65,6 +68,7 @@ export function Shutdown({ date }: { date: string }) {
 
   return (
     <>
+      <dialog ref={confirmRef} className="sheet" onClose={() => setConfirmClose(false)} aria-labelledby="shutdown-confirm-title"><h2 id="shutdown-confirm-title">{T.shutdownAsk(steps.length - doneSteps)}</h2><div className="foot"><button type="button" className="btn" onClick={() => setConfirmClose(false)}>{T.shutdownBack}</button><button type="button" className="btn primary" onClick={() => { complete(true); setConfirmClose(false); }}>{T.shutdownYes}</button></div></dialog>
       <div className="title-row">
         <div>
           <h1>{T.shutdownTitle(isToday ? null : longDate(date))}</h1>
@@ -128,7 +132,7 @@ export function Shutdown({ date }: { date: string }) {
                 ) : (
                   <>
                     <span className="muted">{doneSteps < steps.length ? T.stepsLeft(steps.length - doneSteps) : T.allClosed}</span>
-                    <button type="button" className="btn primary" onClick={() => complete(true)}>{T.scheduleShutdown}</button>
+                    <button type="button" className="btn primary" onClick={() => steps.length > doneSteps ? setConfirmClose(true) : complete(true)}>{T.scheduleShutdown}</button>
                   </>
                 )}
               </div>
@@ -171,11 +175,12 @@ export function Shutdown({ date }: { date: string }) {
 
           {day && (
             <section className="panel" aria-labelledby="fo-h">
+              {dayFocus(day, settings).manual && <small>{T.focusManual}</small>}
               <header><h2 id="fo-h">{T.focusMetric}</h2><a className="card-link" style={{ fontWeight: 400 }} href="/focus" onClick={onLinkClick}>{T.openFocus}</a></header>
               {(day.focus?.sessions.length ?? 0) === 0 ? <div className="empty">{T.noSessions}</div> : (
-                <><FocusLog sessions={day.focus?.sessions} /><p className="focus-line num"><b>{duration(focusMinutes(day))}</b> · {T.focusRow(day.focus!.sessions.length, duration(focusMinutes(day)))}</p></>
+                <><FocusLog sessions={day.focus?.sessions} /><p className="focus-line num"><b>{duration(dayFocus(day, settings).minutes)}</b> · {T.focusRow(day.focus!.sessions.length, duration(dayFocus(day, settings).minutes))}</p></>
               )}
-              {(minutesOfKind(day, 'deep') > 0 || focusMinutes(day) > 0) && <p className="focus-plan muted num">{T.planVsActual(duration(minutesOfKind(day, 'deep')), duration(focusMinutes(day)))}</p>}
+              {(minutesOfKind(day, 'deep') > 0 || dayFocus(day, settings).minutes > 0) && <p className="focus-plan muted num">{T.planVsActual(duration(minutesOfKind(day, 'deep')), duration(dayFocus(day, settings).minutes))}</p>}
             </section>
           )}
 
@@ -230,7 +235,7 @@ function DayCard({ date, day, settings }: { date: string; day: DayDoc; settings:
       title: longDate(date), brand: 'Shutdown Complete', clock,
       blocks: effectivePlan(day).map((b) => ({ start: b.start, end: b.end, label: b.label || T.untitledBlock, kind: b.kind })),
       stats: [
-        { label: T.focusMetric, value: duration(focusMinutes(day)) },
+        { label: T.focusMetric, value: duration(dayFocus(day, settings).minutes) },
         { label: T.kinds.deep.name, value: duration(minutesOfKind(day, 'deep')) },
         { label: T.tasks, value: T.of(day.tasks.filter((x) => x.done).length, day.tasks.length) },
       ],

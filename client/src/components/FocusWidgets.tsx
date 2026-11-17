@@ -3,7 +3,7 @@ import { useSettings } from '../App';
 import { useT } from '../lib/i18n';
 import { activeColumn, emptyInbox, featureOn, uid, type DayDoc, type InboxDoc } from '../lib/model';
 import { clock, duration, nowMinutes, today } from '../lib/dates';
-import { focusMinutes } from '../lib/focus';
+import { dayFocus } from '../lib/focus';
 import { updateKey } from '../lib/useDoc';
 import { offerUndo } from '../lib/undo';
 import { onLinkClick } from '../lib/router';
@@ -18,8 +18,7 @@ export function FocusWidgets({ day }: { day: DayDoc | null }) {
   useEffect(() => { const timer = window.setInterval(() => setNow(nowMinutes()), 1000); return () => window.clearInterval(timer); }, []);
   const id = settings.focus?.metricId ?? 'deep';
   const metric = settings.metrics.find((m) => m.id === id);
-  const stored = day?.metrics[id];
-  const minutes = typeof stored === 'number' ? Math.max(0, Math.round(stored * 60)) : day ? focusMinutes(day) : 0;
+  const { minutes: minutes, manual } = dayFocus(day, settings);
   const target = metric?.target != null && metric.target > 0 ? metric.target * 60 : null;
   const ratio = target ? Math.min(1, minutes / target) : 0;
   const blocks = day ? [...activeColumn(day).blocks].sort((a, b) => a.start - b.start) : [];
@@ -41,7 +40,7 @@ export function FocusWidgets({ day }: { day: DayDoc | null }) {
         <circle cx="18" cy="18" r="15" fill="none" stroke="var(--border)" strokeWidth="3" />
         <circle className={ratio >= 1 ? 'complete' : ''} cx="18" cy="18" r="15" fill="none" strokeWidth="3" pathLength="1" strokeDasharray={`${ratio} 1`} transform="rotate(-90 18 18)" />
       </svg>}
-      <div className="fw-goal-copy"><span className="fw-caption">{T.fwGoal}</span><span className="fw-value num">{duration(minutes)}{target && <span className="fw-target"> / {duration(target)}</span>}</span>{target && <span className="fw-caption fw-left">{minutes >= target ? T.fwGoalMet : T.fwGoalLeft(duration(target - minutes))}</span>}</div>
+      <div className="fw-goal-copy"><span className="fw-caption">{T.fwGoal}{manual && <small>{T.focusManual}</small>}</span><span className="fw-value num">{duration(minutes)}{target && <span className="fw-target"> / {duration(target)}</span>}</span>{target && <span className="fw-caption fw-left">{minutes >= target ? T.fwGoalMet : T.fwGoalLeft(duration(target - minutes))}</span>}</div>
     </div>
     <div className="fw-day">
       <div className="fw-strip" role="img" aria-label={T.fwStrip(clock(from), clock(to), blocks.length)}>

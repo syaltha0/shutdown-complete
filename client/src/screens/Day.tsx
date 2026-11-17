@@ -21,7 +21,7 @@ import { useSwipeNav } from '../lib/swipe';
 import { updateKey, useDoc, useRange } from '../lib/useDoc';
 import { isExcepted, placeRepeats, repeatFromBlock } from '../lib/repeat';
 import { estimateFor, insights } from '../lib/insights';
-import { focusCount, focusMinutes, settingsFocus, startFocus } from '../lib/focus';
+import { dayFocus, focusCount, settingsFocus, startFocus } from '../lib/focus';
 import { CapacityNote } from '../components/CapacityNote';
 import { BlockEditor, ReviseDialog } from './BlockDialogs';
 import { kindSwatch, PPM, revise, TimeGrid, undoRevision, useNow } from './TimeGrid';
@@ -54,6 +54,8 @@ export function Day({ date }: { date: string }) {
   const [pickInbox, setPickInbox] = useState(false);
   const isToday = date === today();
   const now = useNow(isToday);
+  const [draftDays, setDraftDays] = useState<number[]>([]);
+  const [draft, setDraft] = useState<Block | null>(null);
   const [openId, setOpenId] = useState<string | null>(new URLSearchParams(location.search).get('block'));
   useEffect(() => { const on = () => setOpenId(new URLSearchParams(location.search).get('block')); window.addEventListener('popstate', on); return () => window.removeEventListener('popstate', on); }, []);
   const [revising, setRevising] = useState(false);
@@ -121,7 +123,7 @@ export function Day({ date }: { date: string }) {
   // a whole day is taller than the screen: it opens at now (today), the first block, or the usual start of the day
   const focusAt = settings.wholeDay ? (isToday ? now : blocks.length ? Math.min(...blocks.map((b) => b.start)) : settings.startHour * 60) : null;
   const floor = Math.max(r0, col.from ?? r0);
-  const openBlock = col.blocks.find((b) => b.id === openId) ?? null;
+  const openBlock = draft ?? col.blocks.find((b) => b.id === openId) ?? null;
   const linked = (settings.calendars ?? []).map((c) => c.id);
   const drifts = watch && date >= t ? col.blocks.flatMap((b) => driftOf(b, date, watch.days, watch.errors, linked) ?? []) : [];
   const driftKinds = new Map(drifts.map((d) => [d.block.id, d.kind] as const));
@@ -194,6 +196,7 @@ export function Day({ date }: { date: string }) {
   }
   // a new subject is remembered for the next block once the dialog closes
   function closeEditor() {
+    setDraft(null);
     const subj = openBlock?.subject?.trim();
     if (subj && !(settings.subjects ?? []).includes(subj)) updateSettings((s) => ({ ...s, subjects: [...(s.subjects ?? []), subj].slice(-40) }));
     setOpenId(null);
@@ -206,7 +209,8 @@ export function Day({ date }: { date: string }) {
     for (const b of [...col.blocks].sort((a, z) => a.start - z.start)) if (b.start < s + 30 && b.end > s) s = b.end;
     if (s + 30 > r1) s = Math.max(floor, r1 - 30);
     const b: Block = { id: uid(), start: s, end: Math.min(r1, s + 60), label: '', note: '', kind: 'deep' };
-    setCols((cols) => cols.map((c, i) => (i === cols.length - 1 ? { ...c, blocks: [...c.blocks, b] } : c)));
+    setDraftDays([]);
+    setDraft(b);
     setOpenId(b.id);
   }
 
@@ -325,7 +329,7 @@ export function Day({ date }: { date: string }) {
         <div className="page-left">
           <MetricsBox day={day} date={date} defs={settings.metrics.filter(m => !m.archived)} update={update} />
           <section className="panel capture" data-tour="capture" data-anim>
-            <section aria-labelledby="tasks-h">
+            <section className="day-tasks" aria-labelledby="tasks-h">
               <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
                 <h2 id="tasks-h">{T.tasks}</h2>
                 <span className="meta num">{day.tasks.length ? T.tasksDone(day.tasks.filter((x) => x.done).length, day.tasks.length) : ''}</span>
@@ -415,14 +419,16 @@ export function Day({ date }: { date: string }) {
 
       <BlockEditor
         date={date} day={day} sessions={day.focus?.sessions} block={openBlock} min={floor} max={r1}
-        subjects={settings.subjects} repeatDays={repeatOf?.days ?? []} onRepeat={date >= t ? setRepeat : undefined}
+        subjects={settings.subjects} repeatDays={draft ? draftDays : repeatOf?.days ?? []} onRepeat={date >= t ? (draft ? setDraftDays : setRepeat) : undefined}
         repeatEvery={repeatOf?.every ?? 1}
         onRepeatEvery={repeatOf ? (n) => updateSettings((s) => ({ ...s, schedule: (s.schedule ?? []).map((r) => (r.id === repeatOf.id ? { ...r, every: n, since: date } : r)) })) : undefined}
         estimate={openBlock && history ? estimateFor(insights(history.values()), openBlock) : null}
-        onChange={(p) => openBlock && patchBlock(openBlock.id, p)}
+        onChange={(p) => draft ? setDraft({ ...draft, ...p }) : openBlock && patchBlock(openBlock.id, p)}
+        onSave={draft ? () => { if (draftDays.length) { const rule = repeatFromBlock(draft, draftDays, date); draft.repeatId = rule.id; updateSettings(s => ({ ...s, schedule: [...(s.schedule ?? []), rule] })); update(d => ({ ...d, repeats: [...(d.repeats ?? []), rule.id] })); } setCols((cols) => cols.map((c, i) => i === cols.length - 1 ? { ...c, blocks: [...c.blocks, draft] } : c)); closeEditor(); } : undefined}
         drift={openDrift} onDrift={driftAct}
         onDelete={() => {
-          if (openBlock) deleteBlock(openBlock);
+          if (openBlock && !draft) deleteBlock(openBlock);
+          setDraft(null);
           setOpenId(null);
         }}
         onClose={closeEditor}
@@ -501,6 +507,7 @@ function Finding({ day, isToday, now, past }: { day: DayDoc; isToday: boolean; n
 
 function MetricsBox({ day, date, defs, update }: { day: DayDoc; date: string; defs: MetricDef[]; update: (fn: (d: DayDoc) => DayDoc) => void }) {
   const T = useT();
+  const { settings } = useSettings();
   const deepPlanned = minutesOfKind(day, 'deep');
   const setMetric = (id: string, v: number | boolean | null) => update((d) => ({ ...d, metrics: { ...d.metrics, [id]: v } }));
   const at = day.shutdown.at ? new Date(day.shutdown.at) : null;
@@ -533,10 +540,10 @@ function MetricsBox({ day, date, defs, update }: { day: DayDoc; date: string; de
             </div>
           );
         })}
-        {(day.focus?.sessions.length ?? 0) > 0 && (
+        {(dayFocus(day, settings).manual || dayFocus(day, settings).minutes > 0) && (
           <div className="metric-row">
             <span className="name">{T.focusMetric}</span>
-            <a className="card-link num" style={{ fontWeight: 400 }} href="/focus" onClick={onLinkClick}>{T.focusRow(focusCount(day), duration(focusMinutes(day)))}</a>
+            <a className="card-link num" style={{ fontWeight: 400 }} href="/focus" onClick={onLinkClick}>{T.focusRow(focusCount(day), duration(dayFocus(day, settings).minutes))}{dayFocus(day, settings).manual && <small>{T.focusManual}</small>}</a>
           </div>
         )}
       </div>
