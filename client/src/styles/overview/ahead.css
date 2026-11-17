@@ -42,3 +42,20 @@
 .bento .b-ahead .b-calendar i { top: 8px; right: 8px; width: 6px; height: 6px; }
 .bento .b-ahead .b-calendar em { margin-top: 0; height: 3px; border-radius: 2px; }
 @media (max-width: 860px) { .bento .b-ahead .b-calendar a { padding: 4px 6px; } .bento .b-ahead .b-calendar span { font-size: 13px; } }
+
+/* nothing in the next two weeks: the calendar softens behind one round action and sharpens again on hover */
+.b-ahead-cal { position: relative; display: flex; flex-direction: column; flex: 1 1 auto; min-height: 0; }
+.b-ahead-cal > .b-calendar { flex: 1 1 auto; min-height: 0; }
+.b-ahead.is-empty .b-calendar { filter: blur(2.5px); opacity: .3; transition: filter var(--t-hover) ease, opacity var(--t-hover) ease; }
+.b-ahead.is-empty .b-ahead-cal:hover .b-calendar, .b-ahead.is-empty .b-ahead-cal:focus-within .b-calendar { filter: none; opacity: 1; }
+.b-ahead-over { position: absolute; inset: 0; display: grid; place-items: center; pointer-events: none; transition: opacity var(--t-hover) ease; }
+.b-ahead-over .b-round-action { pointer-events: auto; width: auto; max-width: 260px; }
+.b-ahead-over .b-round { background: var(--surface); }
+.b-ahead.is-empty .b-ahead-cal:hover .b-ahead-over:not(:hover):not(:focus-within) { opacity: 0; }
+:root[data-motion="reduce"] :is(.b-ahead.is-empty .b-calendar, .b-ahead-over) { transition: none; }
+@media (max-width: 860px) {
+  /* a compact action on the phone, so the days around it stay within reach */
+  .b-ahead-over .b-round-action { flex-direction: row; gap: 10px; text-align: left; }
+  .b-ahead-over .b-round { width: 40px; height: 40px; }
+  .b-ahead-over .b-round-text small { display: none; }
+}

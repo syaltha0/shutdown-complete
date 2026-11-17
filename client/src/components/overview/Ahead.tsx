@@ -3,6 +3,7 @@ import { activeColumn, emptyMonth, featureOn, type DayDoc, type MonthDoc } from 
 import { onLinkClick } from "../../lib/router";
 import { useDoc, useRange } from "../../lib/useDoc";
 import { nextDate } from "../../screens/Countdown";
+import { RoundAction } from "./RoundAction";
 import type { OverviewData } from "./data";
 export function Ahead({ settings, t, B, monday }: OverviewData) {
   const link = (href: string, text: string) => (
@@ -49,9 +50,10 @@ export function Ahead({ settings, t, B, monday }: OverviewData) {
     .sort((a, b) => a.date.localeCompare(b.date));
   const calendar = Array.from({ length: 14 }, (_, i) => addDays(monday, i));
   return (
-    <section className="panel b-ahead">
-      <header className="b-ahead-head"><h2>{B.ahead}</h2><a className="b-round-mini" href={`/month/${monthOf(t)}`} onClick={onLinkClick} aria-label={B.aheadAdd} title={B.aheadAdd}><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" aria-hidden="true"><path d="M12 6v12M6 12h12" /></svg></a></header>
+    <section className={`panel b-ahead${ahead.length ? "" : " is-empty"}`}>
+      <h2>{B.ahead}</h2>
       <div className="b-ahead-range">{fmtDay(monday, { month: "short", day: "numeric" })} – {fmtDay(addDays(monday, 13), { month: "short", day: "numeric" })}</div>
+      <div className="b-ahead-cal">
       <div className="b-calendar">
         {calendar.slice(0, 7).map((d) => (
           <small key={`h${d}`}>{fmtDay(d, { weekday: "narrow" })}</small>
@@ -70,6 +72,9 @@ export function Ahead({ settings, t, B, monday }: OverviewData) {
             <em aria-hidden="true" style={{ width: `${Math.min(blocks(d).length / 8, 1) * 70}%` }} />
           </a>
         ))}
+      </div>
+      {/* nothing coming up: the calendar stays readable behind one round action */}
+      {!ahead.length && <div className="b-ahead-over"><RoundAction href={`/month/${monthOf(t)}`} layout="stack" title={B.aheadAddShort} hint={B.aheadHint} /></div>}
       </div>
       {tomorrow.length > 0 && <a className="b-ahead-tomorrow b-act" href={`/day/${addDays(t, 1)}`} onClick={onLinkClick}><span>{B.aheadTomorrow(time(tomorrow[0].start), tomorrow.length)}</span><b aria-hidden="true">›</b></a>}
       <div className="b-events">

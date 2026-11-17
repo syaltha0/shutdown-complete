@@ -22,13 +22,6 @@
 .b-open > .b-round-action[data-layout="row"] .b-round { width: 40px; height: 40px; }
 .b-open > .b-round-action[data-layout="row"] .b-round svg { width: 18px; height: 18px; }
 
-/* a small round add in a card header */
-.b-ahead-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
-.b-ahead-head h2 { margin: 0; }
-.b-round-mini { margin-block: -6px; display: grid; place-items: center; width: 28px; height: 28px; border: 1px solid var(--border); border-radius: 50%; color: var(--muted); transition: border-color var(--t-hover) ease, color var(--t-hover) ease; }
-.b-round-mini svg { width: 14px; height: 14px; }
-.b-round-mini:hover { border-color: var(--text); color: var(--text); }
-
 @media (max-height: 820px) and (min-width: 861px) {
   .b-round { width: 48px; height: 48px; }
   .b-round-action[data-layout="stack"] { gap: 8px; }
@@ -39,4 +32,4 @@
   .bento :is(.b-focus, .b-tasks).is-empty > .b-round-action { flex-direction: column; justify-content: center; gap: 10px; text-align: center; }
   .bento :is(.b-focus, .b-tasks).is-empty { display: flex; flex-direction: column; }
 }
-:root[data-motion="reduce"] :is(.b-round, .b-round-mini) { transition: none; }
+:root[data-motion="reduce"] .b-round { transition: none; }

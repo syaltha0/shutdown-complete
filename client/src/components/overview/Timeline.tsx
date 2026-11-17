@@ -25,7 +25,7 @@ export function Timeline({ T, settings, t, now, day, plan, B }: OverviewData) {
             <span className="b-timeline-tip" aria-hidden="true">{description}</span>
           </a>;
         })}
-        {plan.length > 0 && now >= from && now <= to && <b aria-hidden="true" style={{ left: `${at(now)}%` }}><span>{clock(now)}</span></b>}
+        {now >= from && now <= to && <b aria-hidden="true" style={{ left: `${at(now)}%` }}><span>{clock(now)}</span></b>}
         {(day?.focus?.sessions ?? []).map((s, i) => {
           const b = plan.find((b) => b.id === s.blockId);
           return b ? (

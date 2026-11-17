@@ -729,6 +729,8 @@ export const en = {
     roundHabits: 'Pick a small daily ritual and tick it off here.',
     roundOpen: 'Goes straight onto the list for today.',
     addToday: 'Add to today', addTodayButton: 'Add',
+    aheadAddShort: 'Add a date',
+    aheadHint: 'An exam, a birthday, a deadline: the next two weeks show here.',
     openCapture: 'Type a task, press Enter',
     focusMinutes: (n: number) => `${n} min`,
     focusSessions: (n: number) => `${n} ${n === 1 ? 'session' : 'sessions'}`,

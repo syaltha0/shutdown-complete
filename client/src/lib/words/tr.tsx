@@ -715,6 +715,8 @@ serverStatus: { remedy: 'İlgili ayarı veya kurulum yönergesini aç',"title":"
     roundHabits: 'Küçük bir günlük alışkanlık seç, buradan işaretle.',
     roundOpen: 'Doğrudan bugünün listesine eklenir.',
     addToday: 'Bugüne ekle', addTodayButton: 'Ekle',
+    aheadAddShort: 'Tarih ekle',
+    aheadHint: 'Sınav, doğum günü, teslim: önümüzdeki iki hafta burada görünür.',
     openCapture: 'Görev yaz, Enter ile ekle',
     focusMinutes: (n: number) => `${n} dk`,
     focusSessions: (n: number) => `${n} oturum`,
