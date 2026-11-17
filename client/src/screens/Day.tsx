@@ -322,7 +322,7 @@ export function Day({ date }: { date: string }) {
       )}
       <div className="spread">
         <div className="page-left">
-          <MetricsBox day={day} date={date} defs={settings.metrics} update={update} />
+          <MetricsBox day={day} date={date} defs={settings.metrics.filter(m => !m.archived)} update={update} />
           <section className="panel capture" data-tour="capture" data-anim>
             <section aria-labelledby="tasks-h">
               <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>

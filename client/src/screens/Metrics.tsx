@@ -22,7 +22,7 @@ export function Metrics() {
   const { settings } = useSettings();
   // completed focus sessions are a metric of their own, counted from the day's sessions
   const focusDef: MetricDef = { id: FOCUS_ID, name: T.focusMetric, kind: 'number', unit: T.mUnit, target: null };
-  const defs = [...settings.metrics, focusDef];
+  const defs = [...settings.metrics.filter(m => !m.archived), focusDef];
   const [metricId, setMetricId] = useState(defs[0]?.id ?? '');
   const [span, setSpan] = useState<Span>('8w');
   const nf1 = new Intl.NumberFormat(T.locale, { maximumFractionDigits: 1 });
