@@ -8,8 +8,7 @@ import { defaultSettings, type Settings } from './lib/model';
 import { dict, getLang, setLang, useT } from './lib/i18n';
 import { canonicalDateId, monthOf, quarterOf, setDayStart, today, weekOf } from './lib/dates';
 import {
-  IconPlus, IconBoard, IconDay, IconFocus, IconHome, IconHourglass, IconInbox, IconHabits, IconMetrics, IconMonth, IconMore, IconQuarter, IconYear, IconSettings, IconShutdown, IconWeek, IconX, Mark,
-} from './components/Icons';
+  IconPlus, IconBoard, IconDay, IconFocus, IconHome, IconHourglass, IconInbox, IconHabits, IconMetrics, IconMonth, IconMore, IconQuarter, IconYear, IconSettings, IconShutdown, IconWeek, IconX, Mark, IconKeyboard } from './components/Icons';
 import { FocusRunner } from './components/FocusTimer';
 import { BlockReminders } from './components/Reminders';
 import { FriendsWatcher } from './components/Friends';
@@ -293,7 +292,11 @@ function Shell() {
         <div className="rail-group" data-tour="nav-scales">{plan.map((x) => link(x))}</div>
         <span className="sep" aria-hidden="true" />
         <div className="rail-group">{link(work[0])}{on('boards') && link(boards)}{on('countdown') && link(countdown)}{work.slice(1).filter((x) => on(x.id)).map((x) => link(x))}</div>
-        <div className="bottom">{link(settingsItem)}</div>
+        <div className="bottom">
+          {/* the keyboard shortcuts, one click away for those who never press ? (user, 2026-11-17) */}
+          <button type="button" className="rail-item" onClick={() => window.dispatchEvent(new CustomEvent('sc:help'))} aria-label={`${T.keys.title} (?)`}><IconKeyboard /><span className="tip" aria-hidden="true">{T.keys.title} · ?</span></button>
+          {link(settingsItem)}
+        </div>
       </nav>
 
       <nav className="tabbar" aria-label="Shutdown Complete">

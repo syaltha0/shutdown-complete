@@ -147,3 +147,4 @@ textarea.input { height: auto; padding: 8px 12px; line-height: 20px; resize: ver
 :root :is(.input, input:not([type="checkbox"], [type="radio"], [type="range"], [type="color"]), textarea, select):focus-visible {
   outline: none; border-color: var(--text); box-shadow: none;
 }
+.rail .bottom { display: grid; gap: 4px; } .rail .bottom button.rail-item { border: 0; background: none; cursor: pointer; font: inherit; padding: 0; }

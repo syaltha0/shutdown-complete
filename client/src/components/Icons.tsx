@@ -40,6 +40,12 @@ export const IconShutdown = () => (
     <path d="M10 2.5v6.5M6 5.2a6 6 0 1 0 8 0" />
   </svg>
 );
+export const IconKeyboard = () => (
+  <svg viewBox="0 0 20 20" aria-hidden="true" {...P}>
+    <rect x="2.5" y="5" width="15" height="10" rx="2" />
+    <path d="M6 8.5h.01M9 8.5h.01M12 8.5h.01M15 8.5h.01M7 11.5h6" />
+  </svg>
+);
 export const IconSettings = () => (
   <svg viewBox="0 0 20 20" aria-hidden="true" {...P}>
     <path d="M3 6h8M15 6h2M3 14h2M9 14h8" />
