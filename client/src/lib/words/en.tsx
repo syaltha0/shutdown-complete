@@ -4,6 +4,7 @@ import type { ReactNode } from 'react';
 const s = (n: number, one: string, many: string) => (n === 1 ? one : many);
 
 export const en = {
+  historySearch: {"title":"Search","history":"In history","placeholder":"Search your history","hint":"Find notes, plans, tasks and cards across your history. Enter at least two characters.","none":"No results. Try another word.","loading":"Searching...","error":"Search failed. Try again.","all":"All","undated":"Without a date","more":"View all results","kinds":{"day-note":"Day note","note":"Note","block":"Block","task":"Task","goal":"Goal","inbox":"Task","list":"List","card":"Card","countdown":"Countdown","exam":"Exam"}},
   quickCapture: { title: "Add task", add: "Add", preference: "Show Add instead of Week in the bottom bar", placeholder: "Report tomorrow 10am" },
  planActualHelp: "Planned blocks and actual focus: the narrow strip shows when you focused. Tap it for details.",
  sectionNav: "Sections", backSections: "Back to sections",

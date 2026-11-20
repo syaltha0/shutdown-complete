@@ -8,7 +8,7 @@ import { defaultSettings, type Settings } from './lib/model';
 import { dict, getLang, setLang, useT } from './lib/i18n';
 import { canonicalDateId, monthOf, quarterOf, setDayStart, today, weekOf } from './lib/dates';
 import {
-  IconPlus, IconBoard, IconDay, IconFocus, IconHome, IconHourglass, IconInbox, IconHabits, IconMetrics, IconMonth, IconMore, IconQuarter, IconYear, IconSettings, IconShutdown, IconWeek, IconX, Mark, IconKeyboard } from './components/Icons';
+  IconSearch, IconPlus, IconBoard, IconDay, IconFocus, IconHome, IconHourglass, IconInbox, IconHabits, IconMetrics, IconMonth, IconMore, IconQuarter, IconYear, IconSettings, IconShutdown, IconWeek, IconX, Mark, IconKeyboard } from './components/Icons';
 import { FocusRunner } from './components/FocusTimer';
 import { BlockReminders } from './components/Reminders';
 import { FriendsWatcher } from './components/Friends';
@@ -29,6 +29,7 @@ import { inView } from './lib/tasks';
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const later = <M,>(load: () => Promise<M>, name: keyof M) => { loaders.push(load); return lazy(() => load().then((m) => ({ default: m[name] as ComponentType<any> }))); };
 const loaders: (() => Promise<unknown>)[] = [];
+const Search = later(() => import('./screens/Search'), 'Search');
 const Auth = later(() => import('./screens/Auth'), 'Auth');
 // a visitor on a sign-in page gets its screen while the session is being checked, not after
 if (isAuthPath(location.pathname)) import('./screens/Auth').catch(() => {});
@@ -185,6 +186,7 @@ function route(path: string) {
     case 'focus': return { nav: 'focus', el: <Focus /> };
     // the task lists (the old inbox's address leads there too); the part after it is the list or collection shown
     case 'tasks': case 'inbox': return { nav: 'inbox', el: <Tasks view={arg} /> };
+    case 'search': return { nav: 'search', el: <Search /> };
     case 'countdown': return { nav: 'countdown', el: <Countdowns /> };
     case 'boards': return { nav: 'boards', el: <Boards /> };
     case 'board': if (arg) return { nav: 'boards', el: <LegacyBoard id={arg} card={path.split('/')[3] || undefined} key={arg} /> }; break;
@@ -249,6 +251,7 @@ function Shell() {
   // the rail counts what is due or started by today
   const inboxCount = inboxDoc?.items.filter((x) => inView(x, 'today')).length ?? 0;
   const inbox: NavItem = { id: 'inbox', href: '/tasks', label: T.nav.inbox, icon: <IconInbox /> };
+  const search: NavItem = { id: 'search', href: '/search', label: T.historySearch.title, icon: <IconSearch /> };
   const countdown: NavItem = { id: 'countdown', href: '/countdown', label: T.nav.countdown, icon: <IconHourglass /> };
   const boards: NavItem = { id: 'boards', href: '/boards', label: T.nav.boards, icon: <IconBoard /> };
   const plan: NavItem[] = [
@@ -279,7 +282,7 @@ function Shell() {
   // the phone's bottom bar: four destinations and More
   const phoneMain = [home, plan[0], ...(settings.phoneQuickCapture === false ? [plan[1]] : []), work[0]];
   const agenda: NavItem = {id: 'agenda', href: '/agenda', label: T.calendarViews.agenda, icon: <IconDay />};
-  const phoneMore = [...(settings.phoneQuickCapture === false ? [] : [plan[1]]), agenda, boards, countdown, inbox, plan[2], plan[3], work[1], work[2], work[3], settingsItem].filter((x) => on(x.id));
+  const phoneMore = [search,...(settings.phoneQuickCapture === false ? [] : [plan[1]]), agenda, boards, countdown, inbox, plan[2], plan[3], work[1], work[2], work[3], settingsItem].filter((x) => on(x.id));
   const moreActive = phoneMore.some((x) => x.id === r?.nav);
 
   return (
@@ -291,7 +294,7 @@ function Shell() {
         <div className="rail-group">{link(home)}{on('inbox') && link(inbox)}</div>
         <div className="rail-group" data-tour="nav-scales">{plan.map((x) => link(x))}</div>
         <span className="sep" aria-hidden="true" />
-        <div className="rail-group">{link(work[0])}{on('boards') && link(boards)}{on('countdown') && link(countdown)}{work.slice(1).filter((x) => on(x.id)).map((x) => link(x))}</div>
+        <div className="rail-group">{link(search)}{link(work[0])}{on('boards') && link(boards)}{on('countdown') && link(countdown)}{work.slice(1).filter((x) => on(x.id)).map((x) => link(x))}</div>
         <div className="bottom">
           {/* the keyboard shortcuts, one click away for those who never press ? (user, 2026-11-17) */}
           <button type="button" className="rail-item rail-keys" onClick={() => window.dispatchEvent(new CustomEvent('sc:help'))} aria-label={`${T.keys.title} (?)`}><IconKeyboard /><span className="tip" aria-hidden="true">{T.keys.title} · ?</span></button>

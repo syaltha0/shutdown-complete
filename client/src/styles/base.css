@@ -131,7 +131,7 @@ textarea.input { height: auto; padding: 8px 12px; line-height: 20px; resize: ver
 
 /* short windows (a 1366×768 laptop, browser bars included): the rail tightens so its last item stays on screen and
    the page does not grow a scroll because of it (more screens joined the rail, e.g. Year) */
-@media (min-width: 861px) and (max-height: 760px) {
+@media (min-width: 861px) and (max-height: 820px) {
   .rail { gap: 2px; padding: 10px 0 12px; }
   .rail .mark { margin-bottom: 8px; }
   .rail .sep { margin: 4px 0; }
