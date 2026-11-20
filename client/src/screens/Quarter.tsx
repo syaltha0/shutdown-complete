@@ -11,6 +11,7 @@ import { useDoc, useRange } from '../lib/useDoc';
 import { BrokenDown } from '../components/Links';
 import { belowRange, servingOf } from '../lib/links';
 import type { MonthDoc } from '../lib/model';
+import '../styles/quarter.css';
 
 export function Quarter({ id }: { id: string }) {
   const T = useT();
@@ -34,11 +35,12 @@ export function Quarter({ id }: { id: string }) {
     <>
       <div className="title-row">
         <div>
-          <h1>{T.quarterTitle(qq, yy)}</h1><a className="card-link" href={`/year/${yy}`} onClick={onLinkClick}>{T.year.title} {yy}</a>
+          <h1>{T.quarterTitle(qq, yy)}</h1>
           <p className="sub num">
             {rangeLabel(from, to)}
             {idx >= 0 && <> · <strong>{T.weekOfN(idx + 1, weeks.length)}</strong></>}
             {goals.length > 0 && T.goalsDone(goals.filter((g) => g.done).length, goals.length)}
+            {' · '}<a className="card-link" style={{ fontWeight: 400 }} href={`/year/${yy}`} onClick={onLinkClick}>{T.year.title} {yy}</a>
             {quarterMonths(id).map((m) => <span key={m}>{' · '}<a className="card-link" style={{ fontWeight: 400 }} href={`/month/${m}`} onClick={onLinkClick}>{monthName(m)}</a></span>)}
           </p>
         </div>
@@ -72,7 +74,7 @@ export function Quarter({ id }: { id: string }) {
 
         <section className="panel flush span-6" style={{ alignSelf: 'start' }} aria-labelledby="weeks-h">
           <header><h2 id="weeks-h">{T.theWeeks}</h2><span className="meta">{T.nWeeks(weeks.length)}</span></header>
-          <table style={{ marginTop: 8 }}>
+          <table className="quarter-weeks" style={{ marginTop: 8 }}>
             <thead>
               <tr><th>{T.weekCol}</th><th className="hide-phone">{T.datesCol}</th><th className="n">{T.planDoneCol}</th><th className="n">{T.shutdownsCol}</th></tr>
             </thead>
@@ -83,8 +85,8 @@ export function Quarter({ id }: { id: string }) {
                 const sd = days.filter((d) => dayDocs?.get(`day:${d}`)?.shutdown.done).length;
                 const past = w <= cur;
                 return (
-                  <tr key={w} className={w === cur ? 'is-current' : undefined}>
-                    <td><a href={`/week/${w}`} onClick={onLinkClick}><b style={{ fontWeight: 500 }}>{T.weekN(weekNumber(w))}</b></a>{w === cur && <span className="muted">{T.thisWeekSuffix}</span>}</td>
+                  <tr key={w} className={w === cur ? 'is-current' : w < cur ? 'is-past' : 'is-future'}>
+                    <td><a href={`/week/${w}`} onClick={onLinkClick}><b>{T.weekN(weekNumber(w))}</b></a>{w === cur && <span className="muted">{T.thisWeekSuffix}</span>}</td>
                     <td className="hide-phone muted num">{rangeLabel(days[0], days[6])}</td>
                     <td className="n">{wd?.items.length ? T.of(wd.items.filter((i) => i.done).length, wd.items.length) : <span className="muted">—</span>}</td>
                     <td className="n">{past && dayDocs ? T.of(sd, 7) : <span className="muted">—</span>}</td>

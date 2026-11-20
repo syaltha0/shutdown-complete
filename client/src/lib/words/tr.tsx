@@ -36,7 +36,7 @@ serverStatus: { remedy: 'İlgili ayarı veya kurulum yönergesini aç',"title":"
     notes: 'Notlar',
     goals: 'Hedefler'
   },
-  calendarViews: {month: 'Ay', week: 'Hafta', day: 'Gün', agenda: 'Ajanda', jump: 'Tarihe git', more: 'Daha fazla göster', empty: 'Henüz plan yok'}, roomTaskFocus: 'Buna odaklan',
+  calendarViews: {planDay: 'Günü planla', month: 'Ay', week: 'Hafta', day: 'Gün', agenda: 'Ajanda', jump: 'Tarihe git', more: 'Daha fazla göster', empty: 'Henüz plan yok'}, roomTaskFocus: 'Buna odaklan',
   roomTaskAdd: 'Görev ekle',
   pushClosed: 'Uygulama kapalıyken de',
   pushBody: 'Planladığın bir blok başlamak üzere. Planını aç.',

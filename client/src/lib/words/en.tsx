@@ -38,7 +38,7 @@ export const en = {
     notes: 'Notes',
     goals: 'Goals'
   },
-  calendarViews: {month: 'Month', week: 'Week', day: 'Day', agenda: 'Agenda', jump: 'Jump to date', more: 'Show more', empty: 'Nothing planned'}, roomTaskFocus: 'Focus on this',
+  calendarViews: {planDay: "Plan this day", month: 'Month', week: 'Week', day: 'Day', agenda: 'Agenda', jump: 'Jump to date', more: 'Show more', empty: 'Nothing planned'}, roomTaskFocus: 'Focus on this',
   roomTaskAdd: 'Add task',
   pushClosed: 'Even when the app is closed',
   pushBody: 'A planned block is about to start. Open your plan.',
