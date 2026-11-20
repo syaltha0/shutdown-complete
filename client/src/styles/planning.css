@@ -312,8 +312,11 @@ kbd { white-space: nowrap; flex-shrink: 0; display: inline-grid; place-items: ce
 @media (max-width: 860px) { .undo-note { bottom: calc(76px + env(safe-area-inset-bottom)); } }
 
 /* ======================= weekly planning ======================= */
-.plan-week { display: grid; gap: 24px; max-width: 820px; }
-.plan-progress { grid-template-columns: repeat(4, 44px) 1fr; }
+.plan-week { display: grid; gap: 24px; }
+.plan-progress { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; align-items: center; }
+.plan-progress > i { display: block; height: 3px; border-radius: 2px; background: var(--border); }
+.plan-progress > i.on { background: var(--text); }
+.plan-progress > span { grid-column: 1 / -1; font-size: 12px; }
 .pw-title { font-size: 22px; line-height: 28px; font-weight: 500; }
 .pw-stats { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); border: 1px solid var(--border); border-radius: var(--radius-card); }
 .pw-stats > div { display: grid; gap: 2px; padding: 12px 16px; }
