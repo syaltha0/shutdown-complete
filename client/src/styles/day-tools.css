@@ -275,3 +275,8 @@
   .plan-guide > summary { display: none; }
   .plan-guide::details-content { content-visibility: visible; }
 }
+
+/* a task in the agenda can be ticked off */
+.agenda-day li.agenda-task { display: block; }
+.agenda-tick { display: flex; align-items: center; gap: 12px; min-height: 28px; cursor: pointer; overflow-wrap: anywhere; }
+@media (max-width: 600px) { .agenda-tick { min-height: 44px; } }
