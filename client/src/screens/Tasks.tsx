@@ -300,7 +300,7 @@ function InboxTasks({ view: asked }: { view?: string }) {
     <>
       <div className="title-row">
         <div>
-          <h1>{T.tkTitle}</h1>
+          <h1>{viewName}</h1>
           <p className="sub num">{doc ? T.tkSummary(count('all'), count('today')) : ' '}</p>
         </div>
         <div className="title-actions"><SaveStamp status={status} /></div>
