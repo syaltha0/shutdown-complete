@@ -5,6 +5,10 @@ import { LoadFailed } from '../components/Common';
 import { IconLeft, IconRight } from '../components/Icons';
 import { api, type WeekReviewData } from '../lib/api';
 import { addWeeks, duration, rangeLabel, weekdayShort, weekNumber, weekOf, today } from '../lib/dates';
+import { dayFocus } from '../lib/focus';
+import { weekDays } from '../lib/dates';
+import { useRange } from '../lib/useDoc';
+import type { DayDoc } from '../lib/model';
 import { useT } from '../lib/i18n';
 import { emptyWeek, type WeekDoc } from '../lib/model';
 import { useDoc } from '../lib/useDoc';
@@ -27,7 +31,7 @@ export function WeekReview({ id }: { id: string }) {
   const T = useT(), W = T.review;
   const { settings, update } = useSettings();
   const { value: week, update: updateWeek, status, error, retry } = useDoc<WeekDoc>(`week:${id}`, emptyWeek);
-  const [r, setR] = useState<WeekReviewData | null>(null);
+  const [review, setR] = useState<WeekReviewData | null>(null);
   const [failed, setFailed] = useState(false);
   const [tries, setTries] = useState(0);
   useEffect(() => {
@@ -36,6 +40,14 @@ export function WeekReview({ id }: { id: string }) {
     api.review(id).then((d) => { if (live) setR(d); }).catch(() => { if (live) setFailed(true); });
     return () => { live = false; };
   }, [id, tries]);
+  const previousDays = weekDays(addWeeks(id, -1)), currentDays = weekDays(id);
+  const daily = useRange<DayDoc>('day:' + previousDays[0], 'day:' + currentDays[6]);
+  const r = review && daily.docs ? {
+    ...review,
+    days: review.days.map(d => ({ ...d, focused: dayFocus(daily.docs!.get('day:' + d.date), settings).minutes })),
+    totals: { ...review.totals, focused: currentDays.reduce((n, d) => n + dayFocus(daily.docs!.get('day:' + d), settings).minutes, 0) },
+    prev: { ...review.prev, focused: previousDays.reduce((n, d) => n + dayFocus(daily.docs!.get('day:' + d), settings).minutes, 0) },
+  } : null;
   const t = r?.totals;
   const max = r ? Math.max(60, ...r.days.map((d) => Math.max(d.planned, d.focused))) : 60;
   const current = weekOf(today());
@@ -53,7 +65,7 @@ export function WeekReview({ id }: { id: string }) {
           <a className="btn" href={`/week/${id}`} onClick={onLinkClick}>{W.toWeek}</a>
         </div>
       </div>
-      {failed ? <LoadFailed retry={() => setTries((n) => n + 1)} /> : !r || !t ? <div className="skeleton" style={{ height: 320 }} /> : (
+      {failed || daily.error ? <LoadFailed retry={() => { setTries((n) => n + 1); daily.retry(); }} /> : !r || !t ? <div className="skeleton" style={{ height: 320 }} /> : (
         <div className="grid wr" data-anim>
           <section className="panel span-12 wr-stats" aria-label={W.title(weekNumber(id))}>
             <div><span className="wr-k">{W.focused}</span><b className="num">{hours(t.focused)}</b><span className="wr-s num">{W.ofDeep(hours(t.deep))} <Delta now={t.focused} before={r.prev.focused} fmt={hours} /></span></div>

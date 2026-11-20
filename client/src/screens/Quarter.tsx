@@ -87,7 +87,7 @@ export function Quarter({ id }: { id: string }) {
                     <td><a href={`/week/${w}`} onClick={onLinkClick}><b style={{ fontWeight: 500 }}>{T.weekN(weekNumber(w))}</b></a>{w === cur && <span className="muted">{T.thisWeekSuffix}</span>}</td>
                     <td className="hide-phone muted num">{rangeLabel(days[0], days[6])}</td>
                     <td className="n">{wd?.items.length ? T.of(wd.items.filter((i) => i.done).length, wd.items.length) : <span className="muted">—</span>}</td>
-                    <td className="n">{past && dayDocs ? T.of(sd, w === cur ? days.filter((d) => d <= t).length : 7) : <span className="muted">—</span>}</td>
+                    <td className="n">{past && dayDocs ? T.of(sd, 7) : <span className="muted">—</span>}</td>
                   </tr>
                 );
               })}
