@@ -977,6 +977,7 @@ export const en = {
   undo: 'Undo', deleted: (what: string) => `Deleted: ${what}`, metricWord: 'metric',
   needsAttention: (n: number) => (n === 1 ? '1 thing waits for you in Server settings' : `${n} things wait for you in Server settings`),
   keys: {
+    navigation: 'Navigation', tasks: 'Tasks and planning',
     title: 'Keyboard shortcuts', pauseFocus: 'Pause or resume the focus timer (on any screen)', newBlock: 'A new block (on a day)', newTask: 'Write a new task (on Tasks)', searchTasks: 'Search tasks (on Tasks)', selectTasks: 'Select several tasks (on Tasks)', revise: 'Revise from now (on a day)', prevNext: 'The day, week or month before / after',
     today: 'Today', week: 'This week', month: 'This month', quarter: 'This quarter', planWeek: 'Plan this week', focus: 'Focus',
     habits: 'Habits', inbox: 'Tasks', shutdown: 'Today’s shutdown', undo: 'Undo the last deletion', help: 'This list',

@@ -959,6 +959,7 @@ serverStatus: { remedy: 'İlgili ayarı veya kurulum yönergesini aç',"title":"
   undo: 'Geri al', deleted: (what) => `Silindi: ${what}`, metricWord: 'metrik',
   needsAttention: (n) => `Sunucu ayarlarında seni bekleyen ${n} şey var`,
   keys: {
+    navigation: 'Gezinme', tasks: 'Görevler ve planlama',
     title: 'Klavye kısayolları', pauseFocus: 'Odak zamanlayıcıyı duraklat / sürdür (her ekranda)', newBlock: 'Yeni blok (gün ekranında)', newTask: 'Yeni görev yaz (Görevler ekranında)', searchTasks: 'Görevlerde ara (Görevler ekranında)', selectTasks: 'Birkaç görevi seç (Görevler ekranında)', revise: 'Şimdiden revize et (gün ekranında)', prevNext: 'Önceki / sonraki gün, hafta ya da ay',
     today: 'Bugün', week: 'Bu hafta', month: 'Bu ay', quarter: 'Bu çeyrek', planWeek: 'Bu haftayı planla', focus: 'Odak',
     habits: 'Alışkanlıklar', inbox: 'Görevler', shutdown: 'Bugünün kapanışı', undo: 'Son silmeyi geri al', help: 'Bu liste',

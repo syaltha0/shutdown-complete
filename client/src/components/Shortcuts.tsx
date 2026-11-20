@@ -80,11 +80,10 @@ export function Shortcuts({ paletteOpen = false }: { paletteOpen?: boolean }) {
     if (!help && d.open) d.close();
   }, [help]);
 
-  const rows: [string[], string][] = [
-    [['Ctrl / Cmd', 'K'], T.historySearch.placeholder],
-    [['Space', 'S', 'R', '+'], T.focusOptions.shortcuts], [['Alt', 'P'], K.pauseFocus],
-    [['N'], K.newBlock], [['N'], K.newTask], [['/'], K.searchTasks], [['X'], K.selectTasks], [['R'], K.revise], [['←', '→'], K.prevNext], [['T'], K.today], [['W'], K.week], [['M'], K.month],
-    [['A'], T.calendarViews.agenda], [['Y'], T.year.current], [['Q'], K.quarter], [['P'], K.planWeek], [['F'], K.focus], [['H'], K.habits], [['I'], K.inbox], [['S'], K.shutdown], [['Ctrl', 'Z'], K.undo], [['?'], K.help],
+  const groups: [string, [string[], string][]][] = [
+    [K.navigation, [[['Ctrl / Cmd', 'K'], T.historySearch.placeholder], [['←', '→'], K.prevNext], [['T'], K.today], [['W'], K.week], [['M'], K.month], [['A'], T.calendarViews.agenda], [['Y'], T.year.current], [['Q'], K.quarter], [['P'], K.planWeek], [['F'], K.focus], [['H'], K.habits], [['I'], K.inbox], [['S'], K.shutdown], [['?'], K.help]]],
+    [K.focus, [[['Space', 'S', 'R', '+'], T.focusOptions.shortcuts], [['Alt', 'P'], K.pauseFocus]]],
+    [K.tasks, [[['N'], K.newBlock], [['N'], K.newTask], [['/'], K.searchTasks], [['X'], K.selectTasks], [['R'], K.revise], [['Ctrl', 'Z'], K.undo]]],
   ];
   return (
     <>
@@ -93,11 +92,11 @@ export function Shortcuts({ paletteOpen = false }: { paletteOpen?: boolean }) {
           <h2 id="keys-h">{K.title}</h2>
           <button type="button" className="btn ghost icon" aria-label={T.close} onClick={() => setHelp(false)}><IconX /></button>
         </div>
-        <dl className="keys">
+        {groups.map(([title, rows]) => <section className="keys-group" key={title}><h3>{title}</h3><dl className="keys">
           {rows.map(([keys, what]) => (
             <div key={what}><dt>{keys.map((k) => <kbd key={k}>{k}</kbd>)}</dt><dd>{what}</dd></div>
           ))}
-        </dl>
+        </dl></section>)}
       </dialog>
       <UndoNote />
     </>
