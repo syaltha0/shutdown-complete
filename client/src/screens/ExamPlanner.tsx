@@ -137,11 +137,11 @@ export function ExamPlanner({ open, exam, onClose, start }: { open: boolean; exa
           {!valid ? <p className="muted">{T.examFill}</p> : !plan ? <div className="skeleton" style={{ height: 80 }} /> : plan.sittings.length === 0 ? <p className="muted">{T.examNone}</p> : (
             <>
               <p><b>{T.examPreview(plan.sittings.length, plan.days)}</b>{plan.crowded ? <span className="muted"> · {T.examTight}</span> : null}</p>
-              <ol className="exam-list">
+              <details className="exam-details"><summary>{T.examSessions}</summary><ol className="exam-list">
                 {plan.sittings.map((s, i) => (
                   <li key={i}><span className="num muted">{fmtDay(s.date, { weekday: 'short', day: 'numeric', month: 'short' })} · {clock(s.start)}–{clock(s.end)}</span><span>{s.label}</span></li>
                 ))}
-              </ol>
+              </ol></details>
             </>
           )}
         </div>
