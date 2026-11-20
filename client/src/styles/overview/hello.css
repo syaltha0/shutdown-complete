@@ -49,8 +49,8 @@
 .b-hello-summary { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; flex-shrink: 0; } .b-hello-main { gap: 5px; } .b-hello-main .b-actions { margin-top: 2px; }
 
 /* the side column always ends with the week so far, so it is never an empty half */
-.b-hello-side { justify-content: flex-start; }
-.b-hello-week-title { margin-top: auto !important; padding-top: 8px; }
+.b-hello-side { justify-content: center; }
+.b-hello-week-title { margin-top: 0 !important; padding-top: 8px; }
 .b-hello-week { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; margin: 0; }
 .b-hello-week dt { color: var(--muted); font-size: 11px; }
 .b-hello-week dd { margin: 0; font-size: 16px; font-weight: 500; }
@@ -68,3 +68,5 @@
   .b-hello-main .b-hello-starts .b-act { min-height: 18px; }
   .b-hello-summary { line-height: 14px; }
 }
+
+@media (min-width: 861px) { .b-hello-main { justify-content: center; } }

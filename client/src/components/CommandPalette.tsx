@@ -88,6 +88,7 @@ export default function CommandPalette({ onClose }: { onClose: () => void }) {
       {task && body && <p className="palette-preview">{P.preview}: {draft.text} {draft.due} {draft.dueTime} {draft.tags?.map(x=>`@${x}`).join(' ')} {draft.priority && `!${draft.priority}`} {draft.list && inbox?.lists?.find(l=>l.id===draft.list)?.name}</p>}
       <div id="palette-results" role="listbox" aria-label={P.title} aria-busy={busy}>{filtered.map((c,i)=><div key={c.id} id={`palette-option-${i}`} role="option" aria-selected={i===index} onMouseMove={()=>setSelected(i)} onClick={()=>void execute(c)}><span>{i===commandCount && query.trim().length>=2 && !task && !capture && <small className="palette-history-heading">{T.historySearch.history}</small>}{c.result?<SearchResult result={c.result} query={query}/>:c.label}</span>{c.shortcut&&<kbd>{c.shortcut}</kbd>}</div>)}{!filtered.length&&<p role="status">{P.none}</p>}</div>
       {!task && !capture && query.trim().length >= 2 && !searchResults.length && <p role={searchError?'alert':'status'}>{T.historySearch.history}: {searching?T.historySearch.loading:searchError?T.historySearch.error:T.historySearch.none}</p>}
+      <p className="palette-help">{P.syntax}</p>
       {error&&<p role="alert">{P.error}</p>}
     </div>
   </dialog>;

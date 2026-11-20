@@ -28,6 +28,8 @@ export function SettingsScreen() {
   const T = useT();
   const { settings, update } = useSettings();
   const captureWords = useT().quickCapture;
+  const [sectionQuery, setSectionQuery] = useState('');
+  const [sectionId, setSectionId] = useState('');
   const [importing, setImporting] = useState(false);
   const [imported, setImported] = useState<string | null>(null);
   const [preview, setPreview] = useState<{ data: unknown; count: number; dates: string[]; kinds: string[] } | null>(null);
@@ -80,6 +82,7 @@ export function SettingsScreen() {
   const { user, source } = useAccount();
   const path = usePath();
   const tab = path === '/settings/account' ? 'account' : path === '/settings/server' && user.isAdmin ? 'server' : 'planner';
+  const sections = [{ id: 's-lang', label: T.language }, { id: 's-features', label: T.featuresTitle }, { id: 's-theme', label: T.appearance }, { id: 's-install', label: T.installTitle }, { id: 's-hours', label: T.workday }, { id: 's-sched', label: T.scheduleTitle }, { id: 's-carry', label: T.carryTitle }, { id: 's-metrics', label: T.dailyMetrics }, { id: 's-focus', label: T.focusSettings }, { id: 's-remind', label: T.remindTitle }, { id: 's-notif', label: T.notif.title }, { id: 's-tpl', label: T.tplSettings }, { id: 's-ritual', label: T.shutdownRitual }, { id: 's-tour', label: T.tourSettings }, { id: 's-about', label: A.source }, { id: 's-data', label: T.yourData }, { id: 's-cal', label: T.calTitle }].filter(x => x.label.toLocaleLowerCase(T.locale).includes(sectionQuery.toLocaleLowerCase(T.locale)));
   const tabs = [
     { id: 'planner', href: '/settings', label: A.tabPlanner },
     { id: 'account', href: '/settings/account', label: A.tabAccount },
@@ -100,7 +103,7 @@ export function SettingsScreen() {
       </nav>
 
       {tab === 'account' ? <AccountSettings /> : tab === 'server' ? <ServerSettings /> : (
-      <div className="settings-layout"><nav className="settings-index" id="settings-index" tabIndex={-1} aria-label={T.sectionNav}><b>{T.sectionNav}</b><a href="#s-lang">{T.language}</a><a href="#s-features">{T.featuresTitle}</a><a href="#s-theme">{T.appearance}</a><a href="#s-install">{T.installTitle}</a><a href="#s-hours">{T.workday}</a><a href="#s-sched">{T.scheduleTitle}</a><a href="#s-carry">{T.carryTitle}</a><a href="#s-metrics">{T.dailyMetrics}</a><a href="#s-focus">{T.focusSettings}</a><a href="#s-remind">{T.remindTitle}</a><a href="#s-notif">{T.notif.title}</a><a href="#s-tpl">{T.tplSettings}</a><a href="#s-ritual">{T.shutdownRitual}</a><a href="#s-tour">{T.tourSettings}</a><a href="#s-about">{A.source}</a><a href="#s-data">{T.yourData}</a><a href="#s-cal">{T.calTitle}</a></nav><div className="settings" onClick={(e) => { const link = (e.target as HTMLElement).closest('a[href="#settings-index"]'); if (link) document.getElementById('settings-index')?.focus(); }}>
+      <div className="settings-layout"><nav className="settings-index" id="settings-index" tabIndex={-1} aria-label={T.sectionNav}><b>{T.sectionNav}</b><label className="settings-section-search"><span className="sr-only">{T.settingsSearch}</span><input className="input" type="search" value={sectionQuery} placeholder={T.settingsSearch} onChange={e => { setSectionQuery(e.target.value); setSectionId(''); }} /></label><select className="input settings-section-select" aria-label={T.sectionNav} value={sectionId} onChange={e => { setSectionId(e.target.value); document.getElementById(e.target.value)?.scrollIntoView({ block: 'start' }); document.getElementById(e.target.value)?.focus({ preventScroll: true }); }}><option value="">{T.sectionNav}</option>{sections.map(x => <option key={x.id} value={x.id}>{x.label}</option>)}</select><div className="settings-section-links">{sections.map(x => <a key={x.id} href={'#' + x.id}>{x.label}</a>)}</div></nav><div className="settings" onClick={(e) => { const link = (e.target as HTMLElement).closest('a[href="#settings-index"]'); if (link) document.getElementById('settings-index')?.focus(); }}>
         <section className="set-row" aria-labelledby="s-lang">
           <div className="about">
             <h2 id="s-lang" tabIndex={-1}>{T.language}</h2><a className="settings-back" href="#settings-index">{T.backSections}</a>

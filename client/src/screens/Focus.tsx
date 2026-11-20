@@ -309,7 +309,7 @@ export function Focus() {
             </div>
             <BlockChip block={shownBlock} label={a ? a.label || T.freeFocus : chosenBlock ? chosenBlock.label || T.untitledBlock : T.freeFocus} open={picking} locked={!!a} onOpen={() => setPicking(true)} chipRef={chipRef} suggest={!a && !chosenBlock && current ? current.label || T.untitledBlock : undefined} />
             {!a && <form className="focus-setup" onSubmit={(e) => { e.preventDefault(); if (day) startFocus(begin); }}>
-              <div className="focus-go"><button type="submit" className="btn primary big" disabled={!day}>{phase === 'focus' ? T.startFocus : T.focusStartBreak}</button></div>
+              <div className="focus-go"><button type="submit" className="btn primary big focus-act" disabled={!day}>{phase === 'focus' ? T.startFocus : T.focusStartBreak}</button></div>
             </form>}
 
             {a && (
@@ -342,6 +342,7 @@ export function Focus() {
           <div className="chart-head">
             <h2 id="f4-h">{T.focusFourWeeks}</h2>
           </div>
+          {!past && <dl className="focus-stats" aria-hidden="true">{[T.focusStats.week, T.focusStats.avg, T.focusStats.best].map(label => <div key={label}><dt>{label}</dt><dd>—</dd></div>)}</dl>}
           {past && (() => {
             // three figures above the chart: a card that stretches with the timer card is not just a tall chart
             const mins = vals.map((v) => v ?? 0);
@@ -372,7 +373,7 @@ export function Focus() {
               format: (v: number) => duration(v), tickFormat: (v: number) => T.minShort(v),
               xAt: days28.map((_, i) => (i % (el.clientWidth < 640 ? 14 : 7) === 0 ? i : -1)).filter((i) => i >= 0),
             })} />
-          ) : <div className="skeleton" style={{ height: 200 }} />}
+          ) : <div className="chart skeleton" />}
         </section>
         </div>
 

@@ -29,7 +29,7 @@ export function StillOpen({ T, settings, t, day, update, tasks, B, now, plan }: 
       }} /><span title={x.text}>{x.text}</span></label></li>)}</ul>}
       {tasks.length > 5 && link(`/day/${t}`, B.openMore(tasks.length - 5))}
       {metrics.length > 0 && <div className="b-open-measure"><p className="b-open-group">{B.openMetricGroup}<span>{metrics.length}</span></p>{link(`/day/${t}`, B.openMetrics(metrics.length))}</div>}
-      {shutdown && <div className={ended ? "b-open-closing due" : "b-open-closing"}><p className="b-open-group">{B.openClosingGroup}</p>{ended && <span className="b-open-hint">{B.openClose}</span>}{link(`/shutdown/${t}`, T.runShutdown, ended)}</div>}
+      {shutdown && <div className={ended ? "b-open-closing due" : "b-open-closing"}><p className="b-open-group">{B.openClosingGroup}</p>{ended && <span className="b-open-hint">{B.openClose}</span>}{link(`/shutdown/${t}`, T.nav.shutdown, ended)}</div>}
       {inboxCount > 0 && link("/inbox", B.openInbox(inboxCount))}
       {/* what is already done today, quietly, below what is left */}
       {doneToday.length > 0 && <div className="b-open-done"><p className="b-open-group">{B.openDoneGroup}<span>{doneToday.length}</span></p><ul>{doneToday.slice(0, 3).map(x => <li key={x.id}><s>{x.text}</s></li>)}</ul></div>}
