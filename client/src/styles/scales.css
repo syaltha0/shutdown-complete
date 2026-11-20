@@ -4,6 +4,16 @@
 /* month */
 .stack.fill-col { display: flex; flex-direction: column; }
 .stack.fill-col > .panel.fill { flex: 1; }
+.month-layout > .fill-col { align-self: stretch; }
+.month-layout .panel.fill, .month-layout .field.grow { display: flex; flex-direction: column; }
+.month-layout .field.grow, .month-layout #m-notes { flex: 1; }
+.month-layout #m-notes { min-height: 140px; }
+.month-layout .month-cal, .month-layout .cal { display: flex; flex-direction: column; }
+.month-layout .cal, .month-layout .cal-row:not(.head) { flex: 1; }
+.month-layout .cal-row.head span { padding-left: 8px; }
+.month-layout .cal-day .dv { margin-top: 4px; line-height: 16px; }
+.month-layout .cal-day .rem { white-space: normal; overflow-wrap: anywhere; }
+@media (max-width: 600px) { .month-layout #m-notes { min-height: 88px; } }
 .date-list { display: grid; }
 .date-row { display: grid; grid-template-columns: 76px minmax(0, 1fr) 36px; align-items: center; gap: 8px; min-height: 40px; border-bottom: 1px solid var(--rule); }
 .date-row a { font-weight: 500; }

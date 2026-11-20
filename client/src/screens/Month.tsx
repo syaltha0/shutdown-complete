@@ -82,7 +82,7 @@ export function Month({ id }: { id: string }) {
       </div>
       <DocNotice status={status} error={error} retry={retry} />
 
-      <div className="grid">
+      <div className="grid month-layout">
         <div className="stack span-5 fill-col">
           <section className="panel" aria-labelledby="mg-h" data-anim>
             <header><h2 id="mg-h">{T.mustDeliverMonth}</h2></header>
