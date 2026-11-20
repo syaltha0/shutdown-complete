@@ -662,6 +662,13 @@ serverStatus: { remedy: 'İlgili ayarı veya kurulum yönergesini aç',"title":"
   tkDrag: (t) => `${t}: sıralamak için sürükle, ya da bir listeye, etikete, koleksiyona bırak`, tkMovedTo: (t, where) => `${t}: ${where}`,
   tkAddPh: (where) => `${where} listesine görev ekle…`, tkAddPhAny: 'Görev ekle…', tkAdd: 'Ekle',
   tkCompletedN: (n, shown) => `Tamamlanan ${n} görevi ${shown ? 'gizle' : 'göster'}`, tkDeleteDone: 'Tamamlananları sil', tkReopenDone: 'Tamamlananları yeniden aç', tkReopen: 'Yeniden aç',
+  triage: {
+    start: (n) => `Gelen kutusunu sırayla işle (${n})`, title: 'Gelen kutusunu sırayla işle', progress: (i, n) => `${i} / ${n}`, taskLabel: 'Görev', noteLabel: 'Not', notePh: 'Not',
+    today: 'Bugün', tomorrow: 'Yarın', pickDate: 'Tarih seç', setDate: 'Tarihi ayarla', toList: 'Listeye taşı', star: 'Yıldızla', starred: 'Yıldızlı', delete: 'Sil', skip: 'Atla',
+    pickList: 'Hangi listeye taşınsın?', noLists: 'Henüz liste yok', back: 'Geri', keys: 'T bugün · Y yarın · D tarih · L liste · S yıldız · Del sil · → atla · Esc kapat',
+    emptyTitle: 'Gelen kutusu boş', leftTitle: 'Şimdilik bu kadar', leftBody: (n) => `Gelen kutusunda hâlâ ${n} görev var.`, close: 'Kapat',
+    plannedOn: (t, d) => `${t}: ${d} gününe alındı`, moved: (t, l) => `${t}: ${l} listesine taşındı`, starredMsg: (t) => `Yıldızlandı: ${t}`, unstarredMsg: (t) => `Yıldız kaldırıldı: ${t}`,
+  },
   tkReopenedN: (n) => `${n} görev yeniden açıldı`,
   tkDoneDeleted: (n) => `Tamamlanan ${n} görev silindi`,
   tkNext: (t, d) => `Yapıldı: ${t}. Sıradaki ${d}`,
