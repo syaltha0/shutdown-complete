@@ -2,7 +2,7 @@ import { CalendarPublication } from './Publication';
 import { useEffect, useState } from 'react';
 import { useAccount } from '../App';
 import { api, ApiError, type AdminState, type SessionInfo, type SignupMode, type PasswordPolicy } from '../lib/api';
-import { getLang } from '../lib/i18n';
+import { getLang, useT } from '../lib/i18n';
 import { authError, useA } from '../lib/i18n-auth';
 import { addPasskey, deviceName, passkeysSupported } from '../lib/passkey';
 import { modeName, PasswordMeter, passwordOk, setPasswordPolicy } from './Auth';
@@ -98,9 +98,10 @@ export function AccountSettings() {
 }
 
 function Passkeys() {
+  const T = useT();
   const A = useA();
   const [list, setList] = useState<{ id: string; name: string; created: string; lastUsed: string | null }[] | null>(null);
-  const [name, setName] = useState(deviceName());
+  const [name, setName] = useState(displayDevice(deviceName(), T));
   const act = useAction();
   const load = () => api.passkeys().then(setList).catch(() => setList([]));
   useEffect(() => { load(); }, []);
@@ -111,7 +112,7 @@ function Passkeys() {
         <div className="session-list">
           {list.map((p) => (
             <div className="session-row" key={p.id}>
-              <span><b>{p.name}</b><small className="num">{A.signedInAt(ago(p.created, lang, A.justNow))} · {p.lastUsed ? A.passkeyLast(ago(p.lastUsed, lang, A.justNow)) : A.passkeyNever}</small></span>
+              <span><b>{displayDevice(p.name, T)}</b><small className="num">{A.signedInAt(ago(p.created, lang, A.justNow))} · {p.lastUsed ? A.passkeyLast(ago(p.lastUsed, lang, A.justNow)) : A.passkeyNever}</small></span>
               <button type="button" className="btn ghost icon" aria-label={A.removePasskey(p.name)} title={A.removePasskey(p.name)} onClick={() => api.passkeyRemove(p.id).then(load)}><IconX /></button>
             </div>
           ))}
@@ -220,6 +221,7 @@ function TwoStep() {
 }
 
 function Sessions() {
+  const T = useT();
   const A = useA();
   const [list, setList] = useState<SessionInfo[] | null>(null);
   const load = () => api.sessions().then(setList).catch(() => setList([]));
@@ -232,7 +234,7 @@ function Sessions() {
           {list.map((s) => (
             <div className="session-row" key={s.id}>
               <span>
-                <b>{s.device}</b>{s.current && <span className="badge on" style={{ marginLeft: 8 }}>{A.thisDevice}</span>}
+                <b>{displayDevice(s.device, T)}</b>{s.current && <span className="badge on" style={{ marginLeft: 8 }}>{A.thisDevice}</span>}
                 <small className="num">{A.lastActive(ago(s.lastSeen, lang, A.justNow))} · {A.signedInAt(ago(s.created, lang, A.justNow))} · {s.ip}{s.remember ? ` · ${A.remembered}` : ''}</small>
               </span>
               {!s.current && <button type="button" className="btn" onClick={() => api.endSession(s.id).then(load)}>{A.signOutDevice}</button>}
@@ -511,4 +513,11 @@ function Invites({ state, onChange }: { state: AdminState; onChange: (i: AdminSt
       )}
     </Row>
   );
+}
+
+function displayDevice(name: string, T: ReturnType<typeof useT>) {
+  if (!/^(Browser|Chrome|Edge|Firefox|Safari)( on (Windows|Mac|Linux|Android|iPhone))?$/.test(name)) return name;
+  const [br, os] = name.split(' on ');
+  const browser = br === 'Browser' ? T.browserName : br;
+  return os ? T.deviceOn(browser, os) : browser;
 }

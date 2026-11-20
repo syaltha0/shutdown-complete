@@ -86,11 +86,7 @@
 .tk-pc { display: inline-flex; align-items: center; gap: 6px; }
 .tk-pc i { position: relative; display: block; width: 36px; height: 4px; border-radius: 2px; background: var(--rule); overflow: hidden; }
 .tk-pc b { display: block; height: 100%; border-radius: 2px; background: var(--text); }
-/* priority on the box, as the calendar servers' task apps show it */
-.tk-row.p1 > .check { border-color: var(--negative); }
-.tk-row.p5 > .check { border-color: var(--warning); }
-.tk-row.p9 > .check { border-color: var(--hue); }
-.tk-row > .check:checked { border-color: var(--text); }
+.tk-row .tk-star.on, .tk-starred { color: var(--text); }
 .tk-star:not(.on) { opacity: 0; transition: opacity var(--t-hover) ease; }
 .tk-row:hover .tk-star, .tk-star:focus-visible { opacity: 1; }
 @media (hover: none) { .tk-star:not(.on) { opacity: 0.5; } }
@@ -159,7 +155,7 @@
 .from-lists .tk-grip { margin-left: -4px; opacity: 0.55; }
 .from-lists li:hover .tk-grip { opacity: 1; }
 .from-lists .task-meta { display: inline-flex; align-items: center; gap: 8px; font-size: 12px; }
-.tk-starred { display: inline-grid; color: var(--warning); }
+.tk-starred { display: inline-grid; color: var(--text); }
 .tk-starred svg { width: 13px; height: 13px; fill: currentColor; }
 .from-lists .btn.icon { width: 30px; height: 30px; }
 .from-lists > .card-link { margin-top: 4px; font-size: 13px; }

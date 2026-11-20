@@ -145,17 +145,19 @@ function InboxTasks({ view: asked }: { view?: string }) {
     offerUndo(T.deleted(t.text), () => update((b) => ({ ...b, ...restoreTasks(b, [t.id]), items: insertAt(b.items.filter((x) => x.id !== t.id), at, t) })));
   };
   // a task written in a collection gets what the collection is about
-  const add = (text: string) => {
+  const add = (text: string, createList?: string) => {
+    const newList = createList ? { id: uid(), name: createList } : undefined;
+    const availableLists = newList ? [...lists, newList] : lists;
     const t: Item = { id: uid(), text, done: false, created: new Date().toISOString(), list: isList && view !== DEFAULT_LIST ? view : undefined };
     if (view === 'today' || view === 'week') t.due = today();
     if (view === 'important') t.priority = 1;
     if (view === 'current') t.start = today();
     if (view.startsWith(TAG)) t.tags = [view.slice(TAG.length)];
-    const parsed = smartAdd ? parseTaskDraft(text, lists, today()) : { text };
+    const parsed = smartAdd ? parseTaskDraft(text, availableLists, today()) : { text };
     const tags = [...new Set([...(t.tags ?? []), ...(parsed.tags ?? [])])];
     const task: Item = { ...t, ...parsed, tags: tags.length ? tags : undefined };
     if (task.list === DEFAULT_LIST) task.list = undefined;
-    update((b) => ({ ...b, items: [...b.items, task] }));
+    update((b) => ({ ...b, lists: newList ? [...(b.lists ?? []), newList] : b.lists, items: [...b.items, task] }));
   };
   /** The completed tasks on screen come back open (one undo puts them all back as they were). */
   const reopenDone = () => {
@@ -281,8 +283,8 @@ function InboxTasks({ view: asked }: { view?: string }) {
             {t.tags?.map((g) => <span key={g} className="lbl lb-grey">{g}</span>)}
           </span>
         </button>
-        <button type="button" className={`btn ghost icon kb-star tk-star${t.priority === 1 ? ' on' : ''}`} aria-pressed={t.priority === 1} aria-label={T.tkStar(t.text)}
-          onClick={() => set(t.id, { priority: t.priority === 1 ? undefined : 1 })}>
+        <button type="button" className={`btn ghost icon kb-star tk-star${t.priority ? ' on' : ''}`} aria-pressed={!!t.priority} aria-label={T.tkStar(t.text)}
+          onClick={() => set(t.id, { priority: t.priority ? undefined : 1 })}>
           <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M10 3.2l2.1 4.3 4.7.7-3.4 3.3.8 4.7-4.2-2.2-4.2 2.2.8-4.7-3.4-3.3 4.7-.7z" /></svg>
         </button>
       </li>
@@ -350,7 +352,7 @@ function InboxTasks({ view: asked }: { view?: string }) {
           )}
           {view !== 'trash' && view !== 'completed' && <div id="tk-add-help" className="muted tk-quick-help">
             {draft.trim() ? <>
-              {unknownTaskLists(draft, lists).map(name => <small key={name}>{T.unknownTaskList(name)}</small>)}<span role="status">{T.tkDetected}: {parsedDraft.text} · {[parsedDraft.due, parsedDraft.dueTime, parsedDraft.list && lists.find((l) => l.id === parsedDraft.list)?.name, parsedDraft.priority && `${T.tkPriority} ${parsedDraft.priority}`, parsedDraft.tags?.map((g) => `@${g}`).join(' '), parsedDraft.repeat && recurWords(T, parsedDraft.repeat)].filter(Boolean).join(' · ')}</span>{' '}
+              {smartAdd && unknownTaskLists(draft, lists).map(name => <small key={name}>{T.missingTaskList(name)} · <button type="button" className="card-link" onClick={() => { add(draft.trim(), name); setDraft(''); setSmartAdd(true); }}>{T.createTaskList}</button></small>)}<span role="status">{T.tkDetected}: {parsedDraft.text} · {[parsedDraft.due, parsedDraft.dueTime, parsedDraft.list && lists.find((l) => l.id === parsedDraft.list)?.name, parsedDraft.priority && `${T.tkPriority} ${parsedDraft.priority}`, parsedDraft.tags?.map((g) => `@${g}`).join(' '), parsedDraft.repeat && recurWords(T, parsedDraft.repeat)].filter(Boolean).join(' · ')}</span>{' '}
               <button type="button" className="card-link quiet" onClick={() => setSmartAdd(false)}>{T.tkLiteral}</button>
             </> : <span>{T.tkQuickHelp}</span>}
           </div>}
