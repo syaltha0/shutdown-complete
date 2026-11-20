@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { parseTaskDraft } from '../../client/src/lib/taskQuickAdd.ts';
+import { parseTaskDraft, unknownTaskLists } from '../../client/src/lib/taskQuickAdd.ts';
 import { taskIcs, parseTodo, upsert } from '../src/vtodo.mjs';
 
 const lists = [{ id: 'work', name: 'İş' }, { id: 'en-work', name: 'Work' }];
@@ -39,4 +39,12 @@ test('a date beside a weekly rule moves to the rule\'s next weekday', () => {
 
 test('unknown list is removed and a date with a bare hour is parsed', () => {
  assert.deepEqual(parseTaskDraft('QA görevi yarın 9 #?? !1 @inceleme', [], '2026-11-17'), {text:'QA görevi', due:'2026-11-18', dueTime:'09:00', priority:1, tags:['inceleme']});
+});
+
+test('unknown Turkish lists are previewed and resolve after creation', () => {
+  const text = 'QA deneme yarın 9 #İş !1';
+  assert.deepEqual(unknownTaskLists(text, []), ['İş']);
+  const lists = [{id:'work', name:'İş'}];
+  assert.deepEqual(unknownTaskLists(text, lists), []);
+  assert.equal(parseTaskDraft(text, lists, '2026-11-20').list, 'work');
 });
