@@ -159,6 +159,8 @@ td a { font-weight: 500; }
 .exam-sheet .exam-list { max-height: none; overflow: visible; }
 .exam-details summary { cursor: pointer; margin-top: 10px; font-size: 13px; }
 
+.palette-help { margin: 0; padding: 10px 16px; border-top: 1px solid var(--border); color: var(--muted); font-size: 12px; }
+
 .settings-section-search, .settings-section-search .input { width: 100%; min-width: 0; }
 .settings-section-links { display: contents; }
 .settings-section-select { display: none; }
