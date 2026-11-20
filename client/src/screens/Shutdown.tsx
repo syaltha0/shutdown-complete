@@ -175,8 +175,7 @@ export function Shutdown({ date }: { date: string }) {
 
           {day && (
             <section className="panel" aria-labelledby="fo-h">
-              {dayFocus(day, settings).manual && <small>{T.focusManual}</small>}
-              <header><h2 id="fo-h">{T.focusMetric}</h2><a className="card-link" style={{ fontWeight: 400 }} href="/focus" onClick={onLinkClick}>{T.openFocus}</a></header>
+              <header><h2 id="fo-h">{T.focusMetric}{dayFocus(day, settings).manual && <> <small>{T.focusManual}</small></>}</h2><a className="card-link" style={{ fontWeight: 400 }} href="/focus" onClick={onLinkClick}>{T.openFocus}</a></header>
               {(day.focus?.sessions.length ?? 0) === 0 ? <div className="empty">{T.noSessions}</div> : (
                 <><FocusLog sessions={day.focus?.sessions} /><p className="focus-line num"><b>{duration(dayFocus(day, settings).minutes)}</b> · {T.focusRow(day.focus!.sessions.length, duration(dayFocus(day, settings).minutes))}</p></>
               )}
