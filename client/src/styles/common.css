@@ -24,6 +24,15 @@ dialog.sheet .foot .right { display: flex; gap: 8px; margin-left: auto; }
 .dayrow .n { text-align: right; font-variant-numeric: tabular-nums; }
 .dayrow .dash { color: var(--muted); }
 .dayrow.is-today .d b { color: var(--hue); }
+.week-layout { align-items: stretch; }
+.week-layout .week-summary { display: flex; flex-direction: column; }
+.week-layout .week-summary > :first-child { flex: 1; }
+.week-layout .dayrow.head { color: var(--text); }
+.week-layout .dayrow.is-today { box-shadow: inset 2px 0 var(--today-ring); }
+.week-layout .dayrow.is-today .d b { color: var(--text); }
+.week-layout #wk-notes { min-height: 140px; }
+@media (max-width: 900px) { .week-layout .week-summary { display: grid; } }
+@media (max-width: 600px) { .week-layout #wk-notes { min-height: 88px; } }
 .dayrow .first { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--muted); }
 .dayrow .first b { color: var(--text); font-weight: 400; }
 

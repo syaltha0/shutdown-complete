@@ -94,7 +94,7 @@ export function Week({ id }: { id: string }) {
       {id >= thisWeek && dayDocs && <CapacityNote scope="week" id={id} from={days[0]} thisOne={id === thisWeek}
         planned={days.reduce((n, d) => { const doc = dayDocs.get(`day:${d}`); return n + (doc ? minutesOfKind(doc, 'deep') : 0); }, 0)} />}
 
-      <div className="grid">
+      <div className="grid week-layout">
         <section className="panel span-7 fill" aria-labelledby="wp-h">
           <header>
             <h2 id="wp-h">{T.mustDeliver}</h2>
@@ -122,7 +122,7 @@ export function Week({ id }: { id: string }) {
           )}
         </section>
 
-        <div className="stack span-5" style={{ alignContent: 'start' }}>
+        <div className="stack span-5 week-summary">
           <section className="panel flush" aria-labelledby="days-h">
             <header><h2 id="days-h">{T.theDays}</h2><a className="card-link" style={{ fontWeight: 400 }} href="/metrics" onClick={onLinkClick}>{T.nav.metrics}</a></header>
             <div className="daylist" style={{ marginTop: 8 }}>
