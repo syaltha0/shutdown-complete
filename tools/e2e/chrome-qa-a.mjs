@@ -29,6 +29,9 @@ try {
  await p.goto(s.url+'/');await p.locator('.b-hello-week').waitFor();
  // Manual values (including zero) override sessions; days without a metric use sessions.
  await p.waitForFunction(()=>document.querySelector('.b-hello-week')?.innerText.includes('2 h 25 m'));assert.ok((await p.locator('.b-hello-week').innerText()).includes('2 h 25 m'));
+ const shutdownText=p.locator('.b-open-closing .b-act > span');await shutdownText.waitFor();
+ assert.equal(await shutdownText.evaluate(el=>getComputedStyle(el).whiteSpace),'normal');
+ assert.ok(await shutdownText.evaluate(el=>el.scrollWidth<=el.clientWidth));
  await p.screenshot({path:shots+'/overview.png',fullPage:true});
  await p.goto(s.url+'/month/'+d.slice(0,7));const marker=p.locator('.cal-day.is-today .dn');await marker.waitFor();assert.equal(await marker.evaluate(el=>getComputedStyle(el).backgroundColor),'rgba(0, 0, 0, 0)');assert.equal(await marker.evaluate(el=>getComputedStyle(el).outlineWidth),'1px');await p.screenshot({path:shots+'/month.png',fullPage:true});
  await api.put('day:2026-11-13',{...base,tasks:[{id:'qa-open',text:'QA open task',done:false}]});
