@@ -173,3 +173,6 @@ dialog.sheet .kb-dlg form { padding: 0; }
 
 .welcome-step:has(.profile-intro) { gap:6px; }
 .welcome-step h1 + .profile-intro { margin-top:-10px; }
+
+@media (max-width: 860px) { .bento .b-habits { grid-column: 1 / -1; } }
+@media (max-width: 860px) { .bento .b-streak { grid-column: 1 / -1; } }
