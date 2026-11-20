@@ -315,7 +315,7 @@
     const lg = series.length > 1 ? legendEl(series.map((sr, k) => ({ label: sr.name, w: 16, draw: (sw) => svg('line', { x1: 0, x2: 16, y1: 6, y2: 6, stroke: colourOf(sr, k), 'stroke-width': 2, 'stroke-dasharray': sr.dash ? '4 3' : null }, sw) })), legend) : null;
     return { legend: lg };
   }
-  function bars(el, { labels, values, format = fmt.int, tickFormat = null, height = 200, highlight = null, dim = [], colour, mutedColour, annotations, reference, xAt = null, axisFormat = (v) => nf({ maximumFractionDigits: 1 }).format(v) }) {
+  function bars(el, { labels, values, ariaLabel, format = fmt.int, tickFormat = null, height = 200, highlight = null, dim = [], colour, mutedColour, annotations, reference, xAt = null, axisFormat = (v) => nf({ maximumFractionDigits: 1 }).format(v) }) {
     el._fmt = format;
     const lit = (i) => highlight == null || (Array.isArray(highlight) ? highlight.includes(i) : highlight === i);
     const draw = () => {
@@ -341,7 +341,7 @@
       });
       references(g, el, reference, { y, padL, w, boxes: values.map((v, i) => ({ x0: x(i) - bw / 2, x1: x(i) + bw / 2, y0: v == null ? y(0) : y(v), y1: y(0) })) });
       notesOver(g, el, N, { padT, h, padB });
-      s.setAttribute('aria-label', `${labels.length} bars from ${labels[0]} to ${labels.at(-1)}; highest ${format(Math.max(...values))}`);
+      s.setAttribute('aria-label', ariaLabel ? ariaLabel(String(labels.length), labels[0], labels.at(-1), format(Math.max(...values))) : `${labels.length} bars from ${labels[0]} to ${labels.at(-1)}; highest ${format(Math.max(...values))}`);
     };
     draw(); watch(el, draw); settle(draw);
   }

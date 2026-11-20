@@ -1,5 +1,6 @@
 import { useEffect, useRef } from 'react';
 import '../vendor/charts.js';
+import { useT } from '../lib/i18n';
 
 // taste-skill's charts.js (vendored from .claude/skills/design-taste-frontend/assets) draws into a plain element.
 declare global {
@@ -10,6 +11,7 @@ declare global {
 export const themeColor = (name: string) => getComputedStyle(document.documentElement).getPropertyValue(name).trim();
 
 export function Chart({ draw, deps, label }: { draw: (el: HTMLElement, Charts: any) => void; deps: unknown[]; label: string }) {
+  const T = useT();
   const ref = useRef<HTMLDivElement>(null);
   useEffect(() => {
     const el = ref.current;
@@ -20,7 +22,10 @@ export function Chart({ draw, deps, label }: { draw: (el: HTMLElement, Charts: a
     const render = () => {
       if (!live || !ref.current) return;
       ref.current.innerHTML = '';
-      draw(ref.current, window.Charts);
+      draw(ref.current, { ...window.Charts, bars: (target: HTMLElement, options: any) => window.Charts.bars(target, {
+        ...options,
+        ariaLabel: (count: string, first: string, last: string, highest: string) => T.chartBars(count, first, last, highest),
+      }) });
       size = `${ref.current.clientWidth}x${ref.current.clientHeight}`;
       if (drawn) return; // bars grow in once, not again on every resize
       drawn = true;
@@ -42,6 +47,6 @@ export function Chart({ draw, deps, label }: { draw: (el: HTMLElement, Charts: a
     window.addEventListener('themechange', render);
     return () => { live = false; ro.disconnect(); cancelAnimationFrame(pending); window.removeEventListener('themechange', render); };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, deps);
+  }, [...deps, T]);
   return <div className="chart" ref={ref} aria-label={label} />;
 }
