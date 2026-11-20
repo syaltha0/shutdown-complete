@@ -142,6 +142,8 @@ serverStatus: { remedy: 'İlgili ayarı veya kurulum yönergesini aç',"title":"
   notes: 'Notlar',
   notesPh: 'Fikirler ve açık uçlar; kafanda değil, burada beklesinler',
   timeBlocks: 'Zaman blokları',
+  dayGuide: 'Plan rehberi ve şablonlar',
+  dayActions: 'İşlemler',
   plannedInColumn: 'Geçerli sütunda planlanan',
   deep: 'Derin', shallow: 'Küçük', open: 'Boş',
   kindsOfBlock: 'Blok türleri',

@@ -86,12 +86,12 @@ export function Day({ date }: { date: string }) {
   const allDayEvents = calDay.filter((e) => e.allDay);
 
   const head = (
-    <div className="title-row">
+    <div className="title-row day-title">
       <div>
         <h1>{title}</h1>
         <p className="sub">{day ? <Finding day={day} isToday={isToday} now={now} past={date < t} /> : ' '}</p>
       </div>
-      <div className="title-actions"><CalendarView view="day" date={date} />
+      <div className="title-actions"><span className="day-view"><CalendarView view="day" date={date} /></span>
         <SaveStamp status={status} />
         <div className="stepper">
           <a className="btn icon" href={`/day/${addDays(date, -1)}`} onClick={onLinkClick} aria-label={T.prevDay}><IconLeft /></a>
@@ -300,7 +300,7 @@ export function Day({ date }: { date: string }) {
   }
 
   return (
-    <div className="swipe-area" ref={swipe}>
+    <div className="swipe-area day-screen" ref={swipe}>
       <PrintHeader date={date} />
       {head}
       {(settings.exceptions ?? []).filter(e => e.from <= date && date <= e.to).map(e => <p className="muted" role="note" key={e.id}>{T.scheduleExceptions.noClasses}: {e.label}</p>)}
@@ -354,18 +354,21 @@ export function Day({ date }: { date: string }) {
               <InboxPicker open={pickInbox} onClose={() => setPickInbox(false)}
                 onTake={(items) => update((d) => ({ ...d, tasks: [...d.tasks, ...items] }))} />
             </section>
-            <section aria-labelledby="notes-h">
-              <h2 id="notes-h">{T.notes}</h2>
+            <details className="day-notes" aria-labelledby="notes-h">
+              <summary id="notes-h">{T.notes}</summary>
               <textarea className="notes-area" aria-labelledby="notes-h" value={day.notes}
                 placeholder={T.notesPh}
                 onChange={(e) => update((d) => ({ ...d, notes: e.target.value }))} />
-            </section>
+            </details>
           </section>
         </div>
 
         <section className="panel plan page-right" aria-labelledby="plan-h" data-tour="grid" data-anim>
           <div className="plan-head">
             <h2 id="plan-h">{T.timeBlocks}</h2>
+            <details className="plan-guide">
+              <summary>{T.dayGuide}</summary>
+              <div className="plan-guide-body">
             <p className="meta plan-actual-help">{T.planActualHelp}</p>
             <div className="plan-totals num" aria-label={T.plannedInColumn}>
               <span>{T.deep} <b>{duration(totals.deep)}</b></span>
@@ -378,6 +381,9 @@ export function Day({ date }: { date: string }) {
                 {actual.length > 0 && <span><i className="lg-actual" />{T.actualLegend}</span>}
               </div>
             )}
+              <button type="button" className="btn ghost tpl-btn" onClick={() => setTplOpen(true)}><IconTemplate />{T.tplButton}</button>
+              </div>
+            </details>
             {day.columns.length > 1 && (
               <div className="phone-only">
                 <Segmented className="sm" role="group" aria-label={T.column}>
@@ -397,7 +403,6 @@ export function Day({ date }: { date: string }) {
                 </button>)}
             {suggested && <button type="button" className="btn" onClick={() => applyTpl(suggested)}><IconTemplate />{T.tplApplyNamed(suggested.name)}</button>}
             {uncovered.length > 0 && date >= t && <button type="button" className="btn" onClick={blockOutAll}><IconCalendar />{T.calBlockOut(uncovered.length)}</button>}
-            <button type="button" className="btn ghost tpl-btn" onClick={() => setTplOpen(true)}><IconTemplate />{T.tplButton}</button>
             {day.columns.length > 1 && (
               <button type="button" className="card-link hide-phone" style={{ fontWeight: 400 }}
                 onClick={() => setCols(undoRevision)}>{T.undoRevision}</button>
@@ -467,13 +472,16 @@ function PlanActions({ day, onAdd, onRevise }: { day: DayDoc; onAdd: () => void;
   const full = day.columns.length >= MAX_COLUMNS;
   if (!hasBlocks) return <button type="button" className="btn primary" onClick={onAdd}>{T.addBlock}</button>;
   return (
-    <>
-      <button type="button" className="btn" onClick={onAdd}>{T.addBlock}</button>
-      <button type="button" className="btn primary" onClick={onRevise} disabled={full} data-tour="revise"
+    <details className="day-actions-menu">
+      <summary className="btn day-actions-toggle">{T.dayActions}</summary>
+      <div className="day-actions-list">
+      <button type="button" className="btn primary" onClick={onAdd}>{T.addBlock}</button>
+      <button type="button" className="btn" onClick={onRevise} disabled={full} data-tour="revise"
         title={full ? T.allColumnsUsed : undefined}>
         <IconRevise />{full ? T.noColumnsLeft : T.reviseFromNow}
       </button>
-    </>
+      </div>
+    </details>
   );
 }
 
@@ -525,7 +533,7 @@ function MetricsBox({ day, date, defs, update }: { day: DayDoc; date: string; de
             ? [m.target != null ? T.target(`${m.target} ${m.unit}`.trim()) : '', m.id === 'deep' ? T.plannedDeep(duration(deepPlanned)) : ''].filter(Boolean).join(' · ')
             : '';
           return (
-            <div className="metric-row" key={m.id}>
+            <div className={`metric-row${m.kind === 'check' ? ' metric-check' : ''}`} key={m.id}>
               <label className="name" htmlFor={`m-${m.id}`}>{m.name}{hint && <small>{hint}</small>}</label>
               {m.kind === 'check' ? (
                 <input id={`m-${m.id}`} type="checkbox" className="check lg" checked={v === true} onChange={(e) => setMetric(m.id, e.target.checked)} />

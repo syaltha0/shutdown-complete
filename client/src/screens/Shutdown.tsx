@@ -1,4 +1,3 @@
-import { Segmented } from '../components/Segmented';
 import { handoffTasks } from '../lib/shutdownHandoff';
 import { decideMoves } from '../lib/taskDeferral';
 import { emptyInbox, type InboxDoc } from '../lib/model';
@@ -143,15 +142,12 @@ export function Shutdown({ date }: { date: string }) {
           <section className="panel" aria-labelledby="open-h">
             <header>
               <h2 id="open-h">{T.stillOpen}</h2>
-              {openTasks.length > 0 && <button type="button" className="card-link" disabled={moving || !target || target <= date || !openTasks.some(t => selectedIds.includes(t.id))} onClick={moveTasks}>{T.moveTo(target ? longDate(target) : T.handoffDate)}</button>}
             </header>
             {!day ? <div className="skeleton" style={{ height: 88 }} /> : openTasks.length ? (
               <div>
-                <div className="field">
-                  <Segmented aria-label={T.handoffTarget}>
-                    <button type="button" aria-pressed={mode === 'tomorrow'} onClick={() => setMode('tomorrow')}>{T.handoffTomorrow}</button>
-                    <button type="button" aria-pressed={mode === 'date'} onClick={() => setMode('date')}>{T.handoffDate}</button>
-                  </Segmented>
+                <div className="field handoff-actions">
+                  <button type="button" className="btn primary" disabled={moving || !target || target <= date || !openTasks.some(t => selectedIds.includes(t.id))} onClick={moveTasks}>{T.moveTo(target ? longDate(target) : T.handoffDate)}</button>
+                  <button type="button" className="btn" aria-expanded={mode === 'date'} onClick={() => setMode(mode === 'date' ? 'tomorrow' : 'date')}>{T.handoffDate}</button>
                   {mode === 'date' && <input type="date" className="input num" aria-label={T.handoffTarget} min={tomorrow} value={chosenDate} onChange={e => setChosenDate(e.target.value)} />}
                 </div>
                 {openTasks.map(t => <label className={`carry${t.id === day.keyTaskId ? " key-task-selected" : ""}`} title={t.id === day.keyTaskId ? T.keyTask : undefined} key={t.id}>
@@ -171,7 +167,7 @@ export function Shutdown({ date }: { date: string }) {
 
           {day && (
             <section className="panel" aria-labelledby="fo-h">
-              <header><h2 id="fo-h">{T.focusMetric}{dayFocus(day, settings).manual && <> <small>{T.focusManual}</small></>}</h2><a className="card-link" style={{ fontWeight: 400 }} href="/focus" onClick={onLinkClick}>{T.openFocus}</a></header>
+              <header><h2 id="fo-h" className="focus-heading">{T.focusMetric}{dayFocus(day, settings).manual && <small className="manual-chip">{T.focusManual}</small>}</h2><a className="card-link" style={{ fontWeight: 400 }} href="/focus" onClick={onLinkClick}>{T.openFocus}</a></header>
               {(day.focus?.sessions.length ?? 0) === 0 ? <div className="empty">{T.noSessions}</div> : (
                 <><FocusLog sessions={day.focus?.sessions} /><p className="focus-line num"><b>{duration(dayFocus(day, settings).minutes)}</b> · {T.focusRow(day.focus!.sessions.length, duration(dayFocus(day, settings).minutes))}</p></>
               )}

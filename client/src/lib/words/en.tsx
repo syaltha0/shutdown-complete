@@ -148,6 +148,8 @@ export const en = {
   notes: 'Notes',
   notesPh: 'Ideas and loose ends, so they wait here instead of in your head',
   timeBlocks: 'Time blocks',
+  dayGuide: 'Plan guide & templates',
+  dayActions: 'Actions',
   plannedInColumn: 'Planned in the current column',
   deep: 'Deep', shallow: 'Small', open: 'Open',
   kindsOfBlock: 'Kinds of block',
