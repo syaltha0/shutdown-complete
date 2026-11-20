@@ -1,0 +1,8 @@
+﻿TYPE,CONTENT,DESCRIPTION,PRIORITY,INDENT,DATE,COMPLETED
+section,Research,,,,,
+task,"Read, then ""write""","First line
+Second line",1,1,2026-12-01T14:30,0
+task,Outline,,2,2,,0
+note,Keep sources,,,,,
+task,Weekly review,,4,1,every Friday,0
+task,Finished,,3,1,,1

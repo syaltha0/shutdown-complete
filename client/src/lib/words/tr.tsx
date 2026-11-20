@@ -3,6 +3,7 @@ import type { Words } from './en';
 
 export const tr: Words = {
  historySearch: {title:'Arama',history:'Geçmişte',placeholder:'Geçmişte ara',hint:'Geçmişinizdeki notları, planları, görevleri ve kartları bulun. En az iki karakter yazın.',none:'Sonuç bulunamadı. Başka bir kelime deneyin.',loading:'Aranıyor…',error:'Arama başarısız. Tekrar deneyin.',all:'Tümü',undated:'Tarihsiz',more:'Tüm sonuçları gör',kinds:{'day-note':'Gün notu',note:'Not',block:'Blok',task:'Günün görevi',goal:'Hedef',inbox:'Listedeki görev',list:'Liste',card:'Kart',countdown:'Sayaç',exam:'Sınav'}},
+ taskImport: { title: 'Başka uygulamadan al', source: 'Kaynak', file: 'CSV dosyası', todoist: 'Todoist', ticktick: 'TickTick', completed: 'Tamamlananları da al', preview: 'İçe aktarma önizlemesi', confirm: 'İçe aktar', cancel: 'Vazgeç', error: 'Dosya okunamadı veya biçimi geçersiz.', reasons: { completed: 'Tamamlanmış görev', empty: 'Boş başlık', unsupported: 'Desteklenmeyen satır' }, count: (tasks: number, lists: number) => tasks + ' görev, ' + lists + ' yeni liste', skipped: (n: number) => n + ' satır atlandı', result: (n: number) => n + ' görev içe aktarıldı', duplicates: (n: number) => n + ' görev zaten içe aktarılmış' },
   quickCapture: { title: "Görev ekle", add: "Ekle", preference: "Alt çubukta Hafta yerine Ekle", placeholder: "yarın 10:00 Rapor" },
  planActualHelp: "Planlanan bloklar ve gerçek odak: ince şerit odaklandığınız zamanı gösterir. Ayrıntılar için dokunun.",
  sectionNav: "Bölümler", backSections: "Bölümlere dön",

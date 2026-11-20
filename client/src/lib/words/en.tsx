@@ -5,6 +5,7 @@ const s = (n: number, one: string, many: string) => (n === 1 ? one : many);
 
 export const en = {
   historySearch: {"title":"Search","history":"In history","placeholder":"Search your history","hint":"Find notes, plans, tasks and cards across your history. Enter at least two characters.","none":"No results. Try another word.","loading":"Searching...","error":"Search failed. Try again.","all":"All","undated":"Without a date","more":"View all results","kinds":{"day-note":"Day note","note":"Note","block":"Block","task":"Day task","goal":"Goal","inbox":"Listed task","list":"List","card":"Card","countdown":"Countdown","exam":"Exam"}},
+ taskImport: { duplicates: (n: number) => `${n} tasks already imported`, ...{"title":"Import from another app","source":"Source","file":"CSV file","todoist":"Todoist","ticktick":"TickTick","completed":"Include completed tasks","preview":"Import preview","confirm":"Import tasks","cancel":"Cancel","error":"Could not read the file or invalid format.","reasons":{"completed":"Completed task","empty":"Empty title","unsupported":"Unsupported row"}}, count: (tasks: number, lists: number) => `${tasks} tasks, ${lists} new lists`, skipped: (n: number) => `${n} rows skipped`, result: (n: number) => `${n} tasks imported` },
   quickCapture: { title: "Add task", add: "Add", preference: "Show Add instead of Week in the bottom bar", placeholder: "Report tomorrow 10am" },
  planActualHelp: "Planned blocks and actual focus: the narrow strip shows when you focused. Tap it for details.",
  sectionNav: "Sections", backSections: "Back to sections",
