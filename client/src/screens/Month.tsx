@@ -116,7 +116,7 @@ export function Month({ id }: { id: string }) {
               ))}
             </div>
             <form className="date-add" onSubmit={(e) => { e.preventDefault(); addDate(); }}>
-              <input className="input num" type="date" aria-label={T.dateLabel} value={newDate} min={days[0]} max={days[days.length - 1]} onChange={(e) => setNewDate(e.target.value)} />
+              <select className="input num" aria-label={T.dateLabel} value={newDate} onChange={(e) => setNewDate(e.target.value)}>{days.map(d => <option key={d} value={d}>{fmtDay(d, { day: 'numeric', month: 'long', year: 'numeric' })}</option>)}</select>
               <input className="input" aria-label={T.whatLabel} placeholder={T.datePh} value={newText} onChange={(e) => setNewText(e.target.value)} />
               <button className="btn" type="submit" disabled={!newText.trim()}><IconPlus />{T.addDate}</button>
             </form>
@@ -185,7 +185,7 @@ export function Month({ id }: { id: string }) {
                       <span className="dn num">{Number(d.slice(8))}</span>
                       {doc?.shutdown.done && <span className="shut" title={T.legendShutdown} />}
                       {typeof deep === 'number' && <span className="dv num">{deep} {settings.metrics.find((m) => m.id === 'deep')?.unit ?? ''}</span>}
-                      {remember.slice(0, 2).map((r) => <span key={r.id} className="rem">{r.text}</span>)}
+                      {remember.slice(0, 2).map((r) => <span key={r.id} className="rem" title={r.text}>{r.text}</span>)}
                       {habits.length > 0 && doc && (
                         <span className="hb" aria-label={`${T.legendHabits}: ${done}/${habits.length}`}>
                           <i style={{ transform: `scaleX(${done / habits.length})` }} />

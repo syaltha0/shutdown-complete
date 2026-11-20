@@ -25,7 +25,7 @@ try {
   for(const width of [1440,390]) for(const theme of ['light','dark']) {
    await p.setViewportSize({width,height:900});await p.evaluate(theme=>document.documentElement.dataset.theme=theme,theme);await open();await p.screenshot({path:`reports/shots/palette/${lang}-${width}-${theme}.png`});await p.keyboard.press('Escape');
   }
-  await p.getByRole('button',{name:lang==='tr'?'Daha fazla':'More',exact:true}).click();await p.getByRole('button',{name:/Ctrl \/ Cmd K/}).click();await p.locator('.command-palette').getByRole('combobox').waitFor();await p.keyboard.press('Escape');
+  await p.getByRole('button',{name:lang==='tr'?'Daha fazla':'More',exact:true}).click();assert.equal(await p.locator('.more-sheet').getByRole('button',{name:/Ctrl \/ Cmd K/}).count(),0);await p.keyboard.press('Control+k');await p.locator('.command-palette').getByRole('combobox').waitFor();await p.keyboard.press('Escape');
   const settings=(await api.get('settings')).value;await api.put('settings',{...settings,features:{...settings.features,boards:false}});await p.reload();await p.locator('.rail').waitFor({state:'attached'});await open();await p.locator('.command-palette').getByRole('combobox').fill('boards');assert.equal(await p.locator('.command-palette').getByRole('option').count(),0);await p.keyboard.press('Escape');
   await context.close();
  }

@@ -203,6 +203,7 @@ serverStatus: { remedy: 'İlgili ayarı veya kurulum yönergesini aç',"title":"
   shutdownAsk: (n: number) => `${n} ad?m a??k. Yine de kapat?`,
   shutdownYes: 'Kapat',
   shutdownBack: 'Geri d?n',
+  blockOverlap: (name: string) => `${name} ile çakışıyor`,
   focusManual: 'elle girildi',
   saveBlock: 'Kaydet',
   cancel: 'Vazgeç',

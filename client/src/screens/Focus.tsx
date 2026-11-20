@@ -278,7 +278,7 @@ export function Focus() {
       <div className="title-row focus-title">
         <div>
           <h1>{T.focusTitle}</h1>
-          <p className="sub num">{day ? <>{T.focusSummary(sessions.length, duration(total))}{dayFocus(day, settings).manual && <small>{T.focusManual}</small>}{a ? null : <> · {T.nextLong(untilLong)}</>}</> : ' '}</p>
+          <p className="sub num">{day ? <>{T.focusSummary(sessions.length, duration(total))}{dayFocus(day, settings).manual && <> <small>{T.focusManual}</small></>}{a ? null : <> · {T.nextLong(untilLong)}</>}</> : ' '}</p>
         </div>
         <div className="title-actions"><SaveStamp status={status} /></div>
       </div>
@@ -380,7 +380,7 @@ export function Focus() {
         <FocusWidgets day={day} />
         <section className="panel focus-sessions" aria-labelledby="fs-h" data-anim>
           <header>
-            <h2 id="fs-h">{T.sessionsToday}<small className="session-count num">{T.sessionCount(sessions.length, duration(total))}</small></h2>
+            <h2 id="fs-h">{T.sessionsToday} <small className="session-count num">{T.sessionCount(sessions.length, duration(total))}</small></h2>
             <a className="card-link" href={`/day/${today()}`} onClick={onLinkClick}>{T.nav.today}</a>
           </header>
           {linking && <BlockSheet blocks={blocks} value={sessions.find((x) => x.id === linking)?.blockId ?? null} nowMin={now} focusedMin={byBlock} title={T.linkSessionTitle}

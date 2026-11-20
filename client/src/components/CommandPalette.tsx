@@ -1,7 +1,7 @@
 import { useHistorySearch, type SearchResult as HistoryResult } from '../lib/historySearch';
 import { SearchResult } from './SearchResult';
 import '../screens/search.css';
-﻿import { useEffect, useRef, useState } from 'react';
+﻿import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { useAccount, useSettings } from '../App';
 import { useT, dict } from '../lib/i18n';
 import { navigate, navigateSection } from '../lib/router';
@@ -42,7 +42,7 @@ export default function CommandPalette({ onClose }: { onClose: () => void }) {
   const {results: searchResults, loading: searching, error: searchError} = useHistorySearch(query);
   const [history] = useState(recent);
   const dialog = useRef<HTMLDialogElement>(null), input = useRef<HTMLInputElement>(null);
-  useEffect(() => {
+  useLayoutEffect(() => {
     const previous = document.activeElement;
     dialog.current?.showModal(); input.current?.focus();
     return () => { dialog.current?.close(); if (previous instanceof HTMLElement && previous.isConnected) previous.focus(); };

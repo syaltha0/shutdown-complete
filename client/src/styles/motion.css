@@ -15,7 +15,7 @@
 @keyframes bump { 0% { transform: scale(1); } 40% { transform: scale(1.18); } 100% { transform: none; } }
 
 /* each screen's blocks rise in one after another (the index --i is set by the shell) */
-.canvas .title-row, .canvas .panel, .canvas .kpis, .canvas .notice { animation: rise-in 560ms var(--ease-out) both; animation-delay: calc(var(--i, 0) * 75ms); }
+.canvas .title-row, .canvas .panel, .canvas .kpis, .canvas .notice { animation: rise-in 200ms var(--ease-out) both; animation-delay: 0ms; }
 .kpi-value { animation: roll 600ms var(--ease-out) both; animation-delay: 260ms; }
 /* blocks pop in, the dragged one lifts, a revision column slides in and its crossed blocks are struck through */
 .block { animation: pop-in 380ms var(--ease-out) both; }

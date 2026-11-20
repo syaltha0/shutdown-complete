@@ -220,7 +220,7 @@ try {
    check('a reload mid-break shows no cue',!/mt-flash/.test((await flashOf(q)).cls));
    // reduced motion (the system setting, via the context; and the app's own setting, via data-motion)
    await api.put(key,live);await p.goto(s.url+'/');await p.locator('.mini-timer').waitFor();
-   await p.locator('.mt-trigger').hover();await p.locator('.mt-panel button').nth(1).click();await p.locator('.mini-timer .skip-choice button').first().click();await p.waitForTimeout(500);
+   await p.locator('.mt-trigger').hover();await p.locator('.mt-panel button').nth(1).click();await Promise.all([p.waitForResponse(r=>r.request().method()==='PUT'&&r.url().includes('/api/doc/')&&r.status()===200),p.locator('.mini-timer .skip-choice button').first().click()]);await p.waitForTimeout(500);
    const red=await flashOf(p);
    check('reduced motion (system): no cue',!/mt-flash/.test(red.cls)&&red.name==='none');
    await api.put(key,live);await q.reload();await q.locator('.mini-timer').waitFor();

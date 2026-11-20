@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from 'react';
 import { clock, duration, shortDate } from '../lib/dates';
 import { useT } from '../lib/i18n';
 import type { Drift } from '../lib/drift';
-import { KIND_IDS, type Block, type DayDoc, type FocusSession } from '../lib/model';
+import { activeColumn, KIND_IDS, type Block, type DayDoc, type FocusSession } from '../lib/model';
 import { kindSwatch, type ReviseMode } from './TimeGrid';
 import { Segmented } from '../components/Segmented';
 import { DayChips, weekdayNames } from './Templates';
@@ -62,6 +62,7 @@ export function BlockEditor({
       {block && kind && <form method="dialog" onSubmit={() => (onSave ?? onClose)()}>
         <h2 id="be-title">{block.label ? T.editBlock : T.newBlock}</h2>
         {drift && onDrift && <DriftNote drift={drift} onAct={onDrift} />}
+        {day && activeColumn(day).blocks.filter(b => b.id !== block.id && b.start < block.end && b.end > block.start).map(b => <p className="meta" role="status" key={b.id}>{T.blockOverlap(b.label || T.untitledBlock)}</p>)}
         <FocusLog sessions={sessions} block={block} />
         <BlockTaskLink block={block} day={day} date={date} />
         <div className="field">

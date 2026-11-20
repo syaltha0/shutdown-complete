@@ -57,7 +57,8 @@ function fetchAhead() {
   const next = (i: number) => { if (i < loaders.length) idle(() => { loaders[i]().catch(() => {}).finally(() => next(i + 1)); }); };
   window.setTimeout(() => next(0), 2500);
 }
-const CommandPalette = lazy(() => import('./components/CommandPalette'));
+import CommandPalette from './components/CommandPalette';
+import { flushSync } from 'react-dom';
 const Agenda = lazy(() => import('./screens/Agenda').then(m => ({default: m.Agenda})));
 const Wait = () => <div className="screen-wait" aria-busy="true" />;
 
@@ -239,7 +240,7 @@ function Shell() {
   useEffect(fetchAhead, []);
   useEffect(() => {
     const open = (e: KeyboardEvent) => {
-      if ((e.ctrlKey || e.metaKey) && !e.altKey && e.key.toLowerCase() === 'k') { e.preventDefault(); setMore(false); setPalette(v => !v); }
+      if ((e.ctrlKey || e.metaKey) && !e.altKey && e.key.toLowerCase() === 'k') { e.preventDefault(); setMore(false); flushSync(() => setPalette(v => !v)); }
     };
     window.addEventListener('keydown', open);
     return () => window.removeEventListener('keydown', open);
@@ -282,7 +283,7 @@ function Shell() {
   // the phone's bottom bar: four destinations and More
   const phoneMain = [home, plan[0], ...(settings.phoneQuickCapture === false ? [plan[1]] : []), work[0]];
   const agenda: NavItem = {id: 'agenda', href: '/agenda', label: T.calendarViews.agenda, icon: <IconDay />};
-  const phoneMore = [search,...(settings.phoneQuickCapture === false ? [] : [plan[1]]), agenda, boards, countdown, inbox, plan[2], plan[3], work[1], work[2], work[3], settingsItem].filter((x) => on(x.id));
+  const phoneMore = [search,...(settings.phoneQuickCapture === false ? [] : [plan[1]]), agenda, boards, countdown, inbox, plan[2], plan[3], plan[4], work[1], work[2], work[3], settingsItem].filter((x) => on(x.id));
   const moreActive = phoneMore.some((x) => x.id === r?.nav);
 
   return (
@@ -304,8 +305,8 @@ function Shell() {
 
       <nav className="tabbar" aria-label="Shutdown Complete">
         {phoneMain.map((x) => link(x, 'tab-item'))}
-        {settings.phoneQuickCapture !== false && <button type="button" className="tab-item" aria-label={T.quickCapture.title} onClick={() => setCapture(true)}><IconPlus /><span className="label">{T.quickCapture.add}</span></button>}
-        <button type="button" className="tab-item" aria-expanded={more} aria-current={moreActive ? 'page' : undefined} onClick={() => setMore(true)}>
+        {settings.phoneQuickCapture !== false && <button type="button" className="tab-item" aria-label={T.quickCapture.title} onClick={() => { setMore(false); setCapture(true); }}><IconPlus /><span className="label">{T.quickCapture.add}</span></button>}
+        <button type="button" className="tab-item" aria-expanded={more} aria-current={moreActive ? 'page' : undefined} onClick={() => { setCapture(false); setMore(true); }}>
           <IconMore />{attention > 0 && <span className="attn" aria-label={T.needsAttention(attention)} />}<span className="label">{T.nav.more}</span>
         </button>
       </nav>
@@ -316,7 +317,6 @@ function Shell() {
               <b>{T.nav.more}</b>
               <button type="button" className="btn ghost icon" aria-label={T.close} onClick={() => setMore(false)}><IconX /></button>
             </div>
-            <button className="more-item" onClick={() => { setMore(false); setPalette(true); }}>{T.palette.title}<kbd>Ctrl / Cmd K</kbd></button>
             {phoneMore.map((x) => link(x, 'more-item'))}
           </div>
         </div>
@@ -331,7 +331,7 @@ function Shell() {
       <FocusRunner />
       <BlockReminders />
       <FriendsWatcher />
-      <Shortcuts />
+      <Shortcuts paletteOpen={palette} />
       {capture && <QuickCapture onClose={() => setCapture(false)} onSaved={() => { setCaptured(true); setCapture(false); }} />}
       <span className="capture-stamp" role="status">{captured ? T.save.saved : ''}</span>
       {palette && <Suspense fallback={null}><CommandPalette onClose={() => setPalette(false)} /></Suspense>}

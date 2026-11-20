@@ -8,7 +8,7 @@ import { useEffect, useRef, useState } from 'react';
 import { drawDayCard } from '../lib/daycard';
 import { useSettings } from '../App';
 import { DocNotice, SaveStamp } from '../components/Common';
-import { addDays, clock, longDate, today, parseISODate, weekdayLong, weekOf } from '../lib/dates';
+import { addDays, clock, longDate, today, weekdayLong, weekOf } from '../lib/dates';
 import { useT } from '../lib/i18n';
 import { activeColumn, effectivePlan, emptyDay, emptyWeek, minutesOfKind, type Block, type DayDoc, type Settings, type WeekDoc } from '../lib/model';
 import { onLinkClick } from '../lib/router';
@@ -34,12 +34,10 @@ export function Shutdown({ date }: { date: string }) {
   useEffect(() => { if (confirmClose) confirmRef.current?.showModal(); else confirmRef.current?.close(); }, [confirmClose]);
   const [mode, setMode] = useState('tomorrow');
   const [chosenDate, setChosenDate] = useState('');
-  const [excluded, setExcluded] = useState<string[]>([]);
+  const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [moving, setMoving] = useState(false);
   const busy = useRef(false);
   const target = mode === 'tomorrow' ? tomorrow : chosenDate;
-  let suggested = tomorrow;
-  while ([0, 6].includes(parseISODate(suggested).getDay())) suggested = addDays(suggested, 1);
   const steps = settings.ritual;
   const doneSteps = day ? steps.filter((s) => day.shutdown.steps[s.id]).length : 0;
   const isToday = date === today();
@@ -55,7 +53,7 @@ export function Shutdown({ date }: { date: string }) {
     if (!day || !target || target <= date || busy.current) return;
     busy.current = true; setMoving(true);
     try {
-      const selected = day.tasks.filter(t => !t.done && !excluded.includes(t.id));
+      const selected = day.tasks.filter(t => !t.done && selectedIds.includes(t.id));
       const result = await decideMoves(selected, T);
       if (!result) return;
       if (result.back.length || result.deleted.length) await updateKey<InboxDoc>('inbox', emptyInbox, b => ({ ...b,
@@ -101,7 +99,6 @@ export function Shutdown({ date }: { date: string }) {
           <div className="kpi">
             <div className="kpi-label">{T.tasksDoneKpi}</div>
             <div className="kpi-value">{day.tasks.filter((x) => x.done).length}<small>/ {day.tasks.length}</small></div>
-            <div className="delta">{T.capturedToday}</div>
           </div>
         </div>
       )}
@@ -146,7 +143,7 @@ export function Shutdown({ date }: { date: string }) {
           <section className="panel" aria-labelledby="open-h">
             <header>
               <h2 id="open-h">{T.stillOpen}</h2>
-              {openTasks.length > 0 && <button type="button" className="card-link" disabled={moving || !target || target <= date || openTasks.every(t => excluded.includes(t.id))} onClick={moveTasks}>{T.moveTo(target ? longDate(target) : T.handoffDate)}</button>}
+              {openTasks.length > 0 && <button type="button" className="card-link" disabled={moving || !target || target <= date || !openTasks.some(t => selectedIds.includes(t.id))} onClick={moveTasks}>{T.moveTo(target ? longDate(target) : T.handoffDate)}</button>}
             </header>
             {!day ? <div className="skeleton" style={{ height: 88 }} /> : openTasks.length ? (
               <div>
@@ -156,10 +153,9 @@ export function Shutdown({ date }: { date: string }) {
                     <button type="button" aria-pressed={mode === 'date'} onClick={() => setMode('date')}>{T.handoffDate}</button>
                   </Segmented>
                   {mode === 'date' && <input type="date" className="input num" aria-label={T.handoffTarget} min={tomorrow} value={chosenDate} onChange={e => setChosenDate(e.target.value)} />}
-                  {suggested !== tomorrow && <button type="button" className="card-link" onClick={() => { setChosenDate(suggested); setMode('date'); }}>{T.handoffSuggestion(longDate(suggested))}</button>}
                 </div>
                 {openTasks.map(t => <label className={`carry${t.id === day.keyTaskId ? " key-task-selected" : ""}`} title={t.id === day.keyTaskId ? T.keyTask : undefined} key={t.id}>
-                  <input type="checkbox" className="check" checked={!excluded.includes(t.id)} onChange={e => setExcluded(ids => e.target.checked ? ids.filter(id => id !== t.id) : [...ids, t.id])} />
+                  <input type="checkbox" className="check" checked={selectedIds.includes(t.id)} onChange={e => setSelectedIds(ids => e.target.checked ? [...ids, t.id] : ids.filter(id => id !== t.id))} />
                   <span>{t.text}</span>
                 </label>)}
               </div>
@@ -175,8 +171,7 @@ export function Shutdown({ date }: { date: string }) {
 
           {day && (
             <section className="panel" aria-labelledby="fo-h">
-              {dayFocus(day, settings).manual && <small>{T.focusManual}</small>}
-              <header><h2 id="fo-h">{T.focusMetric}</h2><a className="card-link" style={{ fontWeight: 400 }} href="/focus" onClick={onLinkClick}>{T.openFocus}</a></header>
+              <header><h2 id="fo-h">{T.focusMetric}{dayFocus(day, settings).manual && <> <small>{T.focusManual}</small></>}</h2><a className="card-link" style={{ fontWeight: 400 }} href="/focus" onClick={onLinkClick}>{T.openFocus}</a></header>
               {(day.focus?.sessions.length ?? 0) === 0 ? <div className="empty">{T.noSessions}</div> : (
                 <><FocusLog sessions={day.focus?.sessions} /><p className="focus-line num"><b>{duration(dayFocus(day, settings).minutes)}</b> · {T.focusRow(day.focus!.sessions.length, duration(dayFocus(day, settings).minutes))}</p></>
               )}

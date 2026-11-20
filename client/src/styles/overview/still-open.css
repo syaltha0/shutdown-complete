@@ -7,7 +7,7 @@
 .b-open li span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 13px; }
 .b-open .check { flex-shrink: 0; }
 .b-open .b-act { display: inline-flex; align-items: center; align-self: flex-start; gap: 2px; min-width: 0; max-width: 100%; min-height: 28px; padding: 0; border: 0; background: none; color: var(--muted); font: inherit; font-size: 13px; text-decoration: none; }
-.b-open .b-act > span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.b-open .b-act > span { overflow-wrap: anywhere; white-space: normal; }
 .b-open .b-act svg { flex: none; }
 .b-open .b-act.main { color: var(--text); font-weight: 500; }
 .b-open .b-act:hover > span { text-decoration: underline; text-underline-offset: 3px; }
@@ -37,7 +37,9 @@
 .b-open-closing .b-open-group { margin:2px 0 0; }
 .b-open .b-open-summary { font-size:11px; }
 
-.b-open-closing { flex-direction:row; align-items:center; justify-content:space-between; gap:8px; }
+.b-open-closing { display: grid; grid-template-columns: minmax(0, 1fr) minmax(140px, auto); align-items: center; gap: 2px 8px; }
+.b-open-closing .b-act { grid-column: 2; grid-row: 1; justify-self: end; }
+.b-open-closing .b-open-hint { grid-column: 1 / -1; grid-row: 2; }
 .b-open-closing .b-open-group { line-height:16px; }
 .b-open .b-open-capture { gap:3px; padding-top:5px; }
 .bento .b-open { gap:5px; }

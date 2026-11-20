@@ -36,7 +36,7 @@
 .grid-wrap { position: relative; display: grid; grid-template-columns: 52px minmax(0, 1fr); flex: 1; }
 .hours { position: relative; border-right: 1px solid var(--border); }
 .hours span { position: absolute; right: 8px; transform: translateY(-50%); font-size: var(--fs-small); color: var(--muted); font-variant-numeric: tabular-nums; }
-.hours span:first-child { transform: none; top: 4px !important; }
+.hours span:first-child { transform: translateY(-50%); }
 .hours span.end { top: auto; bottom: 4px; transform: none; }
 .cols { position: relative; display: flex; min-width: 0; }
 .col { position: relative; flex: 1 1 0; min-width: 0; }

@@ -8,6 +8,7 @@ import { IconLeft, IconRight } from '../components/Icons';
 import {
   addWeeks, clock, duration, monthName, monthOf, quarterOf, rangeLabel, shortDate, today, weekDays, weekNumber, weekOf, weekdayShort,
 } from '../lib/dates';
+import { dayFocus } from '../lib/focus';
 import { activeColumn, emptyWeek, minutesOfKind, type DayDoc, type QuarterDoc, type WeekDoc } from '../lib/model';
 import { useT } from '../lib/i18n';
 import { onLinkClick } from '../lib/router';
@@ -38,12 +39,10 @@ export function Week({ id }: { id: string }) {
   const servingFor = (it: { id: string }) => days.flatMap((d) => servingOf(dayDocs?.get(`day:${d}`)?.tasks ?? [], wkey, it.id).map((item) => ({ key: `day:${d}`, item })));
   const t = today();
   const thisWeek = weekOf(t);
-  const first = settings.metrics[0];
 
   const items = week?.items ?? [];
   const done = items.filter((i) => i.done).length;
   const shutdowns = days.filter((d) => dayDocs?.get(`day:${d}`)?.shutdown.done).length;
-  const daysSoFar = days.filter((d) => d <= t).length;
 
   const swipe = useSwipeNav(`/week/${addWeeks(id, -1)}`, `/week/${addWeeks(id, 1)}`);
   return (
@@ -55,7 +54,7 @@ export function Week({ id }: { id: string }) {
             {rangeLabel(days[0], days[6])}
             {' · '}<a className="card-link" style={{ fontWeight: 400 }} href={`/month/${monthOf(days[3])}`} onClick={onLinkClick}>{monthName(monthOf(days[3]))}</a>
             {week && items.length > 0 && <> · <strong>{T.of(done, items.length)}</strong>{T.plannedItemsDone}</>}
-            {dayDocs && id <= thisWeek && T.shutdownOnDays(shutdowns, id === thisWeek ? daysSoFar : 7)}
+            {dayDocs && id <= thisWeek && T.shutdownOnDays(shutdowns, 7)}
           </p>
         </div>
         <div className="title-actions"><CalendarView view="week" date={days[0]} />
@@ -128,15 +127,14 @@ export function Week({ id }: { id: string }) {
             <header><h2 id="days-h">{T.theDays}</h2><a className="card-link" style={{ fontWeight: 400 }} href="/metrics" onClick={onLinkClick}>{T.nav.metrics}</a></header>
             <div className="daylist" style={{ marginTop: 8 }}>
               <div className="dayrow head" aria-hidden="true">
-                <span>{T.dayCol}</span><span className="first">{T.firstBlock}</span><span className="n">{first ? first.name : T.deep}</span><span className="n">{T.tasks}</span><span className="n">{T.shutdownCol}</span>
+                <span>{T.dayCol}</span><span className="first">{T.firstBlock}</span><span className="n">{T.focusMetric}</span><span className="n">{T.tasks}</span><span className="n">{T.shutdownCol}</span>
               </div>
               {daysError && <div className="notice error" style={{ margin: '0 20px 16px' }}>{T.couldntLoadDays} <button className="btn ghost" onClick={retryDays}>{T.retry}</button></div>}
               {days.map((d) => {
                 const doc = dayDocs?.get(`day:${d}`);
                 const col = doc ? activeColumn(doc) : null;
                 const firstBlock = col?.blocks[0];
-                const mv = doc && first ? doc.metrics[first.id] : undefined;
-                const deep = doc ? minutesOfKind(doc, 'deep') : 0;
+                const deep = dayFocus(doc, settings).minutes;
                 const at = doc?.shutdown.at ? new Date(doc.shutdown.at) : null;
                 return (
                   <a key={d} href={`/day/${d}`} onClick={onLinkClick} className={`dayrow${d === t ? ' is-today' : ''}`}>
@@ -144,9 +142,7 @@ export function Week({ id }: { id: string }) {
                     <span className="first">{firstBlock ? <><b>{clock(firstBlock.start)}</b> {firstBlock.label || T.untitled}</> : <span className="dash">{dayDocs ? '—' : ''}</span>}</span>
                     <span className="n">
                       {!dayDocs ? <span className="skeleton" style={{ display: 'inline-block', width: 40, height: 14 }} />
-                        : first?.kind === 'check' ? (mv === true ? T.yes : <span className="dash">—</span>)
-                        : typeof mv === 'number' ? `${mv} ${first?.unit ?? ''}`.trim()
-                        : first ? <span className="dash">—</span> : duration(deep)}
+                        : duration(deep)}
                     </span>
                     <span className="n">{doc?.tasks.length ? `${doc.tasks.filter((x) => x.done).length}/${doc.tasks.length}` : <span className="dash">—</span>}</span>
                     <span className="n">{doc?.shutdown.done ? (at ? clock(at.getHours() * 60 + at.getMinutes()) : T.doneShort) : <span className="dash">—</span>}</span>

@@ -300,10 +300,10 @@ html.from-setup .welcome-sketch .ws-spread, html.from-setup .spread { view-trans
 .keys-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
 .keys-head h2 { font-size: 18px; font-weight: 500; }
 .keys { display: grid; margin: 0; }
-.keys > div { display: grid; grid-template-columns: 96px minmax(0, 1fr); gap: 12px; align-items: center; min-height: 38px; border-bottom: 1px solid var(--rule); }
-.keys dt { display: flex; gap: 4px; }
+.keys > div { display: grid; grid-template-columns: 140px minmax(0, 1fr); gap: 12px; align-items: center; min-height: 38px; border-bottom: 1px solid var(--rule); }
+.keys dt { display: flex; gap: 4px; flex-wrap: wrap; }
 .keys dd { margin: 0; color: var(--text); font-size: 14px; }
-kbd { display: inline-grid; place-items: center; min-width: 26px; height: 24px; padding: 0 6px; border: 1px solid var(--control); border-bottom-width: 2px; border-radius: 5px; background: var(--surface); color: var(--text); font: inherit; font-size: 12px; font-weight: 500; }
+kbd { white-space: nowrap; flex-shrink: 0; display: inline-grid; place-items: center; min-width: 26px; height: 24px; padding: 0 6px; border: 1px solid var(--control); border-bottom-width: 2px; border-radius: 5px; background: var(--surface); color: var(--text); font: inherit; font-size: 12px; font-weight: 500; }
 .undo-note { position: fixed; left: 50%; bottom: 24px; z-index: 60; translate: -50% 0; display: flex; align-items: center; gap: 10px; max-width: calc(100% - 32px); padding: 6px 6px 6px 16px; border-radius: 10px; background: var(--primary); color: var(--primary-ink); font-size: 14px; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2); animation: rise-in 260ms var(--ease-out) both; } /* taste-skill-ignore: a passing note floats over the screen */
 .undo-note span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .undo-note .btn { height: 32px; background: transparent; border-color: rgba(255, 255, 255, 0.35); color: inherit; }
