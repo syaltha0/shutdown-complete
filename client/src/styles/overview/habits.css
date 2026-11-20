@@ -4,7 +4,7 @@
 .b-habits .b-habit-list { min-height: 32px; overflow: auto; flex: 1; scrollbar-width: thin; }
 .b-habit-row { padding: 3px 0; display: flex; align-items: center; gap: 8px; min-height: 32px; }
 .b-habits .b-chip { display: flex; align-items: center; gap: 7px; min-width: 0; flex: 1; padding: 0; border: 0; background: none; color: var(--text); font: inherit; text-align: left; cursor: pointer; min-height: 28px; }
-.b-habits .b-chip > span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.b-habits .b-chip > span { overflow: hidden; overflow-wrap: anywhere; white-space: normal; }
 .b-habits .b-chip i { display: grid; place-items: center; width: 18px; height: 18px; flex: none; border: 1px solid var(--control); border-radius: 50%; }
 .b-habits .b-chip.on i { background: var(--hue); border-color: var(--hue); }
 .b-habits .b-chip svg { width: 14px; fill: none; stroke: var(--surface); stroke-width: 2; }
