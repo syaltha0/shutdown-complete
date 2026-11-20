@@ -12,6 +12,7 @@ export const tr: Words = {
  scheduleExceptions: {"title":"İstisnalar","from":"Başlangıç","to":"Bitiş","label":"Ad","all":"Tüm tekrarlar","selected":"Seçili tekrarlar","add":"İstisna ekle","remove":"İstisnayı sil","affected":"Etkilenen günler","lessons":"blok","noClasses":"Ders yok"},
 serverStatus: { remedy: 'İlgili ayarı veya kurulum yönergesini aç',"title":"Sunucu durumu","backup":"Yedekler","storage":"Depolama","version":"Sürüm","accounts":"Hesaplar","pending":"Bekleyen kayıt istekleri","push":"Push abonelikleri","vapid":"VAPID yapılandırılmış","smtp":"SMTP yapılandırılmış","appUrl":"APP_URL ayarlı","nextcloud":"Nextcloud bağlantıları","calendars":"Kontrol edilen takvim abonelikleri","errors":"Hatalar","last":"Son başarılı yedek","attempt":"Son yedek denemesi","size":"Yedek boyutu","count":"Tutulan yedekler","keep":"Saklama sınırı","next":"Sonraki yedek","data":"Veri boyutu","database":"Veritabanı boyutu","free":"Boş disk alanı","used":"Disk doluluğu","uptime":"Çalışma süresi (saniye)","release":"Son sürüm","unknown":"Bilinmiyor","yes":"Evet","no":"Hayır","success":"Başarılı","failed":"Başarısız","now":"Şimdi yedek al","refresh":"Yenile","loading":"Yükleniyor…","error":"Sunucu durumu yüklenemedi.","backupOld":"Son iki günde başarılı yedek yok.","backupFailed":"Son yedek başarısız.","appUrlMissing":"APP_URL ayarlı değil.","diskFull":"Disk en az %90 dolu.","syncFailed":"Bazı eşitlemeler başarısız.","healthy":"Uyarı yok.","lastSync":"Son eşitleme","update":"Daha yeni bir sürüm var."},
   examSessions: 'Çalışma oturumlarını göster',
+  settingsSearch: 'Bölüm ara',
   palette: { sections: {"workday":"Ayarlar: Çalışma saatleri, gün başlangıcı ve kapasite","notifications":"Ayarlar: Bildirimler","focus":"Ayarlar: Odak","data":"Ayarlar: Veriler"},"title":"Komut paleti","placeholder":"Komut, tarih, Görev ekle: ... veya Yakala: ...","none":"Komut bulunamadı","task":"Görev ekle","capture":"Yakala","date":"Tarihe git","start":"Odak başlat","pause":"Odağı duraklat","resume":"Odağa devam et","skip":"Aşamayı atla","reset":"Döngüyü sıfırla","theme":"Temayı değiştir","motion":"Azaltılmış hareketi değiştir","error":"Kaydedilemedi. Yeniden deneyin.","preview":"Önizleme","taskAliases":["task","add task","görev ekle"],"captureAliases":["capture","yakala"]},
   focusJournal: 'Odak günlüğü',
   publication: {
@@ -81,7 +82,7 @@ serverStatus: { remedy: 'İlgili ayarı veya kurulum yönergesini aç',"title":"
   levels: { quarter: 'çeyrek hedefi', month: 'ay hedefi', week: 'hafta işi' },
   kbPlannedOn: (d) => `${d} gününde`,
   featureOffNote: 'Kapatmak veriyi silmez; açınca her şey yerinde.',
-  featuresAbout: 'Kullanmadığını kapat: menüden, kısayollardan ve genel bakıştan kalkar. Hiçbir şey silinmez; yeniden açınca hepsi yerinde.',
+  featuresAbout: 'Kullanmadığını kapat: menüden, kısayollardan ve genel bakıştan kalkar.',
   featureNames: {
     longTerm: ['Uzun dönem planları', 'Ay, çeyrek ve yıl.'],
     inbox: ['Görevler', 'Yapılacak işlerin listeleri: teslim tarihleri, öncelikler, alt görevler, tekrarlanan görevler.'],

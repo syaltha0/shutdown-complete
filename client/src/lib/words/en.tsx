@@ -14,6 +14,7 @@ export const en = {
  scheduleExceptions: {"title":"Exceptions","from":"From","to":"To","label":"Name","all":"All repeats","selected":"Selected repeats","add":"Add exception","remove":"Delete exception","affected":"Affected days","lessons":"blocks","noClasses":"No classes"},
  serverStatus: { remedy: 'Open related settings or setup instructions',"title":"Server status","backup":"Backups","storage":"Storage","version":"Version","accounts":"Accounts","pending":"Pending requests","push":"Push subscriptions","vapid":"VAPID configured","smtp":"SMTP configured","appUrl":"APP_URL configured","nextcloud":"Nextcloud connections","calendars":"Calendar feeds checked","errors":"Errors","last":"Last successful backup","attempt":"Last backup attempt","size":"Backup size","count":"Backups retained","keep":"Retention limit","next":"Next backup","data":"Data size","database":"Database size","free":"Disk available","used":"Disk used","uptime":"Uptime (seconds)","release":"Latest release","unknown":"Unknown","yes":"Yes","no":"No","success":"Successful","failed":"Failed","now":"Back up now","refresh":"Refresh","loading":"Loading?","error":"Could not load server status.","backupOld":"No successful backup in the last two days.","backupFailed":"The last backup failed.","appUrlMissing":"APP_URL is not configured.","diskFull":"Disk is at least 90% full.","syncFailed":"Some synchronizations failed.","healthy":"No warnings.","lastSync":"Last synchronization","update":"A newer version is available."},
   examSessions: 'View study sessions',
+  settingsSearch: 'Find a section',
   palette: { sections: {"workday":"Settings: Working hours and day start capacity","notifications":"Settings: Notifications","focus":"Settings: Focus","data":"Settings: Data"},"title":"Command palette","placeholder":"Search commands, dates, Task: ... or Capture: ...","none":"No commands found","task":"Add task","capture":"Capture","date":"Go to date","start":"Start focus","pause":"Pause focus","resume":"Resume focus","skip":"Skip phase","reset":"Reset cycle","theme":"Toggle theme","motion":"Toggle reduced motion","error":"Could not save. Try again.","preview":"Preview","taskAliases":["task","add task","g\u00f6rev ekle"],"captureAliases":["capture","yakala"]},
   focusJournal: 'Focus journal',
   publication: {
@@ -84,7 +85,7 @@ export const en = {
   levels: { quarter: 'a season goal', month: 'a month goal', week: 'an item of the week' } as Record<string, string>,
   kbPlannedOn: (d: string) => `on ${d}`,
   featureOffNote: 'Turning off keeps your data; everything is there when you turn it back on.',
-  featuresAbout: 'Turn off what you do not use: it leaves the menu, the shortcuts and the overview. Nothing is deleted; turned back on, it is all there.',
+  featuresAbout: 'Turn off what you do not use to hide it from the menu, shortcuts and overview.',
   featureNames: {
     longTerm: ['Long-term plans', 'Month, quarter and year.'],
     inbox: ['Tasks', 'Lists of things to do: due dates, priorities, subtasks, tasks that repeat.'],

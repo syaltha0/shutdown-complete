@@ -158,3 +158,13 @@ td a { font-weight: 500; }
 .exam-sheet .foot { position: sticky; bottom: 0; z-index: 1; margin: 0 -24px; padding: 16px 24px; background: var(--surface); border-top: 1px solid var(--border); }
 .exam-sheet .exam-list { max-height: none; overflow: visible; }
 .exam-details summary { cursor: pointer; margin-top: 10px; font-size: 13px; }
+
+.settings-section-search, .settings-section-search .input { width: 100%; min-width: 0; }
+.settings-section-links { display: contents; }
+.settings-section-select { display: none; }
+@media (max-width: 1099px) {
+ .settings-index { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 8px; }
+ .settings-index > b { grid-column: 1 / -1; }
+ .settings-section-links { display: none; }
+ .settings-section-select { display: block; min-width: 0; }
+}
