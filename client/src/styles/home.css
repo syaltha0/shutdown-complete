@@ -113,7 +113,7 @@
 .cd-lead { margin-bottom: var(--gap); }
 .cd-lead .cd-card { padding: 4px 4px 2px; border: 0; background: transparent; animation: none; }
 .cd-card.lead { grid-column: auto; display: flex; flex-wrap: wrap; align-items: flex-start; gap: 20px 48px; }
-.cd-card.lead .cd-main { flex: 1 1 320px; min-width: 0; }
+.cd-card.lead .cd-main { flex: 0 1 420px; min-width: 0; }
 .cd-main { display: grid; gap: 4px; align-content: start; min-width: 0; }
 .cd-lead .cd-top h2 { font-size: 20px; }
 .cd-card.lead .cd-num b { font-size: 56px; line-height: 60px; }
