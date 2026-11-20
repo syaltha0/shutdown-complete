@@ -185,7 +185,7 @@ export function Month({ id }: { id: string }) {
                       <span className="dn num">{Number(d.slice(8))}</span>
                       {doc?.shutdown.done && <span className="shut" title={T.legendShutdown} />}
                       {typeof deep === 'number' && <span className="dv num">{deep} {settings.metrics.find((m) => m.id === 'deep')?.unit ?? ''}</span>}
-                      {remember.slice(0, 2).map((r) => <span key={r.id} className="rem">{r.text}</span>)}
+                      {remember.slice(0, 2).map((r) => <span key={r.id} className="rem" title={r.text}>{r.text}</span>)}
                       {habits.length > 0 && doc && (
                         <span className="hb" aria-label={`${T.legendHabits}: ${done}/${habits.length}`}>
                           <i style={{ transform: `scaleX(${done / habits.length})` }} />
