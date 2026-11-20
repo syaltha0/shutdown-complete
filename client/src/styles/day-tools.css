@@ -112,6 +112,28 @@
 .agenda-day ul { list-style: none; padding: 0; }
 .agenda-day li { display: grid; grid-template-columns: 64px minmax(0,1fr); gap: 12px; padding: 8px 0; border-bottom: 1px solid var(--rule); overflow-wrap: anywhere; }
 .agenda-day .done { text-decoration: line-through; color: var(--muted); }
+.agenda-day.today { border-left: 2px solid var(--today-ring); }
+.agenda-day.today h2 { color: var(--text); }
+.agenda-task-group { margin: 16px 0 20px; }
+.agenda-task-group h3 { font-size: 13px; font-weight: 500; color: var(--muted); margin-bottom: 4px; }
+.agenda-task-group li { display: block; }
+.agenda-day .agenda-entry { grid-template-columns: 64px minmax(0,1fr) auto; }
+.agenda-day .agenda-entry.untimed { grid-template-columns: minmax(0,1fr); }
+.agenda-day .is-past { color: var(--muted); }
+.agenda-block-meta { display: flex; gap: 16px; align-items: center; color: var(--muted); font-size: 12px; }
+.agenda-kind { display: inline-flex; align-items: center; gap: 6px; }
+.agenda-kind i { width: 4px; height: 4px; border-radius: 50%; background: currentColor; }
+.agenda-day.is-empty { display: flex; align-items: center; gap: 16px; padding-top: 8px; padding-bottom: 8px; min-height: 64px; }
+.agenda-day.is-empty h2 { margin: 0; font-size: 14px; flex: none; }
+.agenda-day.is-empty .b-round-action { margin-left: auto; width: auto; flex-direction: row-reverse; gap: 10px; }
+.agenda-day.is-empty .b-round-text b { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+.agenda-day.is-empty .b-round { width: 44px; height: 44px; min-width: 44px; }
+@media(max-width:600px) {
+  .agenda-day .agenda-entry { grid-template-columns: 48px minmax(0,1fr); gap: 8px; }
+  .agenda-block-meta { grid-column: 2; flex-wrap: wrap; gap: 8px; }
+  .agenda-day.is-empty { gap: 8px; }
+  .agenda-day.is-empty .b-round-text { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+}
 .room-tasks { position: absolute; bottom: 0; left: 0; width: 100%; background: var(--surface); border-top: 1px solid var(--rule); transition: opacity 600ms ease; z-index: 2; }
 .room-task-tab { width: 100%; min-height: 36px; }
 .room-task-body { max-height: 38vh; overflow: auto; padding: 12px max(16px, calc((100% - 700px)/2)); }

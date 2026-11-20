@@ -2,8 +2,9 @@
 import { useSettings } from '../App';
 import { CalendarView } from '../components/CalendarView';
 import { DocNotice } from '../components/Common';
+import { RoundAction } from '../components/overview/RoundAction';
 import { useCalendar } from '../lib/calendar';
-import { addDays, clock, longDate, monthOf, today } from '../lib/dates';
+import { addDays, clock, duration, longDate, monthOf, today } from '../lib/dates';
 import { useT } from '../lib/i18n';
 import { activeColumn, emptyInbox, featureOn, type DayDoc, type MonthDoc, type InboxDoc } from '../lib/model';
 import { onLinkClick } from '../lib/router';
@@ -19,18 +20,26 @@ export function Agenda({ date }: {date: string}) {
     <DocNotice status={days.error ? 'error' : days.docs ? 'saved' : 'loading'} error={days.error} retry={days.retry} />
     <div className="agenda-days">{Array.from({length: count}, (_, i) => addDays(date, i)).map(d => {
       const day = days.docs?.get(`day:${d}`);
-      const entries: {text: string; time?: number; done?: boolean}[] = [
-        ...(day ? activeColumn(day).blocks.map(b => ({text: b.label || T.untitledBlock, time: b.start})) : []),
+      const entries: {text: string; time?: number; end?: number; kind?: keyof typeof T.kinds; task?: boolean; done?: boolean}[] = [
+        ...(day ? activeColumn(day).blocks.map(b => ({text: b.label || T.untitledBlock, time: b.start, end: b.end, kind: b.kind})) : []),
         ...(calendar?.days[d] ?? []).map(e => ({text: e.title, time: e.allDay ? undefined : e.start})),
-        ...(day?.tasks ?? []).filter(t => !t.due || t.due === d).map(t => ({text: t.text, done: t.done})),
-        ...(featureOn(settings, 'inbox') ? inbox?.items ?? [] : []).filter(t => t.due === d).map(t => ({text: t.text, done: t.done})),
+        ...(day?.tasks ?? []).filter(t => !t.due || t.due === d).map(t => ({text: t.text, done: t.done, task: true})),
+        ...(featureOn(settings, 'inbox') ? inbox?.items ?? [] : []).filter(t => t.due === d).map(t => ({text: t.text, done: t.done, task: true})),
         ...(months.docs?.get(`month:${monthOf(d)}`)?.dates ?? []).filter(t => t.date === d).map(t => ({text: t.text})),
         ...(featureOn(settings, 'exams') ? settings.exams ?? [] : []).filter(e => e.date === d).map(e => ({text: e.name})),
         ...(featureOn(settings, 'countdown') ? settings.countdowns ?? [] : []).filter(e => e.date === d || (e.yearly && e.date.slice(5) === d.slice(5))).map(e => ({text: e.name, time: e.time ?? undefined})),
       ];
       entries.sort((a,b) => (a.time ?? -1) - (b.time ?? -1));
-      return <section className={`panel agenda-day${d === today() ? ' today' : ''}`} key={d}><h2><a href={`/day/${d}`} onClick={onLinkClick}>{longDate(d)}</a></h2>
-        {!entries.length ? <p className="muted">{T.calendarViews.empty}</p> : <ul>{entries.map((e,i) => <li key={i} className={e.done ? 'done' : ''}><span className="num">{e.time == null ? '' : clock(e.time)}</span><span>{e.text}</span></li>)}</ul>}
+      const tasks = entries.filter(e => e.task), schedule = entries.filter(e => !e.task);
+      const now = new Date(), minute = now.getHours() * 60 + now.getMinutes();
+      return <section className={`panel agenda-day${d === today() ? ' today' : ''}${entries.length ? '' : ' is-empty'}`} key={d}><h2><a href={`/day/${d}`} onClick={onLinkClick}>{longDate(d)}</a></h2>
+        {!entries.length ? <><span className="muted" aria-hidden="true">—</span><RoundAction href={`/day/${d}`} title={T.calendarViews.planDay} hint={T.calendarViews.empty} /></> : <>
+          {!!tasks.length && <div className="agenda-task-group"><h3>{T.tasks}</h3><ul>{tasks.map((e,i) => <li key={i} className={e.done ? 'done' : ''}>{e.text}</li>)}</ul></div>}
+          {!!schedule.length && <ul>{schedule.map((e,i) => <li key={i} className={`agenda-entry${e.time == null ? ' untimed' : ''}${e.end != null && (d < today() || (d === today() && e.end <= minute)) ? ' is-past' : ''}`}>
+            {e.time != null && <span className="num">{clock(e.time)}</span>}<span>{e.text}</span>
+            {e.end != null && e.time != null && <span className="agenda-block-meta"><span className="num">{duration(e.end-e.time)}</span>{e.kind && <span className="agenda-kind"><i aria-hidden="true" />{T.kinds[e.kind].name}</span>}</span>}
+          </li>)}</ul>}
+        </>}
       </section>;
     })}</div><button className="btn" onClick={() => setCount(n => n + 14)}>{T.calendarViews.more}</button></>;
 }
