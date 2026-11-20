@@ -101,7 +101,7 @@ export function Shutdown({ date }: { date: string }) {
           <div className="kpi">
             <div className="kpi-label">{T.tasksDoneKpi}</div>
             <div className="kpi-value">{day.tasks.filter((x) => x.done).length}<small>/ {day.tasks.length}</small></div>
-            <div className="delta">{T.capturedToday}</div>
+            <div className="delta">{T.dayCol}</div>
           </div>
         </div>
       )}
