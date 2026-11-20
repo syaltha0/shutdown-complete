@@ -211,6 +211,7 @@ export const en = {
   shutdownAsk: (n: number) => `${n} steps open. Close anyway?`,
   shutdownYes: 'Close',
   shutdownBack: 'Go back',
+  blockOverlap: (name: string) => `Overlaps with ${name}`,
   focusManual: 'manually entered',
   saveBlock: 'Save',
   cancel: 'Cancel',
