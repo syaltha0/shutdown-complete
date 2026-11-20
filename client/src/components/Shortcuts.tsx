@@ -16,10 +16,12 @@ export type ShortcutAction = 'new-block' | 'revise';
 
 const typing = (el: EventTarget | null) => el instanceof HTMLElement && (el.isContentEditable || ['INPUT', 'TEXTAREA', 'SELECT'].includes(el.tagName));
 
-export function Shortcuts() {
+export function Shortcuts({ paletteOpen = false }: { paletteOpen?: boolean }) {
   const T = useT(), K = T.keys;
   const [help, setHelp] = useState(false);
   const { settings } = useSettings();
+  const paletteRef = useRef(paletteOpen);
+  paletteRef.current = paletteOpen;
   const settingsRef = useRef(settings);
   settingsRef.current = settings;
   const dialog = useRef<HTMLDialogElement>(null);
@@ -32,6 +34,7 @@ export function Shortcuts() {
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
+      if (paletteRef.current) return;
       // undo a deletion: Ctrl+Z / ⌘Z, unless a text field is undoing its own typing
       if ((e.ctrlKey || e.metaKey) && !e.shiftKey && !e.altKey && e.key.toLowerCase() === 'z') {
         if (!typing(e.target) && undo()) e.preventDefault();

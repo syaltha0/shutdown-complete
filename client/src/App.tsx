@@ -57,7 +57,8 @@ function fetchAhead() {
   const next = (i: number) => { if (i < loaders.length) idle(() => { loaders[i]().catch(() => {}).finally(() => next(i + 1)); }); };
   window.setTimeout(() => next(0), 2500);
 }
-const CommandPalette = lazy(() => import('./components/CommandPalette'));
+import CommandPalette from './components/CommandPalette';
+import { flushSync } from 'react-dom';
 const Agenda = lazy(() => import('./screens/Agenda').then(m => ({default: m.Agenda})));
 const Wait = () => <div className="screen-wait" aria-busy="true" />;
 
@@ -239,7 +240,7 @@ function Shell() {
   useEffect(fetchAhead, []);
   useEffect(() => {
     const open = (e: KeyboardEvent) => {
-      if ((e.ctrlKey || e.metaKey) && !e.altKey && e.key.toLowerCase() === 'k') { e.preventDefault(); setMore(false); setPalette(v => !v); }
+      if ((e.ctrlKey || e.metaKey) && !e.altKey && e.key.toLowerCase() === 'k') { e.preventDefault(); setMore(false); flushSync(() => setPalette(v => !v)); }
     };
     window.addEventListener('keydown', open);
     return () => window.removeEventListener('keydown', open);
@@ -331,7 +332,7 @@ function Shell() {
       <FocusRunner />
       <BlockReminders />
       <FriendsWatcher />
-      <Shortcuts />
+      <Shortcuts paletteOpen={palette} />
       {capture && <QuickCapture onClose={() => setCapture(false)} onSaved={() => { setCaptured(true); setCapture(false); }} />}
       <span className="capture-stamp" role="status">{captured ? T.save.saved : ''}</span>
       {palette && <Suspense fallback={null}><CommandPalette onClose={() => setPalette(false)} /></Suspense>}
