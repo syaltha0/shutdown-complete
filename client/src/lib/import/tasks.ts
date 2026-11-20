@@ -2,7 +2,8 @@
 export type Source = 'todoist' | 'ticktick';
 export interface Parsed { tasks: (Item & { listName: string })[]; skipped: { row: number; reason: 'completed' | 'empty' | 'unsupported' }[] }
 export function csv(text: string): string[][] {
-  text = text.replace(/^\uFEFF/, '');
+  // one line ending everywhere: a file saved on Windows keeps \r\n inside quoted multi-line fields too
+  text = text.replace(/^\uFEFF/, '').replace(/\r\n?/g, '\n');
   const first = text.split(/\r?\n/).find(l => /TYPE|Title/.test(l)) ?? text.split(/\r?\n/)[0];
   const delimiter = first.split(';').length > first.split(',').length ? ';' : ',';
   const rows: string[][] = []; let row: string[] = [], cell = '', quoted = false;
