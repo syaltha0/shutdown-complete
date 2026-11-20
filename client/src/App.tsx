@@ -283,7 +283,7 @@ function Shell() {
   // the phone's bottom bar: four destinations and More
   const phoneMain = [home, plan[0], ...(settings.phoneQuickCapture === false ? [plan[1]] : []), work[0]];
   const agenda: NavItem = {id: 'agenda', href: '/agenda', label: T.calendarViews.agenda, icon: <IconDay />};
-  const phoneMore = [search,...(settings.phoneQuickCapture === false ? [] : [plan[1]]), agenda, boards, countdown, inbox, plan[2], plan[3], work[1], work[2], work[3], settingsItem].filter((x) => on(x.id));
+  const phoneMore = [search,...(settings.phoneQuickCapture === false ? [] : [plan[1]]), agenda, boards, countdown, inbox, plan[2], plan[3], plan[4], work[1], work[2], work[3], settingsItem].filter((x) => on(x.id));
   const moreActive = phoneMore.some((x) => x.id === r?.nav);
 
   return (
@@ -305,8 +305,8 @@ function Shell() {
 
       <nav className="tabbar" aria-label="Shutdown Complete">
         {phoneMain.map((x) => link(x, 'tab-item'))}
-        {settings.phoneQuickCapture !== false && <button type="button" className="tab-item" aria-label={T.quickCapture.title} onClick={() => setCapture(true)}><IconPlus /><span className="label">{T.quickCapture.add}</span></button>}
-        <button type="button" className="tab-item" aria-expanded={more} aria-current={moreActive ? 'page' : undefined} onClick={() => setMore(true)}>
+        {settings.phoneQuickCapture !== false && <button type="button" className="tab-item" aria-label={T.quickCapture.title} onClick={() => { setMore(false); setCapture(true); }}><IconPlus /><span className="label">{T.quickCapture.add}</span></button>}
+        <button type="button" className="tab-item" aria-expanded={more} aria-current={moreActive ? 'page' : undefined} onClick={() => { setCapture(false); setMore(true); }}>
           <IconMore />{attention > 0 && <span className="attn" aria-label={T.needsAttention(attention)} />}<span className="label">{T.nav.more}</span>
         </button>
       </nav>
@@ -317,7 +317,6 @@ function Shell() {
               <b>{T.nav.more}</b>
               <button type="button" className="btn ghost icon" aria-label={T.close} onClick={() => setMore(false)}><IconX /></button>
             </div>
-            <button className="more-item" onClick={() => { setMore(false); setPalette(true); }}>{T.palette.title}<kbd>Ctrl / Cmd K</kbd></button>
             {phoneMore.map((x) => link(x, 'more-item'))}
           </div>
         </div>
