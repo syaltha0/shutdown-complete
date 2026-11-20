@@ -244,7 +244,7 @@ label.btn { cursor: pointer; }
 .tk-advanced summary { cursor:pointer; padding:12px 0; color:var(--muted); } .tk-advanced[open] summary { margin-bottom:12px; }
 
 /* Keep a task and its priority within the reading column. */
-.tk-main { width: 100%; max-width: 880px; }
+.tk-main { width: 100%; min-width: 0; }
 .tk-row[data-id] { grid-template-columns: 14px auto minmax(0, max-content) auto; justify-content: start; }
 .tk-row[data-id] .tk-open { max-width: 64ch; }
 .tk-tools { position: relative; }
