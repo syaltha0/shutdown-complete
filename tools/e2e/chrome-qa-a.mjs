@@ -1,0 +1,55 @@
+﻿import assert from 'node:assert/strict';
+import { mkdirSync } from 'node:fs';
+import { launch } from '../lib/browser.mjs';
+import { startServer, client } from '../lib/server.mjs';
+import { demoAccount, iso, weekOf } from '../lib/demo.mjs';
+const s = await startServer(), b = await launch();
+const shots = 'reports/chrome-qa-a'; mkdirSync(shots, {recursive:true});
+try {
+ const api = await demoAccount(client(s.url), {lang:'en'});
+ const d = iso(new Date()), w = weekOf(d), monday = new Date(d+'T12:00:00'); monday.setDate(monday.getDate() - (monday.getDay()+6)%7);
+ const base = (await api.get('day:2026-11-13')).value;
+ for(let i=0;i<7;i++) { const dt=new Date(monday); dt.setDate(dt.getDate()+i); await api.put('day:'+iso(dt), {...base,metrics:{},focus:{active:null,sessions:[]},shutdown:{done:false,at:null,steps:{}}}); }
+ const zeroDate=new Date(monday);zeroDate.setDate(zeroDate.getDate()+2);
+ const date0=iso(monday), date1=new Date(monday);date1.setDate(date1.getDate()+1);
+ const session={id:'qa-session',minutes:25,kind:'deep',blockId:null,label:'QA session',start:date0+'T09:00:00Z',end:date0+'T09:25:00Z'};
+ await api.put('day:'+date0,{...base,metrics:{deep:2},focus:{active:null,sessions:[session]}});
+ await api.put('day:'+iso(date1),{...base,metrics:{},focus:{active:null,sessions:[{...session,id:'qa-fallback'}]}});
+ await api.put('day:'+iso(zeroDate),{...base,metrics:{deep:0},focus:{active:null,sessions:[{...session,id:'qa-zero'}]}});
+ const c=await b.newContext({viewport:{width:1440,height:1000},timezoneId:'Europe/Istanbul'});
+ await c.addCookies([{name:'sc_session',value:api.cookie.split('=')[1],url:s.url}]);
+ const p=await c.newPage(), errors=[];
+ p.on('console',m=>{if(m.type()==='error' && /content.security.policy|violates.*script|refused to execute/i.test(m.text()))errors.push(m.text());});
+ await p.goto(s.url+'/');await p.locator('.rail').waitFor();
+ await p.keyboard.press('Control+k');await p.keyboard.type('quar');
+ assert.equal(await p.getByRole('combobox').inputValue(),'quar');assert.equal(new URL(p.url()).pathname,'/');await p.keyboard.press('Escape');
+ await p.goto(s.url+'/review/'+w); await p.locator('.wr-stats').waitFor();assert.equal(await p.locator('.wr-stats > div').first().locator('b').innerText(),'2 h 25 m');
+ await p.screenshot({path:shots+'/review.png',fullPage:true});
+ await p.goto(s.url+'/week/'+w); await p.locator('a.dayrow').first().waitFor();await p.locator('.dayrow .skeleton').first().waitFor({state:'detached'});assert.ok((await p.locator('a.dayrow').first().innerText()).includes('2 h'));assert.ok((await p.locator('a.dayrow').nth(1).innerText()).includes('25 m'));
+ await p.goto(s.url+'/');await p.locator('.b-hello-week').waitFor();
+ // Manual values (including zero) override sessions; days without a metric use sessions.
+ await p.waitForFunction(()=>document.querySelector('.b-hello-week')?.innerText.includes('2 h 25 m'));assert.ok((await p.locator('.b-hello-week').innerText()).includes('2 h 25 m'));
+ await p.screenshot({path:shots+'/overview.png',fullPage:true});
+ await p.goto(s.url+'/month/'+d.slice(0,7));const marker=p.locator('.cal-day.is-today .dn');await marker.waitFor();assert.equal(await marker.evaluate(el=>getComputedStyle(el).backgroundColor),'rgba(0, 0, 0, 0)');assert.equal(await marker.evaluate(el=>getComputedStyle(el).outlineWidth),'1px');await p.screenshot({path:shots+'/month.png',fullPage:true});
+ await api.put('day:2026-11-13',{...base,tasks:[{id:'qa-open',text:'QA open task',done:false}]});
+ await p.goto(s.url+'/shutdown/2026-11-13');await p.locator('.carry input').first().waitFor();assert.equal(await p.locator('.carry input:checked').count(),0);assert.equal(await p.getByText(/Suggested weekday/).count(),0);await p.screenshot({path:shots+'/shutdown.png',fullPage:true});
+ await p.setViewportSize({width:390,height:844});await p.goto(s.url+'/');await p.locator('.tabbar').waitFor();
+ await p.screenshot({path:shots+'/overview-phone.png',fullPage:true});
+ await p.locator('.tab-item[aria-expanded]').click();const more=p.locator('.more-sheet');await more.waitFor();assert.equal(await more.locator('a[href^="/quarter/"]').count(),1);assert.equal(await more.locator('a[href="/tasks"]').count(),1);assert.equal(await more.getByText('Command palette').count(),0);await p.screenshot({path:shots+'/phone-more.png',fullPage:true});
+ await p.setViewportSize({width:1440,height:1000});
+ const block={id:'qa-overlap-a',label:'QA first',kind:'deep',start:540,end:600};
+ await api.put('day:2026-11-13',{...base,columns:[{from:null,closedAt:null,blocks:[block,{...block,id:'qa-overlap-b',label:'QA second'}]}],metrics:{deep:1}});
+ await p.goto(s.url+'/day/2026-11-13');await p.locator('.block').first().waitFor();
+ assert.equal(await p.locator('#m-deep').getAttribute('max'),null);
+ const ticks=await p.locator('.hours span:not(.end)').evaluateAll(els=>els.map(el=>parseFloat(el.style.top)));
+ if(ticks.length>2)for(let i=2;i<ticks.length;i++)assert.equal(Math.round(ticks[i]-ticks[i-1]),Math.round(ticks[1]-ticks[0]));
+ await p.locator('.block').last().click();await p.getByRole('status').filter({hasText:'Overlaps with QA first'}).waitFor();
+ await p.screenshot({path:shots+'/overlap.png',fullPage:true});await p.keyboard.press('Escape');
+ await p.keyboard.press('?');await p.locator('.keys-sheet[open]').waitFor();assert.equal(await p.locator('.keys kbd').first().evaluate(el=>getComputedStyle(el).whiteSpace),'nowrap');await p.screenshot({path:shots+'/shortcuts.png',fullPage:true});await p.keyboard.press('Escape');
+ await p.goto(s.url+'/focus');await p.locator('.chart-bar').first().waitFor();
+ const fills=await p.locator('.chart-bar').evaluateAll(els=>els.map(el=>el.getAttribute('fill')));
+ await p.getByRole('button',{name:'Start focus',exact:true}).click();await p.getByRole('button',{name:'Pause',exact:true}).waitFor();
+ assert.deepEqual(await p.locator('.chart-bar').evaluateAll(els=>els.map(el=>el.getAttribute('fill'))),fills);
+ await p.screenshot({path:shots+'/focus-running.png',fullPage:true});
+ assert.deepEqual(errors,[]);console.log('PASS Chrome QA: immediate typing, phone destinations, CSP console, month ring, focus totals, opt-in shutdown');await c.close();
+} finally { await b.close();s.stop(); }
