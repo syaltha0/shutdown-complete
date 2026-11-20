@@ -67,3 +67,14 @@
 @media (max-width: 860px) { .byweek th.n, .byweek td.n { width: auto; } }
 
 :root[data-motion="reduce"] .wd-track i, :root[data-motion="reduce"] .metric-kpis .kpi-value { animation: none; }
+
+.metric-title { align-items: flex-start; }
+.metric-title .today-entry { width: fit-content; max-width: 100%; margin-top: 16px; padding: 8px 0; background: transparent; border-radius: 0; flex-wrap: wrap; }
+.wd-caption { display: grid; justify-items: center; gap: 2px; padding-top: 4px; }
+.wd-val { color: var(--text); font-size: 14px; }
+.wd-day { color: var(--muted); font-size: 12px; }
+@media (max-width: 860px) {
+ .metric-title > div { min-width: 0; max-width: 100%; }
+ .metric-title .metric-controls { width: 100%; }
+ .metric-title .metric-select { flex: 1 1 0; }
+}

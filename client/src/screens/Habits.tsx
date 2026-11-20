@@ -80,12 +80,12 @@ export function Habits({ id }: { id: string }) {
     <section className="hv-ledger" aria-label={T.habitsTitle} aria-busy={!docs}>
     {!habits.length && <div className="hv-empty"><h2>{T.habitBegin}</h2><p>{T.habitIntro}</p>{addForm(true)}<div className="hv-suggestions">{T.habitSuggestions.map(n => <button key={n} className="btn" onClick={() => addHabit(n)}>{n}</button>)}</div></div>}
     <div className="hgrid">
-      {habits.length > 0 && <div className="hrow head"><span>{T.habitCol}</span><div className="hv-days">{recent.map((d,i) => <span key={d} className={i < 7 ? 'hv-older' : ''}>{fmtDay(d,{day:'numeric'})}</span>)}</div><span>{T.streakCol}</span></div>}
+      {habits.length > 0 && <div className="hrow head"><span>{T.habitCol}</span><div className="hv-days">{recent.map((d,i) => <span key={d} className={[i < 7 ? 'hv-older' : '', d === t ? 'hv-date-today' : ''].join(' ')}>{fmtDay(d,{day:'numeric'})}</span>)}</div><span>{T.streakCol}</span></div>}
       {habits.map((h,index) => {
         const current = stats(h, history).streak, open = opened === h.id;
         const heatmap = open && docs ? habitHeatmap(h, get, end) : [];
         return <article className={`hv-habit${fresh === h.id ? ' is-new' : ''}`} key={h.id} id={`habit-${h.id}`}>
-          <div className="hrow"><button className="hv-name" aria-expanded={open} aria-controls={`detail-${h.id}`} onClick={() => setOpened(open ? null : h.id)}><span className="hname">{h.name}</span><small>{frequency(h)}</small><IconRight /></button><div className="hv-phone-dates">{recent.slice(-7).map(d => <span key={d}>{fmtDay(d,{weekday:'narrow'})} {Number(d.slice(8))}</span>)}</div><div className="hv-days">{recent.map((d,i) => cell(h,d,i))}</div><span className="hv-streak num">{docs ? units(h,current) : '—'}</span></div>
+          <div className="hrow"><button className="hv-name" aria-expanded={open} aria-controls={`detail-${h.id}`} onClick={() => setOpened(open ? null : h.id)}><span className="hname">{h.name}</span><small>{frequency(h)}</small><IconRight /></button><div className="hv-phone-dates">{recent.slice(-7).map(d => <span key={d} className={d === t ? 'hv-date-today' : undefined}><span>{fmtDay(d,{weekday:'short'}).slice(0,2)}</span><b>{Number(d.slice(8))}</b></span>)}</div><div className="hv-days">{recent.map((d,i) => cell(h,d,i))}</div><span className="hv-streak num">{docs ? units(h,current) : '—'}</span></div>
           {open && <div id={`detail-${h.id}`} className="hv-detail">
             <div className="hv-detail-head"><h2>{T.habitYear}</h2><span className="meta">{fmtDay(heatmap[0]?.date ?? history[0],{month:'short',year:'numeric'})} – {fmtDay(end,{month:'short',year:'numeric'})}</span></div>
             {!docs ? <p>{T.habitLoading}</p> : <>

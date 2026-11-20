@@ -242,3 +242,27 @@ label.btn { cursor: pointer; }
 .dav-linked details th, .dav-linked details td { padding: 6px; font-size: 12px; }
 
 .tk-advanced summary { cursor:pointer; padding:12px 0; color:var(--muted); } .tk-advanced[open] summary { margin-bottom:12px; }
+
+/* Keep a task and its priority within the reading column. */
+.tk-main { width: 100%; max-width: 880px; }
+.tk-row[data-id] { grid-template-columns: 14px auto minmax(0, max-content) auto; justify-content: start; }
+.tk-row[data-id] .tk-open { max-width: 64ch; }
+.tk-tools { position: relative; }
+.tk-tools summary { list-style: none; cursor: pointer; }
+.tk-tools summary::-webkit-details-marker { display: none; }
+.tk-tools-body { position: absolute; z-index: 8; right: 0; top: calc(100% + 6px); display: grid; gap: 8px; padding: 12px; min-width: 200px; border: 1px solid var(--border); border-radius: 8px; background: var(--surface); }
+.tk-tools-body .input { width: 100%; }
+.tk-filter-empty { margin: 6px 10px; }
+.tk-filter-empty .b-round-action { gap: 10px; padding: 4px 0; text-align: left; }
+.tk-filter-empty .b-round { width: 32px; height: 32px; flex: none; }
+.tk-filter-empty .b-round-text b { font-size: 13px; }
+.tk-filter-empty .b-round-text small { font-size: 12px; }
+.tk-examples { display: flex; flex-wrap: wrap; gap: 6px; padding-block: 4px 8px; }
+.tk-examples .btn { min-height: 28px; padding: 2px 10px; border: 1px solid var(--border); border-radius: 999px; font-size: 12px; font-weight: 400; }
+@media (max-width: 860px) {
+ .tk-main > .tk-head { display: grid; grid-template-columns: minmax(0,1fr) auto; align-items: center; gap: 6px; }
+ .tk-head h2 { display: none; }
+ .tk-head .tk-search { grid-column: 1 / -1; }
+ .tk-search, .tk-search .input { width: 100%; min-width: 0; }
+ .tk-tools summary { font-size: 12px; padding-inline: 8px; }
+}

@@ -51,10 +51,11 @@ export function Metrics() {
   const from = weekDays(weeks[0])[0];
 
   const head = (
-    <div className="title-row">
+    <div className="title-row metric-title">
       <div>
         <h1>{T.metricsTitle}</h1>
         <p className="sub">{docs ? <Finding m={m} val={val} cur={cur} fmtVal={fmtVal} /> : ' '}</p>
+        {docs && m && m.id !== FOCUS_ID && <TodayEntry m={m} doc={docs.get(`day:${t}`)} day={t} nf1={nf1} />}
       </div>
       <div className="title-actions metric-controls">
         <Segmented className={`sm metric-seg${defs.length > 6 ? ' many' : ''}`} role="group" aria-label={T.metric}>
@@ -133,7 +134,7 @@ export function Metrics() {
           </div>
         </div>
 
-        {docs && m.id !== FOCUS_ID && <TodayEntry m={m} doc={docs.get(`day:${t}`)} day={t} nf1={nf1} />}
+
 
         <section className="panel" aria-labelledby="chart-h">
           <div className="chart-head">
@@ -315,8 +316,8 @@ function Weekdays({ weeks, val, today: t, cur, isCheck, fmt, nf1 }: {
         {avg.map((a, i) => (
           <li key={i} className={i === best ? 'best' : undefined} title={`${weekdayLong(names[i])}: ${a.v != null ? show(a.v) : '—'}`}>
             <span className="wd-track" aria-hidden="true"><i style={{ height: `${a.v != null ? Math.max(3, (a.v / max) * 100) : 0}%` }} /></span>
-            <span className="wd-val num">{a.v != null ? (isCheck ? `${Math.round(a.v * 100)}%` : nf1.format(a.v)) : '—'}</span>
-            <span className="wd-day">{weekdayShort(names[i])}</span>
+            <span className="wd-caption"><span className="wd-val num">{a.v != null ? (isCheck ? `${Math.round(a.v * 100)}%` : nf1.format(a.v)) : '—'}</span>
+            <span className="wd-day">{weekdayShort(names[i])}</span></span>
           </li>
         ))}
       </ol>
