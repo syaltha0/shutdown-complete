@@ -267,3 +267,30 @@ label.btn { cursor: pointer; }
  .tk-search, .tk-search .input { width: 100%; min-width: 0; }
  .tk-tools summary { font-size: 12px; padding-inline: 8px; }
 }
+
+/* going through the inbox one task at a time (components/InboxTriage.tsx): a small card, one-tap decisions */
+.quick-capture.triage { padding: 16px 16px calc(16px + env(safe-area-inset-bottom)); }
+@media (min-width: 700px) { .quick-capture.triage { inset: 0; margin: auto; height: fit-content; border-radius: 16px; padding: 20px 24px 24px; } }
+.triage-card { display: grid; gap: 12px; outline: none; }
+.triage-card .more-head { padding: 0; }
+.triage-progress { height: 2px; border-radius: 2px; background: var(--rule); overflow: hidden; }
+.triage-progress i { display: block; height: 100%; background: var(--hue); transition: width var(--t-hover, 150ms) ease; }
+.triage-count { margin: 0; color: var(--muted); font-size: 13px; }
+.quick-capture .triage-text { font-size: 18px; font-weight: 500; }
+.triage-note { width: 100%; resize: none; min-height: 64px; font: inherit; font-size: 16px; }
+.triage-acts, .triage-lists { display: flex; flex-wrap: wrap; gap: 8px; }
+.quick-capture button.triage-act { display: inline-flex; align-items: center; gap: 8px; padding: 0 16px; border-radius: 999px; font-weight: 400; }
+.triage-act.on { border-color: var(--text); font-weight: 500; }
+.triage-act kbd { display: none; min-width: 0; height: 20px; font-size: 11px; color: var(--muted); }
+@media (hover: hover) and (pointer: fine) { .triage-act kbd { display: inline-grid; } }
+.triage-step { display: grid; gap: 10px; justify-items: start; }
+.triage-step p { margin: 0; }
+.triage-keys { margin: 0; font-size: 12px; }
+@media (hover: none), (pointer: coarse) { .triage-keys { display: none; } }
+.triage-undo { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding-top: 10px; border-top: 1px solid var(--rule); font-size: 13px; }
+.triage-undo span { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.triage-done { display: grid; gap: 12px; justify-items: start; padding: 12px 0 4px; }
+.triage-done h2 { margin: 0; font-size: 18px; font-weight: 500; }
+.triage-done p { margin: 0; }
+@media (max-width: 600px) { .triage-act kbd, .triage-keys { display: none; }
+  .quick-capture button.triage-act { flex: 1 1 calc(50% - 8px); justify-content: center; } }

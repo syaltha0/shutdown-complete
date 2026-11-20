@@ -677,6 +677,13 @@ export const en = {
   tkDrag: (t: string) => `Drag ${t} to order it, or onto a list, a tag or a collection`, tkMovedTo: (t: string, where: string) => `${t}: ${where}`,
   tkAddPh: (where: string) => `Add a task to ${where}…`, tkAddPhAny: 'Add a task…', tkAdd: 'Add',
   tkCompletedN: (n: number, shown: boolean) => `${shown ? 'Hide' : 'Show'} ${n} completed`, tkDeleteDone: 'Delete completed', tkReopenDone: 'Reopen completed', tkReopen: 'Reopen',
+  triage: {
+    start: (n: number) => `Go through inbox (${n})`, title: 'Go through inbox', progress: (i: number, n: number) => `${i} / ${n}`, taskLabel: 'Task', noteLabel: 'Note', notePh: 'Note',
+    today: 'Today', tomorrow: 'Tomorrow', pickDate: 'Pick date', setDate: 'Set date', toList: 'Move to list', star: 'Star', starred: 'Starred', delete: 'Delete', skip: 'Skip',
+    pickList: 'Move to which list?', noLists: 'No lists yet', back: 'Back', keys: 'T today · Y tomorrow · D date · L list · S star · Del delete · → skip · Esc close',
+    emptyTitle: 'Inbox is empty', leftTitle: 'Done for now', leftBody: (n: number) => `${n} ${s(n, 'task is', 'tasks are')} still in the inbox.`, close: 'Close',
+    plannedOn: (t: string, d: string) => `${t}: planned for ${d}`, moved: (t: string, l: string) => `${t}: moved to ${l}`, starredMsg: (t: string) => `Starred: ${t}`, unstarredMsg: (t: string) => `Unstarred: ${t}`,
+  },
   tkReopenedN: (n: number) => `Reopened ${n} ${s(n, 'task', 'tasks')}`,
   tkDoneDeleted: (n: number) => `Deleted ${n} completed ${s(n, 'task', 'tasks')}`,
   tkNext: (t: string, d: string) => `Done: ${t}. Next ${d}`,

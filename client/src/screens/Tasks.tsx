@@ -20,6 +20,7 @@ import {
   matchesFilter, COLLECTIONS, DEFAULT_LIST, PRESETS, SORTS, TAG, daysTo, inView, listOf, listsOf, onRuleDay, presetOf, recurWords, rollOn, sortTasks, type Sort,
 } from '../lib/tasks';
 import { insertAt, offerUndo } from '../lib/undo';
+import { InboxTriage } from '../components/InboxTriage';
 import { DayChips } from './Templates';
 import { updateKey, useDoc } from '../lib/useDoc';
 import { parseTaskDraft, unknownTaskLists } from '../lib/taskQuickAdd';
@@ -47,12 +48,13 @@ export async function toDay(items: Item[], date: string, T?: import('../lib/word
   return copies.map((c) => c.id);
 }
 /** One task put on a day, with an undo that takes it back off and returns the task as it was. */
-async function planOn(t: Item, date: string, message: string, T: import('../lib/words/en').Words) {
+async function planOn(t: Item, date: string, message: string, T: import('../lib/words/en').Words, onUndone?: () => void) {
   const ids = await toDay([t], date, T);
   if (!ids.length) return;
   offerUndo(message, () => {
     updateKey<DayDoc>(`day:${date}`, emptyDay, (d) => ({ ...d, tasks: d.tasks.filter((x) => !ids.includes(x.id)) }));
     updateKey<InboxDoc>('inbox', emptyInbox, (b) => ({ ...b, items: b.items.some((x) => x.id === t.id) ? b.items.map((x) => (x.id === t.id ? t : x)) : [...b.items, t] }));
+    onUndone?.();
   });
 }
 const takeOut = (b: InboxDoc, ids: string[]): InboxDoc => ({
@@ -85,6 +87,8 @@ function InboxTasks({ view: asked }: { view?: string }) {
   const [q, setQ] = useState('');
   const [openId, setOpenId] = useState<string | null>(new URLSearchParams(location.search).get('task'));
   const [showDone, setShowDone] = useState(false);
+  // going through the inbox one task at a time: the tasks waiting when it opened
+  const [triage, setTriage] = useState<string[] | null>(null);
   const [draft, setDraft] = useState('');
   const [smartAdd, setSmartAdd] = useState(true);
   const parsedDraft = smartAdd ? parseTaskDraft(draft, lists, today()) : { text: draft.trim() };
@@ -120,6 +124,7 @@ function InboxTasks({ view: asked }: { view?: string }) {
   const doneHere = isList ? sortTasks(items.filter((t) => t.done && listOf(t) === view && matches(t)), sort) : [];
   const count = (v: string) => items.filter((t) => inView(t, v)).length;
   const open = items.find((t) => t.id === openId) ?? null;
+  const waitingInInbox = items.filter((t) => !t.done && !t.list && !t.due && !t.start && !t.waiting && !t.repeat);
 
   /** Ticked: a repeating task comes back on its next date, any other is done (both can be undone). */
   const tick = (t: Item) => {
@@ -139,11 +144,11 @@ function InboxTasks({ view: asked }: { view?: string }) {
     set(t.id, { done: true, doneAt: today() });
     offerUndo(T.doneLabel(t.text), () => set(t.id, { done: false, doneAt: undefined }));
   };
-  const remove = (t: Item) => {
+  const remove = (t: Item, onUndone?: () => void) => {
     const at = items.findIndex((x) => x.id === t.id);
     update((b) => trashTasks(b, [t.id]));
     if (openId === t.id) setOpenId(null);
-    offerUndo(T.deleted(t.text), () => update((b) => ({ ...b, ...restoreTasks(b, [t.id]), items: insertAt(b.items.filter((x) => x.id !== t.id), at, t) })));
+    offerUndo(T.deleted(t.text), () => { update((b) => ({ ...b, ...restoreTasks(b, [t.id]), items: insertAt(b.items.filter((x) => x.id !== t.id), at, t) })); onUndone?.(); });
   };
   // a task written in a collection gets what the collection is about
   const add = (text: string, createList?: string) => {
@@ -365,6 +370,7 @@ function InboxTasks({ view: asked }: { view?: string }) {
               <span className="sr-only">{T.tkSearch}</span>
               <input ref={searchInput} type="search" className="input" placeholder={T.tkSearch} value={q} onChange={(e) => setQ(e.target.value)} onKeyDown={(e) => { if (e.key === 'Escape') { if (q) setQ(''); else e.currentTarget.blur(); } }} />
             </label>
+            {view === DEFAULT_LIST && waitingInInbox.length > 0 && <button type="button" className="btn" onClick={() => { setOpenId(null); setSel(null); setTriage(waitingInInbox.map((t) => t.id)); }}>{T.triage.start(waitingInInbox.length)}</button>}
             <button type="button" className={`btn${sel ? ' primary' : ' ghost'}`} aria-pressed={!!sel} onClick={() => { setSel(sel ? null : new Set()); setOpenId(null); }}>{sel ? T.tkSelectDone : T.tkSelect}</button>
             <details className="tk-tools"><summary className="btn ghost">{T.tkTools}</summary><div className="tk-tools-body"><button type="button" className="btn ghost" onClick={() => setEditingFilter({ id: uid(), name: '' })}>{T.tkFilterNew}</button><label className="tk-sort">
               <span className="sr-only">{T.tkSortLabel}</span>
@@ -435,6 +441,8 @@ function InboxTasks({ view: asked }: { view?: string }) {
 
         {open && <Detail key={open.id} t={open} lists={lists} tags={allTags} set={(p) => set(open.id, p)} tick={() => tick(open)} remove={() => remove(open)} close={() => setOpenId(null)} />}
       </div>
+      {triage && <InboxTriage ids={triage} items={items} lists={lists.filter((l) => l.id !== DEFAULT_LIST)} update={update}
+        onPlan={(t, date, onUndone) => planOn(t, date, T.triage.plannedOn(t.text, shortDate(date)), T, onUndone)} onRemove={remove} onClose={() => setTriage(null)} />}
       {drag && <div className="drag-chip" style={{ transform: `translate(${drag.x + 12}px, ${drag.y + 10}px)` }} aria-hidden="true">{drag.t.text}</div>}
     </>
   );
