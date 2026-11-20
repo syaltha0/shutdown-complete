@@ -24,7 +24,7 @@
 .cal-day:hover { background: var(--ground); }
 .cal-day.out { background: var(--ground); color: var(--muted); }
 .cal-day .dn { font-size: 13px; font-weight: 500; }
-.cal-day.is-today .dn { color: #fff; background: var(--hue); border-radius: 999px; width: 24px; height: 24px; display: grid; place-items: center; margin: -3px 0 0 -5px; }
+.cal-day.is-today .dn { color: var(--text); background: transparent; outline: 1px solid var(--today-ring); border-radius: 999px; width: 24px; height: 24px; display: grid; place-items: center; margin: -3px 0 0 -5px; }
 .cal-day .shut { position: absolute; top: 9px; right: 8px; width: 10px; height: 10px; border-radius: 2px; background: var(--text); }
 .cal-day .dv { font-size: 12px; color: var(--muted); }
 .cal-day .rem { overflow-wrap: anywhere; font-size: 11px; line-height: 16px; padding: 0 5px; border-radius: 4px; background: var(--raised); color: var(--pill-neutral-ink); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
