@@ -91,7 +91,8 @@
 .tk-row:hover .tk-star, .tk-star:focus-visible { opacity: 1; }
 @media (hover: none) { .tk-star:not(.on) { opacity: 0.5; } }
 .tk-empty { padding: 18px 0 6px; }
-.tk-done-bar { display: flex; justify-content: space-between; gap: 12px; margin-top: 14px; font-size: 14px; }
+.tk-done-bar { display: flex; justify-content: space-between; flex-wrap: wrap; gap: 12px; margin-top: 14px; font-size: 14px; }
+.tk-done-bar .card-link { min-width: 0; max-width: 100%; white-space: normal; text-align: left; }
 
 /* a task's details */
 .tk-detail { position: sticky; top: 20px; display: grid; gap: 18px; max-height: calc(100svh - 40px); overflow: auto; animation: rise-in 260ms var(--ease-out) backwards; }
