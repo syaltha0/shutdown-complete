@@ -648,6 +648,7 @@ serverStatus: { remedy: 'İlgili ayarı veya kurulum yönergesini aç',"title":"
   },
   tkNoMatch: 'Aramaya uyan görev yok.',
   tkDetected: 'Algılanan', tkLiteral: 'Düz metin olarak tut',
+  tkTools: 'Filtre ve sırala', tkFilterEmptyHint: 'Sık kullandığın görünümü burada sakla.', tkQuickExamples: ['yarın 9', '#İş', '!1'],
   tkQuickHelp: 'Örnek: Yaz yarın 9 #İş !1 @inceleme · her pazartesi',
   tkSearch: 'Görevlerde ara', tkSortLabel: 'Sıralama',
   tkSorts: { due: 'Teslim tarihine göre', priority: 'Önceliğe göre', start: 'Başlangıca göre', created: 'En yeni önce', title: 'Ada göre', manual: 'Kendi sıram' },

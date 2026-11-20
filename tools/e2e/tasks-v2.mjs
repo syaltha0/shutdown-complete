@@ -14,7 +14,7 @@ try {
  await page.goto(srv.url+'/tasks'); await page.locator('#tk-new').fill('Repeat sample'); await page.locator('#tk-new').press('Enter'); await settle();
  let b=await inbox(); const task={...b.items[0],due:D,repeat:{every:1,unit:'day'},steps:[{id:'step-test',text:'Small step',done:false}]};
  await api.put('inbox',{...b,items:[task,{id:'single-test',text:'Single sample',done:false}]}); await page.reload();
- await page.getByRole('button',{name:'New filter',exact:true}).click();
+ await page.locator('.tk-tools summary').click(); await page.locator('.tk-tools-body').getByRole('button',{name:'New filter',exact:true}).click();
  await page.getByLabel('Name',{exact:true}).fill('My filter'); await page.locator('.tk-filter-form').getByLabel('Due',{exact:true}).selectOption('today'); await page.getByRole('button',{name:'Save filter',exact:true}).click(); await settle();
  assert.equal((await inbox()).filters[0].name,'My filter'); assert.equal(await page.locator('.tk-main .tk-row').count(),1);
  await page.getByRole('button',{name:'Edit filter',exact:true}).click(); await page.getByLabel('Name',{exact:true}).fill('Edited filter'); await page.getByRole('button',{name:'Save filter',exact:true}).click(); await settle(); assert.equal((await inbox()).filters[0].name,'Edited filter');
@@ -31,6 +31,6 @@ try {
  b=await inbox();await api.put('inbox',{...b,trash:[{item:task,deletedAt:new Date().toISOString()}]});await page.clock.install({time:new Date(Date.now()+31*86400000)});await page.reload();await settle();assert.equal((await inbox()).trash.length,0);console.log('PASS trash restore, permanent delete and expiry with simulated time');
  await page.goto(srv.url+'/tasks'); await page.locator('#tk-new').fill('Review the weekly plan'); await page.locator('#tk-new').press('Enter'); await settle();
  mkdirSync('reports/shots/tasks-v2',{recursive:true});
- for(const lang of ['en','tr']) { const settings=(await api.get('settings')).value; await api.put('settings',{...settings,lang}); await page.reload(); await page.getByRole('button',{name:lang === 'en' ? 'New filter' : 'Yeni filtre',exact:true}).click(); for(const width of [1440,390])for(const theme of ['light','dark']) {await page.setViewportSize({width,height:900});await page.emulateMedia({colorScheme:theme});await page.screenshot({path:`reports/shots/tasks-v2/${lang}-${width}-${theme}.png`});}
+ for(const lang of ['en','tr']) { const settings=(await api.get('settings')).value; await api.put('settings',{...settings,lang}); await page.reload(); await page.locator('.tk-tools summary').click(); await page.locator('.tk-tools-body').getByRole('button',{name:lang === 'en' ? 'New filter' : 'Yeni filtre',exact:true}).click(); for(const width of [1440,390])for(const theme of ['light','dark']) {await page.setViewportSize({width,height:900});await page.emulateMedia({colorScheme:theme});await page.screenshot({path:`reports/shots/tasks-v2/${lang}-${width}-${theme}.png`});}
  }
 } finally {await browser.close();srv.stop();}

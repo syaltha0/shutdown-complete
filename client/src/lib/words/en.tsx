@@ -663,6 +663,7 @@ export const en = {
   } as Record<string, string>,
   tkNoMatch: 'No task matches the search.',
   tkDetected: 'Detected', tkLiteral: 'Keep as plain text',
+  tkTools: 'Filter & sort', tkFilterEmptyHint: 'Keep a useful view close at hand.', tkQuickExamples: ['tomorrow 9', '#Work', '!1'],
   tkQuickHelp: 'Try: Write tomorrow 9 #Work !1 @review · every monday',
   tkSearch: 'Search tasks', tkSortLabel: 'Order',
   tkSorts: { due: 'By due date', priority: 'By priority', start: 'By start date', created: 'Newest first', title: 'By title', manual: 'Your own order' },

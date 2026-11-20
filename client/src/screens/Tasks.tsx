@@ -1,3 +1,4 @@
+import { RoundAction } from '../components/overview/RoundAction';
 import { confirmAction } from '../components/ConfirmDialog';
 import { decideMoves, postponed } from '../lib/taskDeferral';
 import { PlannedBlocks } from '../components/TaskBlockLink';
@@ -314,9 +315,10 @@ function InboxTasks({ view: asked }: { view?: string }) {
               </button></li>
             ))}
           </ul>
-          <button className="btn ghost" onClick={() => go('trash')}>{T.tkTrash}</button><h3 className="tk-side-h">{T.tkFilters}</h3>
+          <ul className="tk-views"><li><button type="button" aria-current={view === 'trash' ? 'page' : undefined} onClick={() => go('trash')}>{T.tkTrash}</button></li></ul><h3 className="tk-side-h">{T.tkFilters}</h3>
           <ul className="tk-views">{doc?.filters?.map((f) => <li key={f.id}><button type="button" aria-current={view === f.id ? 'page' : undefined} onClick={() => go(f.id)}>{f.name}</button></li>)}</ul>
 
+          <div className="tk-filter-empty">{!doc?.filters?.length && <RoundAction title={T.tkFilterNew} hint={T.tkFilterEmptyHint} onClick={() => setEditingFilter({ id: uid(), name: '' })} />}</div>
           <ListsPart lists={lists} view={view} count={count} go={go} doc={doc} update={update} target={target} />
           {/* tags: every tag in use, a view of its own */}
           {allTags.length > 0 && (
@@ -354,22 +356,22 @@ function InboxTasks({ view: asked }: { view?: string }) {
             {draft.trim() ? <>
               {smartAdd && unknownTaskLists(draft, lists).map(name => <small key={name}>{T.missingTaskList(name)} · <button type="button" className="card-link" onClick={() => { add(draft.trim(), name); setDraft(''); setSmartAdd(true); }}>{T.createTaskList}</button></small>)}<span role="status">{T.tkDetected}: {parsedDraft.text} · {[parsedDraft.due, parsedDraft.dueTime, parsedDraft.list && lists.find((l) => l.id === parsedDraft.list)?.name, parsedDraft.priority && `${T.tkPriority} ${parsedDraft.priority}`, parsedDraft.tags?.map((g) => `@${g}`).join(' '), parsedDraft.repeat && recurWords(T, parsedDraft.repeat)].filter(Boolean).join(' · ')}</span>{' '}
               <button type="button" className="card-link quiet" onClick={() => setSmartAdd(false)}>{T.tkLiteral}</button>
-            </> : <span>{T.tkQuickHelp}</span>}
+            </> : <span className="tk-examples">{T.tkQuickExamples.map(example => <button type="button" className="btn ghost" key={example} onClick={() => { setDraft(example); addInput.current?.focus(); }}>{example}</button>)}</span>}
           </div>}
           <header className="tk-head">
-            <h2 id="tk-h">{viewName}</h2><button className="btn ghost" onClick={() => setEditingFilter({ id: uid(), name: '' })}>{T.tkFilterNew}</button>
+            <h2 id="tk-h">{viewName}</h2>
             <label className="tk-search">
               <IconSearch />
               <span className="sr-only">{T.tkSearch}</span>
               <input ref={searchInput} type="search" className="input" placeholder={T.tkSearch} value={q} onChange={(e) => setQ(e.target.value)} onKeyDown={(e) => { if (e.key === 'Escape') { if (q) setQ(''); else e.currentTarget.blur(); } }} />
             </label>
             <button type="button" className={`btn${sel ? ' primary' : ' ghost'}`} aria-pressed={!!sel} onClick={() => { setSel(sel ? null : new Set()); setOpenId(null); }}>{sel ? T.tkSelectDone : T.tkSelect}</button>
-            <label className="tk-sort">
+            <details className="tk-tools"><summary className="btn ghost">{T.tkTools}</summary><div className="tk-tools-body"><button type="button" className="btn ghost" onClick={() => setEditingFilter({ id: uid(), name: '' })}>{T.tkFilterNew}</button><label className="tk-sort">
               <span className="sr-only">{T.tkSortLabel}</span>
               <select className="input" value={sort} onChange={(e) => { setSort(e.target.value as Sort); store.set('sc-tasks-sort', e.target.value); }}>
                 {SORTS.map((s) => <option key={s} value={s}>{T.tkSorts[s]}</option>)}
               </select>
-            </label>
+            </label></div></details>
           </header>
           {filter && <div className="tk-done-bar"><button className="btn ghost" onClick={() => setEditingFilter(filter)}>{T.tkFilterEdit}</button><button className="btn ghost" onClick={() => { update((b) => ({ ...b, filters: b.filters?.filter((f) => f.id !== filter.id) })); go('all'); }}>{T.tkDeleteAll}</button>{[-1, 1].map((delta) => <button key={delta} className="btn ghost" onClick={() => update((b) => { const filters = [...(b.filters ?? [])]; const i = filters.findIndex((f) => f.id === filter.id), j = i + delta; if (j >= 0 && j < filters.length) [filters[i], filters[j]] = [filters[j], filters[i]]; return { ...b, filters }; })}>{delta < 0 ? T.tkFilterUp : T.tkFilterDown}</button>)}</div>}
           {editingFilter && <form className="panel tk-filter-form" onSubmit={(e) => { e.preventDefault(); const f = { ...editingFilter, name: editingFilter.name.trim() }; if (!f.name) return; update((b) => ({ ...b, filters: b.filters?.some((x) => x.id === f.id) ? b.filters.map((x) => x.id === f.id ? f : x) : [...(b.filters ?? []), f] })); setEditingFilter(null); go(f.id); }}>

@@ -199,6 +199,7 @@ try {
   await page.locator('.tk-search input').fill('maths passport');
   check('a word that matches nothing leaves no task', (await page.locator('.tk-main .tk-row').count()) === 0);
   await page.locator('.tk-search input').fill('');
+  if (!await page.locator('.tk-tools').getAttribute('open').then(v => v !== null)) await page.locator('.tk-tools summary').click();
   await page.locator('.tk-sort select').selectOption('title');
   const titles = await page.locator('.tk-main .tk-row .tk-title').allTextContents();
   check('ordered by title', titles.join() === [...titles].sort((a, b) => a.localeCompare(b)).join(), titles.join(' | '));
@@ -222,6 +223,7 @@ try {
     await wait(900);
   };
   await page.locator('.tk-views button', { hasText: 'All' }).click();
+  if (!await page.locator('.tk-tools').getAttribute('open').then(v => v !== null)) await page.locator('.tk-tools summary').click();
   await page.locator('.tk-sort select').selectOption('title');
   const before = await page.locator('.tk-main .tk-row .tk-title').allTextContents();
   await dragTo(row(before[0]).locator('.tk-grip'), row(before[2]), 12);
