@@ -1,0 +1,5 @@
+.quarter-weeks b { font-weight: 500; }
+.quarter-weeks .is-past, .quarter-weeks .is-future { color: var(--muted); }
+.quarter-weeks .is-future b { font-weight: 400; }
+.quarter-weeks .is-current td:first-child { box-shadow: inset 2px 0 var(--today-ring); }
+.quarter-weeks .is-current td:first-child b { color: var(--text); }
