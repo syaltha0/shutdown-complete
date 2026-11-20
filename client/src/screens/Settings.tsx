@@ -1,3 +1,4 @@
+import { TaskImport } from './TaskImport';
 import { ScheduleExceptions } from './ScheduleExceptions';
 import { FocusConfig } from '../components/FocusConfig';
 import { ExportDownloads } from './Publication';
@@ -457,6 +458,7 @@ export function SettingsScreen() {
             <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
               <a className="btn" href="/api/export" download>{T.download}</a>
               <ExportDownloads />
+              <TaskImport />
               <button type="button" className="btn" disabled={restoreBusy} onClick={() => file.current?.click()}>{T.importBackup}</button>
               <input ref={file} type="file" accept="application/json,.json" hidden onChange={(e) => { const f = e.target.files?.[0]; if (f) doImport(f); e.target.value = ''; }} />
             </div>

@@ -4,6 +4,7 @@ import type { ReactNode } from 'react';
 const s = (n: number, one: string, many: string) => (n === 1 ? one : many);
 
 export const en = {
+ taskImport: { duplicates: (n: number) => `${n} tasks already imported`, ...{"title":"Import from another app","source":"Source","file":"CSV file","todoist":"Todoist","ticktick":"TickTick","completed":"Include completed tasks","preview":"Import preview","confirm":"Import tasks","cancel":"Cancel","error":"Could not read the file or invalid format.","reasons":{"completed":"Completed task","empty":"Empty title","unsupported":"Unsupported row"}}, count: (tasks: number, lists: number) => `${tasks} tasks, ${lists} new lists`, skipped: (n: number) => `${n} rows skipped`, result: (n: number) => `${n} tasks imported` },
   quickCapture: { title: "Add task", add: "Add", preference: "Show Add instead of Week in the bottom bar", placeholder: "Report tomorrow 10am" },
  planActualHelp: "Planned blocks and actual focus: the narrow strip shows when you focused. Tap it for details.",
  sectionNav: "Sections", backSections: "Back to sections",

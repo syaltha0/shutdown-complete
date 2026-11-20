@@ -2,6 +2,7 @@
 import type { Words } from './en';
 
 export const tr: Words = {
+ taskImport: { title: 'Başka uygulamadan al', source: 'Kaynak', file: 'CSV dosyası', todoist: 'Todoist', ticktick: 'TickTick', completed: 'Tamamlananları da al', preview: 'İçe aktarma önizlemesi', confirm: 'İçe aktar', cancel: 'Vazgeç', error: 'Dosya okunamadı veya biçimi geçersiz.', reasons: { completed: 'Tamamlanmış görev', empty: 'Boş başlık', unsupported: 'Desteklenmeyen satır' }, count: (tasks: number, lists: number) => tasks + ' görev, ' + lists + ' yeni liste', skipped: (n: number) => n + ' satır atlandı', result: (n: number) => n + ' görev içe aktarıldı', duplicates: (n: number) => n + ' görev zaten içe aktarılmış' },
   quickCapture: { title: "Görev ekle", add: "Ekle", preference: "Alt çubukta Hafta yerine Ekle", placeholder: "yarın 10:00 Rapor" },
  planActualHelp: "Planlanan bloklar ve gerçek odak: ince şerit odaklandığınız zamanı gösterir. Ayrıntılar için dokunun.",
  sectionNav: "Bölümler", backSections: "Bölümlere dön",
