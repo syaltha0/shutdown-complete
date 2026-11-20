@@ -43,13 +43,15 @@ try {
     await api.put('day:' + from, blank([task]));
     await p.reload();
     await panel.locator('.carry').waitFor();
+    assert.equal(await panel.locator('.carry input:checked').count(), 0);
+    await panel.locator('.carry input').check();
     await panel.locator('.segmented button').last().click();
     await panel.locator('input[type="date"]').fill(target);
     await panel.locator('header button').click();
     await p.clock.runFor(2500);
     assert.equal((await api.get('day:' + target)).value.tasks.length, 1);
     assert.equal((await api.get('day:' + target)).value.tasks[0].due, task.due);
-    console.log('PASS ' + lang + ': default tomorrow, weekday suggestion, selected date/tasks, retry, due, day start, 390px');
+    console.log('PASS ' + lang + ': default tomorrow, single date suggestion, selected date/tasks, retry, due, day start, 390px');
     await c.close();
   }
 } finally { await b.close(); s.stop(); }
