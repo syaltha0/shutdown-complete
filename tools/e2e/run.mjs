@@ -1,5 +1,6 @@
 // Keep the full suite here; quick mode selects whole files without skipping assertions.
 import { spawn } from 'node:child_process';
+// Suites seed times in their own zone and read them in a Europe/Istanbul browser; TZ keeps both in one zone on a UTC CI runner.
 import { availableParallelism } from 'node:os';
 import { mkdirSync, readFileSync, writeFileSync, mkdtempSync } from 'node:fs';
 import { resolve, join } from 'node:path';
@@ -42,7 +43,7 @@ async function worker() {
     const name = selected.shift(); const start = Date.now();
     const result = await new Promise(done => {
       const child = spawn(process.execPath, [join(root, 'tools/e2e', name + '.mjs')], {
-        cwd: root, env: {...process.env, TOGETHER_SHOTS:join(runDir,name,'shots')}, stdio:['ignore','pipe','pipe']
+        cwd: root, env: {TZ:'Europe/Istanbul', ...process.env, TOGETHER_SHOTS:join(runDir,name,'shots')}, stdio:['ignore','pipe','pipe']
       });
       active.add(child); let output = '';
       child.stdout.on('data', d => { output += d; });

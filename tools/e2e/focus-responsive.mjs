@@ -44,5 +44,6 @@ try {
  }
  const failures=results.filter(r=>!r.pass);
  console.log(`${failures.length?'FAIL':'PASS'} ${results.length} cases; ${failures.length} failures`);
+ for(const f of failures)console.log('FAILED CASE '+JSON.stringify(f));
  if(failures.length)process.exitCode=1;
 } finally {writeFileSync(`${out}/measurements.json`,JSON.stringify(results,null,2));await b.close();s.stop();}
