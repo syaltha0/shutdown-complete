@@ -1,0 +1,6 @@
+﻿TickTick backup,Version 7
+Exported at,2026-11-20
+"Folder Name","List Name","Title","Kind","Tags","Content","Is Check list","Start Date","Due Date","Reminder","Repeat","Priority","Status","Created Time","Completed Time"
+Work,Reading,"Read, then ""write""",TEXT,books,"First line
+Second line",N,,2026-12-01T14:30,,FREQ=WEEKLY,5,0,,
+Work,Reading,Finished,TEXT,,,N,,,,,0,2,,
