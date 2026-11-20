@@ -111,7 +111,7 @@ function ProjectView({ data, set, base, bid, card, status, error, retry, team }:
       </nav>}
 
       {board ? (
-        <BoardView key={board.id} project={base.startsWith('/team/') ? `t:${base.slice(6)}` : `p:${base.slice(9)}`} board={board} setBoard={setBoard} onDelete={() => removeBoard(board.id)} card={card} status={status} error={error} retry={retry} />
+        <BoardView projectActions={<><BgPicker value={data.background} onChange={(bg) => set((p) => ({ ...p, background: bg }))} /><ProjectEdit data={data} set={set} /></>} key={board.id} project={base.startsWith('/team/') ? `t:${base.slice(6)}` : `p:${base.slice(9)}`} board={board} setBoard={setBoard} onDelete={() => removeBoard(board.id)} card={card} status={status} error={error} retry={retry} />
       ) : data.boards.length === 0 ? (
         <section className="panel kb-start kb-first" aria-labelledby="kb-start-h">
           <header>

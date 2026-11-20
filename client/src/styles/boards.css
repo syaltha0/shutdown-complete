@@ -417,3 +417,29 @@ dialog.kt-sheet { width: min(960px, calc(100vw - 32px)); max-height: calc(100dvh
 .kb-meta .planned { padding: 0 6px 0 4px; border-radius: 4px; background: color-mix(in srgb, var(--hue) 12%, var(--surface)); color: var(--hue); }
 
 .kb-first-project { border-style:solid; border-color:var(--text); font-weight:500; }
+
+/* Equal drop areas; extra cards may extend a lane naturally. */
+.kb-list { min-height: 280px; }
+.kb-lane-hint, .kb-mobile-project { display: none; }
+@media (max-width: 860px) {
+ .kb-board:has(.kanban) { position: relative; }
+ .kb-board:has(.kanban) .kb-proj { padding-right: 48px; flex-wrap: nowrap; align-items: start; gap: 10px; margin-bottom: 8px; }
+ .kb-board:has(.kanban) .kb-proj-end { display: none; }
+ .kb-board:has(.kanban) .kb-back { flex: none; padding-top: 4px; }
+ .kb-board:has(.kanban) .kb-back span { display: none; }
+ .kb-board:has(.kanban) .kb-proj-name { min-width: 0; }
+ .kb-board:has(.kanban) .kb-proj-desc { display: none; }
+ .kb-board:has(.kanban) .kb-bar-end { position: absolute; top: 0; right: 0; }
+ .kb-board:has(.kanban) .kb-bar-end > .save-stamp { display: none; }
+ .kb-bar-end .kb-bar-btn { width: 36px; padding: 0; }
+ .kb-bar-end .kb-bar-btn > span { display: none; }
+ .kb-mobile-project { display: block; padding-bottom: 12px; margin-bottom: 12px; border-bottom: 1px solid var(--border); }
+ .kb-tabs { margin-bottom: 8px; }
+ .kb-bar { margin-bottom: 10px; }
+ .kb-filterbar { flex: 1; min-width: 0; }
+ .kb-search { flex: 1; min-width: 100px; }
+ .kb-search .input { width: 100%; }
+ .kb-lane-hint { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-bottom: 10px; color: var(--muted); font-size: 12px; }
+ .kb-lane-hint progress { width: 64px; height: 3px; accent-color: var(--muted); }
+ .kb-list { min-height: 280px; }
+}

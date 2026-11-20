@@ -521,6 +521,7 @@ serverStatus: { remedy: 'İlgili ayarı veya kurulum yönergesini aç',"title":"
   kbLists: (n) => `${n} liste`, kbBoardMenu: (n) => `${n} için işlemler`, kbBoardActions: 'Pano',
   kbBackground: 'Arka plan', kbBgOwn: 'Kendi rengin', kbBgOwnShort: 'Kendi', kbBgOwnPick: 'Kendi rengini seç', kbBgHex: 'Renk kodu', kbBgShade: 'Doygunluk ve parlaklık', kbBgHue: 'Renk tonu', kbBgSuggested: 'Öneriler', kbBgRecent: 'Son kullanılanlar', kbBgNames: { none: 'Yok', ocean: 'Okyanus', forest: 'Grafit', plum: 'Taş', slate: 'Arduvaz', rust: 'Mavi', ink: 'Gece' },
   kbFilterLabel: 'Filtre', kbSearch: 'Metinle filtrele', kbShown: (a, b) => `${b} kartın ${a} tanesi gösteriliyor`, kbClear: 'Temizle', kbMenu: 'Menü',
+  kbScrollColumns: (n: number) => n + ' sütun · Yana kaydır', kbScrollProgress: 'Pano kaydırma konumu',
   kbCardsN: (n) => `${n} kart`, kbListMenu: (n) => `${n} için işlemler`, kbListActions: 'Liste',
   kbAddCardBtn: 'Kart ekle', kbDeleteList: 'Listeyi sil', kbSave: 'Kaydet', kbOpenCard: 'Kartı aç', kbEditCard: (t) => `${t} kartını düzenle`,
   kbCardPh: 'Bu kart için bir başlık yaz', kbListPh: 'Liste başlığı yaz', kbAddListBtn: 'Liste ekle', kbAddAnotherList: 'Başka bir liste ekle',

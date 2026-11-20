@@ -536,6 +536,7 @@ export const en = {
   kbLists: (n: number) => `${n} ${s(n, 'list', 'lists')}`, kbBoardMenu: (n: string) => `Actions for ${n}`, kbBoardActions: 'Board',
   kbBackground: 'Background', kbBgOwn: 'Your colour', kbBgOwnShort: 'Yours', kbBgOwnPick: 'Pick a colour of your own', kbBgHex: 'Colour code', kbBgShade: 'Shade and brightness', kbBgHue: 'Hue', kbBgSuggested: 'Suggested', kbBgRecent: 'Lately', kbBgNames: { none: 'None', ocean: 'Ocean', forest: 'Graphite', plum: 'Stone', slate: 'Slate', rust: 'Blue', ink: 'Ink' } as Record<string, string>,
   kbFilterLabel: 'Filter', kbSearch: 'Filter by text', kbShown: (a: number, b: number) => `${a} of ${b} shown`, kbClear: 'Clear', kbMenu: 'Menu',
+  kbScrollColumns: (n: number) => n + ' columns · Scroll sideways', kbScrollProgress: 'Board scroll position',
   kbCardsN: (n: number) => `${n} ${s(n, 'card', 'cards')}`, kbListMenu: (n: string) => `Actions for ${n}`, kbListActions: 'List',
   kbAddCardBtn: 'Add card', kbDeleteList: 'Delete list', kbSave: 'Save', kbOpenCard: 'Open card', kbEditCard: (t: string) => `Edit ${t}`,
   kbCardPh: 'Enter a title for this card', kbListPh: 'Enter a list title', kbAddListBtn: 'Add list', kbAddAnotherList: 'Add another list',

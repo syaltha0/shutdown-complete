@@ -1,5 +1,5 @@
 // One board: its lists and cards, dragged, filtered and edited in place.
-import { useRef, useState } from 'react';
+import { useRef, useState, type ReactNode } from 'react';
 import { DocNotice, SaveStamp } from '../../components/Common';
 import { IconCopy, IconDue, IconMore, IconNotes, IconPencil, IconPlus, IconSearch, IconStopwatch, IconTasks, IconTrash, IconX, IconDay } from '../../components/Icons';
 import { dueWords } from '../../components/TaskMeta';
@@ -22,8 +22,8 @@ type Over = { list: string; index: number } | null;
  * list. Cards and lists are dragged (the mouse at once, a finger after holding for a moment); a card opens with a
  * click, and its pencil edits the title in place.
  */
-export function BoardView({ board, setBoard, onDelete, card, status, error, retry, project }: {
-  project: string;
+export function BoardView({ board, setBoard, onDelete, card, status, error, retry, project, projectActions }: {
+  project: string; projectActions?: ReactNode;
   board: Board; setBoard: (fn: (b: Board) => Board) => void; onDelete: () => void; card?: string;
   status: Parameters<typeof SaveStamp>[0]['status']; error: string | null; retry: () => void;
 }) {
@@ -31,6 +31,7 @@ export function BoardView({ board, setBoard, onDelete, card, status, error, retr
   const [open, setOpen] = useState<string | null>(card ?? null);
   const [filter, setFilter] = useState<string[]>([]);
   const [query, setQuery] = useState('');
+  const [laneProgress, setLaneProgress] = useState(0);
   const [composer, setComposer] = useState<string | null>(null);
   const [draft, setDraft] = useState('');
   const [addingList, setAddingList] = useState(false);
@@ -186,14 +187,14 @@ export function BoardView({ board, setBoard, onDelete, card, status, error, retr
     <>
       <div className="kb-bar">
         <div className="kb-filterbar">
-          <span className="kb-bar-label">{T.kbFilterLabel}</span>
+          {(all > 0 || filter.length > 0) && <><span className="kb-bar-label">{T.kbFilterLabel}</span>
           <div className="kb-filter" role="group" aria-label={T.kbFilter}>
             {board.labels.map((l) => (
               <button key={l.id} type="button" className={`lbl lb-${l.color}`} aria-pressed={filter.includes(l.id)}
                 onClick={() => setFilter((f) => (f.includes(l.id) ? f.filter((x) => x !== l.id) : [...f, l.id]))}>{l.name}</button>
             ))}
           </div>
-          <label className="kb-search">
+          </>}<label className="kb-search">
             <IconSearch />
             <span className="sr-only">{T.kbSearch}</span>
             <input className="input" type="search" placeholder={T.kbSearch} value={query} onChange={(e) => setQuery(e.target.value)} />
@@ -203,9 +204,9 @@ export function BoardView({ board, setBoard, onDelete, card, status, error, retr
         <div className="kb-bar-end">
           <SaveStamp status={status} />
           <div className="kb-pop-wrap">
-            <button type="button" className="btn kb-bar-btn" aria-expanded={menu === 'board'} onClick={() => setMenu(menu === 'board' ? null : 'board')}><IconMore /><span>{T.kbMenu}</span></button>
+            <button type="button" className="btn kb-bar-btn" aria-label={T.kbMenu} aria-expanded={menu === 'board'} onClick={() => setMenu(menu === 'board' ? null : 'board')}><IconMore /><span>{T.kbMenu}</span></button>
             <Pop open={menu === 'board'} onClose={() => setMenu(null)} title={T.kbBoardActions} align="right">
-              <label className="kb-pop-label" htmlFor="kb-board-name">{T.kbName}</label>
+              <div className="kb-mobile-project">{projectActions}</div><label className="kb-pop-label" htmlFor="kb-board-name">{T.kbName}</label>
               <input id="kb-board-name" className="input kb-board-name" value={board.name} onChange={(e) => setBoard((b) => ({ ...b, name: e.target.value }))}
                 onKeyDown={(e) => { if (e.key === 'Enter') setMenu(null); }} />
               <div className="kb-menu">
@@ -218,7 +219,8 @@ export function BoardView({ board, setBoard, onDelete, card, status, error, retr
       </div>
       <DocNotice status={status} error={error} retry={retry} />
 
-      <div className="kanban" ref={lane} data-noswipe>
+      <div className="kb-lane-hint"><span>{T.kbScrollColumns(board.lists.length)}</span><progress aria-label={T.kbScrollProgress} max={1} value={1 / Math.max(1, board.lists.length) + laneProgress * (1 - 1 / Math.max(1, board.lists.length))} /></div>
+      <div className="kanban" ref={lane} data-noswipe onScroll={e => { const el = e.currentTarget; setLaneProgress(el.scrollWidth > el.clientWidth ? el.scrollLeft / (el.scrollWidth - el.clientWidth) : 1); }}>
         {board.lists.map((l, li) => {
           const cardsShown = l.cards.filter(visible);
           const marker = listDrag && listDrag.id !== l.id && others.indexOf(l) === listDrag.to;
