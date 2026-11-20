@@ -1,0 +1,13 @@
+.history-search { max-width: 860px; margin: 0 auto; }
+.history-search > input { width: 100%; margin: 16px 0; font: inherit; padding: 12px; }
+.history-filters { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 24px; }
+.history-filters [aria-pressed="true"] { text-decoration: underline; text-decoration-color: #1d5fbf; text-underline-offset: 5px; }
+.history-search h2 { font-size: 16px; margin: 24px 0 8px; }
+.history-link { display: block; color: inherit; padding: 14px 4px; border-bottom: 1px solid var(--border); text-decoration: none; }
+.history-result { display: flex; flex-direction: column; gap: 4px; min-width: 0; overflow-wrap: anywhere; }
+.history-result small { opacity: .7; font-size: 12px; }
+.history-result strong { font-size: 16px; font-weight: 500; }
+.history-result mark { background: transparent; color: inherit; text-decoration: underline; text-decoration-color: #1d5fbf; text-underline-offset: 3px; }
+.history-empty { padding: 50px 12px; text-align: center; max-width: 440px; margin: auto; }
+.history-empty svg { opacity: .6; }
+.palette-history-heading { padding: 8px 16px; font-size: 13px; }

@@ -117,6 +117,7 @@ export interface NextcloudLink { history: SyncRun[]; url: string; username: stri
 const post = <T>(path: string, data: unknown = {}) => request<T>(path, { method: 'POST', body: JSON.stringify(data) });
 
 export const api = {
+  search: (q: string, signal?: AbortSignal) => request<import('./historySearch').SearchResult[]>('/api/search?q='+encodeURIComponent(q), {signal}),
   calendarFeed: () => request<{ timezone: string; tasks: number } | null>('/api/account/calendar-feed'),
   createCalendarFeed: (timezone: string, tasks: boolean) => post<{ path: string }>('/api/account/calendar-feed', { timezone, tasks }),
   disableCalendarFeed: () => request('/api/account/calendar-feed', { method: 'DELETE' }),

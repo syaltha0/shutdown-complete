@@ -1,3 +1,4 @@
+import { search } from './search.mjs';
 import { upgradeDocument } from './migrate-docs.mjs';
 import { releaseChecker, storage, warnings } from './server-status.mjs';
 import { feedStatus } from './calendar.mjs';
@@ -832,6 +833,13 @@ if (mailEnabled) weeklyMails({ db, send: sendMail, baseUrl: () => APP_URL || `ht
 // ---------------- the planner's documents, one set per account ----------------
 
 const TEAM_KEY = /^team:([a-f0-9]{16})$/;
+
+app.get('/api/search', (c) => {
+  if (limited(`search:${uid(c)}`, 120, 60_000)) return fail(c, 'too-many', 429);
+  const q = (c.req.query('q') || '').trim();
+  if (q.length < 2 || q.length > 300) return fail(c, 'query', 400);
+  return c.json(search(db, uid(c), q, c.req.query('limit')));
+});
 
 app.get('/api/doc/:key', (c) => {
   const key = c.req.param('key');
