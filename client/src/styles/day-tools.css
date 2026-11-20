@@ -213,3 +213,65 @@
 .room-tasks.open .room-task-drawer > .room-task-body { overflow: auto; padding-block: 12px; }
 :root[data-motion="reduce"] :is(.room-task-drawer, .room-task-drawer > .room-task-body) { transition: none; }
 @media (prefers-reduced-motion: reduce) { :is(.room-task-drawer, .room-task-drawer > .room-task-body) { transition: none; } }
+/* Day and shutdown: quiet controls, with the schedule as the main canvas. */
+.day-actions-menu { position: relative; }
+.day-actions-toggle { display: none; }
+.day-actions-list { display: flex; gap: 8px; }
+.day-actions-menu::details-content,
+.plan-guide::details-content { content-visibility: visible; }
+.day-actions-menu:not([open]) > .day-actions-list { display: flex; }
+.plan-guide { flex-basis: 100%; }
+.plan-guide > summary { display: none; cursor: pointer; color: var(--muted); font-size: 13px; }
+.plan-guide-body { display: flex; flex-wrap: wrap; align-items: center; gap: 12px 20px; }
+.plan-guide:not([open]) > .plan-guide-body { display: flex; }
+.plan-guide .plan-actual-help { flex-basis: 100%; margin: 0; }
+.plan-guide .tpl-btn { margin-left: auto; }
+.day-screen .metric-check { grid-template-columns: 22px minmax(0, 1fr); gap: 10px; }
+.day-screen .metric-check input { grid-column: 1; grid-row: 1; }
+.day-screen .metric-check .name { grid-column: 2; grid-row: 1; cursor: pointer; padding-block: 12px; }
+.day-screen .metric-row:focus-within,
+.day-screen .metric-row:hover { background: var(--ground); }
+.day-screen .block.k-deep:not(.crossed) { background: color-mix(in srgb, var(--surface) 70%, var(--raised)); border-color: var(--border); border-left-color: var(--text); }
+.day-screen .block.k-deep.current { border-left-color: var(--hue); }
+.day-screen .now-line { border-top-width: 1px; }
+.focus-heading { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.focus-heading .manual-chip { display: inline-flex; align-items: center; min-height: 22px; padding: 2px 8px; border-radius: 999px; background: var(--raised); color: var(--muted); font-size: 12px; font-weight: 400; line-height: 18px; }
+.handoff-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.handoff-actions .btn { white-space: normal; text-align: left; }
+.handoff-actions .input { flex-basis: 100%; min-width: 0; }
+.shutdown-grid label.carry { justify-content: flex-start; cursor: pointer; }
+.shutdown-grid label.carry span { white-space: normal; }
+.day-notes { padding: var(--card-pad); border-left: 1px solid var(--border); }
+.day-notes > summary { list-style: none; font-size: var(--fs-section); font-weight: 500; margin-bottom: 16px; }
+.day-notes::details-content { content-visibility: visible; }
+.day-notes:not([open]) > .notes-area { display: block; }
+@media (max-width: 860px) {
+  .day-title .title-actions { flex-wrap: nowrap; align-items: center; }
+  .day-title .day-view, .day-title .stamp { display: none; }
+  .day-actions-toggle { display: flex; list-style: none; }
+  .day-actions-toggle::-webkit-details-marker { display: none; }
+  .day-actions-menu::details-content,
+  .plan-guide::details-content { content-visibility: hidden; }
+  .day-actions-menu[open]::details-content,
+  .plan-guide[open]::details-content { content-visibility: visible; }
+  .day-actions-menu:not([open]) > .day-actions-list,
+  .plan-guide:not([open]) > .plan-guide-body { display: none; }
+  .day-actions-menu[open] > .day-actions-list { display: grid; position: absolute; right: 0; top: calc(100% + 8px); min-width: 220px; padding: 8px; background: var(--surface); border: 1px solid var(--control); border-radius: var(--radius-control); z-index: 8; }
+  .day-screen .page-left { order: 0; }
+  .day-screen .page-left .capture { order: -1; }
+  .day-screen .page-left { display: flex; flex-direction: column; }
+  .day-notes { border-left: 0; border-top: 1px solid var(--border); }
+  .day-notes > summary { list-style: disclosure-closed; cursor: pointer; margin-bottom: 0; }
+  .day-notes[open] > summary { list-style: disclosure-open; margin-bottom: 12px; }
+  .day-notes::details-content { content-visibility: hidden; }
+  .day-notes[open]::details-content { content-visibility: visible; }
+  .day-notes:not([open]) > .notes-area { display: none; }
+  .day-screen .plan-head { gap: 10px; }
+  .plan-guide > summary { display: list-item; }
+  .plan-guide-body { padding-top: 12px; }
+}
+@media print {
+  .day-actions-menu { display: none; }
+  .plan-guide > summary { display: none; }
+  .plan-guide::details-content { content-visibility: visible; }
+}
