@@ -282,6 +282,7 @@ try {
     await page.locator('#ex-topics').fill('Kinematics\nForces\nEnergy');
     await page.locator('#ex-from').selectOption(String(18 * 60));
     await page.locator('#ex-to').selectOption(String(23 * 60));
+    await page.locator('.exam-details summary').click();
     await page.locator('.exam-list li').first().waitFor({ timeout: 6000 });
     check('the exam planner shows the sittings before saving', (await page.locator('.exam-list li').count()) >= 3);
     await page.getByRole('button', { name: 'Put it on the days' }).click();
