@@ -56,10 +56,12 @@ export function useFocusDay() {
 export const refreshFocus = (key = dayKey()) => refreshKey(key);
 const withFocus = (d: DayDoc) => ({ ...d, focus: d.focus ?? { active: null, sessions: [] } });
 
-export function startFocus(opts: { blockId: string | null; label: string; phase?: FocusPhase; minutes: number; startedAt?: string; roomId?: string; task?: FocusActive['task']; intent?: string; breakMin?: number }) {
+export function startFocus(opts: { blockId: string | null; label: string; phase?: FocusPhase; minutes: number; startedAt?: string; roomId?: string; task?: FocusActive['task']; intent?: string; breakMin?: number; ifIdle?: boolean }) {
   askToNotify();
   return updateKey<DayDoc>(dayKey(), emptyDay, (d) => {
     const x = withFocus(d);
+    // started before the day's document had loaded (the palette): never replace a session already running
+    if (opts.ifIdle && x.focus.active) return d;
     return { ...x, focus: { ...x.focus, active: {
       phase: opts.phase ?? 'focus', startedAt: opts.startedAt ?? new Date().toISOString(), plannedMin: Math.min(MAX_PLANNED, Math.max(1, Math.round(opts.minutes) || 1)),
       pausedLeft: null, blockId: opts.blockId, label: opts.label.slice(0, 200), ...(opts.roomId ? { roomId: opts.roomId } : {}), ...(opts.task ? { task: opts.task } : {}),

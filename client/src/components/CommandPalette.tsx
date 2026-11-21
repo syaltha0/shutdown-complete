@@ -31,7 +31,8 @@ export default function CommandPalette({ onClose }: { onClose: () => void }) {
   const task = colon >= 0 && P.taskAliases.some(s=>fold(s)===prefix), capture = colon >= 0 && P.captureAliases.some(s=>fold(s)===prefix);
   // a line read as a place to go, a block or a task (lib/paletteParse.ts); the "Task: …" form with a colon is handled below
   const parsed = task || capture ? null : parsePalette(query, t);
-  const natural = parsed && (parsed.type !== 'task' || (inbox && featureOn(settings,'inbox'))) ? parsed : null;
+  // a task line does not wait for the inbox to load: the save reads it (updateKey)
+  const natural = parsed && (parsed.type !== 'task' || featureOn(settings,'inbox')) ? parsed : null;
   const adding = !!natural && natural.type !== 'go';
   const searchOn = !task && !capture && !adding;
   const {results: searchResults, loading: searching, error: searchError} = useHistorySearch(searchOn ? query : '');
@@ -55,7 +56,7 @@ export default function CommandPalette({ onClose }: { onClose: () => void }) {
   commands.push({id:'agenda',label:T.calendarViews.agenda,keywords:'agenda ajanda',shortcut:'A',run:()=>navigate('/agenda')});
   commands.push({id:'plan',label:T.keys.planWeek,keywords:`${dict('en').keys.planWeek} ${dict('tr').keys.planWeek}`,shortcut:'P',run:()=>navigate(`/plan/${weekOf(t)}`)}, {id:'review',label:T.review.open,keywords:`${dict('en').review.open} ${dict('tr').review.open}`,run:()=>navigate(`/review/${weekOf(t)}`)});
   const add = (id: keyof typeof P, run: () => unknown, available = true) => { if (available) commands.push({id, label: String(P[id]), keywords:`${dict('en').palette[id]} ${dict('tr').palette[id]}`,run}); };
-  add('start',()=>startFocus({blockId:null,label:'',minutes:settingsFocus(settings).focusMin}),!!holder && !active);
+  add('start',()=>startFocus({blockId:null,label:'',minutes:settingsFocus(settings).focusMin,ifIdle:true}),!active);
   add('pause',()=>pauseFocus(key),!!active && !active.roomId && !locked && active.pausedLeft == null);
   add('resume',()=>resumeFocus(key),!!active && !active.roomId && !locked && active.pausedLeft != null);
   add('skip',()=>finishPhase(settings,true,{key,startedAt:active?.startedAt}),!!active && !active.roomId && !locked);
@@ -89,7 +90,7 @@ export default function CommandPalette({ onClose }: { onClose: () => void }) {
     const text = natural.body;
     filtered.unshift({id:'task-add',label:`${P.add}: ${P.taskWord} · ${[d.text, ...meta].join(' · ')}`,run:()=>addTask(text)});
   }
-  if ((task || capture) && body && inbox && featureOn(settings,'inbox')) filtered = [{id:task?'task':'capture',label:`${task?P.task:P.capture}: ${draft.text}`,run:()=>updateKey<InboxDoc>('inbox',emptyInbox,d=>({...d,items:[...d.items,{...draft,id:uid(),done:false,created:new Date().toISOString()}]}))}];
+  if ((task || capture) && body && featureOn(settings,'inbox')) filtered = [{id:task?'task':'capture',label:`${task?P.task:P.capture}: ${draft.text}`,run:()=>updateKey<InboxDoc>('inbox',emptyInbox,d=>({...d,items:[...d.items,{...draft,id:uid(),done:false,created:new Date().toISOString()}]}))}];
   if (!query) filtered.sort((a,b)=>(history.indexOf(a.id)<0?99:history.indexOf(a.id))-(history.indexOf(b.id)<0?99:history.indexOf(b.id)));
   const commandCount = filtered.length;
   if (searchOn && query.trim().length >= 2 && searchResults.length) filtered.push(...searchResults.map((r,i)=>({id:'history-'+i,label:r.title,result:r,run:()=>navigate(r.href)})), {id:'search-all',label:T.historySearch.more,run:()=>navigate('/search?q='+encodeURIComponent(query))});

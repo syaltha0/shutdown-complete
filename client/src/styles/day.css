@@ -131,3 +131,5 @@
 .actual:focus .tip { display: block; white-space: normal; width: max-content; max-width: min(240px, 65vw); }
 .plan-actual-help { flex-basis: 100%; }
 @media print { .plan-actual-help { display: none; } }
+/* the now line runs behind the blocks, as on the overview timeline, so it never cuts through a title; the hours column keeps its dot and time */
+.col-body .now-line { z-index: 0; }
