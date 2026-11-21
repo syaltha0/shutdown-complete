@@ -1,32 +1,33 @@
-.bento .b-heat { gap: 6px; }
-.b-heat-head, .b-heat-foot { display: flex; align-items: center; justify-content: space-between; gap: 12px; min-width: 0; }
-.b-heat-head { flex-shrink: 0; }
-.b-heat-legend { display: flex; gap: 8px; color: var(--muted); font-size: 10px; }
-.b-heat-legend > span { display: inline-flex; align-items: center; gap: 3px; }
-.b-heat-legend i { width: 7px; height: 7px; border-radius: 2px; }
-.b-heat-months { display: grid; grid-template-columns: repeat(12,minmax(0,1fr)); padding-left: 20px; font-size: 10px; color: var(--muted); }
-.b-heat-body { display: flex; gap: 6px; min-height: 0; flex: 1; }
-.b-heat-days { display: grid; grid-template-rows: repeat(7,1fr); width: 14px; flex-shrink: 0; color: var(--muted); }
-.b-heat-days small { font-size: 9px; align-self: center; }
-.b-heatmap { display: grid; grid-auto-flow: column; grid-template-columns: repeat(12,minmax(0,1fr)); grid-template-rows: repeat(7,minmax(0,1fr)); gap: 3px; flex: 1; min-width: 0; }
-.b-heatmap a { display: block; border-radius: 2px; min-height: 0; }
-.b-heat .heat-0 { background: var(--line, #8883); }
-.b-heat .heat-1 { background: color-mix(in srgb,var(--hue) 25%,transparent); }
-.b-heat .heat-2 { background: color-mix(in srgb,var(--hue) 50%,transparent); }
-.b-heat .heat-3 { background: color-mix(in srgb,var(--hue) 75%,transparent); }
-.b-heat .heat-4 { background: var(--hue); }
-.b-heat .b-heat-future { background: transparent; border: 1px dashed var(--rule); opacity: .4; }
-.b-heat-today { outline: 1px solid var(--today-ring); outline-offset: 1px; }
-.b-heatmap a:hover, .b-heatmap a:focus-visible { outline: 2px solid var(--text); outline-offset: 1px; }
-.b-heat-foot { flex-shrink: 0; }
-.b-heat-foot p { font-size: 11px; line-height: 1.3; }
-.b-heat .b-act { display: inline-flex; align-items: center; gap: 2px; flex-shrink: 0; min-height: 24px; font-size: 12px; color: var(--muted); text-decoration: none; }
-.b-heat .b-act svg { width: 14px; height: 14px; }
-.b-heat .b-act:hover > span { text-decoration: underline; text-underline-offset: 3px; }
-.b-heat .b-act:focus-visible { outline: 2px solid var(--focus-ring); outline-offset: 2px; }
-@media (max-width: 860px) { .bento .b-heat { height: 230px; } .b-heat-legend { gap: 5px; font-size: 9px; } .b-heat-head { gap: 8px; } }
-:root[data-motion="reduce"] .b-heat a { transition: none; }
-/* Keep cell proportions stable as the card changes size. */
-/* the grid takes the tile's height (a fixed wide ratio flattened the cells to lines) */
-.b-heat-body { flex: 1 1 auto; min-height: 0; max-height: 150px; }
-@media (max-width: 860px) { .b-heat-body { flex: none; aspect-ratio: 3.43; max-height: none; } }
+/* Month labels and daily cells use the same twelve week columns. */
+.home.bento .b-heat { display:flex; flex-direction:column; gap:6px; min-height:0; }
+.b-heat-months { display:grid; grid-template-columns:repeat(12,minmax(0,1fr)); padding-left:20px; gap:3px; color:var(--muted); font-size:11px; line-height:16px; text-align:center; }
+.home.bento .b-heat-body { display:flex; gap:6px; flex:1; min-height:0; width:100%; height:auto; }
+.b-heat-days { display:grid; grid-template-rows:repeat(7,minmax(0,1fr)); gap:3px; width:14px; flex:none; color:var(--muted); }
+.b-heat-days small { align-self:center; text-align:center; font-size:11px; line-height:1; }
+.b-heatmap { display:grid; grid-auto-flow:column; grid-template-columns:repeat(12,minmax(0,1fr)); grid-template-rows:repeat(7,minmax(0,1fr)); gap:3px; flex:1; min-width:0; }
+.b-heatmap a { display:block; aspect-ratio:1; height:100%; max-width:100%; max-height:100%; justify-self:center; border-radius:2px; }
+.b-heat .heat-0 { background:var(--rule); }
+.b-heat .heat-1 { background:color-mix(in srgb,var(--hue) 25%,transparent); }
+.b-heat .heat-2 { background:color-mix(in srgb,var(--hue) 50%,transparent); }
+.b-heat .heat-3 { background:color-mix(in srgb,var(--hue) 75%,transparent); }
+.b-heat .heat-4 { background:var(--hue); }
+.b-heat .b-heat-future { background:transparent; border:1px dashed var(--rule); }
+.b-heat-today { outline:1px solid var(--today-ring); outline-offset:1px; }
+.b-heatmap a:hover, .b-heatmap a:focus-visible { outline:2px solid var(--text); outline-offset:1px; }
+.home.bento .b-heat-foot.b-number-sm { display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:3px 12px; margin-top:auto; font-size:11px; font-weight:400; line-height:16px; }
+.home.bento .b-heat-foot p { font-size:inherit; line-height:inherit; }
+.b-heat-legend { display:flex; flex-wrap:wrap; gap:7px; color:var(--muted); font-size:11px; line-height:16px; }
+.b-heat-legend > span { display:inline-flex; align-items:center; gap:3px; white-space:nowrap; }
+.b-heat-legend i { width:8px; height:8px; border-radius:2px; }
+.b-heat .b-act { color:var(--muted); font-size:12px; text-decoration:none; }
+.b-heat .b-act:hover { text-decoration:underline; }
+.b-heat .b-act:focus-visible { outline:2px solid var(--today-ring); outline-offset:2px; }
+@media(max-width:860px) { .home.bento .b-heat { min-height:260px; height:260px; } }
+:root[data-motion="reduce"] .b-heat a { transition:none; }
+/* Desktop cells prioritize the data; every date stays in its accessible label. */
+@media(min-width:861px) {
+  .b-heat-days { display:none; }
+  .b-heat-months { padding-left:0; }
+}
+
+.home.bento .b-heat-empty { flex:1; display:grid; place-content:center; text-align:center; color:var(--muted); font-size:12px; }

@@ -824,7 +824,7 @@ export const en = {
     recentFocus: 'Focus details',
     recentGoal: (s: string) => `Goal ${s}`,
     recentTasks: (n: number) => `${n} ${n === 1 ? 'task' : 'tasks'}`,
-    recentTotal: (total: string, average: string, closed: number) => `${total} · ${average}/day · ${closed}/7 closed`,
+    recentTotal: (total: string, average: string, closed: number) => `${total} total · ${average}/day · Closed ${closed}/7`,
     recentDelta: (s: string) => `${s} vs previous 7 days`,
     recentEmpty: 'No activity yet. Your daily details will appear here.',
     aheadEmpty: 'Nothing in the next 14 days',
