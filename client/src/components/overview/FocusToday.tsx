@@ -7,7 +7,7 @@ import { OverviewRing } from "./Ring";
 import { RoundAction } from "./RoundAction";
 import type { OverviewData } from "./data";
 
-export function FocusToday({ T, settings, day, B }: OverviewData) {
+export function FocusToday({ T, settings, day, B, plan, now: minute }: OverviewData) {
   const { active } = useFocusDay();
   const [now, setNow] = useState(Date.now);
   useEffect(() => {
@@ -17,29 +17,36 @@ export function FocusToday({ T, settings, day, B }: OverviewData) {
     return () => window.clearInterval(timer);
   }, [active]);
   const metricId = settings.focus?.metricId ?? "deep";
-  const goal = Math.max(0, (settings.metrics.find((m) => m.id === metricId)?.target ?? 0) * 60);
+  const goal = Math.max(0, (settings.metrics.find(m => m.id === metricId)?.target ?? 0) * 60);
   const { minutes: focused, manual } = dayFocus(day, settings);
-  const count = day?.focus?.sessions.length ?? 0;
+  const sessions = day?.focus?.sessions ?? [];
   const complete = goal > 0 && focused >= goal;
-  // the latest sessions, newest first, beside the ring
-  const recent = [...(day?.focus?.sessions ?? [])].reverse().slice(0, 1);
-  // nothing yet today: one round action instead of a ring of dashes
-  if (!active && !count && !focused) return <section className="panel b-focus is-empty" aria-labelledby="overview-focus-title" data-complete={false}>
-    <CardHead id="overview-focus-title" title={B.focus} aside={<a href="/focus" onClick={onLinkClick} title={manual ? T.focusManual : undefined}>{B.recentFocus} ›</a>} />
+  const next = plan.find(b => b.kind === "deep" && b.start > minute);
+  const nextLine = !active && next && <p className="b-focus-next" title={`${B.focusNext} ${clock(next.start)} ${next.label}`}><span>{B.focusNext}</span> <span className="num">{clock(next.start)}</span> {next.label}</p>;
+  if (!active && !sessions.length && !focused) return <section className="panel b-focus is-empty" aria-labelledby="overview-focus-title" data-complete={false}>
+    <CardHead id="overview-focus-title" title={B.focus} />
     <RoundAction href="/focus" icon="play" title={T.startFocus} hint={B.roundFocus} />
+    {nextLine}
   </section>;
   return <section className="panel b-focus" aria-labelledby="overview-focus-title" data-complete={complete}>
-    <CardHead id="overview-focus-title" title={B.focus} aside={<a href="/focus" onClick={onLinkClick} title={manual ? T.focusManual : undefined}>{B.recentFocus} ›</a>} />
-    <OverviewRing value={focused} total={goal} label={B.focus} text={focused ? duration(focused) : "–"} complete={complete} />
+    <CardHead id="overview-focus-title" title={B.focus} />
     <div className="b-rt-body">
-      <dl className="b-figures b-number-sm">
-        <div><dt>{B.focusSessionsLabel}</dt><dd className="num b-number-lg">{count}</dd></div>
-        <div><dt>{B.focusRemaining}</dt><dd className="num b-number-lg">{goal ? (focused >= goal ? B.focusReached : duration(goal - focused)) : "–"}</dd></div>
-        <div><dt>{B.focusLongest}</dt><dd className="num">{count ? duration(Math.max(...(day?.focus?.sessions ?? []).map(s => s.minutes))) : "–"}</dd></div>
-      </dl>
-      {active && <p className="b-rt-summary">{active ? `${T.phase[active.phase]} · ${B.left(B.focusMinutes(Math.ceil(secondsLeft(active, now) / 60)))}${active.pausedLeft != null ? ` · ${B.focusPaused}` : ""}` : [goal > 0 ? B.of(duration(goal)) : null, count > 0 ? B.focusSessions(count) : null].filter(Boolean).join(" · ") || B.noFocus}</p>}
-      {recent.length > 0 && <ul className="b-rt-list">{recent.map(s => { const at = new Date(s.start); return <li key={s.id}><span className="num">{clock(at.getHours() * 60 + at.getMinutes())}</span><span className="b-truncate" title={s.label}>{s.label || T.freeFocus}</span><span className="num">{duration(s.minutes)}</span></li>; })}</ul>}
-      <a className="b-act main" href="/focus" onClick={onLinkClick}><span>{active ? B.focusOpen : T.startFocus}</span><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" aria-hidden="true"><path d="m9 5 7 7-7 7" /></svg></a>
+      <div className="b-focus-main">
+        <OverviewRing value={focused} total={goal} label={`${B.focus}: ${duration(focused)} / ${duration(goal)}`} text={goal ? `${Math.min(100, Math.round(focused / goal * 100))}%` : duration(focused)} complete={complete} />
+        <div className="b-focus-values">
+          {active ? <>
+            <span className="b-focus-phase">{T.phase[active.phase]}{active.pausedLeft != null ? ` · ${B.focusPaused}` : ""}</span>
+            <strong className="num b-number-lg b-rt-summary">{B.focusMinutes(Math.ceil(secondsLeft(active, now) / 60))}</strong>
+          </> : <>
+            <div className="b-focus-total"><strong className="num b-number-lg">{duration(focused)}</strong>{manual && <span className="b-focus-manual">{T.focusManual}</span>}</div>
+            {goal > 0 && <span className="b-focus-goal">{complete ? B.focusReached : `${B.focusRemaining} ${duration(goal - focused)}`}</span>}
+          </>}
+      {active && <p className="b-focus-detail b-number-sm">{B.focusTodayTotal} <span className="num">{duration(focused)}</span>{manual && <span className="b-focus-manual">{T.focusManual}</span>}</p>}
+      {!active && sessions.length > 0 && <p className="b-focus-detail b-number-sm">{B.focusSessions(sessions.length)} · {B.focusLongest} <span className="num">{duration(Math.max(...sessions.map(s => s.minutes)))}</span></p>}
+        </div>
+      </div>
+      {nextLine}
+      <a className="b-act main" href="/focus" onClick={onLinkClick}><span>{active ? B.focusOpen : T.startFocus}</span><span aria-hidden="true">›</span></a>
     </div>
   </section>;
 }

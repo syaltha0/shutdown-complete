@@ -16,18 +16,21 @@ try {
  const original = (await api.get('day:'+date(0))).value;
  const settings = (await api.get('settings')).value;
  await api.put('settings',{...settings,schedule:[]});
- for (const [state,current,closed,best] of [['zero',0,false,12],['ongoing',5,false,12],['done',6,true,12],['long',60,true,75]]) {
+ for (const [state,current,closed,best] of [['zero',0,false,12],['ongoing',5,false,12],['done',6,true,12],['long',45,false,45]]) {
   for(let i=0;i<90;i++) {
-   const done = state==='long' ? i<75 : ((i>0&&i<=5&&state!=='zero')||(i>=20&&i<32)||(i===0&&closed));
+   const done = state==='long' ? i>0&&i<=45 : ((i>0&&i<=5&&state!=='zero')||(i>=20&&i<32)||(i===0&&closed));
    await api.put('day:'+date(i),{...original,shutdown:{done,at: done ? new Date(new Date(time).setHours(17,24,0,0)).toISOString():null,steps:{}}});
   }
-  for (const [width,height] of [[1440,900],[390,844]]) for (const theme of ['light','dark']) {
+  for (const [width,height] of [[1440,900],[1366,768],[1904,1015],[390,844]]) for (const theme of ['light','dark']) {
    await p.setViewportSize({width,height}); await p.goto(s.url+'/');
    const tile=p.locator('.b-streak'); await tile.waitFor();
    await p.waitForTimeout(350); await p.evaluate(t=>document.documentElement.dataset.theme=t,theme);
    assert.equal(await tile.locator('.b-streak-number').innerText(),String(current));
    assert.equal(await tile.locator('.b-streak-stats div:last-child dd').innerText(),String(best));
    assert.equal(await tile.locator('.b-streak-days a').count(),14);
+   const squares=await tile.locator('.b-streak-days a').evaluateAll(es=>es.map(e=>{const r=e.getBoundingClientRect();return {top:r.top,width:r.width,height:r.height,left:r.left}}));
+   assert.ok(squares.every(r=>Math.abs(r.top-squares[0].top)<1&&r.width<=16.1&&Math.abs(r.width-r.height)<1),'Fourteen square days in one row');
+   assert.ok(squares.at(-1).left>squares[0].left+await tile.locator('.b-streak-days').evaluate(e=>e.clientWidth)*0.85,'Days span the card');
    assert.equal(await tile.locator('.today.on').count(),closed?1:0);
    assert.ok(await tile.evaluate(e=>e.scrollWidth<=e.clientWidth+1&&e.scrollHeight<=e.clientHeight+1),`${state} fits ${width}`);
    if(closed) assert.match(await tile.innerText(),/Done at 17:24/);
@@ -35,5 +38,5 @@ try {
    await p.screenshot({path:`${dir}/${state}-${width}-${theme}.png`,fullPage:true});
   }
  }
- console.log('PASS streak: four states, real current/best, today, action, fit; 16 screenshots');
+ console.log('PASS streak: four states, real current/best, today, action, fit; 32 screenshots');
 } finally { await b.close(); s.stop(); }

@@ -42,27 +42,33 @@ try {
  }
  mkdirSync('reports/shots/overview-focus',{recursive:true});
  await api.put('settings',{...settings,schedule:[],metrics:settings.metrics.map(m=>m.id===(settings.focus?.metricId??'deep')?{...m,target:3}:m)});
- for(const state of ['empty','partial','complete','running','break']) {
+ for(const state of ['empty','manual','partial','complete','running','break']) {
   const minutes=state==='empty'?0:state==='complete'?180:60;
   const active=['running','break'].includes(state)?{phase:state==='break'?'short':'focus',startedAt:noon.toISOString(),plannedMin:25,pausedLeft:null,blockId:null,label:''}:null;
-  await api.put(key,{...original,metrics:{...original.metrics,[settings.focus?.metricId??'deep']:minutes/60},focus:{active,sessions:Array.from({length:minutes?5:0},(_,i)=>({id:'focus-'+i,minutes:minutes/5,kind:'deep',blockId:null,label:'',start:noon.toISOString(),end:noon.toISOString()}))}});
-  for(const [width,height] of [[1440,900],[390,844]]) for(const theme of ['light','dark']) {
+  await api.put(key,{...original,columns:[{id:'focus-plan',blocks:[block('next-deep',870,930,'Pilot analysis')]}],metrics:{...original.metrics,[settings.focus?.metricId??'deep']:minutes/60},focus:{active,sessions:Array.from({length:minutes&&state!=='manual'?5:0},(_,i)=>({id:'focus-'+i,minutes:minutes/5,kind:'deep',blockId:null,label:'',start:noon.toISOString(),end:noon.toISOString()}))}});
+  for(const [width,height] of [[1440,900],[1366,768],[1904,1015],[390,844]]) for(const theme of ['light','dark']) {
    await p.setViewportSize({width,height});await p.goto(s.url+'/');const tile=p.locator('.b-focus');await tile.waitFor();await p.waitForTimeout(250);
    await p.evaluate(t=>document.documentElement.dataset.theme=t,theme);
    assert.ok(await tile.evaluate(e=>e.scrollHeight<=e.clientHeight+1&&e.scrollWidth<=e.clientWidth+1),'Focus fits '+state+' '+width);
+   assert.equal(await tile.locator('.b-focus-manual').count(),state==='empty'?0:1,'Manual metric is beside the value');
+   assert.equal(await tile.locator('.b-focus-detail').count(),state==='manual'||state==='empty'?0:1);
+   assert.ok(!(await tile.innerText()).includes('?'),'No meaningless dash');
+   if(!active)assert.ok(await tile.locator('.b-focus-next').evaluate(e=>e.clientHeight>=14),'Next deep block stays visible');
    const ring=await tile.locator(state==='empty'?'.b-round':'.b-ring').boundingBox();assert.ok(Math.abs(ring.width-ring.height)<1,'Focus ring is square');
    assert.equal(await tile.getAttribute('data-complete'),String(state==='complete'));
    await p.screenshot({path:`reports/shots/overview-focus/${state}-${width}-${theme}.png`,fullPage:true});
   }
   if(state==='running') {
    await p.clock.setSystemTime(noon);
-   const mutations=await p.evaluate(async()=>{let n=0;const mo=new MutationObserver(list=>n+=list.length);mo.observe(document.querySelector('.b-focus'),{subtree:true,childList:true,attributes:true,characterData:true});await new Promise(r=>setTimeout(r,3200));mo.disconnect();return n;});
+   await p.evaluate(()=>{window.__focusMutations=0;window.__focusObserver=new MutationObserver(list=>window.__focusMutations+=list.length);window.__focusObserver.observe(document.querySelector('.b-focus'),{subtree:true,childList:true,attributes:true,characterData:true});});
+   await p.clock.runFor(3200);
+   const mutations=await p.evaluate(()=>{window.__focusObserver.disconnect();return window.__focusMutations;});
    assert.equal(mutations,0,'Overview focus stays unchanged between minute ticks');
    await p.clock.runFor(60000);assert.match(await p.locator('.b-focus .b-rt-summary').innerText(),/24/,'Remaining minutes update');
   }
   await p.locator('.b-focus > .b-round-action, .b-focus .b-rt-body a[href="/focus"]').click();await p.waitForURL('**/focus');
  }
- console.log('PASS Focus today: five states, 20 screenshots, square ring, minute timer, action route');
+ console.log('PASS Focus today: six states, 48 screenshots, manual metric, square ring, minute timer, action route');
  await api.put(key,original);await api.put('settings',settings);
  await p.clock.resume();
  console.log('PASS Hello: five states, 20 screenshots, focus timer and action routes');
