@@ -29,8 +29,8 @@ try {
   await page.waitForTimeout(1200);
   assert.equal((await api.get('day:'+date)).value.keyTaskId,'b');
   assert.equal(await page.locator('.key-task[aria-pressed="true"]').count(),1);
-  await page.goto(srv.url); await page.locator('.b-tasks .key-task-selected').waitFor();
-  assert.equal(await page.locator('.b-tasks .b-rt-list li').first().textContent(),'Second');
+  await page.goto(srv.url); await page.locator('.b-today .key-task-selected').waitFor();
+  assert.equal(await page.locator('.b-today .b-open-list li').first().textContent(),'Second');
   await page.goto(srv.url+'/shutdown/'+date); await page.locator('.carry.key-task-selected').waitFor();
   assert.equal(await page.locator('.carry').first().textContent(),'Second');
   const next = new Date(); next.setDate(next.getDate()+1);

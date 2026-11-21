@@ -60,7 +60,7 @@ try {
    assert.equal(mutations,0,'Overview focus stays unchanged between minute ticks');
    await p.clock.runFor(60000);assert.match(await p.locator('.b-focus .b-rt-summary').innerText(),/24/,'Remaining minutes update');
   }
-  await p.locator('.b-focus a[href="/focus"]').click();await p.waitForURL('**/focus');
+  await p.locator('.b-focus > .b-round-action, .b-focus .b-rt-body a[href="/focus"]').click();await p.waitForURL('**/focus');
  }
  console.log('PASS Focus today: five states, 20 screenshots, square ring, minute timer, action route');
  await api.put(key,original);await api.put('settings',settings);
@@ -82,14 +82,21 @@ try {
    await api.put('settings',{...settings,...(empty?{schedule:[],countdowns:[]}:{}),features:{...settings.features,...Object.fromEntries(disabled.map(x=>[x,false]))}});
    for(const [width,height] of [[1904,1015],[1440,900],[1366,768],[1280,800],[390,844]]) {
     await p.setViewportSize({width,height});await p.goto(s.url+'/');await p.locator('.overview').waitFor();await p.waitForTimeout(350);
-    assert.equal(await p.locator('.home h2').count(),disabled.includes('habits')?9:10);
+    assert.equal(await p.locator('.home h2').count(),disabled.includes('habits')?8:9);
+    assert.equal(await p.locator('.home .b-head').count(),disabled.includes('habits')?8:9,'Every card uses the shared heading');
+    assert.equal(await p.locator('.home .b-tasks').count(),0,'Tasks are merged into Today');
+    if(width<=860) {
+     const order=await p.locator('.overview > .panel').evaluateAll(es=>es.sort((a,b)=>a.getBoundingClientRect().top-b.getBoundingClientRect().top||a.getBoundingClientRect().left-b.getBoundingClientRect().left).map(e=>[...e.classList].find(c=>/^b-/.test(c))));
+     assert.deepEqual(order,['b-hello','b-timeline','b-open',...(!disabled.includes('habits')?['b-habits']:[]),'b-focus','b-streak','b-ahead','b-recent','b-heat']);
+     assert.ok(await p.locator('.b-habit-row').count()<=4,'At most four habits on phone');
+    }
     const fit=await p.evaluate(()=>{const root=document.documentElement,grid=document.querySelector('.overview'),r=grid.getBoundingClientRect();return {scroll:root.scrollHeight-innerHeight,horizontal:root.scrollWidth-innerWidth,bottom:r.bottom,overflow:[...grid.querySelectorAll('.panel')].filter(e=>e.scrollHeight>e.clientHeight+1).map(e=>({name:e.className,h:e.clientHeight,scroll:e.scrollHeight})),rings:[...grid.querySelectorAll('.b-ring')].map(e=>{const r=e.getBoundingClientRect();return Math.abs(r.width-r.height)}),strip:grid.querySelector('.b-track').getBoundingClientRect().height};});
     assert.ok(fit.horizontal<=0,JSON.stringify(fit));
     assert.ok(fit.strip<=40,'Timeline stays at most 40px on every viewport');
     assert.equal(await p.locator('.b-calendar>small').count(),7,'One weekday header');
     assert.equal(await p.locator('.b-calendar>a').count(),14,'Two complete weeks');
     assert.equal(await p.locator('.b-calendar>a').first().evaluate(e=>new Date(e.getAttribute('href').split('/').pop()+'T12:00:00').getDay()),1,'Calendar starts on Monday');
-    assert.ok(await p.locator('.b-tasks .b-truncate, .b-tasks .b-rt-summary, .b-tasks .b-round-text').first().evaluate(e=>e.clientHeight>=16),'Next task stays visible');
+    assert.ok(await p.locator('.b-today .b-open-text, .b-today .b-done, .b-today .b-round-text').first().evaluate(e=>e.clientHeight>=16),'Next task stays visible');
     if(width>860){assert.ok(fit.scroll<=1,JSON.stringify({width,height,...fit}));assert.ok(fit.overflow.length===0,JSON.stringify({width,height,...fit}));assert.ok(fit.rings.every(n=>n<=2));assert.ok(fit.strip<=40);assert.ok(Math.abs(fit.bottom-(height-32))<=1,JSON.stringify({width,height,...fit}));}
     if(!disabled.length && [1904,1440,390].includes(width))for(const theme of ['light','dark']){await p.evaluate(t=>document.documentElement.dataset.theme=t,theme);await p.waitForTimeout(600);await p.screenshot({path:`reports/shots/home-v6/${empty?'empty':'full'}-${width}-${height}-${theme}.png`,fullPage:true});}
    }
@@ -110,6 +117,7 @@ try {
   for(const [width,height] of [[1904,1015],[1440,900],[390,844]]) {
    await p.setViewportSize({width,height});await p.goto(s.url+'/');await p.locator('.b-track').waitFor();await p.evaluate(()=>document.fonts.ready);
    const links=p.locator('.b-timeline-block');
+   await p.waitForFunction(count=>document.querySelectorAll('.b-timeline-block').length===count,columns.at(-1).blocks.length);
    assert.equal(await links.count(),columns.at(-1).blocks.length,'Only active revision blocks');
    assert.ok(await p.locator('.b-track').evaluate(e=>e.getBoundingClientRect().height<=40));
    const ticks=await p.locator('.b-ticks span').evaluateAll(es=>es.map(e=>{const r=e.getBoundingClientRect();return {left:r.left,right:r.right}}));

@@ -14,11 +14,11 @@ try {
   const tasks = Array.from({length:count},(_,i)=>({id:'task-'+i,text:i===done?'Review the project proposal and send the final detailed notes to the team':'Task '+(i+1),done:i<done}));
   await api.put(key,{...base,tasks});
   for (const [width,height] of [[1440,900],[390,844]]) for (const theme of ['light','dark']) {
-   await p.setViewportSize({width,height}); await p.goto(s.url); const tile=p.locator('.b-tasks'); await tile.waitFor();
+   await p.setViewportSize({width,height}); await p.goto(s.url); const tile=p.locator('.b-today'); await tile.waitFor();
    await p.evaluate(t=>document.documentElement.dataset.theme=t,theme); await p.evaluate(()=>document.fonts.ready);
    if (count) {
-   await p.waitForFunction(expected => document.querySelector('.b-tasks [role=progressbar]')?.getAttribute('aria-valuenow') === String(expected), done);
-   assert.equal(await tile.locator('input[type=checkbox]').count(),Math.min(3,count-done));
+   await p.waitForFunction(expected => document.querySelector('.b-today [role=progressbar]')?.getAttribute('aria-valuenow') === String(expected), done);
+   assert.equal(await tile.locator('input[type=checkbox]').count(),Math.min(5,count-done));
    assert.equal(await tile.locator('[role=progressbar]').getAttribute('aria-valuenow'),String(done));
    } else assert.ok(await tile.locator('.b-round-action').isVisible(),'Empty tile offers one round add action');
    assert.ok(await tile.evaluate(e=>e.scrollHeight<=e.clientHeight+1 && e.scrollWidth<=e.clientWidth+1),'Tile fits '+state+' '+width);
@@ -27,22 +27,22 @@ try {
   }
   if(state==='empty') {
    // the round action opens a small dialog that adds straight onto today's list
-   await p.locator('.b-tasks .b-round-action').click();
+   await p.locator('.b-today .b-round-action').click();
    await p.locator('dialog.quick-capture input').fill('Round action task');
    await p.locator('dialog.quick-capture input').press('Enter');
    await assertEventually(async()=>assert.deepEqual((await api.get(key)).value.tasks.map(x=>x.text),['Round action task']));
    await api.put(key,{...base,tasks:[]});
   }
   if(state==='partial') {
-   await p.locator('.b-tasks input').first().click();
+   await p.locator('.b-today input').first().click();
    await assertEventually(async()=>assert.equal((await api.get(key)).value.tasks[1].done,true));
    await p.getByRole('button',{name:'Undo',exact:true}).click();
    await assertEventually(async()=>assert.equal((await api.get(key)).value.tasks[1].done,false));
-   await p.reload(); await p.locator('.b-tasks').waitFor();
-   assert.equal(await p.locator('.b-tasks [role=progressbar]').getAttribute('aria-valuenow'),'1');
+   await p.reload(); await p.locator('.b-today').waitFor();
+   assert.equal(await p.locator('.b-today [role=progressbar]').getAttribute('aria-valuenow'),'1');
   }
   // the link shows only to add a task or reach the ones not listed
-  if(await p.locator('.b-tasks a').count()){await p.locator('.b-tasks a').click(); await p.waitForURL('**/day/'+iso(new Date()));}
+  if(count-done>5){await p.locator('.b-today a[href="/day/'+iso(new Date())+'"]').first().click(); await p.waitForURL('**/day/'+iso(new Date()));}
  }
  console.log('PASS Tasks today: 16 screenshots, four states, completion persisted, undo persisted, day links, fit');
 } finally { await b.close(); s.stop(); }
