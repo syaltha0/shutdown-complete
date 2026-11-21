@@ -9,3 +9,5 @@
 :root[data-motion="reduce"] .command-palette{animation:none;transition:none}
 
 @media (pointer:coarse) { #palette-results kbd,.more-card .more-item kbd { display:none; } #palette-results [role=option],.more-card .more-item { min-height:44px; } }
+#palette-results [role=option]>span{min-width:0;overflow-wrap:anywhere}
+.palette-note{display:block;margin-top:2px;color:var(--muted);font-size:12px}
