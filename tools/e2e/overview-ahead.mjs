@@ -4,7 +4,8 @@ import {launch} from '../lib/browser.mjs';
 import {startServer,client} from '../lib/server.mjs';
 import {demoAccount} from '../lib/demo.mjs';
 const s=await startServer(),b=await launch();
-mkdirSync('reports/shots/overview-ahead',{recursive:true});
+const shots='reports/overview-ahead/after';
+mkdirSync(shots,{recursive:true});
 try {
  const api=await demoAccount(client(s.url)), settings=(await api.get('settings')).value;
  const context=await b.newContext({reducedMotion:'reduce'});
@@ -14,19 +15,31 @@ try {
  for(const state of ['empty','few','many','boundary']) {
   const date=state==='boundary'?'2026-11-28':'2026-11-14';
   await p.clock.setFixedTime(new Date(date+'T12:00:00'));
-  const dates=state==='empty'?[]:Array.from({length:state==='many'?7:2},(_,i)=>({id:'date'+i,date:state==='boundary'?`2026-12-${String(i+1).padStart(2,'0')}`:`2026-11-${14+i}`,text:'Milestone '+i}));
+  const dates=state==='empty'?[]:Array.from({length:state==='many'?7:2},(_,i)=>({id:'date'+i,date:state==='boundary'?`2026-12-${String(i+1).padStart(2,'0')}`:`2026-11-${14+i}`,text:i===2?'Workshop summary and preparation for the international research presentation':'Milestone '+i}));
+  if(state==='many') dates.push(...[26,27,28].map(day=>({id:'d'+day,date:`2026-11-${day}`,text:'Later milestone '+day})));
   await api.put('month:2026-11',{goals:[],notes:'',dates:dates.filter(x=>x.date.startsWith('2026-11'))});
   await api.put('month:2026-12',{goals:[],notes:'',dates:dates.filter(x=>x.date.startsWith('2026-12'))});
   await api.put('settings',{...settings,schedule:[],exams:[],countdowns:state==='many'?[{id:'launch',name:'Launch',date:'2026-11-16',repeat:'none'}]:[]});
-  for(const [width,height] of [[1440,900],[1904,1015],[390,844]]) for(const theme of ['light','dark']) {
+  for(const [width,height] of [[1440,900],[1366,768],[1904,1015],[390,844]]) for(const theme of ['light','dark']) {
    await p.setViewportSize({width,height});await p.goto(s.url+'/');const tile=p.locator('.b-ahead');await tile.waitFor();await p.waitForTimeout(500);
    await p.evaluate(t=>document.documentElement.dataset.theme=t,theme);
    assert.equal(await tile.locator('.b-calendar>a').count(),14);
    assert.ok(await tile.evaluate(e=>e.scrollHeight<=e.clientHeight+1&&e.scrollWidth<=e.clientWidth+1),'fits '+state+' '+width);
-   assert.equal(await tile.locator('.b-events>a').count(),state==='empty'?0:state==='many'?4:2);
-   if(state==='few') assert.match(await tile.locator('.b-events').innerText(),/Milestone 0/);
-   if(state==='few') assert.match(await tile.locator('.b-events').innerText(),/tomorrow/);
-   await p.screenshot({path:`reports/shots/overview-ahead/${state}-${width}-${theme}.png`,fullPage:true});
+   assert.equal(await tile.locator('.b-events>a').count(),state==='many'?2:0,'Only events outside the calendar appear below it');
+   if(state==='few') assert.match(await tile.locator('.b-calendar').textContent(),/Milestone 0/);
+   if(state==='many') {
+    const day=tile.locator('a[href="/day/2026-11-16"]');
+    assert.match(await day.textContent(),/\+1/);
+    assert.match(await day.getAttribute('title'),/international research presentation.*Launch/);
+   }
+   for(const bar of await tile.locator('.b-calendar em').all()) assert.match(await bar.locator('..').getAttribute('title'),/planned blocks/);
+   if(width>860) assert.ok(await tile.locator('.b-calendar a').evaluateAll(cells=>cells.every(cell=>{
+    const label=cell.querySelector('.b-ahead-event'),bar=cell.querySelector('em');
+    return !label || label.getBoundingClientRect().bottom <= (bar?.getBoundingClientRect().top ?? cell.getBoundingClientRect().bottom-2);
+   })),'Event names stay inside cells and above load bars');
+   assert.equal(await tile.locator('.b-ahead-over').count(),state==='empty'?1:0);
+   if(width===390 && state!=='empty') assert.equal(await tile.locator('.b-calendar i.on').first().evaluate(e=>getComputedStyle(e).display),'block');
+   await p.screenshot({path:`${shots}/${state}-${width}-${theme}.png`,fullPage:true});
   }
   const href=await p.locator('.b-calendar>a').first().getAttribute('href');await p.locator('.b-calendar>a').first().click();await p.waitForURL('**'+href);
  }
@@ -37,5 +50,5 @@ try {
   await p.goto(s.url+'/countdown');await p.locator('h1').waitFor();
   assert.equal(await p.getByText('QA visibility exam',{exact:true}).count(),enabled?1:0);
  }
- console.log('PASS Ahead: 24 screenshots, four datasets, responsive fit and day routes');
+ console.log('PASS Ahead: 32 screenshots, four datasets, responsive fit and day routes');
 } finally {await b.close();s.stop();}

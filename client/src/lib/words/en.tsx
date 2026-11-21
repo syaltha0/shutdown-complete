@@ -830,6 +830,7 @@ export const en = {
     aheadEmpty: 'Nothing in the next 14 days',
     aheadAdd: 'Add a date in Month',
     aheadBlocks: (n: number) => `${n} planned blocks`,
+    aheadExtra: (n: number) => `+${n}`,
     aheadTomorrow: (time: string, n: number) => `Tomorrow: ${time} first block · ${n} blocks`,
     aheadMore: (n: number) => `+${n} more`,
     aheadWhen: (n: number) => n === 0 ? 'today' : n === 1 ? 'tomorrow' : `in ${n} days`,

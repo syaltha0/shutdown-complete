@@ -816,6 +816,7 @@ serverStatus: { remedy: 'İlgili ayarı veya kurulum yönergesini aç',"title":"
     aheadEmpty: 'Önümüzdeki 14 günde bir şey yok',
     aheadAdd: 'Ay’a tarih ekle',
     aheadBlocks: (n: number) => `${n} planlı blok`,
+    aheadExtra: (n: number) => `+${n}`,
     aheadTomorrow: (time: string, n: number) => `Yarın: ${time} ilk blok · ${n} blok`,
     aheadMore: (n: number) => `+${n} daha`,
     aheadWhen: (n: number) => n === 0 ? 'bugün' : `${n} gün sonra`,
