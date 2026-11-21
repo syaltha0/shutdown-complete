@@ -727,6 +727,7 @@ serverStatus: { remedy: 'İlgili ayarı veya kurulum yönergesini aç',"title":"
   overviewSummary: (done: number, total: number, focus: string, tasks: number, all: number) => `${total} bloktan ${done} bitti · ${focus} odak · ${all} görevden ${tasks} bitti`,
   overviewWeek: (focus: string, streak: number) => `Bu hafta: ${focus} odak · ${streak} günlük kapanış serisi`,
   bento: {
+    today: 'Bugün',
     tasksLine: (open: number, done: number, inbox: number | null) => `${open} açık · ${done} bitti${inbox == null ? '' : ` · gelen kutusunda ${inbox}`}`,
     tasksOpenLabel: 'Açık',
     tasksDoneLabel: 'Biten',

@@ -1,3 +1,4 @@
+import { CardHead } from "./CardHead";
 import { addDays, longDate } from "../../lib/dates";
 import { onLinkClick } from "../../lib/router";
 import type { OverviewData } from "./data";
@@ -18,10 +19,10 @@ export function Streak({ T, day, t, docOf, B, now, plan }: OverviewData) {
   // the streak tile (user, 2026-11-21): the run as one big figure, the last two weeks as the squares the habits use
   // (two rows of seven, today ringed), this month and the best run as two small figures, the evening's action last
   return <section className={`panel b-streak${closed ? " is-closed" : ""}`}>
-    <h2>{T.streak}</h2>
+    <CardHead title={<>{T.streak}</>} />
     <div className="b-streak-top">
-      <div className="b-streak-summary"><strong className="b-streak-number num">{streak}</strong><span>{B.streakUnit(streak)}</span></div>
-      <dl className="b-streak-stats">
+      <div className="b-streak-summary"><strong className="b-streak-number num b-number-lg">{streak}</strong><span>{B.streakUnit(streak)}</span></div>
+      <dl className="b-streak-stats b-number-sm">
         <div><dt>{B.streakMonthLabel}</dt><dd className="num">{count}<small>/{elapsed}</small></dd></div>
         <div title={B.streakWindow}><dt>{B.streakBestLabel}</dt><dd className="num">{best}</dd></div>
       </dl>

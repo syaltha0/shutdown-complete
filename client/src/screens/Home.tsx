@@ -4,9 +4,8 @@ import { useOverviewData } from "../components/overview/data";
 import "./Year.css";
 import { Hello } from "../components/overview/Hello";
 import { FocusToday } from "../components/overview/FocusToday";
-import { TasksToday } from "../components/overview/TasksToday";
 import { Timeline } from "../components/overview/Timeline";
-import { StillOpen } from "../components/overview/StillOpen";
+import { Today } from "../components/overview/Today";
 import { Habits } from "../components/overview/Habits";
 import { Streak } from "../components/overview/Streak";
 import { Ahead } from "../components/overview/Ahead";
@@ -26,11 +25,10 @@ export function Home() {
       >
         <Hello {...data} />
         {featureOn(settings, "habits") && <Habits {...data} />}
-        <Streak {...data} />
         <Timeline {...data} />
-        <StillOpen {...data} />
+        <Today {...data} />
         <FocusToday {...data} />
-        <TasksToday {...data} />
+        <Streak {...data} />
         <Ahead {...data} />
         <LastDays {...data} />
         <Weeks {...data} />

@@ -1,3 +1,4 @@
+import { CardHead } from "./CardHead";
 import { useLayoutEffect, useRef, useState } from "react";
 import { habitStats, planned, habitState } from '../../lib/habits';
 import { featureOn } from "../../lib/model";
@@ -25,6 +26,7 @@ export function Habits({ T, settings, day, update, B, recent, docOf, t }: Overvi
     const el = list.current;
     if (!el) return;
     const measure = () => {
+      if (window.matchMedia("(max-width: 860px)").matches) { setFit(Math.min(4, habits.length)); return; }
       const row = el.querySelector<HTMLElement>('.b-habit-row');
       if (!row) return;
       const h = row.getBoundingClientRect().height || 25, rows = Math.floor((el.clientHeight + 2) / h);
@@ -39,7 +41,7 @@ export function Habits({ T, settings, day, update, B, recent, docOf, t }: Overvi
   const shown = habits.slice(0, fit), hidden = habits.length - shown.length;
   return (
     <section className={`panel b-habits${habits.length <= 2 ? " is-sparse" : ""}${habits.length ? "" : " is-empty"}`}>
-      <header><h2>{T.nav.habits}</h2>{habits.length > 0 && <a className="b-habits-count num" href="/habits" onClick={onLinkClick} aria-label={`${B.habitsToday(done, due.length)} · ${B.habitsOpen}`}><span aria-live="polite">{B.habitsToday(done, due.length)}</span><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" aria-hidden="true"><path d="m9 5 7 7-7 7" /></svg></a>}</header>
+      <CardHead title={T.nav.habits} aside={<>{habits.length > 0 && <a className="b-habits-count num" href="/habits" onClick={onLinkClick} aria-label={`${B.habitsToday(done, due.length)} · ${B.habitsOpen}`}><span aria-live="polite">{B.habitsToday(done, due.length)}</span><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" aria-hidden="true"><path d="m9 5 7 7-7 7" /></svg></a>}</>} />
       {habits.length > 0 ? <>
         {due.length > 0 && <div className="b-habits-progress" aria-hidden="true"><i style={{ width: `${(done / due.length) * 100}%` }} /></div>}
         <div className="b-habit-days" aria-hidden="true"><span />{week.map(d => <span key={d} className={d === t ? "today" : ""}>{fmtDay(d, { weekday: "narrow" })}</span>)}<span /></div>

@@ -1,3 +1,4 @@
+import { CardHead } from "./CardHead";
 import { useState } from "react";
 import { useAccount } from "../../App";
 import { clock, duration } from "../../lib/dates";
@@ -49,7 +50,7 @@ export function Hello({ T, settings, t, now, plan, B, day, docs, docOf, monday }
   const sofar = weekDays.reduce((w, d) => { const doc = docOf(d); return { days: w.days, planned: w.planned + (doc && doc.columns.some(c => c.blocks.length) ? 1 : 0), focus: w.focus + dayFocus(doc, settings).minutes, closed: w.closed + (doc?.shutdown?.done ? 1 : 0) }; }, { days: 7, planned: 0, focus: 0, closed: 0 });
   return <section className={`panel b-hello has-side`}>
     <div className="b-hello-main">
-    <h2>{B.greeting(Math.floor(now / 60), user.name.trim())}</h2>
+    <CardHead title={<>{B.greeting(Math.floor(now / 60), user.name.trim())}</>} />
     <div className="b-now" title={closed ? T.shutdownComplete : cur ? label : undefined}>
       {closed ? T.shutdownComplete : cur ? label : ended ? B.ended : next ? T.helloReady : T.helloNoPlan}
     </div>
@@ -76,7 +77,7 @@ export function Hello({ T, settings, t, now, plan, B, day, docs, docOf, monday }
         : !plan.length && weekItems.length > 0 && <><h3>{B.helloWeek}</h3><ul>{weekItems.map(x => <li className="b-hello-week-item" key={x.id}><a href={`/week/${weekOf(t)}`} onClick={onLinkClick}>{x.text}</a></li>)}</ul></>}
       {/* always there: the week so far in three figures, meaningful even on a brand-new account */}
       <h3 className="b-hello-week-title">{B.helloThisWeek}</h3>
-      <dl className="b-hello-week">
+      <dl className="b-hello-week b-number-lg">
         <div><dt>{B.helloWeekPlanned}</dt><dd className="num">{sofar.planned}/{sofar.days}</dd></div>
         <div><dt>{B.helloWeekFocus}</dt><dd className="num">{sofar.focus ? duration(sofar.focus) : "–"}</dd></div>
         <div><dt>{B.helloWeekClosed}</dt><dd className="num">{sofar.closed}</dd></div>

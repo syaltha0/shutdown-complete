@@ -1,3 +1,4 @@
+import { CardHead } from "./CardHead";
 import { useEffect, useState } from "react";
 import { clock, duration } from "../../lib/dates";
 import { dayFocus, secondsLeft, useFocusDay } from "../../lib/focus";
@@ -24,16 +25,16 @@ export function FocusToday({ T, settings, day, B }: OverviewData) {
   const recent = [...(day?.focus?.sessions ?? [])].reverse().slice(0, 1);
   // nothing yet today: one round action instead of a ring of dashes
   if (!active && !count && !focused) return <section className="panel b-focus is-empty" aria-labelledby="overview-focus-title" data-complete={false}>
-    <h2 id="overview-focus-title">{B.focus}{manual && <> <small>{T.focusManual}</small></>}</h2>
+    <CardHead id="overview-focus-title" title={B.focus} aside={<a href="/focus" onClick={onLinkClick} title={manual ? T.focusManual : undefined}>{B.recentFocus} ›</a>} />
     <RoundAction href="/focus" icon="play" title={T.startFocus} hint={B.roundFocus} />
   </section>;
   return <section className="panel b-focus" aria-labelledby="overview-focus-title" data-complete={complete}>
-    <h2 id="overview-focus-title">{B.focus}{manual && <> <small>{T.focusManual}</small></>}</h2>
+    <CardHead id="overview-focus-title" title={B.focus} aside={<a href="/focus" onClick={onLinkClick} title={manual ? T.focusManual : undefined}>{B.recentFocus} ›</a>} />
     <OverviewRing value={focused} total={goal} label={B.focus} text={focused ? duration(focused) : "–"} complete={complete} />
     <div className="b-rt-body">
-      <dl className="b-figures">
-        <div><dt>{B.focusSessionsLabel}</dt><dd className="num">{count}</dd></div>
-        <div><dt>{B.focusRemaining}</dt><dd className="num">{goal ? (focused >= goal ? B.focusReached : duration(goal - focused)) : "–"}</dd></div>
+      <dl className="b-figures b-number-sm">
+        <div><dt>{B.focusSessionsLabel}</dt><dd className="num b-number-lg">{count}</dd></div>
+        <div><dt>{B.focusRemaining}</dt><dd className="num b-number-lg">{goal ? (focused >= goal ? B.focusReached : duration(goal - focused)) : "–"}</dd></div>
         <div><dt>{B.focusLongest}</dt><dd className="num">{count ? duration(Math.max(...(day?.focus?.sessions ?? []).map(s => s.minutes))) : "–"}</dd></div>
       </dl>
       {active && <p className="b-rt-summary">{active ? `${T.phase[active.phase]} · ${B.left(B.focusMinutes(Math.ceil(secondsLeft(active, now) / 60)))}${active.pausedLeft != null ? ` · ${B.focusPaused}` : ""}` : [goal > 0 ? B.of(duration(goal)) : null, count > 0 ? B.focusSessions(count) : null].filter(Boolean).join(" · ") || B.noFocus}</p>}

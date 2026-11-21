@@ -1,3 +1,4 @@
+import { CardHead } from "./CardHead";
 import { clock } from "../../lib/dates";
 import { onLinkClick } from "../../lib/router";
 import { OverviewTimelineLabel } from "./TimelineLabel";
@@ -11,7 +12,7 @@ export function Timeline({ T, settings, t, now, day, plan, B }: OverviewData) {
     [60, 120, 180, 240, 360].find((m) => (to - from) / m <= 4) ?? 360;
   return (
     <section className="panel b-timeline">
-      <h2>{B.timeline}{(day?.columns.length ?? 0) > 1 && <small className="b-revision">{B.timelineRevision(day!.columns.length - 1)}</small>}</h2>
+      <CardHead title={B.timeline} aside={(day?.columns.length ?? 0) > 1 ? B.timelineRevision(day!.columns.length - 1) : undefined} />
       <div className={`b-track${plan.length ? "" : " is-empty"}`} role="group" aria-label={B.timeline}>
         {Array.from({ length: Math.floor(to / tick) - Math.ceil(from / tick) + 1 }, (_, i) => (Math.ceil(from / tick) + i) * tick).map(n => <span key={n} className="b-time-grid" aria-hidden="true" style={{ left: `${at(n)}%` }} />)}
         {/* the empty message sits in the wider stretch beside the now line, so the two never meet */}
