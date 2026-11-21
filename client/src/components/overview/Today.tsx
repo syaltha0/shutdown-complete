@@ -4,7 +4,7 @@ import { onLinkClick } from "../../lib/router";
 import { useDoc } from "../../lib/useDoc";
 import { cardDone } from "../../lib/links";
 import { offerUndo } from "../../lib/undo";
-import { useState } from "react";
+import { useLayoutEffect, useRef, useState } from "react";
 import { AddTodayDialog, RoundAction } from "./RoundAction";
 import type { OverviewData } from "./data";
 import { IconInbox, IconMetrics, IconShutdown } from "../Icons";
@@ -27,23 +27,47 @@ export function Today({ T, settings, t, day, update, tasks, B, now, plan }: Over
   // one flat list of what is still open today: tasks to tick, then the measurements, the shutdown and the inbox as rows
   // of the same kind, each with its short action; what is done sits quietly under it (user, 2026-11-21)
   const empty = total === 0 && remaining === 0;
+  // a light day keeps the big round add filling the room under the list; a long day shows the tasks that fit whole and
+  // one "+n more" row instead of a half-cut task (user, 2026-11-21)
+  const sparse = remaining > 0 && tasks.length + Math.min(doneToday.length, 3) + Number(shutdown) + Number(metrics.length > 0) + Number(inboxCount > 0) <= 3;
+  const content = useRef<HTMLDivElement>(null);
+  const [fit, setFit] = useState(tasks.length);
+  useLayoutEffect(() => {
+    const el = content.current;
+    if (!el) return;
+    const measure = () => {
+      const rows = el.querySelectorAll<HTMLElement>('.b-open-row.task'), more = el.querySelector<HTMLElement>('.b-today-more');
+      if (!rows.length) { setFit(tasks.length); return; }
+      const h = rows[0].getBoundingClientRect().height || 30;
+      // the content's natural height (scrollHeight never drops below the box), less the task rows shown now
+      const kids = Array.from(el.children) as HTMLElement[];
+      const natural = kids.length ? kids[kids.length - 1].getBoundingClientRect().bottom - kids[0].getBoundingClientRect().top : 0;
+      const fixed = natural - rows.length * h - (more ? more.getBoundingClientRect().height : 0);
+      setFit(fixed + tasks.length * h <= el.clientHeight + 1 ? tasks.length : Math.max(1, Math.floor((el.clientHeight - fixed - h) / h)));
+    };
+    measure();
+    const ro = new ResizeObserver(measure);
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, [tasks.length, remaining, doneToday.length]);
   return <section className={`panel b-open b-today${!remaining ? " is-settled" : ""}`}>
     <CardHead title={B.today} aside={total > 0 && <span className="num" aria-label={T.tasksDone(done, total)}>{done}/{total}</span>} />
     {total > 0 && <div className="b-today-hairline" role="progressbar" aria-label={B.today} aria-valuemin={0} aria-valuemax={total} aria-valuenow={done} aria-valuetext={T.tasksDone(done, total)}><i style={{ width: `${done / total * 100}%` }} /></div>}
-    {!empty && <div className="b-today-content">
+    {!empty && <div className="b-today-content" ref={content}>
     {!remaining ? <div className="b-done"><svg viewBox="0 0 64 64" aria-hidden="true"><circle cx="32" cy="32" r="27" fill="none" stroke="currentColor" strokeWidth="1" /><path d="m19 32 9 9 18-19" fill="none" stroke="currentColor" strokeWidth="2" /></svg><span>{B.allDone}</span></div> : <ul className="b-open-list" aria-label={B.today}>
-      {[...tasks].sort((a, b) => Number(b.id === day?.keyTaskId) - Number(a.id === day?.keyTaskId)).map(x => <li key={x.id} className={`b-open-row task${x.id === day?.keyTaskId ? " key-task-selected" : ""}`}><label><input type="checkbox" className="check" aria-label={T.doneLabel(x.text)} checked={false} onChange={() => {
+      {[...tasks].sort((a, b) => Number(b.id === day?.keyTaskId) - Number(a.id === day?.keyTaskId)).slice(0, fit).map(x => <li key={x.id} className={`b-open-row task${x.id === day?.keyTaskId ? " key-task-selected" : ""}`}><label><input type="checkbox" className="check" aria-label={T.doneLabel(x.text)} checked={false} onChange={() => {
         if (x.card) cardDone(x.card).catch(() => {});
         update(d => ({ ...d, tasks: d.tasks.map(y => y.id === x.id ? { ...y, done: true } : y) }));
         offerUndo(B.openCompleted(x.text), () => update(d => ({ ...d, tasks: d.tasks.map(y => y.id === x.id ? { ...y, done: false } : y) })));
       }} /><span className="b-open-text" title={x.text}>{x.text}</span></label></li>)}
+      {tasks.length > fit && <li className="b-open-row b-today-more"><a href={`/day/${t}`} onClick={onLinkClick}>{B.openMore(tasks.length - fit)}<span aria-hidden="true"> ›</span></a></li>}
       {shutdown && row(<IconShutdown />, ended ? B.openClose : T.runShutdown, `/shutdown/${t}`, B.openClosingGroup, ended)}
       {metrics.length > 0 && row(<IconMetrics />, B.openMetrics(metrics.length), `/day/${t}`, B.openLog)}
       {inboxCount > 0 && row(<IconInbox />, B.openInbox(inboxCount), "/inbox", B.openSort)}
     </ul>}
     {doneToday.length > 0 && <div className="b-open-done"><span className="num">{B.openDoneLine(doneToday.length)}</span><ul>{doneToday.slice(0, 3).map(x => <li key={x.id}><s title={x.text}>{x.text}</s></li>)}</ul></div>}
     </div>}
-    {empty ? <RoundAction layout="stack" onClick={() => setAdding(true)} title={T.overviewTasksAdd} hint={B.roundOpen} /> : <button type="button" className="b-round-action b-today-add" onClick={() => setAdding(true)}><span aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M12 6v12M6 12h12" /></svg></span>{T.overviewTasksAdd}</button>}
+    {empty || sparse ? <RoundAction layout="stack" onClick={() => setAdding(true)} title={T.overviewTasksAdd} hint={B.roundOpen} /> : <button type="button" className="b-round-action b-today-add" onClick={() => setAdding(true)}><span aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M12 6v12M6 12h12" /></svg></span>{T.overviewTasksAdd}</button>}
     {adding && <AddTodayDialog onAdd={text => update(d => ({ ...d, tasks: [...d.tasks, { id: crypto.randomUUID(), text, done: false }] }))} onClose={() => setAdding(false)} />}
   </section>;
 }

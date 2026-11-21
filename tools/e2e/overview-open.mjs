@@ -25,7 +25,8 @@ try {
    const tile=p.locator('.b-today'); await tile.waitFor(); await p.waitForTimeout(300);
    await p.evaluate(t=>document.documentElement.dataset.theme=t,theme);
    assert.ok(await tile.evaluate(e=>e.scrollWidth<=e.clientWidth+1&&e.scrollHeight<=e.clientHeight+1),state+' fits '+width);
-   assert.equal(await tile.locator('input.check').count(),count);
+   // whole rows only: tasks that do not fit wait behind one "+n more" row
+   {const shown=await tile.locator('input.check').count();if(shown<count){assert.ok(shown>=1);assert.ok((await tile.locator('.b-today-more').innerText()).includes('+'+(count-shown)));}else assert.equal(shown,count);}
    if(state==='done') {
     assert.match(await tile.innerText(),/All done for today/);
     assert.equal(await tile.locator('.b-open-done s').count(),3);

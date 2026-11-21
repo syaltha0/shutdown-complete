@@ -18,7 +18,8 @@ try {
    await p.evaluate(t=>document.documentElement.dataset.theme=t,theme); await p.evaluate(()=>document.fonts.ready);
    if (count) {
    await p.waitForFunction(expected => document.querySelector('.b-today [role=progressbar]')?.getAttribute('aria-valuenow') === String(expected), done);
-   assert.equal(await tile.locator('input[type=checkbox]').count(),count-done);
+   // whole rows only: open tasks that do not fit wait behind one "+n more" row
+   {const shown=await tile.locator('input[type=checkbox]').count(),open=count-done;if(shown<open){assert.ok(shown>=1);assert.ok((await tile.locator('.b-today-more').innerText()).includes('+'+(open-shown)));}else assert.equal(shown,open);}
    assert.equal(await tile.locator('[role=progressbar]').getAttribute('aria-valuenow'),String(done));
    } else assert.ok(await tile.locator(':is(.b-round-action, .b-today-add)').isVisible(),'Empty tile offers one round add action');
    assert.ok(await tile.evaluate(e=>e.scrollHeight<=e.clientHeight+1 && e.scrollWidth<=e.clientWidth+1),'Tile fits '+state+' '+width);
@@ -41,12 +42,11 @@ try {
    await p.reload(); await p.locator('.b-today').waitFor();
    assert.equal(await p.locator('.b-today [role=progressbar]').getAttribute('aria-valuenow'),'1');
   }
-  // Every task stays reachable inside the bounded content area.
-  if(count-done>5){
-   const content=p.locator('.b-today-content');
-   assert.ok(await content.evaluate(e=>e.scrollHeight>e.clientHeight),'Long task list scrolls');
-   await p.locator('.b-today input.check').last().scrollIntoViewIfNeeded();
-   assert.ok(await p.locator('.b-today input.check').last().isVisible());
+  // Every task stays reachable: the ones that do not fit are behind the "+n more" row, which opens the day.
+  if(count-done>5 && await p.locator('.b-today-more').count()){
+   const more=p.locator('.b-today-more a');
+   assert.ok(await more.isVisible(),'more row visible');
+   assert.equal(await more.getAttribute('href'),'/day/'+iso(new Date()));
   }
  }
  console.log('PASS Tasks today: 16 screenshots, four states, completion persisted, undo persisted, full task list, internal scroll, fit');

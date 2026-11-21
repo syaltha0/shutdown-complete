@@ -3,7 +3,7 @@
 .b-today > .b-head { flex: none; }
 .b-today-hairline { height: 2px; flex: none; background: var(--rule); border-radius: 1px; overflow: hidden; }
 .b-today-hairline i { display: block; height: 100%; background: var(--hue); transition: width var(--t-hover) ease; }
-.b-today-content { flex: 0 1 auto; min-height: 0; overflow-y: auto; scrollbar-width: thin; scrollbar-gutter: stable; }
+.b-today-content { flex: 0 1 auto; min-height: 0; overflow: hidden; }
 .b-today .b-open-list { display: grid; flex: none; margin: 0; padding: 0; list-style: none; overflow: visible; }
 .b-today .b-open-row { display: grid; grid-template-columns: 18px minmax(0, 1fr) auto; align-items: center; gap: 10px; min-width: 0; min-height: 32px; font-size: 13px; }
 .b-today .b-open-row.task { border: 0; }
@@ -36,3 +36,10 @@
   .b-today .b-done svg { width: 32px; }
 }
 :root[data-motion="reduce"] .b-today-hairline i { transition: none; }
+
+/* the whole-rows list: the content takes the room the tile has, a long day ends in one "+n more" row */
+.bento .b-today:not(.is-settled) .b-today-content { flex: 1 1 auto; }
+.bento .b-today:has(> .b-round-action[data-layout="stack"]) .b-today-content { flex: none; }
+.b-today-more a { grid-column: 1 / -1; color: var(--muted); font-size: 12px; text-decoration: none; }
+.b-today-more a:hover { color: var(--text); }
+.b-today > .b-round-action[data-layout="stack"] { flex: 1 1 auto; justify-content: center; }
