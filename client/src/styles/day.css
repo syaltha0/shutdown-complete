@@ -80,7 +80,7 @@
 .block.short[data-lanes]:not([data-lanes="1"]) .bl { flex: 1; }
 .block.tiny { gap: 6px; padding: 0 6px 0 8px; }
 .block.tiny .bl, .block.tiny .bt { font-size: 11px; line-height: 14px; }
-.block.tiny .grip { height: 4px; }
+.block.tiny .grip { height: 6px; }
 .block.untitled .bl { color: var(--muted); font-weight: 400; }
 /* each kind has its own mark (calendar house rule) */
 .k-deep { background: var(--raised); border-color: var(--raised); border-left: 3px solid var(--text); padding-left: 8px; }
@@ -133,3 +133,9 @@
 @media print { .plan-actual-help { display: none; } }
 /* the now line runs behind the blocks, as on the overview timeline, so it never cuts through a title; the hours column keeps its dot and time */
 .col-body .now-line { z-index: 0; }
+
+.block .grip-start { top: 0; bottom: auto; }
+.block.dragging { overflow: visible; cursor: grabbing; }
+.block.dragging .block-drag-time { position: absolute; bottom: calc(100% + 4px); left: 0; padding: 3px 8px; background: var(--text); color: var(--surface); font-size: 12px; white-space: nowrap; pointer-events: none; }
+.block.drag-origin { opacity: 0.45; }
+:root[data-motion="reduce"] .block.dragging { transform: none; }
