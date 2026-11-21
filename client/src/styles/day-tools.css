@@ -242,9 +242,7 @@
 .shutdown-grid label.carry { justify-content: flex-start; cursor: pointer; }
 .shutdown-grid label.carry span { white-space: normal; }
 .day-notes { padding: var(--card-pad); border-left: 1px solid var(--border); }
-.day-notes > summary { list-style: none; font-size: var(--fs-section); font-weight: 500; margin-bottom: 16px; }
-.day-notes::details-content { content-visibility: visible; }
-.day-notes:not([open]) > .notes-area { display: block; }
+.day-notes > h2 { font-size: var(--fs-section); font-weight: 500; margin: 0 0 16px; }
 @media (max-width: 860px) {
   .day-title .title-actions { flex-wrap: nowrap; align-items: center; }
   .day-title .day-view, .day-title .stamp { display: none; }
@@ -261,11 +259,6 @@
   .day-screen .page-left .capture { order: -1; }
   .day-screen .page-left { display: flex; flex-direction: column; }
   .day-notes { border-left: 0; border-top: 1px solid var(--border); }
-  .day-notes > summary { list-style: disclosure-closed; cursor: pointer; margin-bottom: 0; }
-  .day-notes[open] > summary { list-style: disclosure-open; margin-bottom: 12px; }
-  .day-notes::details-content { content-visibility: hidden; }
-  .day-notes[open]::details-content { content-visibility: visible; }
-  .day-notes:not([open]) > .notes-area { display: none; }
   .day-screen .plan-head { gap: 10px; }
   .plan-guide > summary { display: list-item; }
   .plan-guide-body { padding-top: 12px; }

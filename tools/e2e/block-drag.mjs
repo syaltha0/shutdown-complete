@@ -53,6 +53,9 @@ try {
     check(ra.x + ra.width <= rb.x, 'preview preserves overlap lanes');
     await p.screenshot({ path: resolve(shots, `${width}-${theme}-preview.png`) });
     await p.mouse.up(); await saved(615, 705);
+    // the write may be counted a moment after the server shows it (busy machine): wait for it, then make sure no second one follows
+    for (let i = 0; i < 40 && writes < 1; i++) await p.waitForTimeout(50);
+    await p.waitForTimeout(400);
     check(writes === 1, `drop saves once (${writes} requests)`);
     for (let i = 0; i < 60 && (await api.get('settings')).value.schedule.find(r => r.id === 'drag-repeat').start !== 615; i++) await p.waitForTimeout(100);
     check((await api.get('settings')).value.schedule.find(r => r.id === 'drag-repeat').start === 615, 'repeating block updates its template');

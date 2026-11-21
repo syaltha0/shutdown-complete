@@ -353,12 +353,12 @@ export function Day({ date }: { date: string }) {
               <InboxPicker open={pickInbox} onClose={() => setPickInbox(false)}
                 onTake={(items) => update((d) => ({ ...d, tasks: [...d.tasks, ...items] }))} />
             </section>
-            <details className="day-notes" aria-labelledby="notes-h">
-              <summary id="notes-h">{T.notes}</summary>
+            <section className="day-notes" aria-labelledby="notes-h">
+              <h2 id="notes-h">{T.notes}</h2>
               <textarea className="notes-area" aria-labelledby="notes-h" value={day.notes}
                 placeholder={T.notesPh}
                 onChange={(e) => update((d) => ({ ...d, notes: e.target.value }))} />
-            </details>
+            </section>
           </section>
         </div>
 
