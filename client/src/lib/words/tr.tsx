@@ -727,6 +727,7 @@ serverStatus: { remedy: 'İlgili ayarı veya kurulum yönergesini aç',"title":"
   overviewSummary: (done: number, total: number, focus: string, tasks: number, all: number) => `${total} bloktan ${done} bitti · ${focus} odak · ${all} görevden ${tasks} bitti`,
   overviewWeek: (focus: string, streak: number) => `Bu hafta: ${focus} odak · ${streak} günlük kapanış serisi`,
   bento: {
+    tasksLine: (open: number, done: number, inbox: number | null) => `${open} açık · ${done} bitti${inbox == null ? '' : ` · gelen kutusunda ${inbox}`}`,
     tasksOpenLabel: 'Açık',
     tasksDoneLabel: 'Biten',
     tasksInboxLabel: 'Gelen kutusu',
@@ -739,6 +740,7 @@ serverStatus: { remedy: 'İlgili ayarı veya kurulum yönergesini aç',"title":"
     tasksOpen: (n: number) => `${n} açık`,
     helloUpNext: 'Sıradaki',
     helloTomorrow: 'Yarın',
+    openLog: 'Gir', openSort: 'Düzenle', openDoneLine: (n: number) => `${n} bitti`,
     openLeft: (n: number) => n === 0 ? 'Tamamlanacak bir şey kalmadı' : `Tamamlanacak ${n} öğe`,
     openCompleted: (s: string) => `Tamamlandı: ${s}`,
     openMore: (n: number) => `+${n} görev daha`,

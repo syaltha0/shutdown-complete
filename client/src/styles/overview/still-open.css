@@ -59,3 +59,24 @@
 .b-open-done li { min-height: 20px; color: var(--muted); font-size: 12px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .b-open-done s { text-decoration-color: var(--control); }
 @media (max-height: 820px) and (min-width: 861px) { .b-open-done ul { display: none; } }
+
+/* one flat list (user, 2026-11-21): every open thing is a row of the same kind, its action on the right */
+.b-open-head { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; }
+.b-open-head h2 { margin: 0; }
+.b-open-count { color: var(--muted); font-size: 12px; }
+.b-open-list { margin: 0; padding: 0; list-style: none; display: grid; }
+.b-open-row { display: grid; grid-template-columns: 18px minmax(0, 1fr) auto; align-items: center; gap: 10px; min-height: 34px; border-top: 1px solid var(--rule); font-size: 13px; }
+.b-open-row:last-child { border-bottom: 1px solid var(--rule); }
+.b-open-row.task label { grid-column: 1 / -1; display: grid; grid-template-columns: 18px minmax(0, 1fr); align-items: center; gap: 10px; cursor: pointer; }
+.b-open-text { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.b-open-icon { display: grid; place-items: center; color: var(--muted); }
+.b-open-icon svg { width: 16px; height: 16px; }
+.b-open-row.due .b-open-icon, .b-open-row.due .b-open-text { color: var(--hue); }
+.b-open-go { color: var(--muted); font-size: 12px; text-decoration: none; white-space: nowrap; }
+.b-open-go:hover { color: var(--text); }
+.b-open-done { margin: 8px 0 0; color: var(--muted); font-size: 12px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.b-open > .b-round-action[data-layout="row"] { margin-top: auto; padding-top: 10px; border-top: 0; }
+/* a long day scrolls inside the list, so the tile keeps its place in the grid */
+.bento .b-open { overflow: hidden; }
+.bento .b-open-list { flex: 0 1 auto; min-height: 0; overflow-y: auto; }
+.bento .b-open-row { min-height: 30px; }

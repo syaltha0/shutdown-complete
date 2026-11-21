@@ -152,3 +152,11 @@
 .b-track b > span { z-index: 7; }
 .b-timeline-block { z-index: 2; }
 .b-empty-plan[style] { position: absolute; top: 0; transform: translateX(-50%); margin: 0; white-space: nowrap; }
+
+/* blocks sit apart and borders never meet (user, 2026-11-21): a small gap between neighbours, no dashed outline inside
+   the dashed track, and every kind is a filled shape in greys (deep darkest), the appointment keeps its thin frame */
+.b-track .b-timeline-block i { inset: 2px 1.5px; border-radius: 4px; }
+.b-track .overflow i { background: color-mix(in srgb, var(--text) 7%, var(--surface)); border: 0; }
+.b-track .personal i { background: color-mix(in srgb, var(--text) 4%, var(--surface)); border: 0; }
+.b-track .shallow i { background: color-mix(in srgb, var(--text) 14%, var(--surface)); }
+.b-track .meeting i { border: 1px solid var(--line-strong); }

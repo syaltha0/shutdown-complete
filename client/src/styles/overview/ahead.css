@@ -36,7 +36,7 @@
 .bento .b-ahead .b-calendar a:hover { background: var(--raised); }
 .bento .b-ahead .b-calendar a:hover span { background: none; }
 .bento .b-ahead .b-calendar span { width: auto; height: auto; place-items: start; border: 0; border-radius: 0; font-size: 14px; font-weight: 500; }
-.bento .b-ahead .b-calendar .today { outline: 0; box-shadow: inset 0 -2px var(--today-ring); }
+.bento .b-ahead .b-calendar .today { outline: 1px solid var(--today-ring); outline-offset: -1px; } /* one thin ring (user, 2026-11-21) */
 .bento .b-ahead .b-calendar .today span { color: var(--hue); }
 .bento .b-ahead .b-calendar .past { opacity: .45; }
 .bento .b-ahead .b-calendar i { top: 8px; right: 8px; width: 6px; height: 6px; }

@@ -34,13 +34,10 @@ export function TasksToday({ T, t, day, tasks, B, update, settings }: OverviewDa
       <strong>{total ? `${done}/${total}` : '–'}</strong>
     </div>
     <div className="b-rt-body">
-      <dl className="b-figures">
-        <div><dt>{B.tasksOpenLabel}</dt><dd className="num">{tasks.length}</dd></div>
-        <div><dt>{B.tasksDoneLabel}</dt><dd className="num">{done}</dd></div>
-        <div><dt>{B.tasksInboxLabel}</dt><dd className="num">{featureOn(settings, "inbox") ? inbox?.items.length ?? 0 : "–"}</dd></div>
-      </dl>
+      {/* one quiet line of figures; the tasks themselves are the content */}
+      <p className="b-tasks-line">{B.tasksLine(tasks.length, done, featureOn(settings, "inbox") ? inbox?.items.length ?? 0 : null)}</p>
       {(!tasks.length) && <p className="b-rt-summary">{!total ? T.overviewTasksEmpty : T.overviewTasksAllDone}</p>}
-      {shown.length > 0 && <ul className="b-rt-list">{shown.map(x => <li key={x.id} className={x.id === day?.keyTaskId ? "key-task-selected" : undefined} title={x.id === day?.keyTaskId ? T.keyTask : undefined}><label className="b-tasks-next"><input type="checkbox" checked={false} onChange={() => void finish(x.id, x.text)} /><span className="b-truncate" title={x.text}>{x.text}</span></label></li>)}</ul>}
+      {shown.length > 0 && <ul className="b-rt-list">{shown.map(x => <li key={x.id} className={x.id === day?.keyTaskId ? "key-task-selected" : undefined} title={x.id === day?.keyTaskId ? T.keyTask : undefined}><label className="b-tasks-next"><input type="checkbox" className="check" aria-label={T.doneLabel(x.text)} checked={false} onChange={() => void finish(x.id, x.text)} /><span className="b-truncate" title={x.text}>{x.text}</span></label></li>)}</ul>}
       {(!total || tasks.length > shown.length) && <a className={`b-act${!total ? ' main' : ''}`} href={`/day/${t}`} onClick={onLinkClick}><span>{!total ? T.overviewTasksAdd : T.overviewTasksMore(tasks.length - shown.length)}</span><svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" aria-hidden="true"><path d="m6 4 4 4-4 4" /></svg></a>}
     </div>
   </section>;
