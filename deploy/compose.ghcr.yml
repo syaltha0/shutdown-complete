@@ -1,7 +1,7 @@
 # Copy this file to compose.yml in the repository root before running it.
 services:
   planner:
-    image: ghcr.io/syaltha0/shutdown-complete:0.8.5
+    image: ghcr.io/syaltha0/shutdown-complete:0.8.6
     container_name: shutdown-complete
     restart: unless-stopped
     env_file:
