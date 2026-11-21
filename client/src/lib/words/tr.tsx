@@ -186,6 +186,7 @@ serverStatus: { remedy: 'İlgili ayarı veya kurulum yönergesini aç',"title":"
 
   editBlock: 'Bloğu düzenle', newBlock: 'Yeni blok',
   whatFor: 'Bu blok ne için?',
+  blockNoFreeSlot: 'En az 30 dakikalık boş yer bulunamadı. Önerilen saati gözden geçirin.',
   labelPh: '3. ünite çalış, spor, haftalık gözden geçirme',
   starts: 'Başlangıç', ends: 'Bitiş', kind: 'Tür', note: 'Not',
   notePhOverflow: 'Gerekmezse: …',

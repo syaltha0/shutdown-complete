@@ -1,4 +1,5 @@
 import { confirmAction } from '../components/ConfirmDialog';
+import { suggestBlockStart } from '../lib/layout';
 import { emptyInbox, type InboxDoc } from '../lib/model';
 import { decideMoves } from '../lib/taskDeferral';
 import { FocusLog } from '../components/FocusLog';
@@ -56,6 +57,7 @@ export function Day({ date }: { date: string }) {
   const now = useNow(isToday);
   const [draftDays, setDraftDays] = useState<number[]>([]);
   const [draft, setDraft] = useState<Block | null>(null);
+  const [draftNoGap, setDraftNoGap] = useState(false);
   const [openId, setOpenId] = useState<string | null>(new URLSearchParams(location.search).get('block'));
   useEffect(() => { const on = () => setOpenId(new URLSearchParams(location.search).get('block')); window.addEventListener('popstate', on); return () => window.removeEventListener('popstate', on); }, []);
   const [revising, setRevising] = useState(false);
@@ -203,12 +205,9 @@ export function Day({ date }: { date: string }) {
   }
 
   function addBlock() {
-    // the first free half hour from now (today) or from the start of the column
-    const from = Math.max(floor, isToday ? Math.ceil(nowMinutes() / 15) * 15 : floor);
-    let s = from;
-    for (const b of [...col.blocks].sort((a, z) => a.start - z.start)) if (b.start < s + 30 && b.end > s) s = b.end;
-    if (s + 30 > r1) s = Math.max(floor, r1 - 30);
-    const b: Block = { id: uid(), start: s, end: Math.min(r1, s + 60), label: '', note: '', kind: 'deep' };
+    const { noGap, ...slot } = suggestBlockStart(col.blocks, isToday ? floor : Math.max(floor, settings.startHour * 60), r1, isToday ? nowMinutes() : undefined);
+    setDraftNoGap(!!noGap);
+    const b: Block = { id: uid(), ...slot, label: '', note: '', kind: 'deep' };
     setDraftDays([]);
     setDraft(b);
     setOpenId(b.id);
@@ -423,6 +422,7 @@ export function Day({ date }: { date: string }) {
       </div>
 
       <BlockEditor
+        noFreeSlot={!!draft && draftNoGap}
         date={date} day={day} sessions={day.focus?.sessions} block={openBlock} min={floor} max={r1}
         subjects={settings.subjects} repeatDays={draft ? draftDays : repeatOf?.days ?? []} onRepeat={date >= t ? (draft ? setDraftDays : setRepeat) : undefined}
         repeatEvery={repeatOf?.every ?? 1}
