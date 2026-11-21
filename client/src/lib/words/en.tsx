@@ -741,6 +741,7 @@ export const en = {
   overviewSummary: (done: number, total: number, focus: string, tasks: number, all: number) => `${done} of ${total} blocks · ${focus} focused · ${tasks} of ${all} tasks`,
   overviewWeek: (focus: string, streak: number) => `This week: ${focus} focused · ${streak} day shutdown streak`,
   bento: {
+    today: 'Today',
     tasksLine: (open: number, done: number, inbox: number | null) => `${open} open · ${done} done${inbox == null ? '' : ` · ${inbox} in the inbox`}`,
     tasksOpenLabel: 'Open',
     tasksDoneLabel: 'Done',

@@ -22,7 +22,7 @@ try {
   await api.put('inbox',{items:state==='inbox'?[{id:'incoming',text:'Sort this task'}]:[]});
   for (const [width,height] of [[1440,900],[390,844]]) for (const theme of ['light','dark']) {
    await p.setViewportSize({width,height}); await p.goto(s.url+'/');
-   const tile=p.locator('.b-open'); await tile.waitFor(); await p.waitForTimeout(300);
+   const tile=p.locator('.b-today'); await tile.waitFor(); await p.waitForTimeout(300);
    await p.evaluate(t=>document.documentElement.dataset.theme=t,theme);
    assert.ok(await tile.evaluate(e=>e.scrollWidth<=e.clientWidth+1&&e.scrollHeight<=e.clientHeight+1),state+' fits '+width);
    assert.equal(await tile.locator('input.check').count(),Math.min(count,5));
@@ -32,19 +32,19 @@ try {
    await p.screenshot({path:`${dir}/${state}-${width}-${theme}.png`,fullPage:true});
   }
   if(state==='few') {
-   await p.locator('.b-open input.check').first().click();
+   await p.locator('.b-today input.check').first().click();
    await p.getByRole('button',{name:'Undo',exact:true}).click();
-   assert.equal(await p.locator('.b-open input.check').count(),3);
-   await p.locator('.b-open .b-round-action').click(); await p.locator('dialog.quick-capture input').fill('Captured from overview'); await p.locator('dialog.quick-capture input').press('Enter');
+   assert.equal(await p.locator('.b-today input.check').count(),3);
+   await p.locator('.b-today .b-round-action').click(); await p.locator('dialog.quick-capture input').fill('Captured from overview'); await p.locator('dialog.quick-capture input').press('Enter');
    await p.clock.runFor(1500); await p.waitForTimeout(400);
    assert.ok((await api.get(key)).value.tasks.some(x=>x.text==='Captured from overview'));
-   await p.locator('.b-open input.check').first().click(); await p.clock.runFor(1500); await p.waitForTimeout(400);
+   await p.locator('.b-today input.check').first().click(); await p.clock.runFor(1500); await p.waitForTimeout(400);
    assert.equal((await api.get(key)).value.tasks[0].done,true);
    await p.getByRole('button',{name:'Undo',exact:true}).click(); await p.clock.runFor(1500); await p.waitForTimeout(400);
    assert.equal((await api.get(key)).value.tasks[0].done,false);
   }
  }
- console.log('PASS Still open: five states, 20 screenshots, fit, completion, undo and capture');
+ console.log('PASS Today open items: five states, 20 screenshots, fit, completion, undo and capture');
 } finally { await b.close(); s.stop(); }
 
 

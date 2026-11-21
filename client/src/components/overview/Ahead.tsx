@@ -1,3 +1,4 @@
+import { CardHead } from "./CardHead";
 import { addDays, addMonths, fmtDay, monthOf } from "../../lib/dates";
 import { activeColumn, emptyMonth, featureOn, type DayDoc, type MonthDoc } from "../../lib/model";
 import { onLinkClick } from "../../lib/router";
@@ -51,7 +52,7 @@ export function Ahead({ settings, t, B, monday }: OverviewData) {
   const calendar = Array.from({ length: 14 }, (_, i) => addDays(monday, i));
   return (
     <section className={`panel b-ahead${ahead.length ? "" : " is-empty"}`}>
-      <h2>{B.ahead}</h2>
+      <CardHead title={<>{B.ahead}</>} />
       <div className="b-ahead-range">{fmtDay(monday, { month: "short", day: "numeric" })} – {fmtDay(addDays(monday, 13), { month: "short", day: "numeric" })}</div>
       <div className="b-ahead-cal">
       <div className="b-calendar">

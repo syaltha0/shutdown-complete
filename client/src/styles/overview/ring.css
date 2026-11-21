@@ -31,7 +31,7 @@
 /* focus and tasks share one layout in the middle column: ring left, a summary, up to three rows and a link (user, 2026-11-14) */
 @media (min-width: 861px) {
   .bento :is(.b-focus, .b-tasks) { display: grid; grid-template-columns: 56px minmax(0, 1fr); grid-template-rows: auto 1fr; column-gap: 18px; row-gap: 2px; align-content: stretch; justify-items: stretch; text-align: left; }
-  .bento :is(.b-focus, .b-tasks) > h2 { grid-column: 1 / -1; grid-row: 1; margin: 0; }
+  .bento :is(.b-focus, .b-tasks) > .b-head { grid-column: 1 / -1; grid-row: 1; margin: 0; }
   .bento :is(.b-focus, .b-tasks) > :is(.b-ring, .b-tasks-ring) { grid-column: 1; grid-row: 2; align-self: center; width: 56px; }
   .bento :is(.b-focus, .b-tasks) > .b-rt-body { grid-column: 2; grid-row: 2; }
 }

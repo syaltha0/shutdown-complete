@@ -1,3 +1,4 @@
+import { CardHead } from "./CardHead";
 ﻿import { addDays, duration, fmtDay, longDate } from "../../lib/dates";
 import { settingsFocus } from "../../lib/focus";
 import { onLinkClick } from "../../lib/router";
@@ -15,10 +16,10 @@ export function LastDays({ settings, t, docOf, recent, deep, B }: OverviewData) 
   const delta = total - previous;
   const hasData = days.some(d => d.minutes || d.tasks || d.closed);
   return <section className="panel b-recent">
-    <header><h2>{B.recent}</h2><a className="b-act" href="/focus" onClick={onLinkClick}><span>{B.recentFocus}</span><span aria-hidden="true">›</span></a></header>
+    <CardHead title={B.recent} aside={<><a className="b-act" href="/focus" onClick={onLinkClick}><span>{B.recentFocus}</span><span aria-hidden="true">›</span></a></>} />
     <div className="b-recent-chart">
       <div className="b-bars">{days.map(d => <a key={d.date} aria-current={d.date === t ? "date" : undefined} href={`/day/${d.date}`} onClick={onLinkClick} aria-label={`${longDate(d.date)} · ${duration(d.minutes)} · ${B.recentTasks(d.tasks)} · ${d.closed ? B.streakClosed : B.streakPending}`} title={`${longDate(d.date)} · ${duration(d.minutes)} · ${B.recentTasks(d.tasks)} · ${d.closed ? B.streakClosed : B.streakPending}`}>
-        <strong className="b-recent-value">{d.minutes ? duration(d.minutes) : "–"}</strong><div className="b-recent-track"><i className={d.date === t ? 'today' : ''} style={{width: `${d.minutes / max * 100}%`}} /></div>
+        <strong className="b-recent-value b-number-sm">{d.minutes ? duration(d.minutes) : "–"}</strong><div className="b-recent-track"><i className={d.date === t ? 'today' : ''} style={{width: `${d.minutes / max * 100}%`}} /></div>
         <span className="b-recent-day">{fmtDay(d.date, {weekday:'short'})}{d.closed && <svg viewBox="0 0 12 12" aria-hidden="true"><path d="m2 6 3 3 5-6" /></svg>}</span>
         <small>{B.recentTasks(d.tasks)}</small>
       </a>)}</div>
