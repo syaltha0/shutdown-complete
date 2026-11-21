@@ -30,12 +30,12 @@ export function QuickCapture({ onClose, onSaved }: { onClose: () => void; onSave
     } catch { saving.current = false; setBusy(false); setError(true); }
   };
   return <dialog ref={dialog} className="quick-capture" aria-label={T.quickCapture.title} onCancel={e => { e.preventDefault(); if (!busy) onClose(); }} onClick={e => { if (e.target === dialog.current && !busy) onClose(); }}>
-    <form onSubmit={e => { e.preventDefault(); void save(); }}>
+    <form className="capture-form" onSubmit={e => { e.preventDefault(); void save(); }}>
       <div className="more-head"><b>{T.quickCapture.title}</b><button type="button" className="btn ghost icon" disabled={busy} aria-label={T.close} onClick={onClose}><IconX /></button></div>
       <input ref={input} aria-label={T.quickCapture.title} placeholder={T.quickCapture.placeholder} value={text} onChange={e => setText(e.target.value)} readOnly={busy} onKeyDown={e => { if (e.key === 'Enter' && e.nativeEvent.isComposing) e.preventDefault(); }} />
       <p className="hint">{unknownTaskLists(text, inbox?.lists ?? []).map(name => <span key={name}>{T.unknownTaskList(name)} </span>)}{draft.text} {draft.due} {draft.dueTime}</p>
       {error && <p role="alert">{T.palette.error}</p>}
-      <button type="submit" className="btn" disabled={busy || !inbox || !draft.text}>{busy ? T.save.saving : T.quickCapture.add}</button>
+      <button type="submit" className="btn primary" disabled={busy || !inbox || !draft.text}>{busy ? T.save.saving : T.quickCapture.add}</button>
     </form>
   </dialog>;
 }

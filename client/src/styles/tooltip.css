@@ -1,0 +1,35 @@
+/* The one hover note of the app (lib/tooltips.ts): the inverse of the page, the first part of a note on its own line. */
+.app-tip { position:fixed; inset:auto; left:0; top:0; z-index:1000; margin:0; width:max-content; max-width:min(280px, calc(100vw - 16px)); height:auto; overflow:visible; padding:6px 10px 7px; border:0; border-radius:6px; background:var(--text); color:var(--ground); font:inherit; font-size:12px; line-height:16px; text-align:left; pointer-events:none; opacity:0; display:none; }
+.app-tip.on { display:block; animation:tip-in var(--t-hover) var(--ease-out) both; }
+.app-tip strong { display:block; font-weight:500; overflow-wrap:anywhere; }
+.app-tip span { display:block; margin-top:1px; font-size:11px; opacity:.72; font-variant-numeric:tabular-nums; overflow-wrap:anywhere; }
+@keyframes tip-in { from { opacity:0; transform:translateY(2px); } to { opacity:1; transform:none; } }
+.app-tip[data-side="bottom"].on { animation-name:tip-in-below; }
+@keyframes tip-in-below { from { opacity:0; transform:translateY(-2px); } to { opacity:1; transform:none; } }
+:root[data-motion="reduce"] .app-tip.on { animation:none; opacity:1; }
+@media (prefers-reduced-motion: reduce) { .app-tip.on { animation:none; opacity:1; } }
+
+/* Quick add (to today, to the task list): one line, the field and its button side by side, under a small title. */
+.quick-capture:not(.triage) { padding:16px 18px calc(18px + env(safe-area-inset-bottom)); }
+@media (min-width:700px) {
+  .quick-capture:not(.triage) { inset:0; margin:18vh auto auto; width:min(calc(100% - 32px), 520px); height:fit-content; padding:16px 20px 20px; border-radius:14px; }
+}
+.capture-form { display:grid; grid-template-columns:minmax(0,1fr) auto; align-items:center; gap:8px; }
+.capture-form > * { grid-column:1 / -1; }
+.capture-form .more-head { padding:0 0 4px; font-size:15px; }
+.capture-form .more-head b { font-weight:500; }
+.quick-capture .capture-form .more-head .btn.icon { width:32px; height:32px; min-width:32px; min-height:32px; margin-right:-6px; color:var(--muted); }
+.quick-capture .capture-form .more-head .btn.icon:hover { color:var(--text); }
+.quick-capture .capture-form input { grid-row:2; grid-column:1; height:44px; min-height:44px; padding:0 14px; border:1px solid var(--control); border-radius:10px; background:var(--surface); color:var(--text); font:inherit; font-size:15px; }
+.quick-capture .capture-form input::placeholder { color:var(--faint); }
+.quick-capture .capture-form input:focus { outline:none; border-color:var(--text); }
+.quick-capture .capture-form input:focus-visible { outline:none; }
+.quick-capture .capture-form button[type="submit"] { grid-row:2; grid-column:2; height:44px; padding:0 18px; border-radius:10px; }
+.capture-form .hint { margin:2px 0 0; min-height:16px; color:var(--muted); font-size:12px; line-height:16px; }
+.capture-form .hint:empty { display:none; }
+.capture-form [role="alert"] { margin:0; color:var(--pill-negative-ink); font-size:12px; }
+@media (max-width:699px) { .quick-capture .capture-form input { font-size:16px; } }
+
+/* the notes drawn in place (rail names, the actual-time marks) take the same face */
+.rail-item .tip { padding:5px 10px; border-radius:6px; background:var(--text); color:var(--ground); font-size:12px; line-height:16px; }
+.actual .tip { padding:5px 10px; border:0; border-radius:6px; background:var(--text); color:var(--ground); font-size:12px; line-height:16px; }

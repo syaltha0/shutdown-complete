@@ -807,7 +807,7 @@ export const en = {
     habitsRunShort: (n: number, weekly: boolean) => weekly ? `${n}w` : `${n}d`,
     habitsMore: (n: number) => `+${n} more ${n === 1 ? 'habit' : 'habits'}`,
     habitsWeek: 'Last 7 days',
-    habitsDay: (date: string, done: boolean) => `${date}: ${done ? 'done' : 'not done'}`,
+    habitsDay: (date: string, done: boolean) => `${date} · ${done ? 'done' : 'not done'}`,
     habitsComplete: 'All habits done today',
     habitsOpen: 'View habits',
     habitsAdd: 'Add a habit',

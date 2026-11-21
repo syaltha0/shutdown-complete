@@ -58,7 +58,7 @@ export function Habits({ T, settings, day, update, B, recent, docOf, t }: Overvi
               <div className="b-habit-week" aria-label={B.habitsWeek}>
                 {week.map((date) => {
                   const doc = docOf(date), s = habitState(m, doc), value = s === "done";
-                  const label = s === "skipped" ? `${longDate(date)}: ${B.habitsSkipped}` : B.habitsDay(longDate(date), value);
+                  const label = s === "skipped" ? `${longDate(date)} · ${B.habitsSkipped}` : B.habitsDay(longDate(date), value);
                   return <span key={date} className={[value ? "done" : "", s === "skipped" ? "skipped" : "", !planned(m, date) ? "off" : "", date === t ? "today" : ""].filter(Boolean).join(" ")} data-date={date} data-done={value} role="img" aria-label={label} title={label} />;
                 })}
               </div>

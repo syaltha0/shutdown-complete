@@ -30,10 +30,10 @@ export function AddTodayDialog({ onAdd, onClose }: { onAdd: (text: string) => vo
     return () => { modal?.close(); if (previous instanceof HTMLElement && previous.isConnected) previous.focus(); };
   }, []);
   return <dialog ref={dialog} className="quick-capture" aria-label={B.addToday} onCancel={e => { e.preventDefault(); onClose(); }} onClick={e => { if (e.target === dialog.current) onClose(); }}>
-    <form onSubmit={e => { e.preventDefault(); const value = text.trim(); if (!value) return; onAdd(value); onClose(); }}>
+    <form className="capture-form" onSubmit={e => { e.preventDefault(); const value = text.trim(); if (!value) return; onAdd(value); onClose(); }}>
       <div className="more-head"><b>{B.addToday}</b><button type="button" className="btn ghost icon" aria-label={T.close} onClick={onClose}><IconX /></button></div>
-      <input ref={input} className="input" aria-label={B.addToday} placeholder={B.openCapture} value={text} onChange={e => setText(e.target.value)} />
-      <button type="submit" className="btn" disabled={!text.trim()}>{B.addTodayButton}</button>
+      <input ref={input} aria-label={B.addToday} placeholder={B.openCapture} value={text} onChange={e => setText(e.target.value)} />
+      <button type="submit" className="btn primary" disabled={!text.trim()}>{B.addTodayButton}</button>
     </form>
   </dialog>;
 }

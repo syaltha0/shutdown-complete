@@ -793,7 +793,7 @@ serverStatus: { remedy: 'İlgili ayarı veya kurulum yönergesini aç',"title":"
     habitsRunShort: (n: number, weekly: boolean) => weekly ? `${n} hf` : `${n} g`,
     habitsMore: (n: number) => `+${n} alışkanlık daha`,
     habitsWeek: 'Son 7 gün',
-    habitsDay: (date: string, done: boolean) => `${date}: ${done ? 'tamamlandı' : 'tamamlanmadı'}`,
+    habitsDay: (date: string, done: boolean) => `${date} · ${done ? 'tamamlandı' : 'tamamlanmadı'}`,
     habitsComplete: 'Bugün tüm alışkanlıklar tamam',
     habitsOpen: 'Alışkanlıkları gör',
     habitsAdd: 'Alışkanlık ekle',
