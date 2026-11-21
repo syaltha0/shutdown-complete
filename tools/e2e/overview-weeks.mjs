@@ -36,7 +36,10 @@ try {
    assert.ok(await tile.locator('.b-heatmap').evaluate(e=>e.getBoundingClientRect().width/e.parentElement.getBoundingClientRect().width>.9));
    assert.equal(await tile.locator('.b-heat-days small').count(),7);
    const geometry=await tile.locator('.b-heatmap a').first().boundingBox();
-   assert.ok(Math.abs(geometry.width-geometry.height)<2,'square cells');
+   const column=await tile.locator('.b-heatmap').evaluate(e=>e.getBoundingClientRect().width/12);
+   // phone: square cells beside the weekday letters; desktop: each day fills its week column as one even strip
+   if(width<861) assert.ok(Math.abs(geometry.width-geometry.height)<2,'square cells');
+   else assert.ok(geometry.width>=column-6&&geometry.height>=4,'cells fill their week column');
    assert.ok(await tile.locator('.b-heat-legend').evaluate(e=>parseFloat(getComputedStyle(e).fontSize)>=11),'readable legend');
    const alignment=await tile.evaluate(e=>{
     const labels=[...e.querySelectorAll('.b-heat-months > span')];

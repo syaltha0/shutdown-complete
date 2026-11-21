@@ -18,7 +18,7 @@ try {
   for(const [width,height] of [[1440,900],[1366,768],[1904,1015],[390,844]]) for(const theme of ['light','dark']) {
    await p.setViewportSize({width,height});await p.goto(s.url+'/');const tile=p.locator('.b-recent');await tile.waitFor();await p.waitForTimeout(300);await p.evaluate(t=>document.documentElement.dataset.theme=t,theme);
    const expected = state === 'empty' ? [] : Array.from({length:7},(_,i)=>state==='today-zero'&&i===6||state==='single'&&i!==6?'':state==='single'?'1 h 15 m':state==='over-goal'?'4 h':'1 h');
-   await p.waitForFunction(values => { const cells=[...document.querySelectorAll('.b-recent-value')]; return cells.length===values.length && cells.every((e,i)=>e.textContent?.trim()===values[i]); },expected);
+   await p.waitForFunction(values => { const cells=[...document.querySelectorAll('.b-recent-value')]; return cells.length===values.length && cells.every((e,i)=>e.textContent?.replace(/\u00a0/g,' ').trim()===values[i]); },expected);
    assert.equal(await tile.locator('.b-recent-goal').count(),0);
    assert.ok(await tile.evaluate(e=>e.scrollWidth<=e.clientWidth+1&&e.scrollHeight<=e.clientHeight+1),'tile fits '+state+' '+width);
    assert.equal(await tile.locator('.b-bars a').count(),state==='empty'?0:7);

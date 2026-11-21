@@ -19,7 +19,7 @@ export function LastDays({ t, docOf, recent, deep, B }: OverviewData) {
         const label = `${longDate(d.date)} · ${duration(d.minutes)} · ${B.recentTasks(d.tasks)} · ${d.closed ? B.streakClosed : B.streakPending}`;
         const height = `${d.minutes / max * 100}%`;
         return <a key={d.date} aria-current={d.date === t ? "date" : undefined} href={`/day/${d.date}`} onClick={onLinkClick} aria-label={label} title={label}>
-          <div className="b-recent-track"><i className={d.date === t ? "today" : ""} style={{height}} /><strong className="b-recent-value b-number-sm" style={{bottom:height}}>{d.minutes ? duration(d.minutes) : ""}</strong></div>
+          <div className="b-recent-track"><i className={d.date === t ? "today" : ""} style={{height}} />{/* a number stays with its unit, so a narrow column breaks "1 sa | 15 dk", never "2 sa 5 | dk" */}<strong className="b-recent-value b-number-sm" style={{bottom:height}}>{d.minutes ? duration(d.minutes).replace(/(\d) /g, "$1 ") : ""}</strong></div>
           <span className="b-recent-day">{fmtDay(d.date, {weekday:"short"})}{d.closed && <i className="b-recent-closed" aria-hidden="true" />}</span>
         </a>;
       })}</div>

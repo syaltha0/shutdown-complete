@@ -31,3 +31,8 @@
 }
 
 .home.bento .b-heat-empty { flex:1; display:grid; place-content:center; text-align:center; color:var(--muted); font-size:12px; }
+/* desktop: each day fills its share of the week column, so the twelve weeks read as one block rather than scattered dots */
+@media(min-width:861px) {
+  .b-heatmap { column-gap:4px; row-gap:2px; }
+  .b-heatmap a { aspect-ratio:auto; width:100%; height:100%; max-height:none; }
+}
