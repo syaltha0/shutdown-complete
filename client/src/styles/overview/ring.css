@@ -30,10 +30,10 @@
 
 /* focus and tasks share one layout in the middle column: ring left, a summary, up to three rows and a link (user, 2026-11-14) */
 @media (min-width: 861px) {
-  .bento :is(.b-focus, .b-tasks) { display: grid; grid-template-columns: 56px minmax(0, 1fr); grid-template-rows: auto 1fr; column-gap: 18px; row-gap: 2px; align-content: stretch; justify-items: stretch; text-align: left; }
-  .bento :is(.b-focus, .b-tasks) > .b-head { grid-column: 1 / -1; grid-row: 1; margin: 0; }
-  .bento :is(.b-focus, .b-tasks) > :is(.b-ring, .b-tasks-ring) { grid-column: 1; grid-row: 2; align-self: center; width: 56px; }
-  .bento :is(.b-focus, .b-tasks) > .b-rt-body { grid-column: 2; grid-row: 2; }
+  .bento .b-tasks { display: grid; grid-template-columns: 56px minmax(0, 1fr); grid-template-rows: auto 1fr; column-gap: 18px; row-gap: 2px; align-content: stretch; justify-items: stretch; text-align: left; }
+  .bento .b-tasks > .b-head { grid-column: 1 / -1; grid-row: 1; margin: 0; }
+  .bento .b-tasks > :is(.b-ring, .b-tasks-ring) { grid-column: 1; grid-row: 2; align-self: center; width: 56px; }
+  .bento .b-tasks > .b-rt-body { grid-column: 2; grid-row: 2; }
 }
 .b-rt-body { display: flex; flex-direction: column; justify-content: center; gap: 2px; min-width: 0; min-height: 0; }
 .b-rt-summary { margin: 0; color: var(--muted); font-size: 12px; }
@@ -42,11 +42,11 @@
 .b-focus .b-rt-list li > span:first-child, .b-focus .b-rt-list li > span:last-child { color: var(--muted); font-size: 12px; }
 .b-tasks .b-rt-list li { grid-template-columns: minmax(0, 1fr); }
 .b-rt-body .b-act { align-self: flex-start; }
-.bento :is(.b-focus, .b-tasks) .b-act { min-height: 22px; }
+.bento .b-tasks .b-act { min-height: 22px; }
 .b-tasks .b-tasks-next { min-height: 20px; }
 
-.bento :is(.b-focus, .b-tasks) > :is(.b-ring, .b-tasks-ring) { width:52px; height:52px; }
-@media(max-width:860px) { .bento :is(.b-focus,.b-tasks) { align-items:stretch; text-align:left; justify-content:flex-start; } .b-rt-body { gap:5px; } }
+.bento .b-tasks > :is(.b-ring, .b-tasks-ring) { width:52px; height:52px; }
+@media(max-width:860px) { .bento .b-tasks { align-items:stretch; text-align:left; justify-content:flex-start; } .b-rt-body { gap:5px; } }
 
 /* three small figures beside a ring: a muted label over a clear value */
 .b-figures { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 4px 12px; margin: 0 0 4px; }
