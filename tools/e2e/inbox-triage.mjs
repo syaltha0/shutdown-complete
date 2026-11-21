@@ -123,6 +123,10 @@ try {
     await page.keyboard.press('ArrowRight');
     await progress('7 / 8');
     assert((await ids()).includes('Foxtrot'));
+    await dlg.locator('.triage-undo').getByRole('button', { name: w.undo, exact: true }).click();
+    await progress('6 / 8');
+    await page.keyboard.press('ArrowRight');
+    await progress('7 / 8');
 
     // Tomorrow (button), Skip (button)
     await dlg.getByRole('button', { name: w.tomorrow, exact: true }).click();
@@ -145,6 +149,13 @@ try {
     await left.waitFor();
     await left.click();
     await dlg.waitFor();
+    // A task already starred still advances, and undo restores its priority and position.
+    await page.keyboard.press('s');
+    await progress('2 / 3');
+    await until(async () => (await inbox()).items.find(x => x.text === 'Delta')?.priority === undefined, 'existing star removed');
+    await page.keyboard.press('Control+z');
+    await progress('1 / 3');
+    await until(async () => (await inbox()).items.find(x => x.text === 'Delta')?.priority === 1, 'existing star restored');
     for (let i = 1; i <= 3; i++) { await progress(`${i} / 3`); await page.keyboard.press('Delete'); }
     await dlg.getByRole('heading', { name: w.empty }).waitFor();
     await page.keyboard.press('Escape');

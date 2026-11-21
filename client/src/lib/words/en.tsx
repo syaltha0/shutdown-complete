@@ -678,6 +678,7 @@ export const en = {
   tkAddPh: (where: string) => `Add a task to ${where}…`, tkAddPhAny: 'Add a task…', tkAdd: 'Add',
   tkCompletedN: (n: number, shown: boolean) => `${shown ? 'Hide' : 'Show'} ${n} completed`, tkDeleteDone: 'Delete completed', tkReopenDone: 'Reopen completed', tkReopen: 'Reopen',
   triage: {
+    skippedMsg: (t: string) => `Skipped: ${t}`,
     start: (n: number) => `Go through inbox (${n})`, title: 'Go through inbox', progress: (i: number, n: number) => `${i} / ${n}`, taskLabel: 'Task', noteLabel: 'Note', notePh: 'Note',
     today: 'Today', tomorrow: 'Tomorrow', pickDate: 'Pick date', setDate: 'Set date', toList: 'Move to list', star: 'Star', starred: 'Starred', delete: 'Delete', skip: 'Skip',
     pickList: 'Move to which list?', noLists: 'No lists yet', back: 'Back', keys: 'T today · Y tomorrow · D date · L list · S star · Del delete · → skip · Esc close',
