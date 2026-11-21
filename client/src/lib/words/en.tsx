@@ -189,6 +189,8 @@ export const en = {
   toT: (t: string) => `to ${t}`,
   blockAria: (label: string, a: string, b: string, kind: string, crossed: boolean) =>
     `${label}, ${a} to ${b}, ${kind}${crossed ? ', crossed out' : ''}`,
+  blockDragHelp: 'Drag to move; drag either edge to resize. Alt+Up/Down moves 5 minutes; Alt+Shift+Up/Down changes the end. Hold to drag on touch. Escape cancels.',
+  blockChanged: 'Block time changed',
   dragHint: 'Drag down this column to block out time',
   redrawFrom: (t: string) => `Redraw the rest of the day from ${t}`,
 

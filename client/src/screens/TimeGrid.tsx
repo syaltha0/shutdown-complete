@@ -1,4 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
+import { dragBlock, type BlockDragMode } from '../lib/blockDrag';
+import { offerUndo } from '../lib/undo';
 import { layoutBlocks } from '../lib/layout';
 import { clock, duration, minutesOf } from '../lib/dates';
 import { useT } from '../lib/i18n';
@@ -14,13 +16,11 @@ const SNAP = 15;
 const snap = (m: number) => Math.round(m / SNAP) * SNAP;
 const floorSnap = (m: number) => Math.floor(m / SNAP) * SNAP;
 
-type Drag =
-  | { mode: 'create'; anchor: number; start: number; end: number; pointerId: number }
-  | { mode: 'move'; id: string; offset: number; start: number; end: number; moved: boolean; y0: number; pointerId: number }
-  | { mode: 'resize'; id: string; start: number; end: number; pointerId: number };
+type EditDrag = { mode: BlockDragMode; id: string; original: Block; start: number; end: number; moved: boolean; x0: number; y0: number; pointerId: number };
+type Drag = { mode: 'create'; anchor: number; start: number; end: number; pointerId: number } | EditDrag;
 
 export function TimeGrid({
-  day, range, now, onColumns, onOpen, shownCol, preview, events = [], onEvent, focusAt = null, focusKey, sessions = [], drifts,
+  day, range, now, onColumns, onOpen, onChange, shownCol, preview, events = [], onEvent, focusAt = null, focusKey, sessions = [], drifts,
 }: {
   /** blocks whose calendar event changed since they were made (by block id): marked, and told of when opened */
   drifts?: Map<string, 'moved' | 'gone'>;
@@ -38,6 +38,7 @@ export function TimeGrid({
   now: number | null; // minutes, only when the day is today
   onColumns: (fn: (cols: Column[]) => Column[]) => void;
   onOpen: (blockId: string) => void;
+  onChange: (id: string, times: { start: number; end: number }) => void;
   shownCol: number;
 }) {
   const T = useT();
@@ -103,114 +104,86 @@ export function TimeGrid({
     }
   }
 
-  // On a phone a block is moved with a long press: hold it still for a moment, it lifts (a short buzz where the phone
-  // can), then follows the finger; a long press on its bottom edge resizes it. A finger that moves first scrolls the page.
   const suppressTap = useRef(false);
-  function pressBlock(e: React.PointerEvent, b: Block) {
-    const x0 = e.clientX, y0 = e.clientY;
-    const grip = (e.target as HTMLElement).classList.contains('grip');
-    const offset = minuteAt(y0) - b.start;
-    let cur: Drag | null = null;
+  const cancelTouch = useRef<(() => void) | null>(null);
+  useEffect(() => {
+    const cancel = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') { suppressTap.current = true; cancelTouch.current?.(); setDrag(null); }
+    };
+    window.addEventListener('keydown', cancel);
+    return () => { window.removeEventListener('keydown', cancel); cancelTouch.current?.(); };
+  }, [day]);
+
+  function commit(d: EditDrag) {
+    if (d.start === d.original.start && d.end === d.original.end) return;
+    onChange(d.id, { start: d.start, end: d.end });
+    offerUndo(T.blockChanged, () => onChange(d.id, { start: d.original.start, end: d.original.end }));
+  }
+  function advance(d: EditDrag, x: number, y: number): EditDrag {
+    const moved = d.moved || Math.hypot(x - d.x0, y - d.y0) >= 4;
+    return moved ? { ...d, moved, ...dragBlock(d.original, d.mode, (y - d.y0) / PPM, floor, r1) } : d;
+  }
+  // Native touchmove remains cancellable after the hold, while an early swipe scrolls normally.
+  function pressBlock(initial: EditDrag) {
+    cancelTouch.current?.();
+    let cur: EditDrag | null = null;
     const timer = window.setTimeout(() => {
       lockSwipe(true);
-      try { navigator.vibrate?.(12); } catch { /* not on this device */ }
-      cur = grip
-        ? { mode: 'resize', id: b.id, start: b.start, end: b.end, pointerId: -1 }
-        : { mode: 'move', id: b.id, offset, start: b.start, end: b.end, moved: true, y0, pointerId: -1 };
+      suppressTap.current = true;
+      cur = { ...initial, moved: true };
       setDrag(cur);
-    }, 380);
+    }, 350);
     const move = (te: TouchEvent) => {
       const t = te.touches[0];
       if (!t) return;
-      if (!cur) { if (Math.hypot(t.clientX - x0, t.clientY - y0) > 8) finish(false); return; }
-      te.preventDefault(); // the block is in the hand: the page does not scroll
-      const m = minuteAt(t.clientY);
-      if (cur.mode === 'resize') cur = { ...cur, end: Math.max(cur.start + SNAP, Math.min(r1, snap(m))) };
-      else if (cur.mode === 'move') {
-        const len = cur.end - cur.start;
-        const start = Math.min(r1 - len, Math.max(floor, snap(m - cur.offset)));
-        cur = { ...cur, start, end: start + len };
-      }
-      setDrag(cur);
+      if (!cur) { if (Math.hypot(t.clientX - initial.x0, t.clientY - initial.y0) >= 4) finish(false); return; }
+      te.preventDefault();
+      cur = advance(cur, t.clientX, t.clientY); setDrag(cur);
     };
-    const finish = (commit: boolean) => {
+    const finish = (save: boolean) => {
       window.clearTimeout(timer);
       window.removeEventListener('touchmove', move);
       window.removeEventListener('touchend', end);
       window.removeEventListener('touchcancel', cancel);
-      const d = cur as Drag | null;
-      if (!d || d.mode === 'create') return;
-      suppressTap.current = true;
-      setDrag(null);
-      window.setTimeout(() => lockSwipe(false), 0);
-      if (!commit) return;
-      if (d.mode === 'resize') setBlocks((bs) => bs.map((x) => (x.id === d.id ? { ...x, end: d.end } : x)));
-      else setBlocks((bs) => bs.map((x) => (x.id === d.id ? { ...x, start: d.start, end: d.end } : x)).sort((a, z) => a.start - z.start));
+      cancelTouch.current = null;
+      if (cur) { if (save) commit(cur); setDrag(null); }
+      lockSwipe(false);
     };
-    const end = () => finish(true);
-    const cancel = () => finish(false);
+    const end = () => finish(true), cancel = () => finish(false);
+    cancelTouch.current = cancel;
     window.addEventListener('touchmove', move, { passive: false });
     window.addEventListener('touchend', end);
     window.addEventListener('touchcancel', cancel);
   }
-
   function onBlockDown(e: React.PointerEvent, b: Block) {
-    if (e.pointerType === 'touch') { pressBlock(e, b); return; }
     if (e.button !== 0) return;
     e.stopPropagation();
-    (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
-    if ((e.target as HTMLElement).classList.contains('grip')) {
-      setDrag({ mode: 'resize', id: b.id, start: b.start, end: b.end, pointerId: e.pointerId });
-    } else {
-      setDrag({ mode: 'move', id: b.id, offset: minuteAt(e.clientY) - b.start, start: b.start, end: b.end, moved: false, y0: e.clientY, pointerId: e.pointerId });
-    }
+    suppressTap.current = false;
+    const edge = (e.target as HTMLElement).closest<HTMLElement>('[data-edge]')?.dataset.edge;
+    const initial: EditDrag = { mode: edge === 'start' ? 'start' : edge === 'end' ? 'end' : 'move', id: b.id, original: b, start: b.start, end: b.end, moved: false, x0: e.clientX, y0: e.clientY, pointerId: e.pointerId };
+    if (e.pointerType === 'touch') { pressBlock(initial); return; }
+    e.currentTarget.setPointerCapture(e.pointerId);
+    setDrag(initial);
   }
-
   function onMove(e: React.PointerEvent) {
-    if (!drag || e.pointerId !== drag.pointerId) return;
-    const m = minuteAt(e.clientY);
+    if (!drag || e.pointerId !== drag.pointerId || e.pointerType === 'touch') return;
     if (drag.mode === 'create') {
-      const p = clamp(snap(m));
-      const start = Math.min(drag.anchor, p), end = Math.max(drag.anchor + SNAP, p);
-      setDrag({ ...drag, start, end: Math.min(r1, end) });
-    } else if (drag.mode === 'resize') {
-      setDrag({ ...drag, end: Math.max(drag.start + SNAP, Math.min(r1, snap(m))) });
-    } else {
-      const len = drag.end - drag.start;
-      const start = Math.min(r1 - len, Math.max(floor, snap(m - drag.offset)));
-      setDrag({ ...drag, start, end: start + len, moved: drag.moved || Math.abs(e.clientY - drag.y0) > 4 });
-    }
+      const p = clamp(snap(minuteAt(e.clientY)));
+      setDrag({ ...drag, start: Math.min(drag.anchor, p), end: Math.min(r1, Math.max(drag.anchor + SNAP, p)) });
+    } else setDrag(advance(drag, e.clientX, e.clientY));
   }
-
   function onUp(e: React.PointerEvent) {
-    if (!drag || e.pointerId !== drag.pointerId) return;
-    const d = drag;
-    setDrag(null);
-    if (d.mode === 'create') {
-      const end = d.end - d.start < 30 ? Math.min(r1, d.start + 30) : d.end; // a click makes a half hour
-      createAt(d.start, end);
-    } else if (d.mode === 'resize') {
-      setBlocks((bs) => bs.map((b) => (b.id === d.id ? { ...b, end: d.end } : b)));
-    } else if (d.moved) {
-      setBlocks((bs) => bs.map((b) => (b.id === d.id ? { ...b, start: d.start, end: d.end } : b)).sort((a, z) => a.start - z.start));
-    } else {
-      onOpen(d.id);
-    }
+    if (!drag || e.pointerId !== drag.pointerId || e.pointerType === 'touch') return;
+    const d = drag; setDrag(null);
+    if (d.mode === 'create') createAt(d.start, d.end - d.start < 30 ? Math.min(r1, d.start + 30) : d.end);
+    else if (d.moved) { suppressTap.current = true; commit(d); }
   }
-
-  // keyboard: arrows move the focused block by a quarter hour, shift+arrows resize it
   function onBlockKey(e: React.KeyboardEvent, b: Block) {
     if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onOpen(b.id); return; }
-    if (e.key !== 'ArrowUp' && e.key !== 'ArrowDown') return;
+    if (!e.altKey || (e.key !== 'ArrowUp' && e.key !== 'ArrowDown')) return;
     e.preventDefault();
-    const dm = e.key === 'ArrowUp' ? -SNAP : SNAP;
-    setBlocks((bs) => bs.map((x) => {
-      if (x.id !== b.id) return x;
-      if (e.shiftKey) return { ...x, end: Math.max(x.start + SNAP, Math.min(r1, x.end + dm)) };
-      const len = x.end - x.start;
-      const start = Math.min(r1 - len, Math.max(floor, x.start + dm));
-      return { ...x, start, end: start + len };
-    }));
+    const times = dragBlock(b, e.shiftKey ? 'end' : 'move', e.key === 'ArrowUp' ? -5 : 5, floor, r1);
+    commit({ mode: 'move', id: b.id, original: b, ...times, moved: true, x0: 0, y0: 0, pointerId: -1 });
   }
 
   // lines: one per half hour, the hour lines a step darker
@@ -236,7 +209,7 @@ export function TimeGrid({
       <div className="cols">
         {day.columns.map((col, ci) => {
           const isActive = ci === last;
-          const layout = layoutBlocks(col.blocks);
+          const layout = layoutBlocks(col.blocks.map(b => isActive && drag && 'id' in drag && drag.id === b.id && drag.moved ? { ...b, start: drag.start, end: drag.end } : b));
           const name = ci === 0 ? T.plan : T.revisionN(ci);
           const before = col.from != null && col.from > r0 ? (col.from - r0) * PPM : 0;
           const ghost = drag && drag.mode === 'create' && isActive ? drag : null;
@@ -270,9 +243,10 @@ export function TimeGrid({
                     <CalendarEvent key={ev.cal + k} event={ev} top={(s - r0) * PPM + 1} height={Math.max(14, (e - s) * PPM - 2)} planned={day.columns.some((c) => c.blocks.some((b) => b.source?.calendar === ev.cal && b.source.uid === eventUid(ev)))} onEvent={onEvent} />
                   );
                 })}
+                {isActive && drag && 'id' in drag && drag.moved && <div className="block ghost drag-origin" aria-hidden="true" style={{ top: (drag.original.start - r0) * PPM + 1, height: (drag.original.end - drag.original.start) * PPM - 2 }} />}
                 {col.blocks.map((b) => {
                   const { lane, lanes } = layout.get(b.id)!;
-                  const live = drag && 'id' in drag && drag.id === b.id && isActive ? drag : null;
+                  const live = drag && 'id' in drag && drag.id === b.id && isActive && drag.moved ? drag : null;
                   const start = live ? live.start : b.start, end = live ? live.end : b.end;
                   const crossed = col.closedAt != null && b.end > col.closedAt;
                   const current = isActive && now != null && now >= b.start && now < b.end;
@@ -287,15 +261,15 @@ export function TimeGrid({
                       key={b.id}
                       role={isActive ? 'button' : undefined}
                       tabIndex={isActive ? 0 : undefined}
-                      aria-label={T.blockAria(b.label || T.untitledBlock, clock(start), clock(end), T.kinds[b.kind].name, crossed) + (driftText ? `. ${driftText}` : '')}
+                      aria-label={T.blockAria(b.label || T.untitledBlock, clock(start), clock(end), T.kinds[b.kind].name, crossed) + (driftText ? `. ${driftText}` : '') + (isActive ? `. ${T.blockDragHelp}` : '')}
                       title={driftText || undefined}
                       className={`block k-${b.kind}${crossed ? ' crossed' : ''}${current ? ' current' : ''}${short ? ' short' : ''}${tiny ? ' tiny' : ''}${b.label ? '' : ' untitled'}${drift ? ' drifted' : ''}${live && (live.mode !== 'move' || live.moved) ? ' dragging' : ''}`}
                       data-lanes={lanes}
                       style={{ top: (start - r0) * PPM + 1, height: Math.max(14, h - 2), left: `calc(var(--block-space, 100%) * ${lane / lanes} + 6px)`, right: 'auto', width: `calc(var(--block-space, 100%) / ${lanes} - 12px)` }}
                       onPointerDown={isActive ? (e) => onBlockDown(e, b) : undefined}
-                      onClick={(e) => {
+                      onClick={() => {
                         if (suppressTap.current) { suppressTap.current = false; return; } // the end of a long-press move, not a tap
-                        if (isActive && (e.nativeEvent as PointerEvent).pointerType === 'touch') onOpen(b.id);
+                        if (isActive) onOpen(b.id);
                       }}
                       onKeyDown={isActive ? (e) => onBlockKey(e, b) : undefined}
                     >
@@ -303,7 +277,8 @@ export function TimeGrid({
                       <span className="bt">{lanes === 1 && b.subject && <span className="subj">{b.subject} · </span>}{clock(start)}–{clock(end)}{short || lanes > 1 ? '' : ` · ${duration(end - start)}`}</span>
                       {!short && b.note && h >= 64 && <span className="bn">{b.note}</span>}
                       {driftText && !tiny && <span className="bd">{driftText}</span>}
-                      {isActive && <span className="grip" aria-hidden="true" />}
+                      {isActive && <><span className="grip grip-start" data-edge="start" aria-hidden="true" /><span className="grip" data-edge="end" aria-hidden="true" /></>}
+                      {live && <span className="block-drag-time" role="status">{clock(start)}–{clock(end)}</span>}
                     </div>
                   );
                 })}

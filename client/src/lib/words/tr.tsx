@@ -181,6 +181,8 @@ serverStatus: { remedy: 'İlgili ayarı veya kurulum yönergesini aç',"title":"
   fromT: (t) => `başlangıç ${t}`,
   toT: (t) => `bitiş ${t}`,
   blockAria: (label, a, b, kind, crossed) => `${label}, ${a}–${b}, ${kind}${crossed ? ', üstü çizili' : ''}`,
+  blockDragHelp: 'Taşımak için sürükle; süreyi değiştirmek için kenarları sürükle. Alt+Yukarı/Aşağı 5 dakika taşır; Alt+Shift+Yukarı/Aşağı bitişi değiştirir. Dokunmatik ekranda basılı tut. Escape iptal eder.',
+  blockChanged: 'Blok saati değiştirildi',
   dragHint: 'Zaman ayırmak için bu sütunda aşağı doğru sürükle',
   redrawFrom: (t) => `Günün kalanını ${t} itibarıyla yeniden çiz`,
 

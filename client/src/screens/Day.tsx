@@ -415,7 +415,7 @@ export function Day({ date }: { date: string }) {
               {allDayEvents.map((e, k) => <span key={k} className="chip">{e.title}</span>)}
             </div>
           )}
-          <TimeGrid day={day} range={[r0, r1]} now={isToday ? now : null} onColumns={setCols} onOpen={setOpenId} shownCol={shownCol}
+          <TimeGrid day={day} range={[r0, r1]} now={isToday ? now : null} onColumns={setCols} onOpen={setOpenId} onChange={patchBlock} shownCol={shownCol}
             focusAt={focusAt} focusKey={date} sessions={actual} drifts={driftKinds}
             preview={drag?.slot ? { ...drag.slot, label: drag.item.text } : null} events={timedEvents} onEvent={blockOutEvent} />
         </section>
