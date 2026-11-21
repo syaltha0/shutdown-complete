@@ -16,16 +16,11 @@ export function Streak({ T, day, t, docOf, B, now, plan }: OverviewData) {
   const closed = !!day?.shutdown.done;
   const at = day?.shutdown.at ? new Date(day.shutdown.at) : null;
   const nearEnd = now >= (plan.length ? Math.max(...plan.map(b => b.end)) - 30 : 17 * 60);
-  // the streak tile (user, 2026-11-21): the run as one big figure, the last two weeks as the squares the habits use
-  // (two rows of seven, today ringed), this month and the best run as two small figures, the evening's action last
   return <section className={`panel b-streak${closed ? " is-closed" : ""}`}>
     <CardHead title={<>{T.streak}</>} />
     <div className="b-streak-top">
       <div className="b-streak-summary"><strong className="b-streak-number num b-number-lg">{streak}</strong><span>{B.streakUnit(streak)}</span></div>
-      <dl className="b-streak-stats b-number-sm">
-        <div><dt>{B.streakMonthLabel}</dt><dd className="num">{count}<small>/{elapsed}</small></dd></div>
-        <div title={B.streakWindow}><dt>{B.streakBestLabel}</dt><dd className="num">{best}</dd></div>
-      </dl>
+
     </div>
     <div className="b-streak-days" aria-label={B.streakRecent}>
       {Array.from({ length: 14 }, (_, i) => addDays(t, i - 13)).map(d => {
@@ -36,6 +31,10 @@ export function Streak({ T, day, t, docOf, B, now, plan }: OverviewData) {
           className={[done ? "on" : "", weekend ? "weekend" : "", d === t ? "today" : ""].join(" ")} />;
       })}
     </div>
+      <dl className="b-streak-stats b-number-sm">
+        <div><dt>{B.streakMonthLabel}</dt><dd className="num">{count}<small>/{elapsed}</small></dd></div>
+        <div title={B.streakWindow}><dt>{B.streakBestLabel}</dt><dd className="num">{best}</dd></div>
+      </dl>
     {closed ? <span className="b-streak-status">{at && Number.isFinite(at.getTime()) ? B.streakDoneAt(at.toLocaleTimeString(T.locale, { hour: "2-digit", minute: "2-digit", hour12: false })) : B.streakClosed}</span>
       : <a className="b-act" href={`/shutdown/${t}`} onClick={onLinkClick}><span>{!streak ? B.streakStart : nearEnd ? B.streakRun : B.streakTonight}</span><span aria-hidden="true">›</span></a>}
   </section>;
