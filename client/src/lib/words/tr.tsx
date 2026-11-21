@@ -664,6 +664,7 @@ serverStatus: { remedy: 'İlgili ayarı veya kurulum yönergesini aç',"title":"
   tkAddPh: (where) => `${where} listesine görev ekle…`, tkAddPhAny: 'Görev ekle…', tkAdd: 'Ekle',
   tkCompletedN: (n, shown) => `Tamamlanan ${n} görevi ${shown ? 'gizle' : 'göster'}`, tkDeleteDone: 'Tamamlananları sil', tkReopenDone: 'Tamamlananları yeniden aç', tkReopen: 'Yeniden aç',
   triage: {
+    skippedMsg: (t) => `Atlandı: ${t}`,
     start: (n) => `Gelen kutusunu sırayla işle (${n})`, title: 'Gelen kutusunu sırayla işle', progress: (i, n) => `${i} / ${n}`, taskLabel: 'Görev', noteLabel: 'Not', notePh: 'Not',
     today: 'Bugün', tomorrow: 'Yarın', pickDate: 'Tarih seç', setDate: 'Tarihi ayarla', toList: 'Listeye taşı', star: 'Yıldızla', starred: 'Yıldızlı', delete: 'Sil', skip: 'Atla',
     pickList: 'Hangi listeye taşınsın?', noLists: 'Henüz liste yok', back: 'Geri', keys: 'T bugün · Y yarın · D tarih · L liste · S yıldız · Del sil · → atla · Esc kapat',

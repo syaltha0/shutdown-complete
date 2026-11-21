@@ -53,10 +53,9 @@ export function InboxTriage({ ids, items, lists, update, onPlan, onRemove, onClo
   const plan = (d: string) => { if (!blank) void run(() => onPlan(t!, d, back(t!.id))); };
   const star = () => {
     if (!t || busy.current) return;
-    if (t.priority === 1) { patch(t.id, { priority: undefined }); return; }
     const was = t.priority;
-    patch(t.id, { priority: 1 });
-    offerUndo(W.starredMsg(t.text), () => { patch(t.id, { priority: was }); back(t.id)(); });
+    patch(t.id, { priority: was === 1 ? undefined : 1 });
+    offerUndo(was === 1 ? W.unstarredMsg(t.text) : W.starredMsg(t.text), () => { patch(t.id, { priority: was }); back(t.id)(); });
     next(t.id);
   };
   const move = (l: TaskList) => {
@@ -67,6 +66,11 @@ export function InboxTriage({ ids, items, lists, update, onPlan, onRemove, onClo
     next(t.id);
   };
   const remove = () => { if (t) void run(() => onRemove(t, back(t.id))); };
+  const skip = () => {
+    if (!t || busy.current) return;
+    offerUndo(W.skippedMsg(t.text), back(t.id));
+    next(t.id);
+  };
   const stepTo = (s: Step) => { if (!blank) setStep(s); };
 
   const onKey = (e: React.KeyboardEvent) => {
@@ -84,7 +88,7 @@ export function InboxTriage({ ids, items, lists, update, onPlan, onRemove, onClo
     else if (k === 'l') { if (lists.length) stepTo('list'); }
     else if (k === 's') star();
     else if (e.key === 'Delete' || e.key === 'Backspace') remove();
-    else if (e.key === 'ArrowRight') next(t.id);
+    else if (e.key === 'ArrowRight') skip();
     else return;
     e.preventDefault();
   };
@@ -114,7 +118,7 @@ export function InboxTriage({ ids, items, lists, update, onPlan, onRemove, onClo
           <button type="button" className="btn triage-act" disabled={blank || !lists.length} title={lists.length ? undefined : W.noLists} onClick={() => stepTo('list')}>{W.toList}{key('L')}</button>
           <button type="button" className={`btn triage-act${t.priority === 1 ? ' on' : ''}`} aria-pressed={t.priority === 1} disabled={blank} onClick={star}>{t.priority === 1 ? W.starred : W.star}{key('S')}</button>
           <button type="button" className="btn triage-act" onClick={remove}>{W.delete}{key('Del')}</button>
-          <button type="button" className="btn triage-act ghost" onClick={() => next(t.id)}>{W.skip}{key('→')}</button>
+          <button type="button" className="btn triage-act ghost" onClick={skip}>{W.skip}{key('→')}</button>
         </div>}
         {step === 'date' && <form className="triage-step" onSubmit={(e) => { e.preventDefault(); if (date) plan(date); }}>
           <label className="sr-only" htmlFor="triage-date">{W.pickDate}</label>
