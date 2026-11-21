@@ -191,17 +191,4 @@ dialog.sheet .kb-dlg form { padding: 0; }
   .bento .b-tasks { grid-column: 4 / 7; grid-row: 4; }
   .bento .b-ahead { grid-column: 7 / 13; grid-row: 3 / 5; }
   .bento .b-recent, .bento .b-heat { grid-column: span 6; }
-  /* the narrow streak: the number, two weeks as two rows of seven, one line under them */
-  .home.overview:not(.no-habits) .b-streak-days { grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 4px; }
-  .home.overview:not(.no-habits) .b-streak-days a { height: 10px; }
-}
-@media (min-width: 861px) {
-  .home.overview:not(.no-habits) .b-streak-number { font-size: 26px; }
-  .home.overview:not(.no-habits) .b-streak-days { gap: 3px; }
-  .home.overview:not(.no-habits) .b-streak-days a { height: 8px; }
-  .home.overview:not(.no-habits) .b-streak-month { font-size: 11px; line-height: 1.35; }
-}
-/* on a short screen the narrow streak drops its link: the shutdown is already a row of "Still open today" */
-@media (min-width: 861px) and (max-height: 820px) {
-  .home.overview:not(.no-habits) .b-streak .b-act, .home.overview:not(.no-habits) .b-streak-status { display: none; }
 }

@@ -810,6 +810,7 @@ export const en = {
     habitsAdd: 'Add a habit',
     streakUnit: (n: number): string => n === 1 ? 'day' : 'days',
     streakBest: (n: number) => `Best: ${n}`,
+    streakMonthLabel: 'This month', streakBestLabel: 'Best',
     streakWindow: 'Best streak in the last 90 days',
     streakRecent: 'Last 14 days of shutdowns',
     streakClosed: 'Shutdown complete',

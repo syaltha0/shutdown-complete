@@ -796,6 +796,7 @@ serverStatus: { remedy: 'İlgili ayarı veya kurulum yönergesini aç',"title":"
     habitsAdd: 'Alışkanlık ekle',
     streakUnit: (_n: number): string => 'gün',
     streakBest: (n: number) => `En iyi: ${n}`,
+    streakMonthLabel: 'Bu ay', streakBestLabel: 'En iyi',
     streakWindow: 'Son 90 gündeki en uzun seri',
     streakRecent: 'Son 14 günün kapanışları',
     streakClosed: 'Kapanış tamamlandı',
