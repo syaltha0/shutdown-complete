@@ -837,7 +837,7 @@ export const en = {
     weeksSummary: (total: string, average: string, best: string) => `${total} total · ${average}/week · best ${best}`,
     weeksYear: 'Year',
     helloStartHint: 'Choose one priority, then give it a time in your day.',
-    helloDaySummary: (n: number, deep: string, start: string, end: string) => `${n} blocks · ${deep} deep · ${start}–${end}`,
+    helloDaySummary: (n: number, deep: string, start: string, end: string) => `${n} ${n === 1 ? "block" : "blocks"} · ${deep} deep · ${start}–${end}`,
     habitsRecentSummary: (n: number, total: number) => `Last 7 days ${n}/${total}`,
     streakMonth: (n: number, total: number) => `This month ${n}/${total} days closed`,
     helloTemplate: (name: string) => `Start from template: ${name}`,

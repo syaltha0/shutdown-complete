@@ -37,7 +37,7 @@ try {
    const running=(await api.get(key)).value.focus.active;
    assert.equal(running.blockId,'now');assert.equal(running.pausedLeft,null);assert.ok(running.startedAt);
   }
-  if(state==='ended') {await p.locator('.b-hello a.b-act.main').click();await p.waitForURL('**/shutdown/'+iso(noon));}
+  if(state==='ended') {await p.locator('.b-hello a.b-hello-cta').click();await p.waitForURL('**/shutdown/'+iso(noon));}
   if(state==='before'||state==='empty') {await p.locator('.b-hello a.b-act.main').click();await p.waitForURL('**/day/'+iso(noon));}
  }
  mkdirSync('reports/shots/overview-focus',{recursive:true});

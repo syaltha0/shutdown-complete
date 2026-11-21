@@ -62,7 +62,7 @@ export function Hello({ T, settings, t, now, plan, B, day, docs, docOf, monday }
     </div>
     <div className="b-actions">
       {cur ? <button type="button" className="b-act main" disabled={starting} onClick={focus}><span>{active ? T.helloResume : T.focusOn(label)}</span><Chev /></button>
-        : !closed && <a className="b-act main" href={ended ? `/shutdown/${t}` : `/day/${t}`} onClick={onLinkClick}><span>{ended ? T.runShutdown : T.helloPlan}</span><Chev /></a>}
+        : !closed && <a className={ended ? "btn primary b-hello-cta" : "b-act main"} href={ended ? `/shutdown/${t}` : `/day/${t}`} onClick={onLinkClick}><span>{ended ? T.runShutdown : T.helloPlan}</span><Chev /></a>}
     </div>
     {!plan.length && (template || scheduled > 0) && <div className="b-hello-starts">
       {template && <a className="b-act" href={`/day/${t}`} onClick={onLinkClick}><span>{B.helloTemplate(template.name)}</span><Chev /></a>}
@@ -71,10 +71,10 @@ export function Hello({ T, settings, t, now, plan, B, day, docs, docOf, monday }
     <small className="b-hello-summary">{plan.length ? B.helloDaySummary(plan.length, duration(plan.filter(b => b.kind === "deep").reduce((n, b) => n + b.end - b.start, 0)), clock(plan[0].start), clock(Math.max(...plan.map(b => b.end)))) : B.helloStartHint}</small>
     {failed && <span role="alert" className="b-hello-error">{T.helloFocusError}</span>}
     </div>
-    <aside className="b-hello-side" aria-label={side?.title ?? B.helloThisWeek}>
+    <aside className={`b-hello-side${!side && !weekItems.length ? " is-quiet" : ""}`} aria-label={side?.title ?? B.helloThisWeek}>
       {side ? <><h3>{side.title}</h3>
         <ul>{side.items.slice(0, 3).map((b, i) => <li key={b.id}><span className="num">{clock(b.start)}</span><span title={b.label || T.untitledBlock} className={b.kind === "deep" ? "deep" : undefined}>{b.label || T.untitledBlock}</span>{i === 2 && side.items.length > 3 && <small className="b-hello-more" title={B.helloMore(side.items.length - 3)}>{B.helloMore(side.items.length - 3)}</small>}</li>)}</ul></>
-        : !plan.length && weekItems.length > 0 && <><h3>{B.helloWeek}</h3><ul>{weekItems.map(x => <li className="b-hello-week-item" key={x.id}><a href={`/week/${weekOf(t)}`} onClick={onLinkClick}>{x.text}</a></li>)}</ul></>}
+        : weekItems.length > 0 && <><h3>{B.helloWeek}</h3><ul>{weekItems.map(x => <li className="b-hello-week-item" key={x.id}><a href={`/week/${weekOf(t)}`} onClick={onLinkClick}>{x.text}</a></li>)}</ul></>}
       {/* always there: the week so far in three figures, meaningful even on a brand-new account */}
       <h3 className="b-hello-week-title">{B.helloThisWeek}</h3>
       <dl className="b-hello-week b-number-sm">

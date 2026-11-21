@@ -68,3 +68,9 @@
  .b-hello-side ul { gap:0; }
  .b-hello-side li { line-height:14px; }
 }
+/* plan over, day not closed: the shutdown is the one thing left, so it gets the solid button */
+.b-hello .b-actions .b-hello-cta { min-height:0; height:30px; gap:4px; text-decoration:none; }
+.b-hello .b-actions .b-hello-cta > span { white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+/* nothing ahead and no open week items: the week figures sit in the middle instead of under an empty column */
+.b-hello-side.is-quiet { justify-content:center; }
+.b-hello-side.is-quiet .b-hello-week-title { margin-top:0; }
