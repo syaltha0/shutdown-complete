@@ -1,53 +1,25 @@
- .b-recent header { display:flex; align-items:center; justify-content:space-between; gap:8px; }
-.b-recent .b-act { display:inline-flex; gap:4px; color:var(--muted); font-size:11px; text-decoration:none; }
-.b-recent .b-act:hover > span:first-child { text-decoration:underline; text-underline-offset:3px; }
-.b-recent-chart { margin:10px 0 8px; min-width:0; }
-.b-recent .b-bars { display:grid; grid-template-columns:repeat(7,minmax(0,1fr)); gap:10px; }
-.b-recent .b-bars > a { display:flex; flex-direction:column; gap:5px; min-width:0; text-decoration:none; color:var(--text); border-right:1px solid var(--rule); padding-right:10px; }
-.b-recent .b-bars > a:last-child { border:0; padding-right:0; }
-.b-recent-day { order:-1; display:flex; gap:3px; align-items:center; font-size:11px; color:var(--muted); }
-.b-recent-day svg { width:10px; height:10px; fill:none; stroke:currentColor; stroke-width:1.5; }
-.b-recent-value { font-size:14px; font-weight:500; font-variant-numeric:tabular-nums; white-space:nowrap; }
-.b-recent-track { height:3px; background:var(--rule); width:100%; }
-.b-recent-track i { display:block; height:100%; background:var(--muted); max-width:100%; }
-.b-recent-track i.today { background:var(--hue); }
-.b-recent .b-bars small { font-size:10px; color:var(--muted); white-space:nowrap; }
-.b-recent-summary { display:flex; flex-wrap:wrap; justify-content:space-between; gap:2px 8px; }
-.bento .b-recent-summary p { font-size:10px; }
-.b-recent a:focus-visible { outline:2px solid var(--hue); outline-offset:3px; }
-@media(max-width:600px) { .b-recent .b-bars { gap:6px; } .b-recent .b-bars > a { padding-right:6px; } .b-recent-value { font-size:11px; } .b-recent .b-bars small { font-size:9px; } }
-
-.bento .b-recent { gap:6px; }
-.b-recent-chart { margin:4px 0; }
-.b-recent .b-bars > a[aria-current="date"] { color:var(--hue); }
-
-.b-recent .b-bars { gap:6px; } .b-recent .b-bars > a { padding-right:6px; }
-.b-recent-value { font-size:12px; }
-
-.bento .b-recent > header { margin-bottom:0; min-height:22px; }
-.b-recent .b-bars > a { gap:3px; line-height:16px; }
-.bento .b-recent-summary p { line-height:16px; }
-@media(max-width:600px) { .b-recent .b-recent-value { font-size:10px; letter-spacing:-.3px; } }
-
-.b-duration-small { display:none; } @media(max-width:600px) { .b-duration-wide { display:none; } .b-duration-small { display:inline; } }
-
-.bento .b-recent { min-height:0; }
-
-/* each day is a small card that takes the tile's height: the value large, the line and the tasks below (2026-11-15) */
-.bento .b-recent .b-recent-chart { flex: 1 1 auto; min-height: 0; max-height: none; display: flex; margin: 2px 0 0; }
-.bento .b-recent .b-bars { flex: 1 1 auto; align-items: stretch; gap: 8px; height: auto; }
-.bento .b-recent .b-bars > a { display: flex; flex-direction: column; justify-content: space-between; align-items: stretch; gap: 4px; padding: 8px 10px; border-radius: 8px; background: var(--ground); color: var(--text); text-decoration: none; }
-.bento .b-recent .b-bars > a:hover { background: var(--raised); }
-.bento .b-recent .b-bars > a[aria-current="date"] { outline: 1px solid var(--today-ring); outline-offset: -1px; color: var(--text); }
-.bento .b-recent .b-recent-day { position: static; order: -1; color: var(--muted); font-size: 11px; }
-.bento .b-recent .b-recent-value { font-size: 15px; font-weight: 500; }
-.bento .b-recent .b-recent-track { max-width: none; height: 4px; border: 0; border-radius: 2px; background: var(--rule); }
-.bento .b-recent .b-bars small { position: static; display: block; font-size: 10px; color: var(--muted); }
-.bento .b-recent-summary p { font-size: 11px; }
-@media (max-height: 820px) and (min-width: 861px) { .bento .b-recent .b-bars > a { padding: 6px 8px; } .bento .b-recent .b-recent-value { font-size: 13px; } }
-.bento .b-recent .b-recent-value { font-size: 14px; white-space: nowrap; letter-spacing: -0.01em; }
-@media (max-width: 600px) {
-  .bento .b-recent .b-bars { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 6px; }
-  .bento .b-recent .b-bars > a { padding: 6px 8px; }
-  .bento .b-recent { height: auto; }
+/* Seven daily observations share one baseline; only today's data uses blue. */
+.home.bento .b-recent { gap:6px; min-height:0; }
+.b-recent .b-act { display:inline-flex; gap:4px; color:var(--muted); font-size:12px; text-decoration:none; }
+.b-recent .b-act:hover { text-decoration:underline; }
+.home.bento .b-recent-chart { flex:1; min-height:0; display:flex; padding-top:22px; }
+.b-recent .b-bars { display:grid; grid-template-columns:repeat(7,minmax(0,1fr)); gap:8px; flex:1; min-width:0; }
+.b-recent .b-bars > a { display:flex; flex-direction:column; align-items:center; gap:6px; min-width:0; color:var(--text); text-decoration:none; }
+.b-recent-track { position:relative; flex:1; min-height:20px; width:100%; border-bottom:1px solid var(--rule); display:flex; align-items:flex-end; justify-content:center; }
+.b-recent-track > i { display:block; width:42%; max-width:28px; background:var(--muted); border-radius:2px 2px 0 0; }
+.b-recent-track > i.today { background:var(--hue); }
+.home.bento .b-recent-value.b-number-sm { position:absolute; left:50%; transform:translateX(-50%); padding-bottom:4px; font-size:11px; line-height:16px; white-space:nowrap; font-weight:400; }
+.b-recent-day { position:relative; color:var(--muted); font-size:11px; line-height:16px; padding-bottom:5px; }
+.b-recent-closed { position:absolute; width:3px; height:3px; border-radius:50%; background:var(--hue); bottom:0; left:calc(50% - 1.5px); }
+.b-recent a[aria-current="date"] .b-recent-day { color:var(--text); text-decoration:underline; text-decoration-color:var(--today-ring); text-underline-offset:3px; }
+.home.bento .b-recent-summary.b-number-sm { margin-top:auto; font-size:11px; line-height:16px; font-weight:400; }
+.home.bento .b-recent-summary p { font-size:inherit; line-height:inherit; }
+.home.bento .b-recent-empty { flex:1; display:grid; place-content:center; text-align:center; font-size:12px; color:var(--muted); }
+.b-recent .b-bars > a:hover .b-recent-track { border-color:var(--muted); }
+.b-recent a:focus-visible { outline:2px solid var(--today-ring); outline-offset:2px; }
+@media(max-width:860px) { .home.bento .b-recent { min-height:230px; } }
+:root[data-motion="reduce"] .b-recent a { transition:none; }
+@media(max-width:600px) {
+  .home.bento .b-recent-chart { padding-top:30px; }
+  .home.bento .b-recent-value.b-number-sm { width:100%; white-space:normal; text-align:center; line-height:12px; }
 }

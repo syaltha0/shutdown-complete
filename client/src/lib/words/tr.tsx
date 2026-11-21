@@ -810,7 +810,7 @@ serverStatus: { remedy: 'İlgili ayarı veya kurulum yönergesini aç',"title":"
     recentFocus: 'Odak ayrıntıları',
     recentGoal: (s: string) => `Hedef ${s}`,
     recentTasks: (n: number) => `${n} görev`,
-    recentTotal: (total: string, average: string, closed: number) => `${total} · ${average}/gün · ${closed}/7 kapanış`,
+    recentTotal: (total: string, average: string, closed: number) => `Toplam ${total} · ${average}/gün · Kapanış ${closed}/7`,
     recentDelta: (s: string) => `Önceki 7 güne göre ${s}`,
     recentEmpty: 'Henüz etkinlik yok. Günlük ayrıntıların burada görünecek.',
     aheadEmpty: 'Önümüzdeki 14 günde bir şey yok',
