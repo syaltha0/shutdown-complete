@@ -193,6 +193,7 @@ export const en = {
   // block dialogs
   editBlock: 'Edit block', newBlock: 'New block',
   whatFor: 'What is this block for?',
+  blockNoFreeSlot: 'No free interval of at least 30 minutes was found. Review the suggested time.',
   labelPh: 'Study chapter 3, gym, weekly review',
   starts: 'Starts', ends: 'Ends', kind: 'Kind', note: 'Note',
   notePhOverflow: 'If not needed: …',

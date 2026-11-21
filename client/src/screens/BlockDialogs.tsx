@@ -28,9 +28,10 @@ function useModal(open: boolean) {
 
 /** Edits one block of the active column. Every change applies at once; Done closes. */
 export function BlockEditor({
-  onSave, date, day, sessions, block, min, max, onChange, onDelete, onClose, subjects = [], repeatDays = [], onRepeat, estimate, repeatEvery = 1, onRepeatEvery, drift, onDrift,
+  onSave, date, day, sessions, block, min, max, onChange, onDelete, onClose, subjects = [], repeatDays = [], onRepeat, estimate, repeatEvery = 1, onRepeatEvery, drift, onDrift, noFreeSlot,
 }: {
   onSave?: () => void;
+  noFreeSlot?: boolean;
   date?: string;
   day?: DayDoc;
   sessions?: FocusSession[];
@@ -85,6 +86,7 @@ export function BlockEditor({
             </select>
           </div>
         </div>
+        {noFreeSlot && <p className="meta" role="status">{T.blockNoFreeSlot}</p>}
         {estimate && estimate.suggested > block.end - block.start && (
           <p className="est-hint">
             {T.estHint(Math.round((estimate.ratio - 1) * 100), estimate.n)}{' '}
