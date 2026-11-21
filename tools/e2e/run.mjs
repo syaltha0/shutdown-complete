@@ -7,6 +7,7 @@ import { resolve, join } from 'node:path';
 const root = resolve(import.meta.dirname, '../..');
 const suite = ["chrome-qa-b","inbox-triage","search","manual-qa-habits","qa-dates","qa-restore-month","uiux-pass","habits-frequency","habits-visual","quick-capture","daily-profile","home-fit","overview-tasks","overview-open","overview-habits","overview-streak","overview-recent","overview-ahead","overview-weeks","features","signup","planner","tasks","caldav","extras","welcome","publication","calendar-views","calendar-blocks","focus","mobile","metrics","together","focus-widgets","mini-timer","focus-integration","focus-responsive","focus-fit","focus-align","focus-card-v2","tasks-v2","focus-render","week-focus","backup-restore","security","palette","notifications","server-status","plan-actual","load-errors","server-down","schedule-exceptions","conflict-draft","conflict-draft-fields","task-block-link","year","tasks-v3","calendar-drift","week-capacity","day-start","shutdown-handoff","week-experiment","multi-device","manual-qa-day","import","chrome-qa-a","block-overlap","palette-natural"];
 suite.push('block-drag');
+suite.push('overview-timeline');
 
 const quick = ['signup','calendar-views','tasks-v2','focus','mobile','calendar-blocks','backup-restore','security','palette','day-start'];
 let jobs = Math.max(1, Math.min(6, Math.floor(availableParallelism() / 2)));

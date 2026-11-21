@@ -1,162 +1,41 @@
-.bento .b-timeline {
-  display: grid;
-  grid-template-columns: 120px 1fr;
-  grid-template-rows: 24px 12px;
-  align-content: center;
-  gap: 4px 18px;
-}
-.b-timeline h2 {
-  grid-row: span 2;
-  align-self: center;
-}
-.b-track {
-  position: relative;
-  background: var(--ground);
-  height: 24px;
-  display: block;
-}
-.b-track i {
-  position: absolute;
-  top: 3px;
-  bottom: 3px;
-  background: var(--control);
-  border-radius: 2px;
-}
-.b-track .deep i {
-  background: var(--text);
-}
-.b-track b {
-  position: absolute;
-  top: -3px;
-  bottom: -4px;
-  width: 2px;
-  background: var(--hue);
-}
-.b-track em {
-  position: absolute;
-  bottom: 0;
-  height: 2px;
-  background: var(--hue);
-}
-.b-ticks {
-  display: flex;
-  justify-content: space-between;
-  font-size: 10px;
-  color: var(--muted);
-}
-@media (max-width: 860px) {
-  .bento .b-timeline {
-    min-height: 80px;
-    grid-template-columns: 1fr;
-    grid-template-rows: auto 24px 12px;
-  }
-}
-@media (max-width: 860px) {
-  .b-timeline h2 {
-    grid-row: auto;
-  }
-}
-.bento .b-timeline {
-  grid-template-rows: 32px 12px;
-}
-.b-track {
-  height: 32px;
-}
-.b-track i {
-  color: var(--text);
-  font-style: normal;
-  font-size: 11px;
-  display: flex;
-  align-items: center;
-  overflow: hidden;
-  padding-inline: 3px;
-  box-sizing: border-box;
-  container-type: inline-size;
-}
-.b-track i span {
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-@container (max-width:35px) {
-  .b-track i span {
-    display: none;
-  }
-}
-.b-track .deep i {
-  color: var(--primary-ink);
-}
-.b-track em {
-  bottom: -3px;
-}
-.b-ticks {
-  position: relative;
-  display: block;
-}
-.b-ticks span {
-  position: absolute;
-  transform: translateX(-50%);
-}
-.b-ticks span:first-child {
-  transform: none;
-}
-.b-ticks span:last-child {
-  transform: translateX(-100%);
-}
-@media (max-width: 860px) {
-  .bento .b-timeline {
-    grid-template-rows: auto 32px 12px;
-  }
-}
-
-.b-timeline h2 { min-width: 0; }
-.b-revision { display: block; color: var(--muted); font-size: 10px; font-weight: 400; }
-.b-timeline-block { position: absolute; top: 0; bottom: 0; color: var(--text); }
-.b-track .b-timeline-block i { inset: 3px 0; border: 1px solid transparent; }
-.b-track .meeting i { background: var(--surface); border-color: var(--text); }
-.b-track .overflow i { background: var(--surface); border: 1px dashed var(--line-strong); }
-.b-track .personal i { background-color: var(--surface); background-image: var(--hatch); }
-.b-track .past i { opacity: .68; }
-.b-track .current i { border-color: var(--hue); }
-.b-timeline-block:focus-visible { outline: 2px solid var(--hue); outline-offset: 2px; z-index: 4; }
-.b-timeline-tip { display: none; position: absolute; bottom: calc(100% + 7px); left: 50%; transform: translateX(-50%); width: max-content; max-width: min(260px, 70vw); padding: 6px 9px; background: var(--text); color: var(--ground); font-size: 11px; line-height: 1.4; border-radius: 3px; pointer-events: none; }
-.b-timeline-block:hover, .b-timeline-block:focus-visible { z-index: 5; }
-.b-timeline-block:hover .b-timeline-tip, .b-timeline-block:focus-visible .b-timeline-tip { display: block; }
-.b-timeline-block:first-of-type .b-timeline-tip { left: 0; transform: none; }
-.b-timeline-block:last-of-type .b-timeline-tip { left: auto; right: 0; transform: none; }
-.b-track b, .b-track em { pointer-events: none; }
-.b-track.is-empty { border: 1px dashed var(--line-strong); box-sizing: border-box; }
-.b-empty-plan { display: flex; height: 100%; align-items: center; justify-content: center; font-size: 12px; color: var(--muted); }
-.b-empty-plan:focus-visible { outline: 2px solid var(--hue); }
-@media (max-width: 860px) { .b-revision { display: inline; margin-left: 8px; } }
-
-/* the title on one line, level with the track; a rounder track and blocks (user, 2026-11-14) */
-@media (min-width: 861px) {
-  .bento .b-timeline { grid-template-columns: auto 1fr; }
-  .b-timeline h2 { grid-row: 1; align-self: center; white-space: nowrap; }
-  .b-timeline .b-ticks { grid-column: 2; }
-}
-.b-track { border-radius: 8px; overflow: hidden; }
-.b-track a > i, .b-track i { border-radius: 6px; }
-
-.b-track { height: 28px; border-radius: 4px; overflow: visible; } .bento .b-timeline { grid-template-rows: 28px 12px; } .b-track .b-timeline-block i { inset: 0 1px; border-radius: 4px; text-align: left; } .b-track .personal i { background: var(--ground); background-image: none; } .b-track.is-empty { border: 0; } .b-time-grid { position: absolute; top: 0; bottom: -4px; width: 1px; background: var(--rule); pointer-events: none; } .b-track b { width: 1px; z-index: 6; } .b-track b > span { position: absolute; bottom: 100%; left: 0; transform: translateX(-50%); color: var(--hue); background: none; font-size: 9px; font-weight: 400; white-space: nowrap; } @media(max-width:860px) { .bento .b-timeline { grid-template-rows: auto 28px 12px; } }
-
-/* the track: unplanned time is a dashed outline, so an empty day reads as room to fill (user, 2026-11-17) */
-.b-track { background: transparent; border: 1px dashed var(--line-soft); border-radius: 6px; box-sizing: border-box; }
-.b-track.is-empty { border: 1px dashed var(--line-mid); }
-.b-track .b-time-grid { top: 4px; bottom: 4px; }
-.b-empty-plan { position: relative; z-index: 3; width: max-content; margin-inline: auto; padding-inline: 10px; background: none; color: var(--muted); }
-.b-empty-plan:hover { color: var(--text); }
-/* the now line runs behind the blocks, so a label is never cut through; its time stays above the track */
-.b-track b { z-index: 1; }
-.b-track b > span { z-index: 7; }
-.b-timeline-block { z-index: 2; }
-.b-empty-plan[style] { position: absolute; top: 0; transform: translateX(-50%); margin: 0; white-space: nowrap; }
-
-/* blocks sit apart and borders never meet (user, 2026-11-21): a small gap between neighbours, no dashed outline inside
-   the dashed track, and every kind is a filled shape in greys (deep darkest), the appointment keeps its thin frame */
-.b-track .b-timeline-block i { inset: 2px 1.5px; border-radius: 4px; }
-.b-track .overflow i { background: color-mix(in srgb, var(--text) 7%, var(--surface)); border: 0; }
-.b-track .personal i { background: color-mix(in srgb, var(--text) 4%, var(--surface)); border: 0; }
-.b-track .shallow i { background: color-mix(in srgb, var(--text) 14%, var(--surface)); }
-.b-track .meeting i { border: 1px solid var(--line-strong); }
+/* Shared heading with the current time above the plan and its axis. */
+.home.bento .b-timeline { display:grid; grid-template-columns:minmax(0,1fr); grid-template-rows:20px 28px 14px; align-content:center; gap:4px; padding-block:10px; }
+.home.bento .b-timeline .b-head { margin:0; }
+.b-timeline .b-head-aside { display:flex; align-items:center; gap:12px; }
+.b-timeline-now { color:var(--hue); font-size:12px; font-variant-numeric:tabular-nums; }
+.b-track { position:relative; display:block; height:28px; margin-top:0; background:transparent; border:1px dashed var(--line-soft); border-radius:6px; box-sizing:border-box; overflow:visible; }
+.b-track.is-empty { border-color:var(--line-mid); }
+.b-time-grid { position:absolute; top:4px; bottom:4px; width:1px; background:var(--rule); pointer-events:none; }
+.b-timeline-block { position:absolute; top:0; bottom:0; z-index:2; color:var(--text); }
+.b-track .b-timeline-block i { position:absolute; inset:2px 1.5px; display:flex; align-items:center; padding-inline:7px; box-sizing:border-box; border:1px solid transparent; border-radius:4px; background:var(--control); color:var(--text); font-size:12px; font-style:normal; overflow:hidden; container-type:inline-size; }
+.b-track i span { display:block; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+/* A small neutral edge encodes kind even when a name cannot fit. */
+.b-track i::before { content:''; position:absolute; left:3px; top:5px; bottom:5px; width:2px; border-radius:1px; background:currentColor; opacity:.45; }
+.b-track .deep i { background:var(--text); color:var(--primary-ink); }
+.b-track .meeting i { background:var(--surface); border-color:var(--line-strong); }
+.b-track .meeting i::before { top:50%; bottom:auto; width:3px; height:3px; transform:translateY(-50%); border-radius:50%; }
+.b-track .shallow i { background:color-mix(in srgb,var(--text) 14%,var(--surface)); }
+.b-track .overflow i { background:color-mix(in srgb,var(--text) 7%,var(--surface)); }
+.b-track .overflow i::before { background:none; border-left:1px dashed currentColor; }
+.b-track .personal i { background:color-mix(in srgb,var(--text) 4%,var(--surface)); }
+.b-track .personal i::before { width:3px; background:none; border:1px solid currentColor; }
+.b-track .past i { opacity:.5; }
+.b-track .current i { border-color:var(--hue); }
+@container (max-width:44px) { .b-track i span { visibility:hidden; } }
+.b-timeline-block:focus-visible { outline:2px solid var(--hue); outline-offset:2px; z-index:5; }
+.b-timeline-block:hover, .b-timeline-block:focus-visible { z-index:5; }
+.b-timeline-tip { display:none; position:absolute; bottom:calc(100% + 7px); left:50%; transform:translateX(-50%); width:max-content; max-width:min(260px,70vw); padding:6px 9px; background:var(--text); color:var(--ground); font-size:12px; line-height:1.4; border-radius:3px; pointer-events:none; }
+.b-timeline-block:hover .b-timeline-tip, .b-timeline-block:focus-visible .b-timeline-tip { display:block; }
+.b-timeline-block:first-of-type .b-timeline-tip { left:0; transform:none; }
+.b-timeline-block:last-of-type .b-timeline-tip { left:auto; right:0; transform:none; }
+.b-track b { position:absolute; top:-3px; bottom:-4px; width:1px; background:var(--hue); z-index:1; pointer-events:none; }
+.b-track em { position:absolute; bottom:-3px; height:2px; background:var(--hue); pointer-events:none; }
+.b-ticks { position:relative; height:14px; color:var(--muted); font-size:11px; line-height:14px; font-variant-numeric:tabular-nums; }
+.b-ticks span { position:absolute; transform:translateX(-50%); }
+.b-ticks span:first-child { transform:none; }
+.b-ticks span:last-child { transform:translateX(-100%); }
+.b-empty-plan { position:relative; z-index:3; display:flex; align-items:center; justify-content:center; width:max-content; height:100%; margin-inline:auto; padding-inline:10px; font-size:12px; color:var(--muted); }
+.b-empty-plan[style] { position:absolute; top:0; transform:translateX(-50%); margin:0; white-space:nowrap; }
+.b-empty-plan:hover { color:var(--text); }
+.b-empty-plan:focus-visible { outline:2px solid var(--hue); }
+@media (max-width:860px) { .home.bento .b-timeline { min-height:112px; padding-block:14px; } }
