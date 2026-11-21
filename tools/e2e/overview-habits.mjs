@@ -20,9 +20,10 @@ try {
   for(const [width,height] of [[1440,900],[390,844]]) for(const theme of ['light','dark']) {
    await p.setViewportSize({width,height});await p.goto(s.url+'/');const tile=p.locator('.b-habits');await tile.waitFor();await p.waitForTimeout(350);
    await p.evaluate(t=>document.documentElement.dataset.theme=t,theme);
-   assert.equal(await tile.locator('button').count(),count);
+   // whole rows only: what does not fit waits behind one "+n more" row that leads to Habits
+   {const shown=await tile.locator('button').count();assert.ok(shown<=count&&(count===0||shown>=1),'rows '+shown+'/'+count);assert.equal(await tile.locator('.b-habit-more').count(),shown<count?1:0);}
    assert.equal(await tile.locator('.b-habits-complete').count(),state==='complete'?1:0);
-   if(count===6){await tile.locator('button').last().scrollIntoViewIfNeeded();assert.ok(await tile.locator('button').last().isVisible());await tile.locator('.b-habit-list').evaluate(e=>e.scrollTop=0);}
+   if(count===6&&await tile.locator('.b-habit-more').count())assert.ok(await tile.locator('.b-habit-more').isVisible(),'more row visible');
    assert.ok(await tile.evaluate(e=>e.scrollWidth<=e.clientWidth+1&&e.scrollHeight<=e.clientHeight+1),'tile fits '+state+width);
    // up to four habits are all in view, with no scrolling inside the tile (user, 2026-11-14)
    if(count&&count<=3&&width>1000) assert.ok(await tile.evaluate(e=>{const b=e.getBoundingClientRect().bottom;return [...e.querySelectorAll('.b-habit-row')].every(r=>r.getBoundingClientRect().bottom<=b+1);}),'every habit row in view '+state+width);
