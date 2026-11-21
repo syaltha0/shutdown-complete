@@ -1,16 +1,15 @@
 import { CardHead } from "./CardHead";
 import { addDays, addMonths, fmtDay, monthOf } from "../../lib/dates";
-import { activeColumn, emptyMonth, featureOn, type DayDoc, type MonthDoc } from "../../lib/model";
+import { activeColumn, emptyMonth, featureOn, type MonthDoc } from "../../lib/model";
 import { onLinkClick } from "../../lib/router";
-import { useDoc, useRange } from "../../lib/useDoc";
+import { useDoc } from "../../lib/useDoc";
 import { nextDate } from "../../screens/Countdown";
 import { RoundAction } from "./RoundAction";
 import type { OverviewData } from "./data";
-export function Ahead({ settings, t, B, monday }: OverviewData) {
+export function Ahead({ settings, t, B, monday, docs }: OverviewData) {
   const link = (href: string, text: string) => (
     <a className="b-act" href={href} onClick={onLinkClick}><span>{text}</span><b aria-hidden="true">›</b></a>
   );
-  const { docs } = useRange<DayDoc>(`day:${monday}`, `day:${addDays(t, 14)}`);
   const blocks = (d: string) => {
     const doc = docs?.get(`day:${d}`);
     return doc?.columns.length ? [...activeColumn(doc).blocks].sort((a, b) => a.start - b.start) : [];

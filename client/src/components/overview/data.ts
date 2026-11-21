@@ -18,9 +18,10 @@ export function useOverviewData() {
         (d) => placeRepeats(d, t, settings.schedule, settings.exceptions) ?? d,
       );
   }, [day != null, settings.schedule, settings.exceptions]);
+  // one request for every card: 90 days back (habits, twelve weeks) to 14 ahead (the coming two weeks)
   const { docs } = useRange<DayDoc>(
     `day:${addDays(t, -90)}`,
-    `day:${addDays(t, 1)}`,
+    `day:${addDays(t, 14)}`,
   );
   const plan = day
     ? [...activeColumn(day).blocks].sort((a, b) => a.start - b.start)
@@ -34,7 +35,10 @@ export function useOverviewData() {
       .reduce((n, s) => n + s.minutes, 0);
   const B = T.bento;
   const monday = addDays(t, -((new Date(t + "T12:00:00").getDay() + 6) % 7));
+  // until today and the range have arrived the cards stay blank, so a reload never flashes "no plan yet"
+  const ready = day != null && docs != null;
   return {
+    ready,
     T,
     settings,
     t,

@@ -27,34 +27,35 @@ import { inView } from './lib/tasks';
 // The day and the overview come with the app; every other screen is its own file, fetched the first time it opens
 // (and fetched ahead once the app is idle, so the service worker has it for working offline).
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-const later = <M,>(load: () => Promise<M>, name: keyof M) => { loaders.push(load); return lazy(() => load().then((m) => ({ default: m[name] as ComponentType<any> }))); };
-const loaders: (() => Promise<unknown>)[] = [];
+const later = <M,>(load: () => Promise<M>, name: keyof M, need?: Feature | 'signedOut') => { loaders.push({ load, need }); return lazy(() => load().then((m) => ({ default: m[name] as ComponentType<any> }))); };
+const loaders: { load: () => Promise<unknown>; need?: Feature | 'signedOut' }[] = [];
 const Search = later(() => import('./screens/Search'), 'Search');
-const Auth = later(() => import('./screens/Auth'), 'Auth');
+const Auth = later(() => import('./screens/Auth'), 'Auth', 'signedOut');
 // a visitor on a sign-in page gets its screen while the session is being checked, not after
 if (isAuthPath(location.pathname)) import('./screens/Auth').catch(() => {});
-const MustChange = later(() => import('./screens/Auth'), 'MustChange');
-const Welcome = later(() => import('./screens/Welcome'), 'Welcome');
+const MustChange = later(() => import('./screens/Auth'), 'MustChange', 'signedOut');
+const Welcome = later(() => import('./screens/Welcome'), 'Welcome', 'signedOut');
 const WeekPlan = later(() => import('./screens/WeekPlan'), 'WeekPlan');
 const WeekReview = later(() => import('./screens/WeekReview'), 'WeekReview');
-const Boards = later(() => import('./screens/boards/Projects'), 'Boards');
-const LegacyBoard = later(() => import('./screens/boards/Project'), 'LegacyBoard');
-const PersonalProject = later(() => import('./screens/boards/Project'), 'PersonalProject');
-const TeamProject = later(() => import('./screens/boards/Project'), 'TeamProject');
+const Boards = later(() => import('./screens/boards/Projects'), 'Boards', 'boards');
+const LegacyBoard = later(() => import('./screens/boards/Project'), 'LegacyBoard', 'boards');
+const PersonalProject = later(() => import('./screens/boards/Project'), 'PersonalProject', 'boards');
+const TeamProject = later(() => import('./screens/boards/Project'), 'TeamProject', 'boards');
 const Week = later(() => import('./screens/Week'), 'Week');
 const Month = later(() => import('./screens/Month'), 'Month');
 const Year = later(() => import('./screens/Year'), 'Year');
 const Quarter = later(() => import('./screens/Quarter'), 'Quarter');
 const Focus = later(() => import('./screens/Focus'), 'Focus');
-const Habits = later(() => import('./screens/Habits'), 'Habits');
-const Metrics = later(() => import('./screens/Metrics'), 'Metrics');
+const Habits = later(() => import('./screens/Habits'), 'Habits', 'habits');
+const Metrics = later(() => import('./screens/Metrics'), 'Metrics', 'metrics');
 const Shutdown = later(() => import('./screens/Shutdown'), 'Shutdown');
 const ServerStatus = later(() => import('./screens/ServerStatus'), 'ServerStatus');
 const SettingsScreen = later(() => import('./screens/Settings'), 'SettingsScreen');
 /** Fetches the screens not opened yet, one at a time, while the browser has nothing else to do. */
-function fetchAhead() {
+function fetchAhead(skip: (need: Feature | 'signedOut') => boolean) {
+  const wanted = loaders.filter((l) => !l.need || !skip(l.need)).map((l) => l.load);
   const idle = (fn: () => void) => (typeof window.requestIdleCallback === 'function' ? window.requestIdleCallback(fn, { timeout: 4000 }) : setTimeout(fn, 1200));
-  const next = (i: number) => { if (i < loaders.length) idle(() => { loaders[i]().catch(() => {}).finally(() => next(i + 1)); }); };
+  const next = (i: number) => { if (i < wanted.length) idle(() => { wanted[i]().catch(() => {}).finally(() => next(i + 1)); }); };
   window.setTimeout(() => next(0), 2500);
 }
 import CommandPalette from './components/CommandPalette';
@@ -237,7 +238,8 @@ function Shell() {
   // a part turned off has no screen: its address leads to the overview
   useEffect(() => { if (!r || !on(r.nav)) navigate('/', true); }, [r?.nav, settings.features]); // eslint-disable-line react-hooks/exhaustive-deps
   useEffect(() => setMore(false), [path]);
-  useEffect(fetchAhead, []);
+  // signed in: never the sign-in screens or the welcome, and only the parts this account has turned on
+  useEffect(() => fetchAhead((need) => need === 'signedOut' || !featureOn(settings, need)), []); // eslint-disable-line react-hooks/exhaustive-deps
   useEffect(() => {
     const open = (e: KeyboardEvent) => {
       if ((e.ctrlKey || e.metaKey) && !e.altKey && e.key.toLowerCase() === 'k') { e.preventDefault(); setMore(false); flushSync(() => setPalette(v => !v)); }
