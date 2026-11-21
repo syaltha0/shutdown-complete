@@ -24,7 +24,10 @@
 @container (max-width:44px) { .b-track i span { visibility:hidden; } }
 .b-timeline-block:focus-visible { outline:2px solid var(--hue); outline-offset:2px; z-index:5; }
 .b-timeline-block:hover, .b-timeline-block:focus-visible { z-index:5; }
-.b-timeline-tip { display:none; position:absolute; bottom:calc(100% + 7px); left:50%; transform:translateX(-50%); width:max-content; max-width:min(260px,70vw); padding:6px 9px; background:var(--text); color:var(--ground); font-size:12px; line-height:1.4; border-radius:3px; pointer-events:none; }
+/* the only hover note (no native title beside it): the name, then the time, kind and focus in a quieter line */
+.b-timeline-tip { display:none; position:absolute; bottom:calc(100% + 8px); left:50%; z-index:5; transform:translateX(-50%); width:max-content; max-width:min(240px,70vw); padding:7px 10px 8px; background:var(--text); color:var(--ground); border-radius:6px; pointer-events:none; text-align:left; }
+.b-timeline-tip strong { display:block; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font-size:13px; font-weight:500; line-height:18px; }
+.b-timeline-tip span { display:block; font-size:11px; line-height:16px; opacity:.72; white-space:nowrap; font-variant-numeric:tabular-nums; }
 .b-timeline-block:hover .b-timeline-tip, .b-timeline-block:focus-visible .b-timeline-tip { display:block; }
 .b-timeline-block:first-of-type .b-timeline-tip { left:0; transform:none; }
 .b-timeline-block:last-of-type .b-timeline-tip { left:auto; right:0; transform:none; }

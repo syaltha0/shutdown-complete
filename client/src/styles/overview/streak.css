@@ -8,7 +8,8 @@
 .home.bento .b-streak .b-streak-days a { display:block; box-sizing:border-box; width:100%; height:auto; aspect-ratio:1; border:1px solid var(--line-soft); border-radius:2px; }
 .b-streak-days a.weekend:not(.on) { background:color-mix(in srgb,var(--text) 8%,transparent); }
 .b-streak-days a.on { background:var(--hue); border-color:var(--hue); }
-.b-streak-days a.today { outline:1px solid var(--today-ring); outline-offset:1px; }
+/* today, still open: an empty square edged in the data colour; once closed it fills like the rest */
+.home.bento .b-streak .b-streak-days a.today:not(.on) { background:transparent; border:1.5px solid var(--hue); }
 .b-streak-days a:hover { border-color:var(--text); }
 .b-streak-days a:focus-visible, .b-streak .b-act:focus-visible { outline:2px solid var(--focus-ring); outline-offset:2px; }
 .home.bento .b-streak .b-streak-stats { display:flex; align-items:baseline; flex-wrap:wrap; gap:3px 7px; margin:0; }

@@ -6,14 +6,16 @@
 .b-heat-days small { align-self:center; text-align:center; font-size:11px; line-height:1; }
 .b-heatmap { display:grid; grid-auto-flow:column; grid-template-columns:repeat(12,minmax(0,1fr)); grid-template-rows:repeat(7,minmax(0,1fr)); gap:3px; flex:1; min-width:0; }
 .b-heatmap a { display:block; aspect-ratio:1; height:100%; max-width:100%; max-height:100%; justify-self:center; border-radius:2px; }
-.b-heat .heat-0 { background:var(--rule); }
-.b-heat .heat-1 { background:color-mix(in srgb,var(--hue) 25%,transparent); }
-.b-heat .heat-2 { background:color-mix(in srgb,var(--hue) 50%,transparent); }
-.b-heat .heat-3 { background:color-mix(in srgb,var(--hue) 75%,transparent); }
-.b-heat .heat-4 { background:var(--hue); }
+.b-heat .heat-0 { --cell:var(--rule); background:var(--cell); }
+.b-heat .heat-1 { --cell:color-mix(in srgb,var(--hue) 25%,transparent); background:var(--cell); }
+.b-heat .heat-2 { --cell:color-mix(in srgb,var(--hue) 50%,transparent); background:var(--cell); }
+.b-heat .heat-3 { --cell:color-mix(in srgb,var(--hue) 75%,transparent); background:var(--cell); }
+.b-heat .heat-4 { --cell:var(--hue); background:var(--cell); }
 .b-heat .b-heat-future { background:transparent; border:1px dashed var(--rule); }
 .b-heat-today { outline:1px solid var(--today-ring); outline-offset:1px; }
-.b-heatmap a:hover, .b-heatmap a:focus-visible { outline:2px solid var(--text); outline-offset:1px; }
+.b-heatmap a:hover { background:color-mix(in srgb,var(--cell,transparent) 55%,var(--text)); }
+.b-heatmap a.b-heat-future:hover { background:transparent; border-color:var(--text); }
+.b-heatmap a:focus-visible { outline:2px solid var(--focus-ring); outline-offset:1px; }
 .home.bento .b-heat-foot.b-number-sm { display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:3px 12px; margin-top:auto; font-size:11px; font-weight:400; line-height:16px; }
 .home.bento .b-heat-foot p { font-size:inherit; line-height:inherit; }
 .b-heat-legend { display:flex; flex-wrap:wrap; gap:7px; color:var(--muted); font-size:11px; line-height:16px; }

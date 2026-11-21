@@ -775,6 +775,7 @@ serverStatus: { remedy: 'İlgili ayarı veya kurulum yönergesini aç',"title":"
     of: (s: string) => `Hedef: ${s}`,
     timelineRevision: (n: number) => `${n}. revizyon`,
     timelineEmpty: 'Plan yok · Bugünü planla ›',
+    timelineFocused: (time: string) => `${time} odak`,
     timelineBlock: (name: string, start: string, end: string, minutes: number) => `${name} · ${start}–${end} · ${minutes} dk odak`,
     timeline: 'Bugünün planı',
     ahead: 'Önümüzdeki 14 gün',

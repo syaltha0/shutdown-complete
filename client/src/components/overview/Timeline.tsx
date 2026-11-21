@@ -1,5 +1,5 @@
 import { CardHead } from "./CardHead";
-import { clock } from "../../lib/dates";
+import { clock, duration } from "../../lib/dates";
 import { onLinkClick } from "../../lib/router";
 import { OverviewTimelineLabel } from "./TimelineLabel";
 import type { OverviewData } from "./data";
@@ -24,10 +24,10 @@ export function Timeline({ T, settings, t, now, day, plan, B }: OverviewData) {
           const minutes = (day?.focus?.sessions ?? []).filter(s => s.blockId === b.id).reduce((sum, s) => sum + s.minutes, 0);
           const description = `${T.kinds[b.kind].name} · ${B.timelineBlock(b.label || T.untitledBlock, clock(b.start), clock(b.end), minutes)}`;
           return <a key={b.id} href={`/day/${t}`} onClick={onLinkClick}
-            title={description} aria-label={description} className={`b-timeline-block ${b.kind} ${b.end <= now ? "past" : b.start <= now ? "current" : ""}`}
+            aria-label={description} className={`b-timeline-block ${b.kind} ${b.end <= now ? "past" : b.start <= now ? "current" : ""}`}
             style={{left: `${at(b.start)}%`, width: `${at(b.end) - at(b.start)}%`}}>
             <i><OverviewTimelineLabel text={b.label || T.untitledBlock} /></i>
-            <span className="b-timeline-tip" aria-hidden="true">{description}</span>
+            <span className="b-timeline-tip" aria-hidden="true"><strong>{b.label || T.untitledBlock}</strong><span>{clock(b.start)}–{clock(b.end)} · {T.kinds[b.kind].name}{minutes > 0 ? ` · ${B.timelineFocused(duration(minutes))}` : ""}</span></span>
           </a>;
         })}
         {now >= from && now <= to && <b aria-hidden="true" style={{ left: `${at(now)}%` }} />}

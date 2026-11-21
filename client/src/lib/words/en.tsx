@@ -789,6 +789,7 @@ export const en = {
     of: (s: string) => `of ${s}`,
     timelineRevision: (n: number) => `revision ${n}`,
     timelineEmpty: 'Nothing planned · Plan today ›',
+    timelineFocused: (time: string) => `${time} focused`,
     timelineBlock: (name: string, start: string, end: string, minutes: number) => `${name} · ${start}–${end} · ${minutes} min focused`,
     timeline: "Today's timeline",
     ahead: 'Next 14 days',

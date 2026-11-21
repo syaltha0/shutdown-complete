@@ -180,8 +180,8 @@ dialog.sheet .kb-dlg form { padding: 0; }
 /* Overview: daily work above recent history. */
 @media (min-width: 861px) {
   .home.overview.bento { grid-template-columns: repeat(12, minmax(0, 1fr)); grid-template-rows: 1.15fr 80px 1fr 1fr 1.15fr; }
-  .bento .b-hello { grid-column: 1 / 7; grid-row: 1; }
-  .bento .b-habits { grid-column: 7 / 13; grid-row: 1; }
+  .bento .b-hello { grid-column: 1 / 8; grid-row: 1; }
+  .bento .b-habits { grid-column: 8 / 13; grid-row: 1; }
   .no-habits .b-hello { grid-column: 1 / -1; }
   .bento .b-timeline { grid-column: 1 / -1; grid-row: 2; }
   .bento .b-today { grid-column: 1 / 5; grid-row: 3 / 5; }
