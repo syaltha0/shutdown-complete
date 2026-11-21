@@ -1,72 +1,70 @@
-.b-hello { justify-content: center; }
-.b-now { overflow-wrap: anywhere; font-size: clamp(20px, 2vw, 30px); line-height: 1.2; white-space: normal; }
-.b-hello-detail { display: grid; gap: 5px; min-width: 0; font-size: 12px; line-height: 1.3; }
-.b-hello-detail > span, .b-hello-next { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.b-hello-time { display: flex; justify-content: space-between; gap: 12px; font-variant-numeric: tabular-nums; }
-.b-hello-time > :last-child { color: var(--hue); }
-.b-hello-progress { height: 3px; background: var(--border); overflow: hidden; border-radius: 2px; }
-.b-hello-progress > span { display: block; height: 100%; background: var(--hue); }
-.b-actions { display: flex; align-items: center; gap: 8px; margin-top: 2px; min-width: 0; }
-.b-actions .btn { min-width: 0; max-width: 70%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 12px; padding: 5px 10px; }
-.b-actions .btn:last-child { flex-shrink: 0; }
-.b-hello-error { font-size: 11px; }
-@media (max-height: 820px) and (min-width: 861px) { .b-hello-detail { gap: 3px; font-size: 11px; } .b-hello .b-now { overflow-wrap: anywhere; font-size: 22px; } .b-hello .b-actions .btn { padding: 3px 8px; } }
-.bento .b-hello { gap: 6px; }
-.b-hello .b-now { flex-shrink: 0; }
-.b-hello .b-actions .btn { min-height: 30px; line-height: 1.2; }
-.b-hello-detail { gap: 3px; }
-@media (max-height: 820px) and (min-width: 861px) { .bento .b-hello { gap: 4px; } .b-hello .b-actions .btn { min-height: 26px; } }
-
-/* the actions are quiet links like the other tiles' (user, 2026-11-14): the main one in ink, the other muted */
-.b-actions { gap: 18px; }
-.b-act { display: inline-flex; align-items: center; gap: 2px; min-width: 0; min-height: 28px; padding: 0; border: 0; background: none; color: var(--muted); font: inherit; font-size: 13px; cursor: pointer; text-decoration: none; }
-.b-act > span { overflow-wrap: anywhere; white-space: normal; }
-.b-act svg { flex: none; }
-.b-act.main { color: var(--text); font-weight: 500; }
-.b-act:hover > span { text-decoration: underline; text-underline-offset: 3px; }
-.b-act:disabled { opacity: .5; cursor: default; }
-.b-act:focus-visible { outline: 2px solid var(--focus-ring); outline-offset: 3px; border-radius: 4px; }
-
-/* content from the top, actions at the foot, and what comes next on the right (user, 2026-11-14) */
-.bento .b-hello { flex-direction: row; justify-content: flex-start; gap: 24px; }
-.b-hello-main { display: flex; flex-direction: column; gap: 6px; flex: 1 1 auto; min-width: 0; }
-.b-hello-main .b-actions { margin-top: auto; }
-.b-hello-side { flex: 0 0 38%; min-width: 0; display: flex; flex-direction: column; gap: 6px; padding-left: 20px; border-left: 1px solid var(--rule); }
-.b-hello-side h3 { margin: 0; font-size: 12px; font-weight: 500; color: var(--muted); }
-.b-hello-side ul { margin: 0; padding: 0; list-style: none; display: grid; gap: 6px; }
-.b-hello-side li { display: grid; grid-template-columns: 42px minmax(0, 1fr); gap: 8px; font-size: 13px; }
-.b-hello-side li > span:first-child { color: var(--muted); }
-.b-hello-side li > span:last-child { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.b-hello-side li .deep { font-weight: 500; }
-@media (max-width: 860px) { .bento .b-hello { flex-direction: column; } .b-hello-side { flex-basis: auto; padding: 10px 0 0; border-left: 0; border-top: 1px solid var(--rule); } }
-
-.b-hello-main .b-actions { margin-top: 8px; } .b-hello-summary { color: var(--muted); font-size: 12px; line-height: 1.5; }
-
-.b-hello-starts { display: grid; gap: 2px; } .b-hello-side .b-hello-week-item { display: block; } .b-hello-week-item a { color: var(--text); }
-.b-hello-starts .b-act { min-height: 18px; font-size: 12px; }
-
-
-.b-hello-summary { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; flex-shrink: 0; } .b-hello-main { gap: 5px; } .b-hello-main .b-actions { margin-top: 2px; }
-
-/* the side column always ends with the week so far, so it is never an empty half */
-.b-hello-side { justify-content: center; }
-.b-hello-week-title { margin-top: 0 !important; padding-top: 8px; }
-.b-hello-week { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; margin: 0; }
-.b-hello-week dt { color: var(--muted); font-size: 11px; }
-.b-hello-week dd { margin: 0; font-size: 16px; font-weight: 500; }
-.b-hello-week dd { white-space: nowrap; font-size: 15px; }
-.b-hello-side { gap: 4px; }
-.b-hello-side ul { gap: 3px; }
-.b-hello-week-title { padding-top: 4px; }
-.b-hello-week dd { font-size: 14px; line-height: 1.3; }
-@media (max-height: 820px) and (min-width: 861px) { .b-hello-week-title { display: none; } .b-hello-week dt { font-size: 10px; } }
-
-@media (max-height: 820px) and (min-width: 861px) {
-  .b-hello-main { gap: 1px; }
-  .b-hello-main h2 { line-height: 18px; }
-  .b-hello-main .b-act { min-height: 20px; line-height: 1.2; }
-  .b-hello-main .b-hello-starts .b-act { min-height: 18px; }
-  .b-hello-summary { line-height: 14px; }
+﻿/* Greeting: a quiet heading above the day's single next action. */
+.home.bento .b-hello { display:flex; flex-direction:row; gap:20px; }
+.home.bento .b-hello-main { display:flex; flex-direction:column; flex:1 1 auto; min-width:0; gap:4px; }
+.b-hello .b-now { min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font-size:clamp(20px, 1.65vw, 28px); line-height:1.25; flex:none; }
+.b-hello-detail { display:grid; gap:5px; min-width:0; font-size:12px; line-height:1.4; }
+.b-hello-detail > span { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.b-hello-time { display:flex; justify-content:space-between; gap:8px; font-variant-numeric:tabular-nums; }
+.b-hello-time > :last-child { color:var(--hue); }
+.b-hello-progress { height:3px; background:var(--border); border-radius:2px; overflow:hidden; }
+.b-hello-progress > span { display:block; height:100%; background:var(--hue); }
+.b-actions { display:flex; align-items:center; gap:18px; min-width:0; }
+.b-act { display:inline-flex; align-items:center; gap:2px; min-width:0; min-height:28px; padding:0; border:0; background:none; color:var(--muted); font:inherit; font-size:13px; cursor:pointer; text-decoration:none; }
+.b-act > span { overflow-wrap:anywhere; white-space:normal; }
+.b-act svg { flex:none; }
+.b-act.main { color:var(--text); font-weight:500; }
+.b-act:hover > span { text-decoration:underline; text-underline-offset:3px; }
+.b-act:disabled { opacity:.5; cursor:default; }
+.b-act:focus-visible { outline:2px solid var(--focus-ring); outline-offset:3px; border-radius:4px; }
+.home.bento .b-hello-main .b-actions { margin-top:auto; padding-top:8px; }
+.b-hello .b-actions .main { max-width:100%; min-height:30px; }
+.b-hello .b-actions .main > span { white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.b-hello-starts { display:grid; gap:2px; }
+.b-hello-starts .b-act { min-height:18px; font-size:12px; }
+.b-hello-summary { display:block; color:var(--muted); font-size:12px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; flex:none; }
+.b-hello-error { font-size:11px; }
+.b-hello-side { flex:0 0 39%; min-width:0; display:flex; flex-direction:column; gap:5px; padding-left:18px; border-left:1px solid var(--rule); }
+.b-hello-side h3 { margin:0; font-size:12px; font-weight:500; line-height:18px; color:var(--muted); }
+.b-hello-side ul { margin:0; padding:0; list-style:none; display:grid; gap:4px; }
+.b-hello-side li { display:flex; align-items:baseline; gap:8px; min-width:0; font-size:12px; line-height:18px; }
+.b-hello-side li > span:first-child { flex:0 0 36px; color:var(--muted); }
+.b-hello-side li > span:last-of-type { min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.b-hello-side li .deep { font-weight:500; }
+.b-hello-more { margin-left:auto; color:var(--muted); font-size:11px; flex:none; }
+.b-hello-side .b-hello-week-item { display:block; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.b-hello-week-item a { color:var(--text); }
+.b-hello-side .b-hello-week-title { margin-top:auto; padding-top:6px; }
+.b-hello-week { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:8px; margin:0; }
+.b-hello-week dt { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.b-hello-week dd { margin:2px 0 0; white-space:nowrap; line-height:1.3; }
+@media (min-width:861px) and (max-height:820px) {
+ .home.bento .b-hello { gap:14px; }
+ .home.bento .b-hello-main { gap:2px; }
+ .b-hello-side { gap:2px; padding-left:14px; }
+ .b-hello-side ul { gap:1px; }
+ .b-hello-side .b-hello-week-title { padding-top:2px; }
+ .home.bento .b-hello-main .b-actions { padding-top:3px; }
+ .b-hello .b-actions .main { min-height:24px; }
+ .b-hello-detail { font-size:11px; gap:3px; }
 }
-
-@media (min-width: 861px) { .b-hello-main { justify-content: center; } }
+@media (max-width:860px) {
+ .home.bento .b-hello { flex-direction:column; gap:14px; }
+ .b-hello .b-now { font-size:24px; }
+ .home.bento .b-hello-main .b-actions { margin-top:8px; padding-top:0; }
+ .b-hello-side { flex-basis:auto; padding:12px 0 0; border-left:0; border-top:1px solid var(--rule); }
+ .b-hello-side .b-hello-week-title { margin-top:4px; }
+ .b-hello .b-actions .main { min-height:36px; }
+}
+/* Keep three upcoming rows and the shared figures inside the fixed desktop card. */
+.b-hello-side { gap:3px; }
+.b-hello-side h3 { line-height:16px; }
+.b-hello-side ul { gap:2px; }
+.b-hello-side li { line-height:16px; }
+.b-hello-side .b-hello-week-title { padding-top:2px; }
+.home.bento .b-hello-week dt { line-height:14px; }
+.home.bento .b-hello-week dd { line-height:18px; }
+@media (min-width:861px) and (max-height:820px) {
+ .b-hello-side { gap:2px; }
+ .b-hello-side ul { gap:0; }
+ .b-hello-side li { line-height:14px; }
+}

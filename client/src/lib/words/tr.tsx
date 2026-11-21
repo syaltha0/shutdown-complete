@@ -740,6 +740,7 @@ serverStatus: { remedy: 'İlgili ayarı veya kurulum yönergesini aç',"title":"
     helloWeekClosed: 'Kapanış',
     tasksOpen: (n: number) => `${n} açık`,
     helloUpNext: 'Sıradaki',
+    helloMore: (n: number) => `+${n}`,
     helloTomorrow: 'Yarın',
     openLog: 'Gir', openSort: 'Düzenle', openDoneLine: (n: number) => `${n} bitti`,
     openLeft: (n: number) => n === 0 ? 'Tamamlanacak bir şey kalmadı' : `Tamamlanacak ${n} öğe`,

@@ -754,6 +754,7 @@ export const en = {
     helloWeekClosed: 'Shutdowns',
     tasksOpen: (n: number) => `${n} open`,
     helloUpNext: 'Up next',
+    helloMore: (n: number) => `+${n}`,
     helloTomorrow: 'Tomorrow',
     openLog: 'Log', openSort: 'Sort', openDoneLine: (n: number) => `${n} done`,
     openLeft: (n: number) => n === 0 ? 'Nothing left to close' : `${n} left to close`,
