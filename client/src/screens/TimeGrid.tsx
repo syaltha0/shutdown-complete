@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
+import { layoutBlocks } from '../lib/layout';
 import { clock, duration, minutesOf } from '../lib/dates';
 import { useT } from '../lib/i18n';
 import { IconRepeat } from '../components/Icons';
@@ -235,6 +236,7 @@ export function TimeGrid({
       <div className="cols">
         {day.columns.map((col, ci) => {
           const isActive = ci === last;
+          const layout = layoutBlocks(col.blocks);
           const name = ci === 0 ? T.plan : T.revisionN(ci);
           const before = col.from != null && col.from > r0 ? (col.from - r0) * PPM : 0;
           const ghost = drag && drag.mode === 'create' && isActive ? drag : null;
@@ -269,6 +271,7 @@ export function TimeGrid({
                   );
                 })}
                 {col.blocks.map((b) => {
+                  const { lane, lanes } = layout.get(b.id)!;
                   const live = drag && 'id' in drag && drag.id === b.id && isActive ? drag : null;
                   const start = live ? live.start : b.start, end = live ? live.end : b.end;
                   const crossed = col.closedAt != null && b.end > col.closedAt;
@@ -287,7 +290,8 @@ export function TimeGrid({
                       aria-label={T.blockAria(b.label || T.untitledBlock, clock(start), clock(end), T.kinds[b.kind].name, crossed) + (driftText ? `. ${driftText}` : '')}
                       title={driftText || undefined}
                       className={`block k-${b.kind}${crossed ? ' crossed' : ''}${current ? ' current' : ''}${short ? ' short' : ''}${tiny ? ' tiny' : ''}${b.label ? '' : ' untitled'}${drift ? ' drifted' : ''}${live && (live.mode !== 'move' || live.moved) ? ' dragging' : ''}`}
-                      style={{ top: (start - r0) * PPM + 1, height: Math.max(14, h - 2) }}
+                      data-lanes={lanes}
+                      style={{ top: (start - r0) * PPM + 1, height: Math.max(14, h - 2), left: `calc(var(--block-space, 100%) * ${lane / lanes} + 6px)`, right: 'auto', width: `calc(var(--block-space, 100%) / ${lanes} - 12px)` }}
                       onPointerDown={isActive ? (e) => onBlockDown(e, b) : undefined}
                       onClick={(e) => {
                         if (suppressTap.current) { suppressTap.current = false; return; } // the end of a long-press move, not a tap
@@ -296,7 +300,7 @@ export function TimeGrid({
                       onKeyDown={isActive ? (e) => onBlockKey(e, b) : undefined}
                     >
                       <span className="bl">{b.repeatId && <span className="rep" title={T.repeatsWeekly}><IconRepeat /></span>}{b.label || T.untitled}{day.tasks.find(t => b.task ? t.id === b.task.id : t.text === b.label)?.done && <span aria-label={T.taskBlock.done}> {T.taskBlock.done}</span>}{b.task?.list === 'day' && b.task.day && !day.tasks.some(t => t.id === b.task!.id) && <span>{T.taskBlock.deleted}</span>}</span>
-                      <span className="bt">{b.subject && <span className="subj">{b.subject} · </span>}{clock(start)}–{clock(end)}{short ? '' : ` · ${duration(end - start)}`}</span>
+                      <span className="bt">{lanes === 1 && b.subject && <span className="subj">{b.subject} · </span>}{clock(start)}–{clock(end)}{short || lanes > 1 ? '' : ` · ${duration(end - start)}`}</span>
                       {!short && b.note && h >= 64 && <span className="bn">{b.note}</span>}
                       {driftText && !tiny && <span className="bd">{driftText}</span>}
                       {isActive && <span className="grip" aria-hidden="true" />}

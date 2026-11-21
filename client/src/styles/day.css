@@ -74,6 +74,10 @@
 @media (max-width: 860px) { .cal-form { grid-template-columns: 1fr; } }
 .block.short { flex-direction: row; align-items: center; gap: 8px; padding-top: 0; padding-bottom: 0; }
 .block.short .bn { display: none; }
+.block[data-lanes]:not([data-lanes="1"]) { padding-left: 6px; padding-right: 6px; }
+.block[data-lanes]:not([data-lanes="1"]) .bl { min-width: 0; }
+.block[data-lanes]:not([data-lanes="1"]) .bt { flex-shrink: 0; overflow: visible; font-size: 11px; }
+.block.short[data-lanes]:not([data-lanes="1"]) .bl { flex: 1; }
 .block.tiny { gap: 6px; padding: 0 6px 0 8px; }
 .block.tiny .bl, .block.tiny .bt { font-size: 11px; line-height: 14px; }
 .block.tiny .grip { height: 4px; }
@@ -105,7 +109,7 @@
 .cal-event-wrap { pointer-events: none; z-index: 2; }
 .cal-event-wrap .cal-event { left: 73%; pointer-events: auto; cursor: pointer; }
 .cal-event-wrap .kb-pop { pointer-events: auto; }
-.col-body:has(.cal-event-wrap) .block { right: 29%; }
+.col-body:has(.cal-event-wrap) { --block-space: 71%; }
 
 .cal-event-wrap .ct { flex-shrink: 0; }
 .cal-event-wrap .cw { white-space: nowrap; }
