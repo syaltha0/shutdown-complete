@@ -40,6 +40,7 @@ try {
  await page.goto(`${srv.url}/settings/account`);
  await page.locator('section[aria-labelledby="a-sessions"]').getByText('Taray\u0131c\u0131', {exact:true}).waitFor();
  await page.locator('section[aria-labelledby="a-pk"]').getByText('Windows \u00fczerinde Chrome', {exact:true}).waitFor();
- assert.match(await page.locator('#a-pk-name').inputValue(), /Windows \u00fczerinde Chrome/);
+ // the name field suggests this browser on the machine running the test (Windows here, Linux in CI)
+ assert.match(await page.locator('#a-pk-name').inputValue(), /^\S+ \u00fczerinde Chrome$/);
  console.log('PASS account has no untranslated Browser label');
 } finally { await browser.close(); await srv.stop(); }

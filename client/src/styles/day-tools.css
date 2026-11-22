@@ -78,6 +78,7 @@
 .friends-opt svg { transition: transform 160ms ease; }
 .friends-opt[aria-expanded="true"] svg { transform: rotate(90deg); }
 :root[data-motion="reduce"] .friends-opt svg { transition: none; }
+@media (pointer: coarse) { .friends-opt { min-height: 44px; min-width: 44px; } }
 .friends-online { display: grid; gap: 6px; }
 .friends-online.is-empty { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; }
 .friends-options { display: grid; gap: 12px; padding-top: 12px; border-top: 1px solid var(--rule); }

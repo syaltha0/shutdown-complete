@@ -2,21 +2,24 @@ import { launch } from '../lib/browser.mjs';
 import { startServer, client } from '../lib/server.mjs';
 import { demoAccount, iso } from '../lib/demo.mjs';
 import { mkdirSync } from 'node:fs';
+// a fixed local noon, so the next block never crosses the evening or midnight whatever the hour the test runs
+const noon = new Date(); noon.setHours(12, 0, 0, 0);
 const s = await startServer();
-const api = await demoAccount(client(s.url), { lang: 'tr' });
+const api = await demoAccount(client(s.url), { lang: 'tr', today: noon });
 const b = await launch();
 const c = await b.newContext({ viewport: { width: 1440, height: 900 }, reducedMotion: 'reduce', timezoneId: 'Europe/Istanbul' });
 await c.addCookies([{ name: 'sc_session', value: api.cookie.split('=')[1], url: s.url }]);
 const p = await c.newPage();
+await p.clock.install({ time: noon });
 const check = (name, ok) => { if (!ok) throw Error(name); console.log('PASS ' + name); };
-const key = 'day:' + iso(new Date());
+const key = 'day:' + iso(noon);
 const wait = async (fn) => { for(let i=0;i<50;i++){ if(await fn()) return true; await p.waitForTimeout(150); } return false; };
 const shots = process.env.FOCUS_WIDGET_SHOTS || 'reports/focus-shots/widgets';
 mkdirSync(shots, { recursive: true });
 try {
   const day = (await api.get(key)).value;
   day.metrics.deep = 1.5;
-  const n = new Date(); const now = n.getHours()*60+n.getMinutes();
+  const now = 12 * 60;
   day.columns.at(-1).blocks = [
     { id: 'fw-current', label: 'Mevcut blok', start: now-10, end: now+20, kind: 'deep' },
     { id: 'fw-next', label: 'Öğle arası', start: now+20, end: now+80, kind: 'personal' }
