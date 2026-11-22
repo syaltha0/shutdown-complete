@@ -13,6 +13,8 @@ try {
    const c = await b.newContext({viewport:{width,height}, hasTouch:width<=1180, isMobile:width<860, reducedMotion:'reduce'});
    await c.addCookies([{name:'sc_session',value:api.cookie.split('=')[1],url:s.url}]);
    const p = await c.newPage();
+   // Windows Chrome keeps (pointer: fine) even with hasTouch; touch emulation makes the 44px target check run everywhere, not only on Linux CI
+   if(width<=1180) await (await c.newCDPSession(p)).send('Emulation.setTouchEmulationEnabled',{enabled:true,maxTouchPoints:5});
    p.on('pageerror', error => console.error('pageerror', lang, width, height, error.stack));
    for (const state of ['idle','running','settings','room']) {
     const key='day:'+iso(new Date()), d=(await api.get(key)).value;
@@ -23,6 +25,8 @@ try {
     for (const theme of ['light','dark']) {
      await p.evaluate(t=>{document.documentElement.dataset.theme=t;document.documentElement.dataset.motion='reduce'},theme);
      await p.waitForTimeout(80);
+     // measure settled boxes: a popover or panel still scaling in reads small on a slow runner
+     await p.evaluate(()=>Promise.all(document.getAnimations().filter(a=>Number.isFinite(a.effect?.getComputedTiming().endTime)).map(a=>a.finished.catch(()=>{}))));
      const m=await p.evaluate(()=>{
       const rect=e=>{const r=e.getBoundingClientRect();return {x:r.x,y:r.y,right:r.right,bottom:r.bottom,width:r.width,height:r.height}};
       const panels=[...document.querySelectorAll('.focus-grid .panel')].map(rect);
