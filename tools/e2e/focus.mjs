@@ -78,8 +78,10 @@ try {
   check('timer keeps ticking inside settings', await until(async () => await p.locator('.focus-config-time').innerText() !== timeBefore));
   for (const width of [390, 360]) {
     await p.setViewportSize({width, height:900});
+    const settle = () => p.evaluate(() => new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r))));
+    await settle();
     const openHeight = await p.locator('.focus-panel').evaluate(el => el.getBoundingClientRect().height);
-    await p.locator('.focus-config-anchor > button').click();
+    await p.locator('.focus-config-anchor > button').click(); await settle();
     const timerHeight = await p.locator('.focus-panel').evaluate(el => el.getBoundingClientRect().height);
     check('running settings preserve phone height ' + width, Math.abs(openHeight - timerHeight) < 1);
     await p.locator('.focus-config-anchor > button').click();

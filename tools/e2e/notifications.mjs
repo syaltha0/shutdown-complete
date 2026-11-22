@@ -83,6 +83,8 @@ try {
   await until('settings saved', async () => { const n = (await api.get('settings')).value.notify; return n?.eveningAt === '18:20' && n?.focus === false && n?.weekends === true; });
   const n1 = (await api.get('settings')).value.notify;
   check('choices saved', n1.morning === true && n1.morningAt === '07:45' && n1.evening === true && n1.weekends === true && n1.focus === false);
+  // leave the settings screen first, so its copy of the choices cannot be saved back over the reset below
+  await p.goto('about:blank');
   await api.put('settings', { ...(await api.get('settings')).value, notify: undefined });
 
   // ---- the server's pushes, as the fake push service receives them ----
